@@ -257,6 +257,109 @@
   gap: 0.75rem;
 }
 
+.mm-delete-all-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.35rem;
+}
+
+.mm-delete-all-bar {
+  position: relative;
+  height: 1.55rem;
+  width: min(100%, 22rem);
+}
+
+.mm-delete-all-state {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+  transition: opacity 0.12s ease;
+}
+
+.mm-delete-all-state--hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mm-delete-all-btn,
+.mm-delete-all-yes,
+.mm-delete-all-no {
+  font-family: var(--font-mono);
+  cursor: pointer;
+  border-radius: 1px;
+  transition:
+    color 0.14s,
+    border-color 0.14s,
+    background 0.14s;
+}
+
+.mm-delete-all-btn {
+  padding: 0.28rem 0.62rem;
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(220, 80, 55, 0.42);
+  background: transparent;
+  border: 1px solid rgba(220, 80, 55, 0.14);
+}
+
+.mm-delete-all-btn:hover,
+.mm-delete-all-btn:focus-visible {
+  color: rgba(220, 80, 55, 0.82);
+  border-color: rgba(220, 80, 55, 0.34);
+  background: rgba(232, 32, 32, 0.06);
+}
+
+.mm-delete-all-confirm-label {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(220, 80, 55, 0.62);
+}
+
+.mm-delete-all-yes,
+.mm-delete-all-no {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  padding: 0;
+  font-size: 0.72rem;
+  line-height: 1;
+}
+
+.mm-delete-all-yes {
+  color: rgba(220, 80, 55, 0.82);
+  background: rgba(232, 32, 32, 0.07);
+  border: 1px solid rgba(220, 80, 55, 0.28);
+}
+
+.mm-delete-all-yes:hover,
+.mm-delete-all-yes:focus-visible {
+  background: rgba(232, 32, 32, 0.18);
+  color: rgba(240, 95, 65, 1);
+  border-color: rgba(220, 80, 55, 0.52);
+}
+
+.mm-delete-all-no {
+  color: rgba(138, 104, 72, 0.52);
+  background: transparent;
+  border: 1px solid rgba(138, 104, 72, 0.18);
+}
+
+.mm-delete-all-no:hover,
+.mm-delete-all-no:focus-visible {
+  color: rgba(138, 104, 72, 0.82);
+  border-color: rgba(138, 104, 72, 0.32);
+  background: rgba(138, 104, 72, 0.08);
+}
+
 .mm-footer-meta {
   position: absolute;
   right: 1.5rem;
@@ -871,6 +974,47 @@
 :root[data-theme="light"] .mm-slot-destroy-cancel:hover {
   background: rgba(90, 78, 68, 0.06);
   color: rgba(90, 78, 68, 0.8);
+}
+
+:root[data-theme="light"] .mm-delete-all-btn {
+  color: rgba(128, 60, 50, 0.42);
+  border-color: rgba(128, 60, 50, 0.14);
+}
+
+:root[data-theme="light"] .mm-delete-all-btn:hover,
+:root[data-theme="light"] .mm-delete-all-btn:focus-visible {
+  color: rgba(128, 60, 50, 0.82);
+  border-color: rgba(128, 60, 50, 0.34);
+  background: rgba(145, 66, 55, 0.06);
+}
+
+:root[data-theme="light"] .mm-delete-all-confirm-label {
+  color: rgba(128, 60, 50, 0.62);
+}
+
+:root[data-theme="light"] .mm-delete-all-yes {
+  color: rgba(128, 60, 50, 0.85);
+  background: rgba(145, 66, 55, 0.06);
+  border-color: rgba(128, 60, 50, 0.24);
+}
+
+:root[data-theme="light"] .mm-delete-all-yes:hover,
+:root[data-theme="light"] .mm-delete-all-yes:focus-visible {
+  background: rgba(145, 66, 55, 0.14);
+  color: var(--color-danger);
+  border-color: rgba(128, 60, 50, 0.42);
+}
+
+:root[data-theme="light"] .mm-delete-all-no {
+  color: rgba(90, 78, 68, 0.52);
+  border-color: rgba(90, 78, 68, 0.18);
+}
+
+:root[data-theme="light"] .mm-delete-all-no:hover,
+:root[data-theme="light"] .mm-delete-all-no:focus-visible {
+  color: rgba(90, 78, 68, 0.82);
+  border-color: rgba(90, 78, 68, 0.32);
+  background: rgba(90, 78, 68, 0.08);
 }
 
 :root[data-theme="light"] .mm-volume-input::-webkit-slider-thumb {

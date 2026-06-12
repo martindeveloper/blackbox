@@ -256,6 +256,9 @@ export const en = {
     deleteSlot: "Delete slot",
     confirmDeleteSlot: "Confirm delete slot",
     cancelDeleteSlot: "Cancel delete slot",
+    deleteAllData: "Delete all data",
+    confirmDeleteAllData: "Confirm delete all data",
+    cancelDeleteAllData: "Cancel delete all data",
     relativeTime: {
       justNow: "just now",
       minutesAgo: "{{count}}m ago",

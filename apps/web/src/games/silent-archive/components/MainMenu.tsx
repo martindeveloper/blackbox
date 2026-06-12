@@ -5,7 +5,13 @@ import { useAppSettings } from "../../../engine/context/AppSettings.js";
 import { useManagedTexture } from "../../../engine/hooks/useAssetScope.js";
 import { bundleStore } from "../../../engine/lib/bundleStore.js";
 import { isEditableTarget } from "../../../engine/lib/keyboard.js";
-import { clearSlot, readAllSlots, SLOT_COUNT, type SlotData } from "../../../engine/lib/slots.js";
+import {
+  clearAllPlayerData,
+  clearSlot,
+  readAllSlots,
+  SLOT_COUNT,
+  type SlotData,
+} from "../../../engine/lib/slots.js";
 import { BugIcon, HeadphonesIcon } from "./Icons.js";
 import { RestartConfirmButtons } from "./RestartConfirm.js";
 
@@ -122,6 +128,11 @@ export function MainMenu({
     [lastUsedSlot],
   );
 
+  const handleDestroyAllData = useCallback(() => {
+    clearAllPlayerData();
+    window.location.reload();
+  }, []);
+
   const handleContinue = useCallback(() => {
     if (selectedSlot === null || !selectedSlotData || menuLoading) return;
     persistLastUsedSlot(selectedSlot);
@@ -200,6 +211,7 @@ export function MainMenu({
           lastUsedSlot={lastUsedSlot}
           onSelect={handleSelectSlot}
           onDestroySlot={handleDestroySlot}
+          onDestroyAllData={handleDestroyAllData}
           t={t}
         />
       ) : view === "headphones" ? (
@@ -289,14 +301,18 @@ function SlotSelector({
   lastUsedSlot,
   onSelect,
   onDestroySlot,
+  onDestroyAllData,
   t,
 }: {
   slots: (SlotData | null)[];
   lastUsedSlot: number | null;
   onSelect: (index: number) => void;
   onDestroySlot: (index: number) => void;
+  onDestroyAllData: () => void;
   t: ReturnType<typeof useTranslation>["t"];
 }) {
+  const [destroyAllPending, setDestroyAllPending] = useState(false);
+
   return (
     <div
       style={{
@@ -326,6 +342,51 @@ function SlotSelector({
             t={t}
           />
         ))}
+      </div>
+
+      <div
+        className="mm-delete-all-wrap"
+        style={{ animation: "fade-up 0.42s ease-out both", animationDelay: "0.38s" }}
+      >
+        <div className="mm-delete-all-bar">
+          <div
+            className={`mm-delete-all-state${destroyAllPending ? " mm-delete-all-state--hidden" : ""}`}
+          >
+            <button
+              type="button"
+              className="mm-delete-all-btn"
+              onClick={() => setDestroyAllPending(true)}
+            >
+              {t("mainMenu.deleteAllData")}
+            </button>
+          </div>
+          <div
+            className={`mm-delete-all-state mm-delete-all-state--confirm${destroyAllPending ? "" : " mm-delete-all-state--hidden"}`}
+          >
+            <span className="mm-delete-all-confirm-label">{t("confirm.confirm")}</span>
+            <button
+              type="button"
+              className="mm-delete-all-yes"
+              onClick={() => {
+                onDestroyAllData();
+                setDestroyAllPending(false);
+              }}
+              aria-label={t("mainMenu.confirmDeleteAllData")}
+              title={t("confirm.confirm")}
+            >
+              ✓
+            </button>
+            <button
+              type="button"
+              className="mm-delete-all-no"
+              onClick={() => setDestroyAllPending(false)}
+              aria-label={t("mainMenu.cancelDeleteAllData")}
+              title={t("confirm.cancel")}
+            >
+              ✗
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

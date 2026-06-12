@@ -134,6 +134,23 @@ export function clearSlot(index: number): void {
   } catch {}
 }
 
+const PLAYER_DATA_PREFIX = "blackbox_";
+
+export function clearAllPlayerData(): void {
+  try {
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key?.startsWith(PLAYER_DATA_PREFIX)) {
+        keysToRemove.push(key);
+      }
+    }
+    for (const key of keysToRemove) {
+      localStorage.removeItem(key);
+    }
+  } catch {}
+}
+
 export function readAllSlots(): (SlotData | null)[] {
   return Array.from({ length: SLOT_COUNT }, (_, i) => readSlot(i));
 }
