@@ -47,14 +47,14 @@ const AutoIcon = () => (
     fill="none"
     stroke="currentColor"
     strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
     aria-hidden="true"
   >
-    <rect x="2" y="4" width="20" height="12" rx="2" />
-    <path d="M12 4v12" />
-    <path d="M8 20h8" strokeLinecap="round" />
-    <path d="M12 16v4" strokeLinecap="round" />
-    <circle cx="7" cy="10" r="2" />
-    <path d="M16.5 8.5a2.5 2.5 0 100 5" strokeLinecap="round" strokeLinejoin="round" />
+    <rect x="2" y="3" width="20" height="14" rx="2" />
+    <path d="M6 13h12" />
+    <path d="M8 21h8" />
+    <path d="M12 17v4" />
   </svg>
 );
 
