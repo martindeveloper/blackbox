@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title></title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="apple-touch-icon" href="/game-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Share+Tech+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <div id="bb-preloader" class="bb-preloader-root" role="status">
+      <div class="boot-beam"></div>
+      <svg
+        class="bb-preloader-icon"
+        width="48"
+        height="35"
+        viewBox="0 0 20 14"
+        fill="none"
+        aria-hidden="true"
+        style="color: var(--color-accent, #ff6d1a)"
+      >
+        <rect
+          x="0.5"
+          y="0.5"
+          width="19"
+          height="13"
+          rx="1.5"
+          stroke="currentColor"
+          stroke-width="1"
+        />
+        <rect
+          x="3"
+          y="3"
+          width="8"
+          height="8"
+          rx="0.5"
+          stroke="currentColor"
+          stroke-width="0.75"
+          fill="currentColor"
+          fill-opacity="0.2"
+        />
+        <circle cx="15.5" cy="7" r="2.8" stroke="currentColor" stroke-width="1" />
+        <circle cx="15.5" cy="7" r="1.1" fill="currentColor" />
+        <line
+          x1="3"
+          y1="5.5"
+          x2="11"
+          y2="5.5"
+          stroke="currentColor"
+          stroke-width="0.5"
+          opacity="0.5"
+        />
+        <line x1="3" y1="7" x2="11" y2="7" stroke="currentColor" stroke-width="0.5" opacity="0.4" />
+        <line
+          x1="3"
+          y1="8.5"
+          x2="8"
+          y2="8.5"
+          stroke="currentColor"
+          stroke-width="0.5"
+          opacity="0.3"
+        />
+      </svg>
+      <div class="bb-preloader-text">
+        <div class="bb-preloader-label"></div>
+        <div class="bb-preloader-sublabel"></div>
+      </div>
+      <div class="bb-preloader-dots">
+        <div class="boot-dot" style="animation-delay: 0s"></div>
+        <div class="boot-dot" style="animation-delay: 0.2s"></div>
+        <div class="boot-dot" style="animation-delay: 0.4s"></div>
+        <div class="boot-dot" style="animation-delay: 0.6s"></div>
+        <div class="boot-dot" style="animation-delay: 0.8s"></div>
+      </div>
+      <div class="bb-preloader-progress">
+        <div class="bb-preloader-progress-fill" id="bb-preloader-bar"></div>
+      </div>
+    </div>
+    <div id="root"></div>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

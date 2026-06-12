@@ -1,0 +1,31 @@
+@theme {
+  --color-bg: #070503;
+  --color-surface: #0d0804;
+  --color-surface-2: #160e06;
+  --color-border: #281608;
+  --color-border-2: #3a2210;
+
+  --color-accent: #ff6d1a;
+  --color-amber: #ff6d1a;
+  --color-magenta: #e03b8a;
+  --color-cyan: #00bdd4;
+  --color-danger: #e82020;
+  --color-success: #50e878;
+  --category-damage: #ff4938;
+  --category-healing: #3ecf9a;
+  --category-stat: #e8b84a;
+  --category-stat-up: #58e888;
+  --category-stat-down: #ff5a48;
+  --category-intel: #00bdd4;
+  --category-item: #50e878;
+  --category-journal: #d4743a;
+
+  --color-text: #d8c4a4;
+  --color-muted: #4a3020;
+  --color-muted-2: #8a6848;
+
+  --font-display: "Bebas Neue", "Impact", sans-serif;
+  --font-mono: "Share Tech Mono", "Courier New", monospace;
+  --font-narrative: "Cormorant Garamond", "Palatino Linotype", serif;
+  --font-sans: "Share Tech Mono", "Courier New", monospace;
+}

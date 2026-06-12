@@ -1,0 +1,10 @@
+language = "C"
+include_guard = "BLACKBOX_H"
+usize_is_size_t = true
+documentation = true
+
+[export]
+include = ["ByteSlice"]
+
+[fn]
+sort_by = "Name"

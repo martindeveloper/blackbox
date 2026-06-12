@@ -1,0 +1,37 @@
+{
+  "spec": "com.blackbox.library",
+  "formatVersion": 1,
+  "snippets": {
+    "hud_vitals": {
+      "kind": "stage_direction",
+      "text": "Inventory: {item.access_card} access card(s). HP: {stat.hp}/{stat.max_hp}."
+    },
+    "hud": {
+      "kind": "stage_direction",
+      "text": "HP: {stat.hp}/{stat.max_hp}.{param.extra_stats}"
+    }
+  },
+  "templates": {
+    "game_over_standard": {
+      "title": "Game Over",
+      "mode": "game_over",
+      "onEnter": [{ "type": "stopMusic" }],
+      "text": [
+        { "$snippet": "hud", "params": { "extra_stats": "" } },
+        { "kind": "paragraph", "text": "The test scenario has ended." }
+      ],
+      "choices": [
+        {
+          "id": "restart",
+          "label": "Restart from the hub.",
+          "action": { "type": "restartGame", "startNodeId": "hub_intro" }
+        },
+        {
+          "id": "main_menu",
+          "label": "Go to main menu.",
+          "action": { "type": "openMainMenu" }
+        }
+      ]
+    }
+  }
+}

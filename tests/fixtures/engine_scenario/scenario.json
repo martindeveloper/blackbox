@@ -1,0 +1,38 @@
+{
+  "spec": "com.blackbox.scenario",
+  "formatVersion": 1,
+  "title": "Engine Test Scenario",
+  "revision": "1.0",
+  "defaultStats": {
+    "hp": 10,
+    "max_hp": 10,
+    "empathy": 3,
+    "logic": 3,
+    "violence": 1,
+    "conviction": 3
+  },
+  "randomSeed": 1337,
+  "itemsRef": "items.json",
+  "charactersRef": "characters.json",
+  "assetsRef": "../../assets/assets.json",
+  "libraryRef": "library.json",
+  "deathNode": {
+    "title": "Game Over",
+    "onEnter": [{ "type": "stopMusic" }],
+    "text": [
+      { "kind": "stage_direction", "text": "Your vitals flatline." },
+      { "kind": "paragraph", "text": "The scenario ends here." }
+    ],
+    "choices": [
+      {
+        "id": "restart",
+        "label": "Restart from the hub.",
+        "action": { "type": "restartGame", "startNodeId": "hub_intro" }
+      }
+    ]
+  },
+  "chapters": [
+    { "id": "hub", "title": "Hub", "ref": "chapter_hub.json" },
+    { "id": "passage", "title": "Passage", "ref": "chapter_passage.json" }
+  ]
+}

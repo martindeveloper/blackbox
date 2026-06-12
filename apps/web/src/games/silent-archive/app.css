@@ -1,0 +1,18 @@
+@import "tailwindcss";
+@source "../../";
+
+@import "./styles/theme.css";
+@import "./styles/boot.css";
+@import "./styles/character.css";
+@import "./styles/game-shell.css";
+@import "./styles/narrative.css";
+@import "./styles/choices.css";
+@import "./styles/panels.css";
+@import "./styles/modals.css";
+@import "./styles/sys-menu.css";
+@import "./styles/gmh.css";
+@import "./styles/main-menu.css";
+@import "./styles/ui.css";
+@import "./styles/foundation.css";
+@import "./styles/shared.css";
+@import "./styles/dev.css";

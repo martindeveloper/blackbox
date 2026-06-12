@@ -1,0 +1,11 @@
+{
+  "spec": "com.blackbox.characters",
+  "formatVersion": 1,
+  "characters": {
+    "guide": {
+      "id": "guide",
+      "name": "Guide",
+      "portraitRef": "portrait_guide"
+    }
+  }
+}

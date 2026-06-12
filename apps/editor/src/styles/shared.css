@@ -1,0 +1,14 @@
+.editor-subtitle {
+  font-size: 11px;
+  color: var(--editor-text-muted);
+}
+
+code {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--editor-text-muted);
+  background: var(--editor-surface-2);
+  padding: 1px 4px;
+  border-radius: 2px;
+  border: 1px solid var(--editor-border-subtle);
+}

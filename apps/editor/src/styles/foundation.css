@@ -1,0 +1,358 @@
+:root,
+:root[data-theme="dark"] {
+  --editor-bg: #0a0908;
+  --editor-stage: #0e0c0a;
+  --editor-surface: #12100e;
+  --editor-surface-2: #181614;
+  --editor-surface-3: #201e1a;
+  --editor-toolbar: #141210;
+  --editor-inspector: #12100e;
+  --editor-border: #060605;
+  --editor-border-subtle: #141210;
+  --editor-border-2: #38342e;
+  --editor-text: #eceae6;
+  --editor-text-muted: #969088;
+  --editor-text-subtle: #5e5850;
+  --editor-primary: #df6c00;
+  --editor-accent: var(--editor-primary);
+  --editor-primary-hover: #ffaa44;
+  --editor-selection: rgba(223, 108, 0, 0.1);
+  --editor-selection-border: #df6c00;
+  --editor-secondary: #6b9cf0;
+  --editor-danger: #f07070;
+  --editor-success: #6fcf97;
+  --editor-warning: #e8c468;
+  --sim-ending-1: #df6c00;
+  --sim-ending-2: #6b9cf0;
+  --sim-ending-3: #6fcf97;
+  --sim-ending-4: #e8c468;
+  --sim-ending-5: #c084fc;
+  --sim-ending-6: #f07070;
+  --editor-input-bg: #0c0b0a;
+  --editor-input-border: #302c28;
+  --editor-input-focus: #df6c00;
+  --editor-btn-bg: #201e1a;
+  --editor-btn-bg-hover: #282620;
+  --editor-btn-text: #e4e4e4;
+  --editor-btn-primary-bg: #9a4800;
+  --editor-btn-primary-bg-hover: #b85600;
+  --editor-btn-primary-text: #ffffff;
+  --editor-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 2px 6px rgba(0, 0, 0, 0.45);
+  --editor-grid: rgba(255, 255, 255, 0.03);
+  --editor-glow: rgba(223, 108, 0, 0.2);
+  --editor-row-alt: rgba(255, 255, 255, 0.015);
+}
+
+:root[data-theme="light"] {
+  --editor-bg: #e2e1de;
+  --editor-stage: #ebeae7;
+  --editor-surface: #fdfdfc;
+  --editor-surface-2: #f8f8f7;
+  --editor-surface-3: #ffffff;
+  --editor-toolbar: #fafaf9;
+  --editor-inspector: #fdfdfc;
+  --editor-border: rgba(12, 12, 11, 0.07);
+  --editor-border-subtle: rgba(12, 12, 11, 0.04);
+  --editor-border-2: rgba(12, 12, 11, 0.11);
+  --editor-text: #0c0c0b;
+  --editor-text-muted: #52524e;
+  --editor-text-subtle: #94948f;
+  --editor-primary: #df6c00;
+  --editor-accent: var(--editor-primary);
+  --editor-primary-hover: #c45f00;
+  --editor-selection: rgba(223, 108, 0, 0.06);
+  --editor-selection-border: #df6c00;
+  --editor-secondary: #3b7fd4;
+  --editor-danger: #dc4545;
+  --editor-success: #239b56;
+  --editor-warning: #c48a20;
+  --editor-input-bg: #ffffff;
+  --editor-input-border: rgba(12, 12, 11, 0.1);
+  --editor-input-focus: #df6c00;
+  --editor-btn-bg: #f3f3f1;
+  --editor-btn-bg-hover: #eaeae7;
+  --editor-btn-text: #0c0c0b;
+  --editor-btn-primary-bg: #c85400;
+  --editor-btn-primary-bg-hover: #df6c00;
+  --editor-btn-primary-text: #ffffff;
+  --editor-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.9) inset,
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 4px 14px rgba(0, 0, 0, 0.045);
+  --editor-shadow-lg:
+    0 0 0 1px rgba(255, 255, 255, 0.95) inset,
+    0 1px 2px rgba(0, 0, 0, 0.03),
+    0 8px 28px rgba(0, 0, 0, 0.07),
+    0 24px 48px rgba(0, 0, 0, 0.04);
+  --editor-grid: rgba(0, 0, 0, 0.028);
+  --editor-glow: rgba(223, 108, 0, 0.14);
+  --editor-row-alt: rgba(0, 0, 0, 0.014);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--editor-bg);
+  color: var(--editor-text);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  line-height: 1.35;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+input,
+select,
+textarea,
+button {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--editor-border-2) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--editor-border-2);
+  border-radius: 3px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--editor-border-2) 80%, var(--editor-text-muted));
+}
+
+:root[data-theme="light"] body {
+  background-color: var(--editor-bg);
+  background-image:
+    radial-gradient(ellipse 120% 70% at 100% -10%, rgba(223, 108, 0, 0.04), transparent 55%),
+    radial-gradient(ellipse 90% 55% at -5% 105%, rgba(59, 127, 212, 0.03), transparent 50%),
+    linear-gradient(180deg, #eae9e6 0%, #deddd9 100%);
+}
+
+:root[data-theme="light"] #root::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  pointer-events: none;
+  opacity: 0.024;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+:root[data-theme="light"] .editor-topbar {
+  background: rgba(253, 253, 252, 0.76);
+  backdrop-filter: blur(24px) saturate(1.65);
+  -webkit-backdrop-filter: blur(24px) saturate(1.65);
+  border-top: none;
+  border-bottom: 1px solid rgba(12, 12, 11, 0.07);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    0 4px 20px rgba(0, 0, 0, 0.045);
+}
+
+:root[data-theme="light"] .editor-play-toolbar {
+  background: rgba(253, 253, 252, 0.68);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+:root[data-theme="light"] .editor-footer {
+  background: rgba(253, 253, 252, 0.82);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border-top-color: rgba(12, 12, 11, 0.06);
+}
+
+:root[data-theme="light"] .editor-stage {
+  background:
+    radial-gradient(ellipse 100% 55% at 50% -5%, rgba(255, 255, 255, 0.55), transparent 65%),
+    var(--editor-stage);
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.035);
+}
+
+:root[data-theme="light"] .editor-dock-left,
+:root[data-theme="light"] .editor-dock-right {
+  box-shadow: 0 0 24px rgba(0, 0, 0, 0.04);
+}
+
+:root[data-theme="light"] .activity-bar {
+  background: var(--editor-surface);
+  box-shadow: 1px 0 0 rgba(12, 12, 11, 0.05);
+}
+
+:root[data-theme="light"] .panel-header {
+  background: transparent;
+  color: var(--editor-text-subtle);
+  border-bottom-color: var(--editor-border-subtle);
+}
+
+:root[data-theme="light"] .editor-input {
+  border-radius: 3px;
+  border-color: rgba(12, 12, 11, 0.09);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) inset;
+}
+
+:root[data-theme="light"] .editor-input:focus {
+  border-color: var(--editor-input-focus);
+  box-shadow:
+    0 0 0 3px rgba(223, 108, 0, 0.11),
+    0 1px 2px rgba(0, 0, 0, 0.03) inset;
+}
+
+:root[data-theme="light"] .editor-btn {
+  border-radius: 3px;
+  border-color: rgba(12, 12, 11, 0.09);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.95) inset,
+    0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+:root[data-theme="light"] .editor-btn-primary {
+  border-color: color-mix(in srgb, var(--editor-btn-primary-bg) 88%, #000);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.18) inset,
+    0 2px 8px rgba(200, 84, 0, 0.28);
+}
+
+:root[data-theme="light"] .list-item-selected {
+  background: linear-gradient(90deg, rgba(223, 108, 0, 0.09), rgba(223, 108, 0, 0.02));
+  color: var(--editor-text);
+  font-weight: 500;
+}
+
+:root[data-theme="light"] .graph-node {
+  border-radius: 7px;
+  border-color: rgba(12, 12, 11, 0.08);
+  box-shadow: var(--editor-shadow-lg);
+}
+
+:root[data-theme="light"] .graph-node:hover {
+  border-color: color-mix(in srgb, var(--editor-primary) 35%, rgba(12, 12, 11, 0.08));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--editor-primary) 10%, transparent),
+    var(--editor-shadow-lg);
+}
+
+:root[data-theme="light"] .graph-node-selected {
+  box-shadow:
+    0 0 0 1px var(--editor-selection-border),
+    0 0 28px rgba(223, 108, 0, 0.12),
+    var(--editor-shadow-lg);
+}
+
+:root[data-theme="light"] .graph-canvas::before {
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      color-mix(in srgb, var(--editor-primary) 1.8%, transparent),
+      transparent 48%
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, #ffffff 42%, transparent),
+      transparent 100px
+    );
+}
+
+:root[data-theme="light"] .react-flow__edge-path {
+  opacity: 0.58;
+}
+
+:root[data-theme="light"] .react-flow__edge:hover .react-flow__edge-path,
+:root[data-theme="light"] .react-flow__edge.selected .react-flow__edge-path {
+  opacity: 0.92;
+}
+
+:root[data-theme="light"] .react-flow__handle {
+  border-color: #ffffff !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.14);
+}
+
+:root[data-theme="light"] .react-flow__controls button,
+:root[data-theme="light"] .react-flow__minimap {
+  box-shadow: var(--editor-shadow) !important;
+}
+
+:root[data-theme="light"] .editor-theme-switch {
+  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(12, 12, 11, 0.08);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+:root[data-theme="light"] .editor-theme-switch-btn--active {
+  background: #ffffff;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.95) inset,
+    0 1px 3px rgba(0, 0, 0, 0.07);
+}
+
+:root[data-theme="light"] .scenario-screen {
+  background:
+    radial-gradient(
+      ellipse 60% 40% at 8% 0%,
+      color-mix(in srgb, var(--editor-primary) 3.5%, transparent),
+      transparent 62%
+    ),
+    var(--editor-stage);
+}
+
+:root[data-theme="light"] .activity-btn-active {
+  background: linear-gradient(90deg, rgba(223, 108, 0, 0.1), rgba(223, 108, 0, 0.03));
+}
+
+:root[data-theme="light"] .tools-sidebar-icon--active {
+  background: #ffffff;
+  box-shadow:
+    0 0 0 1px rgba(223, 108, 0, 0.18),
+    0 2px 10px rgba(223, 108, 0, 0.1);
+}
+
+:root[data-theme="light"] .editor-play-btn--play {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--editor-primary) 12%, #ffffff),
+    color-mix(in srgb, var(--editor-primary) 7%, #ffffff)
+  );
+  border-left-color: rgba(223, 108, 0, 0.16);
+}
+
+.editor-input.font-mono,
+.font-mono {
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+.rounded.border.border-border {
+  border-color: var(--editor-border) !important;
+  border-radius: 2px !important;
+  background: var(--editor-input-bg);
+}
+
+.border-border-2 {
+  border-color: var(--editor-border-2) !important;
+}
+
+.bg-surface-2 {
+  background: var(--editor-surface-2) !important;
+}

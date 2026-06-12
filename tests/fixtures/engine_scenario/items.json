@@ -1,0 +1,23 @@
+{
+  "spec": "com.blackbox.items",
+  "formatVersion": 1,
+  "items": {
+    "access_card": {
+      "id": "access_card",
+      "name": "Access Card",
+      "description": "A worn access card found in the hub.",
+      "examineText": "The credentials are faded but still readable.",
+      "iconRef": "icon_access_card",
+      "actions": [
+        {
+          "id": "swipe_at_reader",
+          "label": "Swipe at security reader.",
+          "when": { "type": "atNode", "nodeId": "checkpoint" },
+          "effects": [{ "type": "addEvent", "eventId": "checkpoint_breached" }],
+          "goto": "door_open",
+          "consume": true
+        }
+      ]
+    }
+  }
+}

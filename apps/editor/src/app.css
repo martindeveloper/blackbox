@@ -1,0 +1,23 @@
+@import "tailwindcss";
+@source "./**/*.{ts,tsx}";
+
+@import "./styles/theme.css";
+@import "./styles/foundation.css";
+@import "./styles/layout.css";
+@import "./styles/topbar.css";
+@import "./styles/forms.css";
+@import "./styles/scenario.css";
+@import "./styles/navigation.css";
+@import "./styles/welcome.css";
+@import "./styles/graph.css";
+@import "./styles/bundle-graph.css";
+@import "./styles/catalogs.css";
+@import "./styles/media.css";
+@import "./styles/inspector.css";
+@import "./styles/tools.css";
+@import "./styles/parsed-output.css";
+@import "./styles/dashboard.css";
+@import "./styles/about.css";
+@import "./styles/pickers.css";
+@import "./styles/overlays.css";
+@import "./styles/shared.css";

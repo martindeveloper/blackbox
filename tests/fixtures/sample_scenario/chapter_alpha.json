@@ -1,0 +1,37 @@
+{
+  "spec": "com.blackbox.chapter",
+  "formatVersion": 1,
+  "id": "alpha",
+  "title": "Alpha",
+  "startNodeId": "alpha_start",
+  "nodes": {
+    "alpha_start": {
+      "id": "alpha_start",
+      "backgroundRef": "background_hub",
+      "onEnter": [{ "type": "playMusic", "track": "main" }],
+      "text": [{ "kind": "paragraph", "text": "Alpha chapter start." }],
+      "choices": [
+        {
+          "id": "to_beta",
+          "label": "Continue to beta.",
+          "goto": "alpha_exit"
+        }
+      ]
+    },
+    "alpha_exit": {
+      "id": "alpha_exit",
+      "text": [{ "kind": "paragraph", "text": "Leave alpha." }],
+      "choices": [
+        {
+          "id": "enter_beta",
+          "label": "Enter beta chapter.",
+          "action": {
+            "type": "gotoChapter",
+            "chapterId": "beta",
+            "nodeId": "beta_start"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "spec": "com.blackbox.bundle.cook",
+  "formatVersion": 1,
+  "patterns": [
+    {
+      "match": "textures/backgrounds/**",
+      "texture": {
+        "resize": { "maxWidth": 1280, "maxHeight": 720 },
+        "webpQuality": 80
+      }
+    },
+    {
+      "match": "textures/icons/**",
+      "texture": {
+        "resize": { "maxWidth": 256, "maxHeight": 256 }
+      }
+    },
+    {
+      "match": "textures/characters/**",
+      "texture": {
+        "resize": { "maxWidth": 512, "maxHeight": 512 }
+      }
+    }
+  ],
+  "platforms": {
+    "web": {
+      "texture": {
+        "webpQuality": 85
+      }
+    }
+  }
+}

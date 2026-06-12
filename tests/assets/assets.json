@@ -1,0 +1,70 @@
+{
+  "spec": "com.blackbox.assets.bundle",
+  "formatVersion": 1,
+  "defaultChoiceSfx": "click",
+  "music": {
+    "main_menu": {
+      "src": "music/menu.wav",
+      "loop": true,
+      "usage": "external"
+    },
+    "main": {
+      "src": "music/theme.mp3",
+      "loop": true
+    },
+    "passage": {
+      "src": "music/area_b.mp3",
+      "loop": true
+    },
+    "tension": {
+      "src": "music/cue.mp3",
+      "loop": true
+    }
+  },
+  "sfx": {
+    "click": {
+      "src": "sfx/click.wav"
+    },
+    "pulse_static": {
+      "src": "sfx/tone.wav"
+    },
+    "memory_load": {
+      "src": "sfx/tone.wav"
+    },
+    "alarm_distant": {
+      "src": "sfx/tone.wav"
+    }
+  },
+  "textures": {
+    "background_main_menu": {
+      "src": "textures/backgrounds/menu.png",
+      "usage": "external"
+    },
+    "background_generic": {
+      "src": "textures/backgrounds/fallback.png",
+      "usage": "external"
+    },
+    "background_hub": {
+      "src": "textures/backgrounds/scene.png"
+    },
+    "background_passage": {
+      "src": "textures/backgrounds/scene.png"
+    },
+    "icon_access_card": {
+      "src": "textures/icons/icon.png"
+    },
+    "portrait_guide": {
+      "src": "textures/characters/portrait.png"
+    },
+    "portrait_oracle": {
+      "src": "textures/characters/portrait.png"
+    },
+    "portrait_player": {
+      "src": "textures/characters/portrait.png"
+    },
+    "portrait_generic": {
+      "src": "textures/characters/generic.png",
+      "usage": "external"
+    }
+  }
+}

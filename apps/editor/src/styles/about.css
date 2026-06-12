@@ -1,0 +1,140 @@
+.about-screen {
+  height: 100%;
+  overflow-y: auto;
+  padding: 28px 32px 40px;
+  background:
+    radial-gradient(
+      ellipse 80% 50% at 50% -10%,
+      color-mix(in srgb, var(--editor-accent) 8%, transparent),
+      transparent
+    ),
+    var(--editor-surface);
+}
+
+.about-hero {
+  max-width: 720px;
+  margin-bottom: 32px;
+}
+
+.about-wordmark {
+  display: flex;
+  align-items: baseline;
+  gap: 0;
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  margin-bottom: 10px;
+}
+
+.about-wordmark-black {
+  color: var(--editor-text);
+}
+
+.about-wordmark-box {
+  color: var(--editor-accent);
+}
+
+.about-tagline {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--editor-text);
+}
+
+.about-lead {
+  margin: 0 0 12px;
+  max-width: 56ch;
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--editor-text-muted);
+}
+
+.about-version {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--editor-text-subtle);
+  padding: 3px 8px;
+  border: 1px solid var(--editor-border);
+  border-radius: 3px;
+  background: var(--editor-surface-2);
+}
+
+.about-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 880px;
+}
+
+.about-section-title {
+  margin: 0 0 10px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--editor-text-subtle);
+}
+
+.about-dep-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 8px;
+}
+
+.about-dep-grid--ai {
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+
+.about-dep-card {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 12px;
+  border: 1px solid var(--editor-border);
+  border-radius: 4px;
+  background: var(--editor-surface-2);
+  text-decoration: none;
+  transition:
+    border-color 0.1s,
+    background 0.1s;
+}
+
+.about-dep-card--link:hover {
+  border-color: color-mix(in srgb, var(--editor-accent) 40%, var(--editor-border));
+  background: var(--editor-surface-3);
+}
+
+.about-dep-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--editor-text);
+}
+
+.about-dep-card--link .about-dep-name {
+  color: var(--editor-accent);
+}
+
+.about-dep-role {
+  font-size: 10px;
+  line-height: 1.45;
+  color: var(--editor-text-muted);
+}
+
+.about-section--ai {
+  padding-top: 8px;
+  border-top: 1px solid var(--editor-border);
+}
+
+.about-ai-lead {
+  margin: 0 0 12px;
+  max-width: 58ch;
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--editor-text-muted);
+}

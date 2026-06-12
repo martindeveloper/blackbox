@@ -1,0 +1,25 @@
+{
+  "spec": "com.blackbox.characters",
+  "formatVersion": 1,
+  "characters": {
+    "guide_npc": {
+      "id": "guide_npc",
+      "name": "GUIDE",
+      "subtitle": "Test NPC",
+      "portraitRef": "portrait_guide",
+      "color": "#7eb8da",
+      "relationships": {
+        "affinity": 0,
+        "trust": 1
+      }
+    },
+    "oracle_npc": {
+      "id": "oracle_npc",
+      "name": "ORACLE",
+      "relationships": {
+        "rapport": 0,
+        "suspicion": 1
+      }
+    }
+  }
+}

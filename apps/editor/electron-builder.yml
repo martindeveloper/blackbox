@@ -1,0 +1,51 @@
+appId: com.blackbox.editor
+productName: Blackbox Editor
+copyright: Copyright © Blackbox
+icon: icon.png
+
+directories:
+  output: release
+  buildResources: resources
+
+files:
+  - dist/**
+  - electron/**
+  - server/**
+  - server.js
+  - package.json
+  - node_modules/**
+  - "!node_modules/**/{test,tests,__tests__,docs,doc}/**"
+  - "!**/*.map"
+
+asar: true
+asarUnpack:
+  - "node_modules/@fastify/**"
+  - "node_modules/fastify/**"
+
+extraResources:
+  - from: resources/bin
+    to: bin
+    filter:
+      - "**/*"
+
+mac:
+  category: public.app-category.developer-tools
+  target:
+    - dmg
+    - zip
+  hardenedRuntime: true
+  gatekeeperAssess: false
+
+win:
+  target:
+    - nsis
+
+linux:
+  target:
+    - AppImage
+    - deb
+  category: Development
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true

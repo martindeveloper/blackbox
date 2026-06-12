@@ -1,0 +1,88 @@
+.activity-btn svg {
+  flex-shrink: 0;
+}
+
+.activity-bar {
+  background: var(--editor-toolbar);
+  border-right: 1px solid var(--editor-border);
+}
+
+.activity-bar-spacer {
+  flex: 1;
+  min-height: 8px;
+}
+
+.activity-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 34px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--editor-text-subtle);
+  cursor: pointer;
+  position: relative;
+  transition:
+    background 0.08s,
+    color 0.08s;
+}
+
+.activity-btn:hover {
+  background: var(--editor-surface-2);
+  color: var(--editor-text-muted);
+}
+
+.activity-btn-active {
+  background: var(--editor-selection);
+  color: var(--editor-primary);
+}
+
+.activity-btn-active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  background: var(--editor-selection-border);
+  border-radius: 0 1px 1px 0;
+}
+
+.file-tree-meta {
+  padding: 10px 12px;
+  min-width: 0;
+}
+
+.file-tree-path {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.45;
+  color: var(--editor-text-muted);
+  word-break: break-all;
+  overflow-wrap: anywhere;
+}
+
+.file-tree-stats {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 10px;
+  color: var(--editor-text-subtle);
+}
+
+.file-tree-stats p {
+  margin: 0;
+}
+
+.file-tree-node-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+  font-size: 8px;
+  color: var(--editor-secondary);
+}

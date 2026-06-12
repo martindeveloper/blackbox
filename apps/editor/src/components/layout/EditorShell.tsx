@@ -1,0 +1,252 @@
+import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
+import { useScenarioStore } from "../../store/useScenarioStore.js";
+import { isActiveEditorPage, Page } from "../../lib/pages.js";
+import { editorNavigate, useActivityView, useEditorSearch } from "../../lib/routeHelpers.js";
+import { useUserPrefs } from "../../hooks/useUserPrefs.js";
+import { useHeatmapHydration } from "../../hooks/useHeatmapHydration.js";
+import { ActivityBar } from "./ActivityBar.js";
+import { FileTree } from "./FileTree.js";
+import { ToolsSidebar } from "../tools/ToolsSidebar.js";
+import { InspectorPanel } from "./InspectorPanel.js";
+import { TopBar } from "./TopBar.js";
+import { EditorFooter } from "./EditorFooter.js";
+import { Icon } from "../icons/Icon.js";
+
+const MIN_LEFT = 120;
+const MAX_LEFT = 480;
+const DEFAULT_LEFT = 196;
+const MIN_RIGHT = 160;
+const MAX_RIGHT = 560;
+const DEFAULT_RIGHT = 256;
+
+function PanelHandle({
+  side,
+  collapsed,
+  dragging,
+  onMouseDown,
+  onToggle,
+}: {
+  side: "left" | "right";
+  collapsed: boolean;
+  dragging: boolean;
+  onMouseDown: (e: React.MouseEvent) => void;
+  onToggle: () => void;
+}) {
+  const { t } = useTranslation();
+  const expandTitle =
+    side === "left" ? t("shell.expandLeftPanel") : t("shell.expandInspectorPanel");
+  const resizeLabel =
+    side === "left" ? t("shell.resizeLeftPanel") : t("shell.resizeInspectorPanel");
+  const collapseTitle =
+    side === "left" ? t("shell.collapseLeftPanel") : t("shell.collapseInspectorPanel");
+
+  if (collapsed) {
+    return (
+      <button type="button" className="panel-expand-strip" onClick={onToggle} title={expandTitle}>
+        <Icon icon={side === "left" ? ChevronRight : ChevronLeft} size={10} />
+      </button>
+    );
+  }
+
+  return (
+    <div className={`resize-handle${dragging ? " resize-handle--active" : ""}`}>
+      <span className="resize-handle-line" aria-hidden />
+      <button
+        type="button"
+        className="resize-handle-drag"
+        aria-label={resizeLabel}
+        onMouseDown={onMouseDown}
+      />
+      <button
+        type="button"
+        className="resize-handle-collapse"
+        onClick={onToggle}
+        title={collapseTitle}
+      >
+        <Icon icon={side === "left" ? ChevronLeft : ChevronRight} size={10} />
+      </button>
+    </div>
+  );
+}
+
+export function EditorShell() {
+  const { t } = useTranslation();
+  const dirty = useScenarioStore((s) => s.dirty);
+  const conflict = useScenarioStore((s) => s.conflict);
+  const save = useScenarioStore((s) => s.save);
+  const reloadProject = useScenarioStore((s) => s.reloadProject);
+  const overwriteConflict = useScenarioStore((s) => s.overwriteConflict);
+  const navigate = useNavigate();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const search = useEditorSearch();
+  const { prefs, ready, updatePrefs } = useUserPrefs();
+  useHeatmapHydration();
+
+  const [leftWidth, setLeftWidth] = useState(DEFAULT_LEFT);
+  const [rightWidth, setRightWidth] = useState(DEFAULT_RIGHT);
+  const [leftCollapsed, setLeftCollapsed] = useState(false);
+  const [rightCollapsed, setRightCollapsed] = useState(false);
+  const [dragging, setDragging] = useState<"left" | "right" | null>(null);
+
+  const prevLeftWidth = useRef(leftWidth);
+  const prevRightWidth = useRef(rightWidth);
+
+  useEffect(() => {
+    if (!ready) return;
+    if (prefs.leftColumnWidth) {
+      const w = Math.max(MIN_LEFT, Math.min(MAX_LEFT, prefs.leftColumnWidth));
+      setLeftWidth(w);
+      prevLeftWidth.current = w;
+    }
+    if (prefs.rightColumnWidth) {
+      const w = Math.max(MIN_RIGHT, Math.min(MAX_RIGHT, prefs.rightColumnWidth));
+      setRightWidth(w);
+      prevRightWidth.current = w;
+    }
+  }, [ready]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const activity = useActivityView();
+  const isMedia = activity === "media";
+  const isAbout = activity === "about";
+  const isDashboard = activity === "dashboard";
+  const isTools = activity === "tools";
+  const hideLeftDock = isMedia || isAbout || isDashboard;
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "s") {
+        e.preventDefault();
+        void save();
+      }
+      if (e.key === "Escape" && isActiveEditorPage(pathname, Page.EditorGraph)) {
+        void editorNavigate(navigate, {
+          to: Page.EditorGraph,
+          search: (prev) => ({ ...prev, chapter: search.chapter, node: null }),
+        });
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [save, navigate, pathname, search.chapter]);
+
+  useEffect(() => {
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (dirty.size > 0) e.preventDefault();
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [dirty]);
+
+  const startDrag = (side: "left" | "right", startX: number, startWidth: number) => {
+    setDragging(side);
+    const onMouseMove = (e: MouseEvent) => {
+      if (side === "left") {
+        const w = Math.max(MIN_LEFT, Math.min(MAX_LEFT, startWidth + e.clientX - startX));
+        setLeftWidth(w);
+        prevLeftWidth.current = w;
+      } else {
+        const w = Math.max(MIN_RIGHT, Math.min(MAX_RIGHT, startWidth - (e.clientX - startX)));
+        setRightWidth(w);
+        prevRightWidth.current = w;
+      }
+    };
+    const onMouseUp = () => {
+      setDragging(null);
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+      if (side === "left") updatePrefs({ leftColumnWidth: prevLeftWidth.current });
+      else updatePrefs({ rightColumnWidth: prevRightWidth.current });
+    };
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+  };
+
+  const toggleLeft = () => {
+    if (leftCollapsed) {
+      setLeftCollapsed(false);
+      setLeftWidth(prevLeftWidth.current);
+    } else {
+      prevLeftWidth.current = leftWidth;
+      setLeftCollapsed(true);
+    }
+  };
+
+  const toggleRight = () => {
+    if (rightCollapsed) {
+      setRightCollapsed(false);
+      setRightWidth(prevRightWidth.current);
+    } else {
+      prevRightWidth.current = rightWidth;
+      setRightCollapsed(true);
+    }
+  };
+
+  return (
+    <div className="editor-shell flex h-full flex-col">
+      <TopBar />
+      {conflict ? (
+        <div className="flex items-center gap-3 border-b border-danger bg-danger/10 px-3 py-2 text-xs">
+          <strong>{t("conflict.title")}</strong>
+          <span className="flex-1">{t("conflict.message")}</span>
+          <button className="editor-btn editor-btn-sm" onClick={() => void reloadProject()}>
+            {t("conflict.reload")}
+          </button>
+          <button
+            className="editor-btn editor-btn-sm editor-btn-primary"
+            onClick={() => void overwriteConflict()}
+          >
+            {t("conflict.overwrite")}
+          </button>
+        </div>
+      ) : null}
+      <div
+        className="editor-workspace flex min-h-0 flex-1"
+        style={{ "--editor-left-dock-width": `${leftWidth}px` } as CSSProperties}
+      >
+        <ActivityBar />
+
+        {!hideLeftDock && (
+          <>
+            <aside
+              className="editor-dock editor-dock-left flex shrink-0 flex-col"
+              style={{ width: leftCollapsed ? 0 : leftWidth }}
+            >
+              {!leftCollapsed && (isTools ? <ToolsSidebar /> : <FileTree />)}
+            </aside>
+            <PanelHandle
+              side="left"
+              collapsed={leftCollapsed}
+              dragging={dragging === "left"}
+              onMouseDown={(e) => !leftCollapsed && startDrag("left", e.clientX, leftWidth)}
+              onToggle={toggleLeft}
+            />
+          </>
+        )}
+
+        <main className="editor-stage min-w-0 flex-1 overflow-hidden">
+          <Outlet />
+        </main>
+
+        <PanelHandle
+          side="right"
+          collapsed={rightCollapsed}
+          dragging={dragging === "right"}
+          onMouseDown={(e) => !rightCollapsed && startDrag("right", e.clientX, rightWidth)}
+          onToggle={toggleRight}
+        />
+
+        <aside
+          className="editor-dock editor-dock-right flex shrink-0 flex-col"
+          style={{ width: rightCollapsed ? 0 : rightWidth }}
+        >
+          {!rightCollapsed && <InspectorPanel />}
+        </aside>
+      </div>
+      <EditorFooter />
+      {dragging && <div className="resize-overlay" />}
+    </div>
+  );
+}

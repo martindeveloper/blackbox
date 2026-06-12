@@ -1,0 +1,28 @@
+[package]
+name = "blackbox-bundler"
+version = "0.1.0"
+edition = "2024"
+license.workspace = true
+
+[lints]
+workspace = true
+
+[[bin]]
+name = "blackbox-bundler"
+path = "src/main.rs"
+
+[lib]
+name = "blackbox_bundler"
+path = "src/lib.rs"
+
+[dependencies]
+anyhow = "1.0"
+blackbox = { path = "../core" }
+blackbox-bundler-cook = { path = "../bundler-cook" }
+blackbox-format = { path = "../format" }
+blackbox-output = { path = "../output" }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+sha2 = "0.10"
+tempfile = "3.27"
+zstd = "0.13"

@@ -1,0 +1,17 @@
+[package]
+name = "blackbox-cli"
+version = "0.1.0"
+edition = "2024"
+license.workspace = true
+
+[lints]
+workspace = true
+
+[[bin]]
+name = "blackbox-cli"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1.0"
+blackbox = { path = "../../engine/core" }
+blackbox-format = { path = "../../engine/format" }

@@ -1,0 +1,234 @@
+.editor-shell {
+  background: var(--editor-bg);
+}
+
+.editor-workspace {
+  background: var(--editor-bg);
+}
+
+.editor-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  height: 22px;
+  padding: 0 18px;
+  background: var(--editor-toolbar);
+  border-top: 1px solid var(--editor-border);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.editor-footer-quote {
+  display: flex;
+  align-items: baseline;
+  gap: 0;
+  margin: 0;
+  min-width: 0;
+  font-size: 9px;
+  color: var(--editor-text-subtle);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.editor-footer-quote q {
+  font-style: italic;
+  letter-spacing: 0.03em;
+  quotes: "\201C" "\201D";
+}
+
+.editor-footer-quote q::before {
+  content: open-quote;
+  margin-right: 1px;
+  color: color-mix(in srgb, var(--editor-primary) 55%, var(--editor-text-subtle));
+}
+
+.editor-footer-quote q::after {
+  content: close-quote;
+  margin-left: 1px;
+  color: color-mix(in srgb, var(--editor-primary) 55%, var(--editor-text-subtle));
+}
+
+.editor-footer-quote cite {
+  font-style: normal;
+  font-size: 8px;
+  font-weight: 500;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--editor-text-subtle);
+  opacity: 0.65;
+}
+
+.editor-footer-quote cite::before {
+  content: "—";
+  margin: 0 7px;
+  font-style: normal;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: color-mix(in srgb, var(--editor-primary) 65%, var(--editor-text-subtle));
+  opacity: 1;
+}
+
+.editor-footer-version {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--editor-text-subtle);
+  opacity: 0.55;
+}
+
+.editor-dock {
+  background: var(--editor-surface);
+  border-color: var(--editor-border);
+}
+
+.editor-dock-left {
+  min-width: 0;
+  overflow: hidden;
+  /* border supplied by adjacent .resize-handle */
+}
+
+.editor-dock-right {
+  background: var(--editor-inspector);
+  /* border supplied by adjacent .resize-handle */
+}
+
+.panel-expand-strip {
+  width: 10px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--editor-surface-2);
+  border: none;
+  border-left: 1px solid var(--editor-border);
+  border-right: 1px solid var(--editor-border);
+  color: var(--editor-text-subtle);
+  cursor: pointer;
+  transition:
+    background 0.1s,
+    color 0.1s;
+}
+
+.panel-expand-strip:hover {
+  background: var(--editor-selection);
+  color: var(--editor-primary);
+}
+
+.resize-handle-collapse {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 14px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--editor-border);
+  border-radius: 3px;
+  background-color: var(--editor-surface-2);
+  color: var(--editor-text-subtle);
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 0.12s,
+    color 0.1s,
+    background 0.1s,
+    border-color 0.1s;
+  z-index: 2;
+}
+
+.resize-handle:hover .resize-handle-collapse,
+.resize-handle--active .resize-handle-collapse {
+  opacity: 1;
+}
+
+.resize-handle-collapse:hover {
+  background: var(--editor-selection);
+  color: var(--editor-primary);
+  border-color: var(--editor-selection-border);
+}
+
+.resize-handle {
+  width: 4px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+  background: transparent;
+  overflow: visible;
+}
+
+.resize-handle-line {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.resize-handle-line::before,
+.resize-handle-line::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  width: 1px;
+  transform: translateX(-50%);
+  background: var(--editor-border);
+  transition:
+    background 0.12s,
+    width 0.12s,
+    height 0.12s;
+}
+
+.resize-handle-line::before {
+  top: 0;
+  bottom: 0;
+}
+
+.resize-handle-line::after {
+  display: none;
+}
+
+.resize-handle:hover .resize-handle-line::before,
+.resize-handle--active .resize-handle-line::before {
+  bottom: auto;
+  height: calc(50% - 20px);
+  background: var(--editor-primary);
+  width: 2px;
+}
+
+.resize-handle:hover .resize-handle-line::after,
+.resize-handle--active .resize-handle-line::after {
+  display: block;
+  bottom: 0;
+  height: calc(50% - 20px);
+  background: var(--editor-primary);
+  width: 2px;
+}
+
+.resize-handle-drag {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border: none;
+  background: transparent;
+  cursor: col-resize;
+  padding: 0;
+}
+
+/* Full-screen overlay while dragging to block pointer events on iframes/canvases */
+.resize-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  cursor: col-resize;
+}
+
+.editor-stage {
+  background: var(--editor-stage);
+}

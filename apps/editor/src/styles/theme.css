@@ -1,0 +1,20 @@
+@theme {
+  --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --color-bg: var(--editor-bg);
+  --color-surface: var(--editor-surface);
+  --color-surface-2: var(--editor-surface-2);
+  --color-surface-3: var(--editor-surface-3);
+  --color-border: var(--editor-border);
+  --color-border-2: var(--editor-border-2);
+  --color-text: var(--editor-text);
+  --color-muted: var(--editor-text-muted);
+  --color-muted-2: var(--editor-text-subtle);
+  --color-primary: var(--editor-primary);
+  --color-accent: var(--editor-primary);
+  --color-secondary: var(--editor-secondary);
+  --color-danger: var(--editor-danger);
+  --color-success: var(--editor-success);
+  --color-warning: var(--editor-warning);
+}

@@ -1,0 +1,196 @@
+{
+  "spec": "com.blackbox.chapter",
+  "formatVersion": 1,
+  "id": "hub",
+  "title": "Hub",
+  "startNodeId": "hub_intro",
+  "deathNodeId": "game_over_vitals",
+  "nodes": {
+    "hub_intro": {
+      "id": "hub_intro",
+      "title": "Hub",
+      "backgroundRef": "background_hub",
+      "onEnter": [{ "type": "playMusic", "track": "main" }],
+      "text": [
+        {
+          "kind": "stage_direction",
+          "text": "Vitals — {stat.hp}/{stat.max_hp} HP. Empathy {stat.empathy}, logic {stat.logic}, conviction {stat.conviction}."
+        },
+        { "kind": "paragraph", "text": "A guide unit waits in the hub." },
+        {
+          "kind": "paragraph",
+          "text": "Static crawls along your arm when HP is low.",
+          "when": { "type": "statLte", "stat": "hp", "value": 8 }
+        }
+      ],
+      "choices": [
+        {
+          "id": "ask_guide",
+          "label": "Ask the guide a question.",
+          "effects": [
+            { "type": "setFlag", "flag": "asked_guide_question", "value": true },
+            { "type": "modifyRelationship", "characterId": "guide_npc", "metric": "affinity", "amount": 2 },
+            { "type": "modifyRelationship", "characterId": "guide_npc", "metric": "trust", "amount": 1 }
+          ],
+          "goto": "hub_dialogue"
+        },
+        {
+          "id": "announce_inspector",
+          "label": "Announce yourself as an inspector.",
+          "goto": "hub_dialogue"
+        },
+        {
+          "id": "check_vitals",
+          "label": "Check your vitals.",
+          "unless": { "type": "hasFlag", "flag": "vitals_checked", "value": true },
+          "goto": "hub_self_check"
+        },
+        {
+          "id": "touch_hazard",
+          "label": "Touch the hazard panel.",
+          "effects": [{ "type": "modifyStat", "stat": "hp", "amount": -2 }],
+          "goto": "hub_intro"
+        },
+        {
+          "id": "attack_guide",
+          "label": "Attack the guide.",
+          "effects": [
+            { "type": "modifyRelationship", "characterId": "guide_npc", "metric": "affinity", "amount": -10 },
+            { "type": "modifyRelationship", "characterId": "guide_npc", "metric": "trust", "amount": -5 }
+          ],
+          "goto": "game_over_violence"
+        }
+      ]
+    },
+    "hub_dialogue": {
+      "id": "hub_dialogue",
+      "title": "Hub",
+      "backgroundRef": "background_hub",
+      "text": [
+        {
+          "kind": "dialogue",
+          "speaker": "guide_npc",
+          "emotion": "flat",
+          "side": "left",
+          "text": "\"This is a test response.\""
+        },
+        {
+          "kind": "stage_direction",
+          "text": "Rapport — affinity {relationship.guide_npc.affinity}, trust {relationship.guide_npc.trust}."
+        }
+      ],
+      "choices": [
+        {
+          "id": "continue",
+          "label": "Continue.",
+          "goto": "hub_exit"
+        }
+      ]
+    },
+    "hub_exit": {
+      "id": "hub_exit",
+      "title": "Hub",
+      "backgroundRef": "background_hub",
+      "text": [
+        { "kind": "paragraph", "text": "A passage hatch opens below." },
+        {
+          "kind": "thought",
+          "speaker": "player",
+          "side": "right",
+          "text": "You already have an access card.",
+          "when": { "type": "hasItem", "itemId": "access_card", "count": 1 }
+        },
+        {
+          "kind": "thought",
+          "speaker": "player",
+          "side": "right",
+          "text": "Search the area before descending.",
+          "unless": { "type": "hasItem", "itemId": "access_card", "count": 1 }
+        }
+      ],
+      "choices": [
+        {
+          "id": "enter_passage",
+          "label": "Enter the passage.",
+          "action": { "type": "gotoChapter", "chapterId": "passage", "nodeId": "passage_entry" }
+        },
+        {
+          "id": "search_area",
+          "label": "Search the area first.",
+          "unless": { "type": "hasItem", "itemId": "access_card", "count": 1 },
+          "effects": [
+            { "type": "addItem", "itemId": "access_card", "count": 1 },
+            { "type": "addEvent", "eventId": "access_card_found" }
+          ],
+          "goto": "hub_exit_searched"
+        }
+      ]
+    },
+    "hub_exit_searched": {
+      "id": "hub_exit_searched",
+      "title": "Hub",
+      "backgroundRef": "background_hub",
+      "text": [
+        { "kind": "paragraph", "text": "You find an access card among the debris." }
+      ],
+      "choices": [
+        {
+          "id": "enter_passage",
+          "label": "Enter the passage.",
+          "action": { "type": "gotoChapter", "chapterId": "passage", "nodeId": "passage_entry" }
+        }
+      ]
+    },
+    "hub_self_check": {
+      "id": "hub_self_check",
+      "title": "Hub",
+      "backgroundRef": "background_hub",
+      "text": [
+        { "kind": "stage_direction", "text": "You check your vitals." },
+        { "kind": "paragraph", "text": "Everything reads within expected bounds." }
+      ],
+      "choices": [
+        {
+          "id": "dismiss",
+          "label": "Dismiss the reading.",
+          "effects": [
+            { "type": "setFlag", "flag": "vitals_checked", "value": true },
+            { "type": "addEvent", "eventId": "vitals_checked" },
+            { "type": "modifyStat", "stat": "conviction", "amount": -1 }
+          ],
+          "goto": "hub_intro"
+        }
+      ]
+    },
+    "game_over_violence": {
+      "id": "game_over_violence",
+      "$extends": "game_over_standard",
+      "text": [
+        { "kind": "paragraph", "text": "Violence triggers a lockdown ending." }
+      ],
+      "choices": []
+    },
+    "game_over_vitals": {
+      "id": "game_over_vitals",
+      "$extends": "game_over_standard",
+      "text": [
+        { "kind": "stage_direction", "text": "Your vitals register an anomaly." },
+        { "kind": "paragraph", "text": "The hub does not notice you stop." }
+      ],
+      "choices": []
+    },
+    "_lint_rapport_probe": {
+      "id": "_lint_rapport_probe",
+      "choices": [
+        {
+          "id": "probe",
+          "label": "Probe rapport lint.",
+          "effects": [
+            { "type": "modifyRelationship", "characterId": "oracle_npc", "metric": "rapport", "amount": 1 }
+          ],
+          "goto": "_lint_rapport_probe"
+        }
+      ]
+    }
+  }
+}

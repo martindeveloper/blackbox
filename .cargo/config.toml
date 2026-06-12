@@ -1,0 +1,6 @@
+# Keep build artifacts out of the repo root.
+[build]
+target-dir = ".cache/target"
+
+# Android linker is set per-build by scripts/build-android-aarch64.mjs via
+# CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER.

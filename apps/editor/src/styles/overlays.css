@@ -1,0 +1,246 @@
+.ui-segment-tab-row {
+  display: flex;
+  gap: 3px;
+  padding: 3px 7px;
+  border-bottom: 1px solid var(--editor-border);
+}
+
+.ui-segment-tab {
+  flex: 1;
+  padding: 3px 4px;
+  border: none;
+  background: transparent;
+  font-size: 8.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--editor-text-subtle);
+  cursor: pointer;
+  border-radius: 2px;
+  transition:
+    color 0.08s,
+    background 0.08s;
+}
+
+.ui-segment-tab:hover {
+  color: var(--editor-text);
+  background: var(--editor-surface-2);
+}
+
+.ui-segment-tab-active {
+  color: var(--editor-primary);
+}
+
+.ui-field-row {
+  display: flex;
+  gap: 6px;
+  align-items: stretch;
+}
+
+.ui-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 5px;
+  font-size: 10px;
+  color: var(--editor-text);
+  cursor: pointer;
+}
+
+.ui-checkbox input[type="checkbox"] {
+  accent-color: var(--editor-primary);
+  width: 12px;
+  height: 12px;
+  cursor: pointer;
+}
+
+.ui-card {
+  margin-bottom: 6px;
+  border: 1px solid var(--editor-border);
+  border-radius: 2px;
+  padding: 6px 8px;
+  background: var(--editor-input-bg);
+}
+
+.ui-card-elevated {
+  border-color: var(--editor-border-2);
+  background: var(--editor-surface-2);
+}
+
+.ui-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: color-mix(in srgb, var(--editor-bg) 60%, transparent);
+  backdrop-filter: blur(3px);
+  animation: modal-backdrop-in 160ms ease-out;
+}
+
+.modal-panel {
+  position: static;
+  width: min(100%, 360px);
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--editor-border-2);
+  border-radius: 4px;
+  background: var(--editor-surface-3);
+  box-shadow:
+    var(--editor-shadow),
+    0 16px 48px rgba(0, 0, 0, 0.4);
+  animation: modal-panel-in 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.modal-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px 0;
+}
+
+.modal-panel-title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--editor-text);
+}
+
+.modal-panel-close {
+  margin: -4px -4px 0 0;
+}
+
+.modal-panel-body {
+  padding: 8px 12px 4px;
+}
+
+.modal-panel-message {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--editor-text-muted);
+}
+
+.modal-panel-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 5px;
+  padding: 10px 12px 12px;
+}
+
+@keyframes modal-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(5px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.notification-host {
+  position: fixed;
+  right: 10px;
+  bottom: 10px;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: min(340px, calc(100vw - 20px));
+  pointer-events: none;
+}
+
+.notification-toast {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 8px 8px 12px;
+  border: 1px solid var(--editor-border-2);
+  border-radius: 3px;
+  background: var(--editor-surface-3);
+  box-shadow: var(--editor-shadow);
+  pointer-events: auto;
+  overflow: hidden;
+  animation: notification-in 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.notification-toast-accent {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--editor-primary);
+}
+
+.notification-toast--success .notification-toast-accent {
+  background: var(--editor-success);
+}
+.notification-toast--success .notification-toast-icon {
+  color: var(--editor-success);
+}
+.notification-toast--error .notification-toast-accent {
+  background: var(--editor-danger);
+}
+.notification-toast--error .notification-toast-icon {
+  color: var(--editor-danger);
+}
+.notification-toast--warning .notification-toast-accent {
+  background: var(--editor-warning);
+}
+.notification-toast--warning .notification-toast-icon {
+  color: var(--editor-warning);
+}
+.notification-toast--info .notification-toast-accent {
+  background: var(--editor-primary);
+}
+.notification-toast--info .notification-toast-icon {
+  color: var(--editor-primary);
+}
+
+.notification-toast-message {
+  flex: 1;
+  margin: 1px 0 0;
+  font-size: 10px;
+  line-height: 1.45;
+  color: var(--editor-text);
+}
+
+.notification-toast-dismiss {
+  margin: -2px -2px 0 0;
+  flex-shrink: 0;
+}
+
+@keyframes notification-in {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

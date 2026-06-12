@@ -1,0 +1,187 @@
+.dev-console {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 120;
+  display: grid;
+  grid-template-rows: auto minmax(5.5rem, 24vh) auto;
+  color: #d6d8ce;
+  background:
+    linear-gradient(180deg, rgba(15, 19, 17, 0.88), rgba(4, 7, 6, 0.82)),
+    repeating-linear-gradient(90deg, transparent 0 39px, rgba(135, 255, 183, 0.018) 40px);
+  border-bottom: 1px solid rgba(126, 255, 171, 0.28);
+  box-shadow:
+    0 12px 42px rgba(0, 0, 0, 0.48),
+    inset 0 -1px rgba(126, 255, 171, 0.08);
+  backdrop-filter: blur(5px) saturate(0.82);
+  font-family: var(--font-mono);
+  animation: dev-console-drop 140ms cubic-bezier(0.2, 0.72, 0.2, 1) both;
+  isolation: isolate;
+}
+
+.dev-console::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.14;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 3px,
+    rgba(180, 255, 202, 0.055) 4px
+  );
+  pointer-events: none;
+}
+
+.dev-console__scan {
+  position: absolute;
+  inset-inline: 0;
+  height: 4rem;
+  z-index: -1;
+  opacity: 0.11;
+  background: linear-gradient(180deg, transparent, rgba(126, 255, 171, 0.2), transparent);
+  animation: dev-console-scan 6s linear infinite;
+}
+
+.dev-console__header {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 1.65rem;
+  padding: 0.2rem 0.65rem;
+  color: rgba(178, 255, 205, 0.72);
+  background: rgba(126, 255, 171, 0.035);
+  border-bottom: 1px solid rgba(126, 255, 171, 0.12);
+  font-size: 0.5rem;
+  letter-spacing: 0.15em;
+}
+
+.dev-console__mode {
+  color: rgba(255, 194, 89, 0.62);
+}
+
+.dev-console__header button {
+  border: 0;
+  padding: 0.1rem 0.25rem;
+  color: rgba(178, 255, 205, 0.62);
+  background: transparent;
+  cursor: pointer;
+}
+
+.dev-console__header button:hover,
+.dev-console__header button:focus-visible {
+  color: #d9ffe6;
+  outline: 1px solid rgba(126, 255, 171, 0.26);
+}
+
+.dev-console__log {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0.42rem 0.7rem;
+  scrollbar-color: rgba(126, 255, 171, 0.28) transparent;
+}
+
+.dev-console__line {
+  display: grid;
+  grid-template-columns: 1.1rem 1fr;
+  gap: 0.28rem;
+  margin-bottom: 0.14rem;
+  color: rgba(202, 215, 205, 0.74);
+  font-size: clamp(0.6rem, 1.3vw, 0.7rem);
+  line-height: 1.35;
+  letter-spacing: 0.025em;
+}
+
+.dev-console__line p {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.dev-console__line--command {
+  color: #e6e8df;
+}
+
+.dev-console__line--success {
+  color: #8ef0ad;
+}
+
+.dev-console__line--error {
+  color: #ff806e;
+}
+
+.dev-console__line--info {
+  color: rgba(159, 198, 171, 0.68);
+}
+
+.dev-console__prompt {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2rem;
+  padding: 0.28rem 0.7rem;
+  color: #91eaae;
+  background: rgba(0, 0, 0, 0.26);
+  border-top: 1px solid rgba(126, 255, 171, 0.15);
+  font-size: 0.66rem;
+}
+
+.dev-console__prompt input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  color: #edf5eb;
+  background: transparent;
+  caret-color: #91eaae;
+  font: inherit;
+}
+
+.dev-console__busy {
+  color: rgba(145, 234, 174, 0.24);
+  font-size: 0.52rem;
+  letter-spacing: 0.18em;
+}
+
+.dev-console__busy--active {
+  color: rgba(255, 194, 89, 0.72);
+  animation: blink-slow 0.7s step-end infinite;
+}
+
+@keyframes dev-console-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-1.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes dev-console-scan {
+  from {
+    transform: translateY(-5rem);
+  }
+  to {
+    transform: translateY(46vh);
+  }
+}
+
+@media (max-width: 640px) {
+  .dev-console {
+    grid-template-rows: auto minmax(6rem, 30vh) auto;
+  }
+
+  .dev-console__mode {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dev-console,
+  .dev-console__scan {
+    animation: none;
+  }
+}

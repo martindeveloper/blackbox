@@ -1,0 +1,120 @@
+import fs from "node:fs/promises";
+import net from "node:net";
+import path from "node:path";
+import Fastify from "fastify";
+import multipart from "@fastify/multipart";
+import {
+  BUNDLE_CACHE,
+  PORT,
+  LIVERELOAD_PORT,
+  DEV_MODE,
+  DIST,
+  API_PREFIX,
+  USER_DATA_ROOT,
+} from "./config.js";
+import { setupLiveReload, staticFileHandler } from "./static.js";
+import { findDefaultDataRoot } from "./editorConfig.js";
+import { registerRoutes } from "./routes.js";
+import { ProjectService } from "./projectService.js";
+
+export async function reservePort(preferred = PORT) {
+  const tryPort = (port) =>
+    new Promise((resolve, reject) => {
+      const server = net.createServer();
+      server.once("error", reject);
+      server.listen({ port, host: "127.0.0.1" }, () => {
+        const address = server.address();
+        const chosen = typeof address === "object" && address ? address.port : port;
+        server.close((error) => (error ? reject(error) : resolve(chosen)));
+      });
+    });
+
+  try {
+    return await tryPort(preferred);
+  } catch {
+    return tryPort(0);
+  }
+}
+
+export async function createEditorServer(options = {}) {
+  await fs.mkdir(USER_DATA_ROOT, { recursive: true });
+  await fs.mkdir(BUNDLE_CACHE, { recursive: true });
+  const projectService =
+    options.projectService ?? new ProjectService(options.projectServiceOptions);
+  if (!options.projectService) await projectService.start();
+
+  setupLiveReload();
+
+  const fastify = Fastify({ logger: false, bodyLimit: 25 * 1024 * 1024 });
+  await fastify.register(multipart);
+  fastify.addHook("onRequest", async (request, reply) => {
+    if (request.method === "GET" || request.method === "HEAD" || request.method === "OPTIONS") {
+      return;
+    }
+    const origin = request.headers.origin;
+    if (!origin) return;
+    try {
+      if (new URL(origin).host === request.headers.host) return;
+    } catch {}
+    return reply
+      .code(403)
+      .send({ code: "forbidden_origin", message: "Cross-origin mutation denied" });
+  });
+  await fastify.register(async (app) => registerRoutes(app, projectService), {
+    prefix: API_PREFIX,
+  });
+
+  fastify.setNotFoundHandler(async (request, reply) => {
+    const urlPath = request.url.split("?")[0] ?? "/";
+    if (urlPath.startsWith("/api/")) {
+      return reply.code(404).send({ error: "API route not found" });
+    }
+    return reply.code(404).type("text/plain; charset=utf-8").send("Not found");
+  });
+
+  fastify.get("/*", staticFileHandler);
+
+  return { fastify, projectService };
+}
+
+export async function startEditorServer(options = {}) {
+  const port = options.port ?? (await reservePort(options.preferredPort ?? PORT));
+  const host = options.host ?? process.env.HOST ?? "127.0.0.1";
+  const { fastify, projectService } = await createEditorServer(options);
+
+  await fastify.ready();
+
+  const dataRoot = await findDefaultDataRoot();
+  if (dataRoot) {
+    console.log(`Editor data root: ${dataRoot}`);
+  } else if (!options.quiet) {
+    console.warn("Editor data root not found; set BLACKBOX_DATA_ROOT or open a project folder");
+  }
+
+  try {
+    await fs.access(path.join(DIST, "index.html"));
+  } catch {
+    console.warn("dist/ is missing; run: npm run build or npm run dev");
+  }
+
+  await fastify.listen({ port, host });
+
+  if (DEV_MODE) {
+    console.log(`Live reload enabled on port ${LIVERELOAD_PORT}`);
+  }
+  if (!options.quiet) {
+    console.log(`Blackbox editor: http://${host}:${port}`);
+  }
+
+  return {
+    fastify,
+    projectService,
+    port,
+    host,
+    url: `http://${host}:${port}`,
+    async close() {
+      await projectService.close();
+      await fastify.close();
+    },
+  };
+}

@@ -1,0 +1,16 @@
+{
+  "spec": "com.blackbox.chapter",
+  "formatVersion": 1,
+  "id": "beta",
+  "title": "Beta",
+  "startNodeId": "beta_start",
+  "nodes": {
+    "beta_start": {
+      "id": "beta_start",
+      "backgroundRef": "background_passage",
+      "onEnter": [{ "type": "playMusic", "track": "passage" }],
+      "text": [{ "kind": "paragraph", "text": "Beta chapter start." }],
+      "choices": []
+    }
+  }
+}

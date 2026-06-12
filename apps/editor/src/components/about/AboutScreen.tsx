@@ -1,0 +1,164 @@
+import { useTranslation } from "react-i18next";
+import { EDITOR_VERSION } from "../../lib/version.js";
+
+interface DepEntry {
+  name: string;
+  roleKey: string;
+  url?: string;
+}
+
+interface DepGroup {
+  titleKey: string;
+  entries: DepEntry[];
+}
+
+const DEP_GROUPS: DepGroup[] = [
+  {
+    titleKey: "about.groups.runtime",
+    entries: [
+      { name: "Node.js", roleKey: "about.deps.nodeJs", url: "https://nodejs.org/" },
+      { name: "React", roleKey: "about.deps.react", url: "https://react.dev/" },
+      {
+        name: "TypeScript",
+        roleKey: "about.deps.typescript",
+        url: "https://www.typescriptlang.org/",
+      },
+    ],
+  },
+  {
+    titleKey: "about.groups.editorUi",
+    entries: [
+      {
+        name: "TanStack Router",
+        roleKey: "about.deps.tanstackRouter",
+        url: "https://tanstack.com/router",
+      },
+      { name: "Zustand", roleKey: "about.deps.zustand", url: "https://zustand.docs.pmnd.rs/" },
+      { name: "XYFlow", roleKey: "about.deps.xyflow", url: "https://xyflow.com/" },
+      {
+        name: "@dagrejs/dagre",
+        roleKey: "about.deps.dagre",
+        url: "https://github.com/dagrejs/dagre",
+      },
+      { name: "Tailwind CSS", roleKey: "about.deps.tailwind", url: "https://tailwindcss.com/" },
+      { name: "Lucide", roleKey: "about.deps.lucide", url: "https://lucide.dev/" },
+      { name: "i18next", roleKey: "about.deps.i18next", url: "https://www.i18next.com/" },
+    ],
+  },
+  {
+    titleKey: "about.groups.build",
+    entries: [
+      { name: "Rolldown", roleKey: "about.deps.rolldown", url: "https://rolldown.rs/" },
+      { name: "Fastify", roleKey: "about.deps.fastify", url: "https://fastify.dev/" },
+      { name: "oxlint / oxfmt", roleKey: "about.deps.oxlint", url: "https://oxc.rs/" },
+    ],
+  },
+  {
+    titleKey: "about.groups.engine",
+    entries: [
+      { name: "Rust", roleKey: "about.deps.rust", url: "https://www.rust-lang.org/" },
+      {
+        name: "Cargo",
+        roleKey: "about.deps.cargo",
+        url: "https://doc.rust-lang.org/cargo/",
+      },
+      { name: "blackbox-core", roleKey: "about.deps.blackboxCore" },
+      { name: "blackbox-lint", roleKey: "about.deps.blackboxLint" },
+      { name: "blackbox-bundler", roleKey: "about.deps.blackboxBundler" },
+    ],
+  },
+  {
+    titleKey: "about.groups.media",
+    entries: [
+      {
+        name: "FFmpeg",
+        roleKey: "about.deps.ffmpeg",
+        url: "https://ffmpeg.org/",
+      },
+      {
+        name: "cwebp",
+        roleKey: "about.deps.cwebp",
+        url: "https://developers.google.com/speed/webp",
+      },
+    ],
+  },
+  {
+    titleKey: "about.groups.platform",
+    entries: [
+      { name: "Local Project API", roleKey: "about.deps.localProjectApi" },
+      { name: "WebAssembly", roleKey: "about.deps.webAssembly" },
+    ],
+  },
+];
+
+const AI_AGENTS: DepEntry[] = [
+  { name: "Cursor", roleKey: "about.deps.cursor" },
+  { name: "Claude", roleKey: "about.deps.claude" },
+  { name: "Codex", roleKey: "about.deps.codex" },
+];
+
+function DepCard({ entry }: { entry: DepEntry }) {
+  const { t } = useTranslation();
+  const inner = (
+    <>
+      <span className="about-dep-name">{entry.name}</span>
+      <span className="about-dep-role">{t(entry.roleKey)}</span>
+    </>
+  );
+
+  if (entry.url) {
+    return (
+      <a
+        className="about-dep-card about-dep-card--link"
+        href={entry.url}
+        target="_blank"
+        rel="noreferrer"
+      >
+        {inner}
+      </a>
+    );
+  }
+
+  return <div className="about-dep-card">{inner}</div>;
+}
+
+export function AboutScreen() {
+  const { t } = useTranslation();
+
+  return (
+    <div className="about-screen">
+      <header className="about-hero">
+        <div className="about-wordmark" aria-hidden>
+          <span className="about-wordmark-black">BLACK</span>
+          <span className="about-wordmark-box">BOX</span>
+        </div>
+        <p className="about-tagline">{t("about.tagline")}</p>
+        <p className="about-lead">{t("about.lead")}</p>
+        <span className="about-version">v{EDITOR_VERSION}</span>
+      </header>
+
+      <div className="about-sections">
+        {DEP_GROUPS.map((group) => (
+          <section key={group.titleKey} className="about-section">
+            <h2 className="about-section-title">{t(group.titleKey)}</h2>
+            <div className="about-dep-grid">
+              {group.entries.map((entry) => (
+                <DepCard key={entry.name} entry={entry} />
+              ))}
+            </div>
+          </section>
+        ))}
+
+        <section className="about-section about-section--ai">
+          <h2 className="about-section-title">{t("about.ai.title")}</h2>
+          <p className="about-ai-lead">{t("about.ai.lead")}</p>
+          <div className="about-dep-grid about-dep-grid--ai">
+            {AI_AGENTS.map((entry) => (
+              <DepCard key={entry.name} entry={entry} />
+            ))}
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}

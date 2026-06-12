@@ -1,0 +1,345 @@
+.bb-preloader-root {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.75rem;
+  background: var(--color-bg, #0d0a08);
+  transition: opacity 0.4s ease;
+  overflow: hidden;
+}
+
+.bb-preloader-icon {
+  opacity: 0.65;
+  filter: drop-shadow(0 0 24px rgba(255, 109, 26, 0.5));
+  animation: fade-up 0.5s ease-out 0.1s both;
+}
+
+.bb-preloader-text {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  animation: fade-up 0.45s ease-out 0.25s both;
+}
+
+.bb-preloader-label {
+  font-family: var(--font-display, "Bebas Neue", sans-serif);
+  font-size: clamp(0.9rem, 3vw, 1.1rem);
+  letter-spacing: 0.42em;
+  color: var(--color-accent, #ff6d1a);
+  text-shadow: 0 0 24px rgba(255, 109, 26, 0.45);
+}
+
+.bb-preloader-sublabel {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.7rem;
+  letter-spacing: 0.25em;
+  color: var(--color-muted-2, #6b5843);
+  opacity: 0.7;
+}
+
+.bb-preloader-dots {
+  display: flex;
+  gap: 0.5rem;
+  animation: fade-up 0.4s ease-out 0.4s both;
+}
+
+.bb-preloader-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgba(255, 109, 26, 0.08);
+}
+
+.bb-preloader-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, rgba(255, 109, 26, 0.4), var(--color-accent, #ff6d1a));
+  transition: width 0.25s ease-out;
+  border-radius: 0 1px 1px 0;
+}
+
+@keyframes bb-loader-sweep {
+  0% {
+    left: -55%;
+  }
+  100% {
+    left: 110%;
+  }
+}
+
+.bb-loader {
+  position: relative;
+  width: 100%;
+  height: 2px;
+  background: rgba(255, 109, 26, 0.1);
+  border-radius: 1px;
+  overflow: hidden;
+}
+
+.bb-loader-bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+  border-radius: 1px;
+  animation: bb-loader-sweep 1.3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-block;
+}
+.status-dot--info {
+  background: rgba(255, 109, 26, 0.4);
+  animation: blink-slow 1.6s step-end infinite;
+}
+.status-dot--ready {
+  background: #ff6d1a;
+  animation: pulse-amber 2.6s ease-out infinite;
+}
+.status-dot--error {
+  background: #e82020;
+  animation: pulse-danger 1.8s ease-out infinite;
+}
+
+.ui-notification {
+  --notification-color: var(--category-damage);
+  position: relative;
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.42rem;
+  min-height: 1.9rem;
+  padding: 0.24rem 0.5rem;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--notification-color) 13%, transparent);
+  border-left: 1px solid color-mix(in srgb, var(--notification-color) 72%, transparent);
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--notification-color) 6%, transparent),
+      color-mix(in srgb, var(--notification-color) 1%, transparent) 64%
+    ),
+    repeating-linear-gradient(
+      -55deg,
+      transparent 0,
+      transparent 9px,
+      color-mix(in srgb, var(--notification-color) 1.2%, transparent) 9px,
+      color-mix(in srgb, var(--notification-color) 1.2%, transparent) 10px
+    );
+  box-shadow:
+    inset 0 0 16px color-mix(in srgb, var(--notification-color) 2%, transparent),
+    0 0 10px color-mix(in srgb, var(--notification-color) 2%, transparent);
+  animation: notification-entry-in var(--ui-notification-fade, 620ms)
+    cubic-bezier(0.16, 0.76, 0.24, 1) both;
+}
+
+.ui-notification--damage {
+  --notification-color: var(--category-damage);
+}
+
+.ui-notification--healing {
+  --notification-color: var(--category-healing);
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--notification-color) 8%, transparent),
+      color-mix(in srgb, var(--notification-color) 2%, transparent) 68%
+    ),
+    repeating-linear-gradient(
+      -55deg,
+      transparent 0,
+      transparent 9px,
+      color-mix(in srgb, var(--notification-color) 1.4%, transparent) 9px,
+      color-mix(in srgb, var(--notification-color) 1.4%, transparent) 10px
+    );
+}
+
+.ui-notification--stat {
+  --notification-color: var(--category-stat);
+}
+
+.ui-notification--intel {
+  --notification-color: var(--panel-intel);
+}
+
+.ui-notification--item {
+  --notification-color: var(--panel-inventory);
+}
+
+.ui-notification--lost {
+  border-style: dashed;
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--notification-color) 4%, transparent),
+      color-mix(in srgb, var(--notification-color) 0.5%, transparent) 64%
+    ),
+    repeating-linear-gradient(
+      -55deg,
+      transparent 0,
+      transparent 9px,
+      color-mix(in srgb, var(--notification-color) 1%, transparent) 9px,
+      color-mix(in srgb, var(--notification-color) 1%, transparent) 10px
+    );
+}
+
+.ui-notification--stat.ui-notification--gained,
+.ui-notification--stat.ui-notification--lost {
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--category-stat) 13%, transparent);
+  border-left-color: color-mix(in srgb, var(--category-stat) 72%, transparent);
+}
+
+.ui-notification--stat.ui-notification--gained {
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--category-stat-up) 11%, transparent) 0%,
+      color-mix(in srgb, var(--category-stat) 8%, transparent) 34%,
+      color-mix(in srgb, var(--category-stat) 1%, transparent) 68%
+    ),
+    repeating-linear-gradient(
+      -55deg,
+      transparent 0,
+      transparent 9px,
+      color-mix(in srgb, var(--category-stat) 1.2%, transparent) 9px,
+      color-mix(in srgb, var(--category-stat) 1.2%, transparent) 10px
+    );
+}
+
+.ui-notification--stat.ui-notification--lost {
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--category-stat-down) 10%, transparent) 0%,
+      color-mix(in srgb, var(--category-stat) 7%, transparent) 34%,
+      color-mix(in srgb, var(--category-stat) 1%, transparent) 68%
+    ),
+    repeating-linear-gradient(
+      -55deg,
+      transparent 0,
+      transparent 9px,
+      color-mix(in srgb, var(--category-stat) 1.2%, transparent) 9px,
+      color-mix(in srgb, var(--category-stat) 1.2%, transparent) 10px
+    );
+}
+
+.ui-notification::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -55%;
+  width: 55%;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--notification-color) 7%, transparent),
+    transparent
+  );
+  animation: notification-entry-scan var(--ui-notification-scan, 780ms)
+    var(--ui-notification-scan-delay, 110ms) ease-out both;
+}
+
+.ui-notification-icon {
+  display: grid;
+  place-items: center;
+  width: 15px;
+  height: 15px;
+  color: color-mix(in srgb, var(--notification-color) 76%, var(--color-muted-2));
+  filter: drop-shadow(0 0 2px color-mix(in srgb, var(--notification-color) 28%, transparent));
+}
+
+.ui-notification-label,
+.ui-notification-detail {
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+}
+
+.ui-notification-label {
+  color: color-mix(in srgb, var(--notification-color) 76%, var(--color-muted-2));
+}
+
+.ui-notification-subject {
+  overflow: hidden;
+  color: color-mix(in srgb, var(--notification-color) 48%, var(--color-text));
+  font-family: var(--font-display);
+  font-size: 0.69rem;
+  font-weight: 500;
+  letter-spacing: 0.07em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+  text-shadow: 0 0 8px color-mix(in srgb, var(--notification-color) 14%, transparent);
+}
+
+.ui-notification-detail {
+  justify-self: end;
+  color: color-mix(in srgb, var(--notification-color) 36%, var(--color-muted-2));
+  letter-spacing: 0.06em;
+}
+
+@keyframes notification-entry-in {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  45% {
+    opacity: 1;
+    transform: translateX(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes notification-entry-scan {
+  to {
+    left: 100%;
+  }
+}
+
+@media (max-width: 520px) {
+  .ui-notification {
+    grid-template-columns: auto auto auto 1fr;
+    gap: 0.32rem;
+    padding-inline: 0.4rem;
+  }
+
+  .ui-notification-detail {
+    font-size: 0.45rem;
+    letter-spacing: 0.04em;
+  }
+
+  .ui-notification-subject {
+    font-size: 0.64rem;
+  }
+}
+
+.settings-divider {
+  width: 1px;
+  height: 1rem;
+  background: rgba(255, 109, 26, 0.1);
+  flex-shrink: 0;
+  align-self: center;
+}
+
+:root[data-theme="light"] .settings-divider {
+  background: rgba(143, 79, 55, 0.16);
+}

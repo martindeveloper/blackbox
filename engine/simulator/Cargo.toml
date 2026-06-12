@@ -1,0 +1,22 @@
+[package]
+name = "blackbox-simulator"
+version = "0.2.0"
+edition = "2024"
+license.workspace = true
+
+[lints]
+workspace = true
+
+[[bin]]
+name = "blackbox-simulator"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1.0"
+blackbox = { path = "../core" }
+blackbox-format = { path = "../format" }
+blackbox-output = { path = "../output" }
+mimalloc = "0.1.52"
+rustc-hash = "1"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"

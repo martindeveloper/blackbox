@@ -1,0 +1,264 @@
+{
+  "spec": "com.blackbox.chapter",
+  "formatVersion": 1,
+  "id": "passage",
+  "title": "Passage",
+  "startNodeId": "passage_entry",
+  "deathNodeId": "passage_game_over",
+  "nodes": {
+    "passage_entry": {
+      "id": "passage_entry",
+      "title": "Passage",
+      "backgroundRef": "background_passage",
+      "onEnter": [{ "type": "playMusic", "track": "passage" }],
+      "text": [
+        { "kind": "paragraph", "text": "You descend into a service passage." },
+        "@hud_vitals",
+        { "kind": "paragraph", "text": "A security door blocks the route ahead." }
+      ],
+      "choices": [
+        {
+          "id": "continue",
+          "label": "Approach the checkpoint.",
+          "goto": "checkpoint"
+        }
+      ]
+    },
+    "checkpoint": {
+      "id": "checkpoint",
+      "title": "Checkpoint",
+      "backgroundRef": "background_passage",
+      "onEnter": [{ "type": "playMusic", "track": "tension" }],
+      "text": [
+        { "kind": "paragraph", "text": "The door reader waits for credentials." },
+        {
+          "kind": "thought",
+          "speaker": "player",
+          "side": "right",
+          "text": "The access card might still work.",
+          "when": { "type": "hasItem", "itemId": "access_card", "count": 1 }
+        },
+        {
+          "kind": "dialogue",
+          "speaker": "checkpoint_ai",
+          "emotion": "urgent",
+          "side": "center",
+          "text": "\"Present valid credentials.\"",
+          "unless": { "type": "hasItem", "itemId": "access_card", "count": 1 }
+        }
+      ],
+      "choices": [
+        {
+          "id": "swipe_card",
+          "label": "Swipe the access card.",
+          "requires": [{ "type": "hasItem", "itemId": "access_card", "count": 1 }],
+          "disabledReason": "You need the access card from the hub.",
+          "effects": [
+            { "type": "removeItem", "itemId": "access_card", "count": 1 },
+            { "type": "addEvent", "eventId": "checkpoint_breached" }
+          ],
+          "goto": "door_open"
+        },
+        {
+          "id": "hack_panel",
+          "label": "Bypass the panel firmware.",
+          "check": {
+            "stat": "logic",
+            "difficulty": 13,
+            "label": "Firmware bypass",
+            "onSuccess": {
+              "effects": [{ "type": "addEvent", "eventId": "checkpoint_breached" }],
+              "goto": "door_open"
+            },
+            "onFailure": { "effects": [], "goto": "door_alarm" }
+          }
+        },
+        {
+          "id": "quote_passphrase",
+          "label": "Recite the guide's passphrase.",
+          "requires": [{ "type": "hasFlag", "flag": "asked_guide_question" }],
+          "when": { "type": "statGte", "stat": "empathy", "value": 2 },
+          "disabledReason": "You need the guide's words and enough empathy to use them.",
+          "check": {
+            "stat": "empathy",
+            "difficulty": 10,
+            "label": "Passphrase resonance",
+            "onSuccess": {
+              "effects": [{ "type": "addEvent", "eventId": "checkpoint_breached" }],
+              "goto": "door_open"
+            },
+            "onFailure": { "effects": [], "goto": "checkpoint" }
+          }
+        },
+        {
+          "id": "force_door",
+          "label": "Force the door.",
+          "check": {
+            "stat": "violence",
+            "difficulty": 12,
+            "label": "Brute force",
+            "maxAttempts": 2,
+            "onSuccess": {
+              "effects": [{ "type": "addEvent", "eventId": "checkpoint_breached" }],
+              "goto": "door_open"
+            },
+            "onFailure": {
+              "effects": [
+                {
+                  "type": "modifyStat",
+                  "stat": "hp",
+                  "amountExpr": { "call": "random", "args": [-4, -1] }
+                }
+              ],
+              "goto": "checkpoint"
+            },
+            "onExhausted": {
+              "effects": [{ "type": "modifyStat", "stat": "hp", "amount": -3 }],
+              "goto": "door_alarm"
+            }
+          }
+        }
+      ]
+    },
+    "door_open": {
+      "id": "door_open",
+      "title": "Inner Passage",
+      "backgroundRef": "background_passage",
+      "text": [
+        { "kind": "paragraph", "text": "The door opens onto a maintenance corridor." }
+      ],
+      "choices": [
+        {
+          "id": "approach_drone",
+          "label": "Approach the patrol drone.",
+          "goto": "drone_corridor"
+        }
+      ]
+    },
+    "drone_corridor": {
+      "id": "drone_corridor",
+      "title": "Drone Corridor",
+      "backgroundRef": "background_passage",
+      "text": [
+        { "kind": "paragraph", "text": "A patrol drone blocks the corridor." },
+        {
+          "kind": "stage_direction",
+          "text": "Classification sweep active. HP: {stat.hp}/{stat.max_hp}."
+        }
+      ],
+      "choices": [
+        {
+          "id": "calm_drone",
+          "label": "Speak to the drone in maintenance dialect.",
+          "check": {
+            "stat": "empathy",
+            "difficulty": 11,
+            "label": "Drone de-escalation",
+            "onSuccess": { "effects": [], "goto": "archive_terminal" },
+            "onFailure": { "effects": [], "goto": "surveillance_pulse" }
+          }
+        },
+        {
+          "id": "dismantle_drone",
+          "label": "Dismantle the drone.",
+          "check": {
+            "stat": "violence",
+            "difficulty": 14,
+            "label": "Precision dismantling",
+            "onSuccess": {
+              "effects": [{ "type": "modifyStat", "stat": "hp", "amount": -2 }],
+              "goto": "archive_terminal"
+            },
+            "onFailure": {
+              "effects": [{ "type": "modifyStat", "stat": "hp", "amount": -3 }],
+              "goto": "surveillance_pulse"
+            }
+          }
+        },
+        {
+          "id": "invoke_passphrase",
+          "label": "Recite the guide's passphrase at the drone.",
+          "requires": [{ "type": "hasFlag", "flag": "asked_guide_question" }],
+          "disabledReason": "You need the guide's words first.",
+          "check": {
+            "stat": "empathy",
+            "difficulty": 12,
+            "label": "Synthetic resonance",
+            "rollMode": "advantage",
+            "onSuccess": { "effects": [], "goto": "archive_terminal" },
+            "onFailure": { "effects": [], "goto": "surveillance_pulse" }
+          }
+        },
+        {
+          "id": "sneak_past",
+          "label": "Sneak past during a patrol gap.",
+          "when": { "type": "statGte", "stat": "logic", "value": 4 },
+          "disabledReason": "You cannot read the patrol gap clearly enough.",
+          "effects": [],
+          "goto": "archive_terminal"
+        }
+      ]
+    },
+    "surveillance_pulse": {
+      "id": "surveillance_pulse",
+      "title": "Surveillance Sweep",
+      "backgroundRef": "background_passage",
+      "onEnter": [{ "type": "playSfx", "sfx": "pulse_static" }],
+      "text": [
+        { "kind": "paragraph", "text": "Sensors lock onto your heat signature." }
+      ],
+      "choices": [
+        {
+          "id": "weather_pulse",
+          "label": "Run through the discharge field.",
+          "effects": [
+            {
+              "type": "modifyStat",
+              "stat": "hp",
+              "amountExpr": { "call": "random", "args": [-5, -2] }
+            }
+          ],
+          "goto": "archive_terminal"
+        },
+        {
+          "id": "retreat",
+          "label": "Retreat to the checkpoint.",
+          "goto": "checkpoint"
+        }
+      ]
+    },
+    "door_alarm": {
+      "id": "door_alarm",
+      "$extends": "game_over_standard",
+      "$merge": { "onEnter": "append" },
+      "title": "Lockdown",
+      "onEnter": [{ "type": "playSfx", "sfx": "alarm_distant" }],
+      "text": [
+        { "kind": "paragraph", "text": "Every light in the passage turns white at once." },
+        { "kind": "paragraph", "text": "Lockdown initiated." }
+      ],
+      "choices": []
+    },
+    "passage_game_over": {
+      "id": "passage_game_over",
+      "$extends": "game_over_standard",
+      "text": [
+        { "kind": "paragraph", "text": "Your vitals drop past the threshold." }
+      ],
+      "choices": []
+    },
+    "archive_terminal": {
+      "id": "archive_terminal",
+      "title": "Archive Terminal",
+      "backgroundRef": "background_passage",
+      "onEnter": [
+        { "type": "playMusic", "track": "main" },
+        { "type": "playSfx", "sfx": "memory_load" }
+      ],
+      "text": [
+        { "kind": "paragraph", "text": "Archive terminal reached." }
+      ],
+      "choices": []
+    }
+  }
+}

@@ -1,0 +1,52 @@
+# Rust / Cargo (legacy root target/ — builds now use .cache/target)
+/target/
+debug/
+Cargo.lock.bak
+
+# Backup files created by rustfmt
+**/*.rs.bk
+
+# MSVC Windows debug symbols
+*.pdb
+
+# WASM build output (legacy root web/pkg/ — wasm-pack now writes to .cache/wasm/)
+/pkg/
+*.wasm
+
+# Node / frontend (examples)
+node_modules/
+dist/
+build/
+*.tsbuildinfo
+
+# Environment and secrets
+.env
+.env.*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor / IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# User-local editor preferences (machine-specific, not for version control)
+**/.blackbox/user.preferences.json
+/.blackbox/editor.db*
+
+# Logs and temp files
+*.log
+tmp/
+temp/
+.cache/
+
+data/silent_archive_game/
+data/**/*.zip
+.temp/
+
+skills-lock.json
+.agents/
+.claude/

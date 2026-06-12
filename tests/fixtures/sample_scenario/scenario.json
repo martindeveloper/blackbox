@@ -1,0 +1,29 @@
+{
+  "spec": "com.blackbox.scenario",
+  "formatVersion": 1,
+  "title": "Sample Scenario",
+  "revision": "1",
+  "defaultStats": {
+    "hp": 10,
+    "max_hp": 10
+  },
+  "itemsRef": "items.json",
+  "charactersRef": "characters.json",
+  "assetsRef": "../../assets/assets.json",
+  "cookRef": "bundle.cook.json",
+  "deathNode": {
+    "title": "Game Over",
+    "text": [{ "kind": "paragraph", "text": "You are out." }],
+    "choices": [
+      {
+        "id": "restart",
+        "label": "Restart.",
+        "action": { "type": "restartGame", "startNodeId": "alpha_start" }
+      }
+    ]
+  },
+  "chapters": [
+    { "id": "alpha", "title": "Alpha", "ref": "chapter_alpha.json" },
+    { "id": "beta", "title": "Beta", "ref": "chapter_beta.json" }
+  ]
+}

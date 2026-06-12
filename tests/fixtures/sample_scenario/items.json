@@ -1,0 +1,12 @@
+{
+  "spec": "com.blackbox.items",
+  "formatVersion": 1,
+  "items": {
+    "test_key": {
+      "id": "test_key",
+      "name": "Test Key",
+      "description": "A synthetic test item.",
+      "iconRef": "icon_access_card"
+    }
+  }
+}

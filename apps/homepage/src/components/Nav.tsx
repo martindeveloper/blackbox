@@ -1,0 +1,157 @@
+import { useEffect, useState, type ReactElement } from "react";
+import { useTranslation } from "react-i18next";
+import { cycleTheme, type ThemeMode } from "../hooks/useTheme";
+import { LogoMark } from "./LogoMark";
+
+const SunIcon = () => (
+  <svg
+    width="13"
+    height="13"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    aria-hidden="true"
+  >
+    <circle cx="12" cy="12" r="5" />
+    <path
+      d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+const MoonIcon = () => (
+  <svg
+    width="13"
+    height="13"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    aria-hidden="true"
+  >
+    <path
+      d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+const AutoIcon = () => (
+  <svg
+    width="13"
+    height="13"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    aria-hidden="true"
+  >
+    <rect x="2" y="4" width="20" height="12" rx="2" />
+    <path d="M12 4v12" />
+    <path d="M8 20h8" strokeLinecap="round" />
+    <path d="M12 16v4" strokeLinecap="round" />
+    <circle cx="7" cy="10" r="2" />
+    <path d="M16.5 8.5a2.5 2.5 0 100 5" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const THEME_META: Record<
+  ThemeMode,
+  { icon: ReactElement; labelKey: "nav.theme_light" | "nav.theme_dark" | "nav.theme_auto" }
+> = {
+  light: { icon: <SunIcon />, labelKey: "nav.theme_light" },
+  dark: { icon: <MoonIcon />, labelKey: "nav.theme_dark" },
+  auto: { icon: <AutoIcon />, labelKey: "nav.theme_auto" },
+};
+
+const NAV_SECTIONS: {
+  id: string;
+  labelKey: "nav.features" | "nav.toolchain" | "nav.architecture" | "nav.editor" | "nav.platforms";
+}[] = [
+  { id: "features", labelKey: "nav.features" },
+  { id: "toolchain", labelKey: "nav.toolchain" },
+  { id: "architecture", labelKey: "nav.architecture" },
+  { id: "platforms", labelKey: "nav.platforms" },
+  { id: "editor", labelKey: "nav.editor" },
+];
+
+export type NavItem = {
+  href: string;
+  label: string;
+};
+
+type Props = {
+  mode: ThemeMode;
+  setMode: (m: ThemeMode) => void;
+  items?: NavItem[];
+};
+
+export function Nav({ mode, setMode, items }: Props) {
+  const { t } = useTranslation();
+  const [isScrolled, setIsScrolled] = useState(false);
+  const { icon, labelKey } = THEME_META[mode];
+  const label = t(labelKey);
+  const navItems =
+    items ??
+    NAV_SECTIONS.map(({ id, labelKey: sectionLabelKey }) => ({
+      href: `#${id}`,
+      label: t(sectionLabelKey),
+    }));
+
+  useEffect(() => {
+    const updateScrolledState = () => setIsScrolled(window.scrollY > 24);
+
+    updateScrolledState();
+    window.addEventListener("scroll", updateScrolledState, { passive: true });
+    return () => window.removeEventListener("scroll", updateScrolledState);
+  }, []);
+
+  return (
+    <nav className={`nav${isScrolled ? " nav--scrolled" : ""}`}>
+      <div className="container nav-inner">
+        <a href="/" className="nav-logo" aria-label="Blackbox home">
+          <LogoMark className="nav-logo-mark" />
+          <span className="nav-logo-text">
+            <span className="nav-logo-text-black">BLACK</span>
+            <span className="nav-logo-text-box">BOX</span>
+          </span>
+        </a>
+        <div className="nav-links">
+          <div className="nav-anchor-links">
+            {navItems.map((item) => (
+              <a key={item.href} href={item.href} className="nav-link">
+                {item.label}
+              </a>
+            ))}
+          </div>
+          <a href="/games" className="nav-link nav-link--games">
+            <span>{t("nav.games")}</span>
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              aria-hidden="true"
+            >
+              <path d="M5 12h14M13 6l6 6-6 6" />
+            </svg>
+          </a>
+          <button
+            type="button"
+            className="theme-btn"
+            onClick={() => setMode(cycleTheme(mode))}
+            title={`${label} — click to change`}
+            aria-label={`${label}, click to change theme`}
+          >
+            {icon}
+          </button>
+        </div>
+      </div>
+    </nav>
+  );
+}

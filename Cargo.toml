@@ -1,0 +1,24 @@
+[workspace]
+members = [
+    "engine/bundler-cook",
+    "engine/bundler",
+    "engine/core",
+    "apps/cli",
+    "engine/ffi",
+    "engine/format",
+    "engine/lint",
+    "engine/output",
+    "engine/simulator",
+    "engine/wasm",
+]
+resolver = "2"
+
+[workspace.package]
+license = "MIT"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = { level = "deny", priority = -1 }
+# Pedantic/nursery omitted — they flood output with style/doc nits we don't enforce.
