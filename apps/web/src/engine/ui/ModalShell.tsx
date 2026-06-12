@@ -1,6 +1,5 @@
 import { useEffect, type CSSProperties, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { CloseIcon } from "../Icons.js";
 
 export type ModalTone = "amber" | "cyan" | "copper" | "danger" | "dim" | "green";
 
@@ -26,6 +25,31 @@ const sizeClass: Record<ModalSize, string> = {
   md: "modal-panel--md",
   lg: "modal-panel--lg",
 };
+
+function CloseIcon({ size = 12 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 12 12" fill="none" aria-hidden>
+      <line
+        x1="2"
+        y1="2"
+        x2="10"
+        y2="10"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
+      <line
+        x1="10"
+        y1="2"
+        x2="2"
+        y2="10"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
 
 export function ModalShell({
   title,

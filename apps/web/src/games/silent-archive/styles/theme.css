@@ -29,3 +29,19 @@
   --font-narrative: "Cormorant Garamond", "Palatino Linotype", serif;
   --font-sans: "Share Tech Mono", "Courier New", monospace;
 }
+
+/* Engine UI token mapping — overrides the neutral defaults in
+ * engine/ui/tokens.css with this game's palette. The var() indirection keeps
+ * light/dark switching working: engine tokens follow whatever the active
+ * theme sets the base vars to. */
+:root {
+  --bb-ui-accent: var(--color-accent);
+  --bb-ui-info: var(--color-cyan);
+  --bb-ui-danger: var(--color-danger);
+  --bb-ui-text: var(--color-text);
+  --bb-ui-muted: var(--color-muted-2);
+  --bb-input-bg: var(--input-bg);
+  --bb-input-border: var(--input-border);
+  --bb-input-border-focus: var(--input-border-focus);
+  --bb-font-mono: var(--font-mono);
+}

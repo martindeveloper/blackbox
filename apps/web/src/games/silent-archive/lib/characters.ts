@@ -1,5 +1,5 @@
 import type { CharacterView } from "../../../engine/types/game.js";
-import i18n from "../../../i18n/index.js";
+import i18n from "../../../engine/i18n/index.js";
 import { formatRefId } from "../../../engine/lib/format.js";
 import { characterAccentColor as engineCharacterAccentColor } from "../../../engine/lib/characters.js";
 export {

@@ -1,17 +1,20 @@
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
-import type { TFunction } from "i18next";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useAppSettings } from "../../../engine/context/AppSettings.js";
 import { useManagedTexture } from "../../../engine/hooks/useAssetScope.js";
+import { useNumberKeySelect } from "../../../engine/hooks/useNumberKeySelect.js";
 import { bundleStore } from "../../../engine/lib/bundleStore.js";
+import { formatPlaytime, relativeTime } from "../../../engine/lib/format.js";
 import { isEditableTarget } from "../../../engine/lib/keyboard.js";
 import {
   clearAllPlayerData,
   clearSlot,
+  persistLastUsedSlot,
   readAllSlots,
+  readLastUsedSlot,
   SLOT_COUNT,
   type SlotData,
 } from "../../../engine/lib/slots.js";
+import { MenuButton, SettingsPanel } from "../../../engine/ui/menu.js";
 import { BugIcon, HeadphonesIcon } from "./Icons.js";
 import { RestartConfirmButtons } from "./RestartConfirm.js";
 
@@ -19,7 +22,6 @@ type MenuView = "slots" | "headphones" | "menu";
 
 const HEADPHONES_HOLD_MS = 2100;
 const HEADPHONES_FADE_MS = 520;
-const LAST_USED_SLOT_KEY = "blackbox_last_used_slot";
 
 interface MainMenuProps {
   menuLoading: boolean;
@@ -27,49 +29,6 @@ interface MainMenuProps {
   onContinueSlot: (index: number) => void;
   onRestartSlot: (index: number) => void;
   onCreateSupportBundle: () => void;
-}
-
-function relativeTime(isoString: string, t: TFunction): string {
-  const ms = Date.now() - new Date(isoString).getTime();
-  const seconds = Math.floor(ms / 1000);
-  if (seconds < 60) return t("mainMenu.relativeTime.justNow");
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return t("mainMenu.relativeTime.minutesAgo", { count: minutes });
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return t("mainMenu.relativeTime.hoursAgo", { count: hours });
-  const days = Math.floor(hours / 24);
-  if (days === 1) return t("mainMenu.relativeTime.yesterday");
-  if (days < 7) return t("mainMenu.relativeTime.daysAgo", { count: days });
-  return new Date(isoString).toLocaleDateString();
-}
-
-function formatPlaytime(totalPlaytimeMs: number): string {
-  const totalSeconds = Math.max(0, Math.floor(totalPlaytimeMs / 1000));
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-  return [hours, minutes, seconds].map((part) => String(part).padStart(2, "0")).join(":");
-}
-
-function readLastUsedSlot(): number | null {
-  try {
-    const raw = localStorage.getItem(LAST_USED_SLOT_KEY);
-    if (raw === null || raw === "") return null;
-    const index = Number(raw);
-    return Number.isInteger(index) && index >= 0 && index < SLOT_COUNT ? index : null;
-  } catch {
-    return null;
-  }
-}
-
-function persistLastUsedSlot(index: number | null): void {
-  try {
-    if (index === null) {
-      localStorage.removeItem(LAST_USED_SLOT_KEY);
-    } else {
-      localStorage.setItem(LAST_USED_SLOT_KEY, String(index));
-    }
-  } catch {}
 }
 
 export function MainMenu({
@@ -151,21 +110,7 @@ export function MainMenu({
     onRestartSlot(selectedSlot);
   }, [selectedSlot, menuLoading, onRestartSlot]);
 
-  useEffect(() => {
-    if (view !== "slots" || menuLoading) return;
-
-    function handleSlotKey(event: KeyboardEvent) {
-      if (isEditableTarget(event.target)) return;
-      if (event.metaKey || event.ctrlKey || event.altKey || event.repeat) return;
-      const slotIndex = Number(event.key) - 1;
-      if (!Number.isInteger(slotIndex) || slotIndex < 0 || slotIndex >= SLOT_COUNT) return;
-      event.preventDefault();
-      handleSelectSlot(slotIndex);
-    }
-
-    document.addEventListener("keydown", handleSlotKey);
-    return () => document.removeEventListener("keydown", handleSlotKey);
-  }, [handleSelectSlot, menuLoading, view]);
+  useNumberKeySelect(SLOT_COUNT, handleSelectSlot, view === "slots" && !menuLoading);
 
   useEffect(() => {
     if (view !== "menu") return;
@@ -562,19 +507,6 @@ function MenuScreen({
   onRestart: () => void;
   t: ReturnType<typeof useTranslation>["t"];
 }) {
-  const {
-    theme,
-    toggleTheme,
-    masterVolume,
-    musicVolume,
-    sfxVolume,
-    analyticsEnabled,
-    setMasterVolume,
-    setMusicVolume,
-    setSfxVolume,
-    toggleAnalytics,
-  } = useAppSettings();
-
   const [restartPending, setRestartPending] = useState(false);
   const occupied = slotData !== null;
   const num = String(selectedSlot + 1).padStart(2, "0");
@@ -686,124 +618,8 @@ function MenuScreen({
           <span className="mm-menu-hint">{t("mainMenu.optionsHint")}</span>
         </MenuButton>
 
-        {showOptions && (
-          <div className="mm-options-panel">
-            <VolumeRow
-              label={t("mainMenu.masterVolume")}
-              value={masterVolume}
-              onChange={setMasterVolume}
-            />
-            <VolumeRow
-              label={t("mainMenu.musicVolume")}
-              value={musicVolume}
-              onChange={setMusicVolume}
-            />
-            <VolumeRow label={t("mainMenu.sfxVolume")} value={sfxVolume} onChange={setSfxVolume} />
-
-            <div className="mm-options-sep" />
-
-            <button type="button" className="mm-theme-toggle" onClick={toggleTheme}>
-              <span className="mm-theme-label">{t("mainMenu.themeLabel")}</span>
-              <span className="mm-theme-value">
-                {theme === "dark" ? t("mainMenu.themeDark") : t("mainMenu.themeLight")}
-              </span>
-              <span className="mm-theme-arrow">↺</span>
-            </button>
-
-            <button type="button" className="mm-theme-toggle" onClick={toggleAnalytics}>
-              <span className="mm-theme-label">{t("mainMenu.analyticsLabel")}</span>
-              <span className="mm-theme-value">
-                {analyticsEnabled ? t("actions.on") : t("actions.off")}
-              </span>
-              <span className="mm-theme-arrow" aria-hidden>
-                ◌
-              </span>
-            </button>
-          </div>
-        )}
+        {showOptions && <SettingsPanel />}
       </div>
     </div>
-  );
-}
-
-function MenuButton({
-  index,
-  onClick,
-  children,
-  danger = false,
-  dim = false,
-  active = false,
-  autoFocus = false,
-  loading = false,
-  blocked = false,
-}: {
-  index: number;
-  onClick: () => void;
-  children: React.ReactNode;
-  danger?: boolean;
-  dim?: boolean;
-  active?: boolean;
-  autoFocus?: boolean;
-  loading?: boolean;
-  blocked?: boolean;
-}) {
-  const num = String(index).padStart(2, "0");
-  return (
-    <button
-      type="button"
-      className={[
-        "choice-item",
-        danger ? "choice-item--danger" : "",
-        dim ? "mm-menu-item--dim" : "",
-        active ? "mm-menu-item--active" : "",
-        blocked ? "mm-menu-item--blocked" : "",
-      ]
-        .filter(Boolean)
-        .join(" ")}
-      style={{ width: "100%" }}
-      onClick={loading || blocked ? undefined : onClick}
-      disabled={blocked}
-      autoFocus={autoFocus && !blocked}
-    >
-      <span className="choice-num">[{num}]</span>
-      <span className="flex flex-col flex-1">{children}</span>
-      {loading && (
-        <span className="mm-btn-loader" aria-hidden="true">
-          <span className="mm-btn-loader-track">
-            <span className="mm-btn-loader-sweep" />
-          </span>
-        </span>
-      )}
-    </button>
-  );
-}
-
-function VolumeRow({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: number;
-  onChange: (v: number) => void;
-}) {
-  const percent = Math.round(value * 100);
-  return (
-    <label className="mm-volume-row">
-      <span className="mm-volume-label">{label}</span>
-      <div className="mm-volume-track-wrap">
-        <input
-          type="range"
-          min="0"
-          max="100"
-          step="1"
-          value={percent}
-          onChange={(e) => onChange(Number(e.currentTarget.value) / 100)}
-          className="mm-volume-input"
-          style={{ "--slider-value": `${percent}%` } as CSSProperties}
-        />
-      </div>
-      <span className="mm-volume-value">{String(percent).padStart(3, "0")}%</span>
-    </label>
   );
 }

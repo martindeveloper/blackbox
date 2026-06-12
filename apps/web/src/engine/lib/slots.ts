@@ -154,3 +154,26 @@ export function clearAllPlayerData(): void {
 export function readAllSlots(): (SlotData | null)[] {
   return Array.from({ length: SLOT_COUNT }, (_, i) => readSlot(i));
 }
+
+const LAST_USED_SLOT_KEY = `${PLAYER_DATA_PREFIX}last_used_slot`;
+
+export function readLastUsedSlot(): number | null {
+  try {
+    const raw = localStorage.getItem(LAST_USED_SLOT_KEY);
+    if (raw === null || raw === "") return null;
+    const index = Number(raw);
+    return Number.isInteger(index) && index >= 0 && index < SLOT_COUNT ? index : null;
+  } catch {
+    return null;
+  }
+}
+
+export function persistLastUsedSlot(index: number | null): void {
+  try {
+    if (index === null) {
+      localStorage.removeItem(LAST_USED_SLOT_KEY);
+    } else {
+      localStorage.setItem(LAST_USED_SLOT_KEY, String(index));
+    }
+  } catch {}
+}

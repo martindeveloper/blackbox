@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { GamePanel } from "./components/GamePanel.js";
-import { DevConsole } from "./components/DevConsole.js";
+import { DevConsole } from "../../engine/ui/DevConsole.js";
 import { ArchiveIcon, MuteIcon, RecorderIcon, VolumeIcon } from "./components/Icons.js";
 
 import { MainMenu } from "./components/MainMenu.js";
-import { SavePanel } from "./components/SavePanel.js";
-import { useModal } from "./context/ModalContext.js";
+import { SavePanel } from "../../engine/ui/SavePanel.js";
+import { useModal } from "../../engine/ui/ModalContext.js";
 import { useAudio, resetMusicTracking } from "./hooks/useAudio.js";
 import { useBlackboxSession } from "../../engine/hooks/useBlackboxSession.js";
 import { musicAssetLabel, serializeEngineState } from "../../engine/lib/engine.js";

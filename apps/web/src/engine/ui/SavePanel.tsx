@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { formatRefId } from "../../../engine/lib/format.js";
-import { parseSavePreview } from "../../../engine/lib/savePreview.js";
+import { formatRefId } from "../lib/format.js";
+import { parseSavePreview } from "../lib/savePreview.js";
 
 interface SavePanelProps {
   savedState: string | null;
@@ -41,19 +41,19 @@ function SaveSummary({ json }: { json: string }) {
   const { nodeId, inventory, flags } = preview;
 
   return (
-    <div className="space-y-1.5" style={{ fontFamily: "var(--font-mono)" }}>
+    <div className="space-y-1.5" style={{ fontFamily: "var(--bb-font-mono)" }}>
       {nodeId && (
         <div className="flex items-baseline gap-2">
           <span
             style={{
               fontSize: "0.52rem",
               letterSpacing: "0.16em",
-              color: "rgba(255,109,26,0.3)",
+              color: "color-mix(in srgb, var(--bb-ui-accent) 30%, transparent)",
             }}
           >
             {t("save.nodeLabel")}
           </span>
-          <span style={{ fontSize: "0.65rem", color: "var(--color-muted-2)" }}>{nodeId}</span>
+          <span style={{ fontSize: "0.65rem", color: "var(--bb-ui-muted)" }}>{nodeId}</span>
         </div>
       )}
       {inventory.length > 0 && (
@@ -62,13 +62,13 @@ function SaveSummary({ json }: { json: string }) {
             style={{
               fontSize: "0.52rem",
               letterSpacing: "0.16em",
-              color: "rgba(255,109,26,0.3)",
+              color: "color-mix(in srgb, var(--bb-ui-accent) 30%, transparent)",
             }}
           >
             {t("save.carryLabel")}
           </span>
           {inventory.map(([key, count]) => (
-            <span key={key} style={{ fontSize: "0.6rem", color: "var(--color-muted-2)" }}>
+            <span key={key} style={{ fontSize: "0.6rem", color: "var(--bb-ui-muted)" }}>
               {formatRefId(key)} {count > 1 ? `×${count}` : ""}
             </span>
           ))}
@@ -80,13 +80,19 @@ function SaveSummary({ json }: { json: string }) {
             style={{
               fontSize: "0.52rem",
               letterSpacing: "0.16em",
-              color: "rgba(0,189,212,0.3)",
+              color: "color-mix(in srgb, var(--bb-ui-info) 30%, transparent)",
             }}
           >
             {t("save.memLabel")}
           </span>
           {flags.map((key) => (
-            <span key={key} style={{ fontSize: "0.6rem", color: "rgba(0,189,212,0.45)" }}>
+            <span
+              key={key}
+              style={{
+                fontSize: "0.6rem",
+                color: "color-mix(in srgb, var(--bb-ui-info) 45%, transparent)",
+              }}
+            >
               {formatRefId(key)}
             </span>
           ))}
@@ -118,7 +124,10 @@ export function SavePanel({ savedState, onRestore, onClose }: SavePanelProps) {
           <div className="flex items-center justify-between mb-2.5">
             <p
               className="text-xs tracking-[0.2em]"
-              style={{ color: "rgba(255,109,26,0.35)", fontFamily: "var(--font-mono)" }}
+              style={{
+                color: "color-mix(in srgb, var(--bb-ui-accent) 35%, transparent)",
+                fontFamily: "var(--bb-font-mono)",
+              }}
             >
               {t("save.checkpoint")}
             </p>
@@ -127,9 +136,9 @@ export function SavePanel({ savedState, onRestore, onClose }: SavePanelProps) {
           <div
             className="p-3"
             style={{
-              background: "rgba(255,109,26,0.03)",
-              border: "1px solid rgba(255,109,26,0.08)",
-              borderLeft: "2px solid rgba(255,109,26,0.2)",
+              background: "color-mix(in srgb, var(--bb-ui-accent) 3%, transparent)",
+              border: "1px solid color-mix(in srgb, var(--bb-ui-accent) 8%, transparent)",
+              borderLeft: "2px solid color-mix(in srgb, var(--bb-ui-accent) 20%, transparent)",
             }}
           >
             <SaveSummary json={savedState} />
@@ -141,7 +150,10 @@ export function SavePanel({ savedState, onRestore, onClose }: SavePanelProps) {
         <label
           htmlFor="restore-json"
           className="block text-xs tracking-[0.2em] mb-2"
-          style={{ color: "rgba(255,109,26,0.35)", fontFamily: "var(--font-mono)" }}
+          style={{
+            color: "color-mix(in srgb, var(--bb-ui-accent) 35%, transparent)",
+            fontFamily: "var(--bb-font-mono)",
+          }}
         >
           {t("save.pasteLabel")}
         </label>
@@ -149,10 +161,10 @@ export function SavePanel({ savedState, onRestore, onClose }: SavePanelProps) {
           id="restore-json"
           className="w-full min-h-24 p-3 text-xs resize-y"
           style={{
-            fontFamily: "var(--font-mono)",
-            color: "var(--color-text)",
-            background: "var(--input-bg)",
-            border: "1px solid var(--input-border)",
+            fontFamily: "var(--bb-font-mono)",
+            color: "var(--bb-ui-text)",
+            background: "var(--bb-input-bg)",
+            border: "1px solid var(--bb-input-border)",
             outline: "none",
             lineHeight: "1.65",
             transition: "border-color 0.15s ease",
@@ -161,10 +173,10 @@ export function SavePanel({ savedState, onRestore, onClose }: SavePanelProps) {
           onChange={(e) => setRestoreText(e.target.value)}
           placeholder={t("save.pastePlaceholder")}
           onFocus={(e) => {
-            e.currentTarget.style.borderColor = "var(--input-border-focus)";
+            e.currentTarget.style.borderColor = "var(--bb-input-border-focus)";
           }}
           onBlur={(e) => {
-            e.currentTarget.style.borderColor = "var(--input-border)";
+            e.currentTarget.style.borderColor = "var(--bb-input-border)";
           }}
         />
       </div>

@@ -1,4 +1,4 @@
-import { isEditableTarget } from "../../../engine/lib/keyboard.js";
+import { isEditableTarget } from "../lib/keyboard.js";
 import {
   createContext,
   useCallback,
@@ -9,9 +9,9 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { ModalShell, type ModalSize, type ModalTone } from "../components/modal/ModalShell.js";
+import { ModalShell, type ModalSize, type ModalTone } from "./ModalShell.js";
 
-export type { ModalSize };
+export type { ModalSize, ModalTone };
 
 export interface ModalDescriptor {
   id: string;
@@ -67,9 +67,7 @@ export function ModalProvider({ children }: { children: ReactNode }) {
     const target = currentStack.find((entry) => entry.id === id);
     if (!target) return;
 
-    const nextStack = currentStack.filter((entry) => entry.id !== id);
-    stackRef.current = nextStack;
-    setStack(nextStack);
+    setStack((current) => current.filter((entry) => entry.id !== id));
     target?.onClose?.();
   }, []);
 
@@ -78,9 +76,7 @@ export function ModalProvider({ children }: { children: ReactNode }) {
     const top = currentStack.at(-1);
     if (!top) return;
 
-    const nextStack = currentStack.slice(0, -1);
-    stackRef.current = nextStack;
-    setStack(nextStack);
+    setStack((current) => current.filter((entry) => entry.id !== top.id));
     top?.onClose?.();
   }, []);
 

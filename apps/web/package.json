@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build:js": "rolldown -c rolldown.config.ts",
-    "build:css": "tailwindcss -i ./src/games/silent-archive/app.css -o ./dist/www/style.css",
+    "build:css": "tailwindcss -i ./src/games/${BLACKBOX_WEB_PLAYER_GAME:-silent-archive}/app.css -o ./dist/www/style.css",
     "build:bundler": "node ./scripts/build-bundle.mjs --ignore-missing --archive-compress zstd",
     "build:bundler:dev": "node ./scripts/build-bundle.mjs --verbose --ignore-missing",
     "build:wasm": "node ./scripts/build-wasm.mjs --profile release",
@@ -17,7 +17,7 @@
     "deploy": "node ./scripts/deploy.mjs",
     "prepare:dev": "npm run build:wasm:dev && npm run build:bundler:dev && npm run build:favicon && node ./scripts/sync-dist.mjs",
     "watch:js": "rolldown -c rolldown.config.ts --watch",
-    "watch:css": "tailwindcss -i ./src/games/silent-archive/app.css -o ./dist/www/style.css --watch",
+    "watch:css": "tailwindcss -i ./src/games/${BLACKBOX_WEB_PLAYER_GAME:-silent-archive}/app.css -o ./dist/www/style.css --watch",
     "watch:assets": "node ./scripts/sync-dist.mjs --watch",
     "dev": "npm run prepare:dev && concurrently -k -n js,css,assets,server -c blue,magenta,yellow,green \"npm run watch:js\" \"npm run watch:css\" \"npm run watch:assets\" \"node server.js --dev\"",
     "start": "node server.js",

@@ -11,7 +11,10 @@
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
     "noUncheckedIndexedAccess": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "paths": {
+      "@game/*": ["./src/games/silent-archive/*"]
+    }
   },
   "include": [
     "src/**/*.ts",

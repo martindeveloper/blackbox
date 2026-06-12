@@ -1,3 +1,6 @@
+/** Game strings. Engine defaults (modal, save, confirm, actions, errors,
+ *  preloader, relative time) live in engine/i18n/en.ts; anything here
+ *  overrides them. */
 export const en = {
   header: {
     brand: "BLACKBOX",
@@ -6,18 +9,9 @@ export const en = {
     mute: "Mute music",
     unmute: "Unmute music",
   },
-  modal: {
-    close: "Close",
-    esc: "ESC",
-  },
   chapter: {
     entering: "ENTERING CHAPTER",
     loading: "Loading chapter",
-  },
-  preloader: {
-    loading: "Loading",
-    label: "CORP SYSTEMS ACCESSING",
-    sublabel: "INITIALIZING SECURE ARCHIVE",
   },
   boot: {
     corp: "BLACKBOX SYSTEMS CORP",
@@ -87,12 +81,6 @@ export const en = {
     stamp: "ARCHIVE RECORD — ACTIVE",
     you: "You",
   },
-  confirm: {
-    confirm: "Confirm",
-    cancel: "Cancel",
-    confirmRestart: "Confirm restart",
-    cancelRestart: "Cancel restart",
-  },
   examine: {
     eyebrow: "ITEM EXAMINE",
     ref: "REF",
@@ -112,12 +100,6 @@ export const en = {
     rollModeDisadvantage: "DIS",
     attemptsRemaining: "{{remaining}} / {{max}} ATT",
     locked: "LOCKED",
-  },
-  actions: {
-    light: "LIGHT",
-    dark: "DARK",
-    on: "ON",
-    off: "OFF",
   },
   shortcuts: {
     inventory: "Open Inventory",
@@ -170,19 +152,6 @@ export const en = {
       endurance: "END",
       luck: "LCK",
     },
-  },
-  save: {
-    title: "INCIDENT ARCHIVE",
-    eyebrow: "CHECKPOINT ARCHIVE",
-    checkpoint: "CURRENT CHECKPOINT",
-    copy: "COPY",
-    copied: "✓ COPIED",
-    pasteLabel: "PASTE SAVE DATA TO RESTORE",
-    pastePlaceholder: '{ "revision": "...", ... }',
-    restoreBtn: "RESTORE CHECKPOINT",
-    nodeLabel: "NODE",
-    carryLabel: "CARRY",
-    memLabel: "MEM",
   },
   menu: {
     title: "SYS TERMINAL",
@@ -259,13 +228,6 @@ export const en = {
     deleteAllData: "Delete all data",
     confirmDeleteAllData: "Confirm delete all data",
     cancelDeleteAllData: "Cancel delete all data",
-    relativeTime: {
-      justNow: "just now",
-      minutesAgo: "{{count}}m ago",
-      hoursAgo: "{{count}}h ago",
-      yesterday: "yesterday",
-      daysAgo: "{{count}}d ago",
-    },
   },
   status: {
     loading: "LOADING…",
@@ -284,39 +246,5 @@ export const en = {
     devCommandApplied: "RUNTIME OVERRIDE APPLIED",
     engineRecovered:
       "Engine recovered from autosave after an internal crash — your last safe state was restored.",
-  },
-  errors: {
-    bootStageDetail: "{{stage}}: {{detail}}",
-    bootFailed: "Boot failed",
-    restartFailed: "Restart failed",
-    chapterCheckpointMissing: "No chapter-start checkpoint is available for this save slot.",
-    wasmInitFailed: "WASM init failed",
-    engineConstructorFailed: "Engine constructor failed",
-    readInitialViewFailed: "Failed to read initial view",
-    wasmPanic: "The game engine crashed. Open the browser console for details.",
-    loadFailed: "Failed to load {{url}} ({{status}})",
-    bundleNotLoaded: "Game bundle was not loaded before engine boot",
-    bundleContentMissing: "Bundle is missing required content: {{path}}",
-    bundleAssetMissing: "Bundle is missing asset: {{src}}",
-    contentDecodeError: "Failed to decode content ({{format}}): {{message}}",
-    stateEncodeError: "Failed to encode state ({{format}}): {{message}}",
-    stateDecodeError: "Failed to decode state ({{format}}): {{message}}",
-    unknownNode: "Unknown node id: {{id}}",
-    unknownChoice: "Unknown choice id: {{id}}",
-    choiceDisabled: "Choice '{{choiceId}}' is disabled: {{reason}}",
-    expressionError: "Expression error: {{detail}}",
-    validationError: "Content validation failed: {{detail}}",
-    revisionMismatch: "Save revision '{{save}}' does not match scenario revision '{{current}}'",
-    unknownItem: "Unknown item: {{id}}",
-    itemNotOwned: "Item not in inventory: {{itemRef}}",
-    unknownItemAction: "Unknown action '{{actionId}}' on item '{{itemRef}}'",
-    itemActionDisabled: "Cannot use '{{actionId}}' on '{{itemRef}}': {{reason}}",
-    ambiguousItemAction: "Multiple actions available for '{{itemRef}}'; pick one explicitly",
-    engineError: "Engine error",
-    engineErrorTyped: "Engine error: {{type}}",
-    hostEncodeError: "Host encode error ({{format}}): {{message}}",
-    hostDecodeError: "Host decode error ({{format}}): {{message}}",
-    bundleLoadFailed: "Failed to load game bundle",
-    bundleLoadFailedDetail: "Failed to load game bundle: {{detail}}",
   },
 } as const;

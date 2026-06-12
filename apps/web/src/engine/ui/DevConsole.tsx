@@ -3,7 +3,7 @@ import {
   devConsoleHelp,
   parseDevConsoleCommand,
   type DevConsoleResult,
-} from "../../../engine/lib/devConsole.js";
+} from "../lib/devConsole.js";
 
 interface ConsoleLine {
   id: number;

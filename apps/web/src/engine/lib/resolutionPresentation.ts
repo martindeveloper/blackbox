@@ -1,8 +1,8 @@
-import type { RollRecord, UiNotification } from "../../../engine/types/game.js";
-import { hpDamageAmount } from "../../../engine/lib/stateChanges.js";
-import { narrativeSequenceMs, rollsSequenceMs, UI_TIMING } from "../uiConfig.js";
+import type { RollRecord, UiNotification } from "../types/game.js";
+import { hpDamageAmount } from "./stateChanges.js";
+import type { UiTiming } from "./uiTiming.js";
 
-export { hpDamageAmount, mergeDisplayStats } from "../../../engine/lib/stateChanges.js";
+export { hpDamageAmount, mergeDisplayStats } from "./stateChanges.js";
 
 export type ResolutionPresentationMode = "dice-first" | "narrative-first" | "none";
 
@@ -33,6 +33,7 @@ export function shouldDeferHpReveal(
 }
 
 export function hpRevealDelayMs(
+  timing: UiTiming,
   rolls: RollRecord[],
   notifications: UiNotification[],
   options: {
@@ -42,13 +43,13 @@ export function hpRevealDelayMs(
   },
 ): number {
   const damageIndex = notifications.findIndex((notification) => notification.category === "damage");
-  const damageOffset = damageIndex >= 0 ? damageIndex * UI_TIMING.notificationStaggerMs : 0;
+  const damageOffset = damageIndex >= 0 ? damageIndex * timing.values.notificationStaggerMs : 0;
 
   if (options.mode === "narrative-first") {
-    return narrativeSequenceMs(options.textBlockCount ?? 0) + damageOffset;
+    return timing.narrativeSequenceMs(options.textBlockCount ?? 0) + damageOffset;
   }
 
   const resolutionStart = options.resolutionLeadMs ?? 0;
-  const rollDelay = rollsSequenceMs(rolls.length);
+  const rollDelay = timing.rollsSequenceMs(rolls.length);
   return resolutionStart + rollDelay + damageOffset;
 }

@@ -1,18 +1,24 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { ArchiveIcon, GridIcon, IncidentIcon } from "../components/Icons.js";
 import { InventoryPanel } from "../components/InventoryPanel.js";
 import { JournalPanel } from "../components/JournalPanel.js";
 import { MemoryPanel } from "../components/MemoryPanel.js";
 import { SystemMenu } from "../components/SystemMenu.js";
-import { type ModalDescriptor, useModal } from "../context/ModalContext.js";
-import { isEditableTarget, matchesShortcut } from "../../../engine/lib/keyboard.js";
+import { usePanelModals } from "../../../engine/hooks/usePanelModals.js";
+import type { ModalDescriptor } from "../../../engine/ui/ModalContext.js";
 import type { GameView, ItemExamineView } from "../../../engine/types/game.js";
 import { UI_SHORTCUTS } from "../uiConfig.js";
 
 type GamePanelId = "inventory" | "memory" | "journal" | "system";
 
-const ALL_PANELS: GamePanelId[] = ["inventory", "memory", "journal", "system"];
+const ALL_PANELS: readonly GamePanelId[] = ["inventory", "memory", "journal", "system"];
+
+const PANEL_SHORTCUTS: Partial<Record<GamePanelId, string>> = {
+  inventory: UI_SHORTCUTS.inventory.key,
+  memory: UI_SHORTCUTS.intel.key,
+  journal: UI_SHORTCUTS.journal.key,
+};
 
 interface GamePanelModalContext {
   view: GameView;
@@ -105,78 +111,30 @@ function createGamePanelModal(
 
 export function useGamePanelModals(ctx: GamePanelModalContext) {
   const { t } = useTranslation();
-  const { openModal, closeModal, hasOpenModals } = useModal();
-  const [openPanel, setOpenPanel] = useState<GamePanelId | null>(null);
 
-  const closePanel = useCallback(
-    (id: GamePanelId) => {
-      setOpenPanel(null);
-      closeModal(id);
-    },
-    [closeModal],
+  const createModal = useCallback(
+    (id: GamePanelId, onClose: () => void) => createGamePanelModal(id, ctx, t, onClose),
+    [
+      t,
+      ctx.examine,
+      ctx.commandPending,
+      ctx.view,
+      ctx.memoryKeys,
+      ctx.isTerminal,
+      ctx.onExamine,
+      ctx.onUseItem,
+      ctx.onSave,
+      ctx.onOpenMainMenu,
+      ctx.onRestart,
+      ctx.onCreateSupportBundle,
+    ],
   );
 
-  const closeOtherPanels = useCallback(
-    (except: GamePanelId) => {
-      for (const id of ALL_PANELS) {
-        if (id !== except) closeModal(id);
-      }
-    },
-    [closeModal],
-  );
-
-  const openPanelModal = useCallback(
-    (id: GamePanelId) => {
-      closeOtherPanels(id);
-      setOpenPanel(id);
-      openModal(createGamePanelModal(id, ctx, t, () => closePanel(id)));
-    },
-    [closeOtherPanels, closePanel, ctx, openModal, t],
-  );
-
-  useEffect(() => {
-    if (!openPanel) return;
-    openPanelModal(openPanel);
-  }, [
-    openPanel,
-    ctx.examine,
-    ctx.commandPending,
-    ctx.view.inventory_items,
-    ctx.view.item_actions,
-    ctx.view.events,
-    ctx.memoryKeys,
-    ctx.isTerminal,
-    openPanelModal,
-  ]);
-
-  useEffect(() => {
-    function handleKey(event: KeyboardEvent) {
-      if (isEditableTarget(event.target)) return;
-      if (event.metaKey || event.ctrlKey || event.altKey || event.repeat) return;
-
-      if (matchesShortcut(event, UI_SHORTCUTS.system.key)) {
-        if (hasOpenModals()) return;
-        event.preventDefault();
-        openPanelModal("system");
-        return;
-      }
-
-      const panel = matchesShortcut(event, UI_SHORTCUTS.inventory.key)
-        ? "inventory"
-        : matchesShortcut(event, UI_SHORTCUTS.intel.key)
-          ? "memory"
-          : matchesShortcut(event, UI_SHORTCUTS.journal.key)
-            ? "journal"
-            : null;
-
-      if (!panel || (hasOpenModals() && !openPanel)) return;
-      event.preventDefault();
-      openPanelModal(panel);
-    }
-
-    document.addEventListener("keydown", handleKey);
-    return () => document.removeEventListener("keydown", handleKey);
-  }, [hasOpenModals, openPanel, openPanelModal]);
-
-  return { showPanel: openPanelModal };
+  return usePanelModals({
+    panelIds: ALL_PANELS,
+    shortcuts: PANEL_SHORTCUTS,
+    primaryPanelId: "system",
+    primaryShortcut: UI_SHORTCUTS.system.key,
+    createModal,
+  });
 }

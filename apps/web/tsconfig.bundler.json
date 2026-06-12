@@ -1,0 +1,4 @@
+{
+  "//": "Used by rolldown's resolver instead of tsconfig.json, so the @game alias (selected via BLACKBOX_WEB_PLAYER_GAME) is not overridden by the editor-facing paths mapping.",
+  "compilerOptions": {}
+}

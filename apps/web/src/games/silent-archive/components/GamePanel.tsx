@@ -13,9 +13,9 @@ import { statAbbrev } from "../lib/vitals.js";
 import { useCharacterProfileModal } from "../hooks/useCharacterProfileModal.js";
 import { useGamePanelModals } from "../hooks/useGamePanelModals.js";
 import { useManagedTexture } from "../../../engine/hooks/useAssetScope.js";
-import { useResolutionPresentation } from "../hooks/useResolutionPresentation.js";
+import { useResolutionPresentation } from "../../../engine/hooks/useResolutionPresentation.js";
 
-import { UI_SHORTCUTS, UI_TIMING } from "../uiConfig.js";
+import { timing, UI_SHORTCUTS, UI_TIMING } from "../uiConfig.js";
 import { ChoiceList } from "./ChoiceList.js";
 import {
   ArchiveIcon,
@@ -98,6 +98,7 @@ export function GamePanel({
     damagePulse,
     clearDamagePulse,
   } = useResolutionPresentation({
+    timing,
     nodeId: view.node_id,
     resolutionEpoch,
     textBlockCount: view.text.length,

@@ -8,13 +8,8 @@ import {
   type DamagePulse,
   type ResolutionPresentationMode,
 } from "../lib/resolutionPresentation.js";
-import type { RollRecord, UiNotification } from "../../../engine/types/game.js";
-import {
-  narrativeSequenceMs,
-  notificationsSequenceMs,
-  resolutionLeadMs,
-  resolutionSequenceMs,
-} from "../uiConfig.js";
+import type { RollRecord, UiNotification } from "../types/game.js";
+import type { UiTiming } from "../lib/uiTiming.js";
 
 export type SequencePhase = "narrative" | "resolution" | "ready";
 
@@ -26,6 +21,7 @@ function hitStrength(damage: number, maxHp: number | null): number {
 }
 
 interface UseResolutionPresentationOptions {
+  timing: UiTiming;
   nodeId: string;
   resolutionEpoch: number;
   textBlockCount: number;
@@ -36,6 +32,7 @@ interface UseResolutionPresentationOptions {
 }
 
 export function useResolutionPresentation({
+  timing,
   nodeId,
   resolutionEpoch,
   textBlockCount,
@@ -58,6 +55,8 @@ export function useResolutionPresentation({
   const [damagePulse, setDamagePulse] = useState<DamagePulse | null>(null);
   const [narrativeReady, setNarrativeReady] = useState(true);
   const pulseIdRef = useRef(0);
+  const timingRef = useRef(timing);
+  timingRef.current = timing;
 
   const epochKey = `${nodeId}:${resolutionEpoch}`;
   const sequenceSnapshotRef = useRef({
@@ -102,12 +101,16 @@ export function useResolutionPresentation({
       baselineStats: sequenceBaseline,
       authoritativeStats: sequenceAuthoritative,
     } = sequenceSnapshotRef.current;
+    const sequenceTiming = timingRef.current;
 
     const timers: ReturnType<typeof setTimeout>[] = [];
 
     if (sequenceMode === "dice-first") {
-      const showResolutionAfterMs = resolutionLeadMs();
-      const resolutionMs = resolutionSequenceMs(sequenceNotifications.length, sequenceRolls.length);
+      const showResolutionAfterMs = sequenceTiming.resolutionLeadMs();
+      const resolutionMs = sequenceTiming.resolutionSequenceMs(
+        sequenceNotifications.length,
+        sequenceRolls.length,
+      );
       const diceSettleMs = showResolutionAfterMs + resolutionMs;
 
       timers.push(setTimeout(() => setSequencePhase("resolution"), showResolutionAfterMs));
@@ -115,28 +118,31 @@ export function useResolutionPresentation({
       timers.push(
         setTimeout(
           () => setSequencePhase("ready"),
-          diceSettleMs + narrativeSequenceMs(sequenceTextBlocks),
+          diceSettleMs + sequenceTiming.narrativeSequenceMs(sequenceTextBlocks),
         ),
       );
     } else if (sequenceMode === "narrative-first") {
-      const narrativeMs = narrativeSequenceMs(sequenceTextBlocks);
-      const notificationMs = notificationsSequenceMs(sequenceNotifications.length);
+      const narrativeMs = sequenceTiming.narrativeSequenceMs(sequenceTextBlocks);
+      const notificationMs = sequenceTiming.notificationsSequenceMs(sequenceNotifications.length);
 
       timers.push(setTimeout(() => setSequencePhase("resolution"), narrativeMs));
       timers.push(setTimeout(() => setSequencePhase("ready"), narrativeMs + notificationMs));
     } else {
       timers.push(
-        setTimeout(() => setSequencePhase("ready"), narrativeSequenceMs(sequenceTextBlocks)),
+        setTimeout(
+          () => setSequencePhase("ready"),
+          sequenceTiming.narrativeSequenceMs(sequenceTextBlocks),
+        ),
       );
     }
 
     if (sequenceDeferHp) {
       const damage = hpDamageAmount(sequenceBaseline, sequenceAuthoritative);
       if (damage !== null) {
-        const revealMs = hpRevealDelayMs(sequenceRolls, sequenceNotifications, {
+        const revealMs = hpRevealDelayMs(sequenceTiming, sequenceRolls, sequenceNotifications, {
           mode: sequenceMode as ResolutionPresentationMode,
           textBlockCount: sequenceTextBlocks,
-          resolutionLeadMs: sequenceMode === "dice-first" ? resolutionLeadMs() : 0,
+          resolutionLeadMs: sequenceMode === "dice-first" ? sequenceTiming.resolutionLeadMs() : 0,
         });
         const maxHp =
           typeof sequenceAuthoritative.max_hp === "number" ? sequenceAuthoritative.max_hp : null;
