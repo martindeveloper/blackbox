@@ -369,11 +369,17 @@ a {
 }
 
 .nav-link--games {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 0.3rem;
+  line-height: 1;
   color: var(--color-accent);
   font-weight: 500;
+}
+
+.nav-link--games svg {
+  display: block;
+  flex-shrink: 0;
 }
 .nav-link--games:hover {
   color: var(--color-accent-dark);
