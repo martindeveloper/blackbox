@@ -53,7 +53,9 @@ function formatPlaytime(totalPlaytimeMs: number): string {
 
 function readLastUsedSlot(): number | null {
   try {
-    const index = Number(localStorage.getItem(LAST_USED_SLOT_KEY));
+    const raw = localStorage.getItem(LAST_USED_SLOT_KEY);
+    if (raw === null || raw === "") return null;
+    const index = Number(raw);
     return Number.isInteger(index) && index >= 0 && index < SLOT_COUNT ? index : null;
   } catch {
     return null;
