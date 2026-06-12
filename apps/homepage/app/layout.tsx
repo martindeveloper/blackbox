@@ -22,21 +22,12 @@ export const metadata: Metadata = {
     title: "Blackbox — Text-Based Narrative RPG Engine",
     description:
       "Build worlds. Write choices. Let Blackbox handle branching stories, persistent state, and cross-platform play.",
-    images: [
-      {
-        url: "/og-image.jpg",
-        width: 1200,
-        height: 630,
-        alt: "Blackbox — text-based narrative RPG engine",
-      },
-    ],
   },
   twitter: {
-    card: "summary_large_image",
+    card: "summary",
     title: "Blackbox — Text-Based Narrative RPG Engine",
     description:
       "Build worlds. Write choices. Let Blackbox handle branching stories, persistent state, and cross-platform play.",
-    images: ["/og-image.jpg"],
   },
   icons: [
     { rel: "icon", type: "image/png", sizes: "32x32", url: "/icon-32.png" },
