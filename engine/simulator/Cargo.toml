@@ -17,6 +17,6 @@ blackbox = { path = "../core" }
 blackbox-format = { path = "../format" }
 blackbox-output = { path = "../output" }
 mimalloc = "0.1.52"
-rustc-hash = "1"
+rustc-hash = "2"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"

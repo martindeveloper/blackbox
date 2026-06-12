@@ -11,12 +11,12 @@ workspace = true
 crate-type = ["rlib", "staticlib", "cdylib"]
 
 [dependencies]
-bumpalo = { version = "3.16", features = ["collections"] }
+bumpalo = { version = "3.20", features = ["collections"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 thiserror = "2.0"
 anyhow = "1.0"
-rustc-hash = "1"
+rustc-hash = "2"
 
 [dev-dependencies]
 blackbox-format = { path = "../format" }

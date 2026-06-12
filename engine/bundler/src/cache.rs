@@ -150,7 +150,8 @@ fn cache_key(
     hasher.update(source_size.to_le_bytes());
     hasher.update(source_modified.to_le_bytes());
     hasher.update(profile_fp.to_le_bytes());
-    format!("{:x}", hasher.finalize())
+    let hash = hasher.finalize();
+    hash.iter().map(|byte| format!("{byte:02x}")).collect()
 }
 
 fn file_modified_secs(meta: &fs::Metadata) -> u64 {
