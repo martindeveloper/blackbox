@@ -15,8 +15,6 @@
  * classes (bespoke gradients, glows, per-tone panels, light theme, etc.).
  */
 
-/* ---- Corner brackets ------------------------------------------------------ */
-
 .bracket {
   position: absolute;
   width: 14px;
@@ -65,8 +63,6 @@
 .bracket-subject {
   border-color: color-mix(in srgb, var(--modal-accent, var(--bb-ui-accent)) 42%, transparent);
 }
-
-/* ---- Modal shell ---------------------------------------------------------- */
 
 .modal-backdrop {
   position: fixed;
@@ -221,8 +217,6 @@
   }
 }
 
-/* ---- Choice / menu rows --------------------------------------------------- */
-
 .choice-item {
   display: flex;
   align-items: flex-start;
@@ -268,8 +262,6 @@
   transition: color 0.18s ease;
 }
 
-/* ---- System button -------------------------------------------------------- */
-
 .sys-btn {
   font-family: var(--bb-font-mono);
   font-size: 0.65rem;
@@ -303,8 +295,6 @@
   align-items: center;
   gap: 0.45rem;
 }
-
-/* ---- Settings panel widgets (SettingsPanel) ------------------------------- */
 
 .mm-options-panel {
   margin-left: 0.5rem;
@@ -425,7 +415,6 @@
   outline: none;
 }
 
-/* Inline button loader (MenuButton loading state). */
 .mm-btn-loader {
   display: flex;
   align-items: center;
@@ -498,8 +487,6 @@
     transform: translateX(290%);
   }
 }
-
-/* ---- Developer console (dev tooling — fixed terminal identity) ------------- */
 
 .dev-console {
   position: fixed;

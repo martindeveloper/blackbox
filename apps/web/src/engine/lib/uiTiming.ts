@@ -48,9 +48,7 @@ type UiCssVars = CSSProperties & Record<`--ui-${string}`, string>;
 export interface UiTiming {
   values: UiTimingValues;
   cssVars: UiCssVars;
-  /** Overlay holds until ~72%; crossfade completes as the reveal begins. */
   musicChapterCrossfadeSecs(): number;
-  /** Slow bleed on death — roughly four narrative block fades. */
   musicDeathFadeOutSecs(): number;
   resolveMusicFade(kind: MusicFadeKind | undefined, hadTrack: boolean): MusicFade;
   narrativeSequenceMs(textBlockCount: number): number;

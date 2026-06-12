@@ -1,5 +1,3 @@
-/** Engine-level default strings. Games deep-merge their own resources on top
- *  and may override any key. */
 export const engineEn = {
   header: {
     brand: "BLACKBOX",

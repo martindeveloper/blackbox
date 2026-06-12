@@ -592,7 +592,6 @@
 }
 
 :root[data-theme="light"] .dialogue-line {
-  /* use character accent with a darker mix so it reads on the light surface */
   border-left-color: color-mix(
     in srgb,
     var(--character-accent, var(--color-accent)) 55%,

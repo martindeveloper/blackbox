@@ -31,7 +31,6 @@
   --glow-dialogue: 0 0 30px rgba(212, 176, 128, 0.07);
   --glow-thought: 0 0 36px color-mix(in srgb, var(--panel-intel) 5.5%, transparent);
 
-  /* Panel chroma — single source for inventory / intel / journal UI */
   --panel-inventory: var(--color-success);
   --panel-inventory-bright: #8cf0aa;
   --panel-inventory-deep: #2da050;

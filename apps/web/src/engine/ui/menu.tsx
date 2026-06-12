@@ -84,7 +84,6 @@ export function VolumeRow({
   );
 }
 
-/** Volume / theme / analytics controls bound to AppSettings. */
 export function SettingsPanel() {
   const { t } = useTranslation();
   const {

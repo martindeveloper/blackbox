@@ -559,6 +559,10 @@
       max(0.75rem, env(safe-area-inset-bottom));
   }
 
+  .modal-backdrop:has(.content-warning) {
+    align-items: center;
+  }
+
   .modal-panel {
     max-height: calc(
       100dvh - max(0.75rem, env(safe-area-inset-top)) - max(0.75rem, env(safe-area-inset-bottom))
@@ -583,6 +587,78 @@
   background: rgba(255, 109, 26, 0.03);
   border: 1px solid rgba(255, 109, 26, 0.08);
   border-left: 2px solid rgba(255, 109, 26, 0.2);
+}
+
+.content-warning {
+  display: grid;
+  gap: 1.35rem;
+  padding-top: 0.35rem;
+}
+
+.content-warning-text {
+  max-width: 29rem;
+  margin: 0 auto;
+  color: var(--color-muted-2);
+  font-family: var(--font-mono);
+  font-size: clamp(0.76rem, 1.8vw, 0.84rem);
+  line-height: 1.8;
+  letter-spacing: 0.045em;
+  text-align: center;
+}
+
+.content-warning-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.45rem;
+}
+
+.content-warning-cancel,
+.content-warning-confirm {
+  min-height: 2.35rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid;
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    color 150ms ease,
+    border-color 150ms ease,
+    background 150ms ease,
+    transform 150ms ease;
+}
+
+.content-warning-cancel {
+  color: var(--color-muted-2);
+  border-color: var(--mm-accent-ghost);
+  background: transparent;
+}
+
+.content-warning-cancel:hover,
+.content-warning-cancel:focus-visible {
+  color: var(--color-text);
+  border-color: var(--mm-accent-faint);
+  background: var(--mm-accent-fill);
+}
+
+.content-warning-confirm {
+  color: var(--color-accent);
+  border-color: var(--mm-accent-faint);
+  background: var(--mm-accent-fill-strong);
+}
+
+.content-warning-confirm:hover,
+.content-warning-confirm:focus-visible {
+  color: var(--color-text);
+  border-color: var(--mm-accent-mid);
+  background: var(--mm-accent-fill-strong);
+}
+
+@media (max-width: 480px) {
+  .content-warning-actions {
+    flex-direction: column-reverse;
+  }
 }
 
 .modal-textarea {

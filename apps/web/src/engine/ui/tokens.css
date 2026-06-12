@@ -11,27 +11,19 @@
  *     bundles exactly one game's CSS.
  */
 :root {
-  /* Primary accent: labels, frames, highlights. */
   --bb-ui-accent: #8a8a8a;
-  /* Secondary/info accent: intel, metadata. */
   --bb-ui-info: #7f9aa6;
-  /* Errors and destructive states. */
   --bb-ui-danger: #e82020;
-  /* Body text and de-emphasized text. */
   --bb-ui-text: #d6d6d6;
   --bb-ui-muted: #8c8c8c;
-  /* Form fields. */
   --bb-input-bg: rgba(0, 0, 0, 0.35);
   --bb-input-border: rgba(255, 255, 255, 0.12);
   --bb-input-border-focus: rgba(255, 255, 255, 0.35);
-  /* Surfaces and structural chrome (modal panels, frames, dividers). */
   --bb-ui-surface: #16161a;
   --bb-ui-border: rgba(255, 255, 255, 0.14);
   --bb-ui-overlay: rgba(0, 0, 0, 0.78);
   --bb-ui-shadow: rgba(0, 0, 0, 0.7);
-  /* A slider/track neutral used behind progress fills. */
   --bb-ui-track: rgba(255, 255, 255, 0.12);
-  /* Typography. */
   --bb-font-mono: "Courier New", monospace;
   --bb-font-display: var(--bb-font-mono);
 }

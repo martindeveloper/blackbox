@@ -79,9 +79,7 @@ if (hasWabt()) {
         console.log(line);
       }
     }
-  } catch {
-    // optional diagnostics
-  }
+  } catch {}
 } else if (hasWasmTools()) {
   try {
     const output = capture("wasm-tools", ["objdump", wasmPath], { quiet: true });
@@ -90,9 +88,7 @@ if (hasWabt()) {
         console.log(line);
       }
     }
-  } catch {
-    // optional diagnostics
-  }
+  } catch {}
 }
 console.log();
 
@@ -115,9 +111,7 @@ if (hasWasmTools()) {
         console.log("    run: node ./scripts/build-wasm-symbols.mjs");
       }
     }
-  } catch {
-    // optional diagnostics
-  }
+  } catch {}
   console.log();
 }
 
@@ -133,9 +127,7 @@ try {
     .sort()
     .slice(0, 20)
     .forEach((hit) => console.log(hit));
-} catch {
-  // strings extraction is best-effort
-}
+} catch {}
 console.log();
 
 function frameOffsetFor(index) {
@@ -167,9 +159,7 @@ for (const idx of indices) {
         .filter((line) => line.includes(`func[${idx}]`))
         .slice(0, 3)
         .forEach((line) => console.log(line));
-    } catch {
-      // optional diagnostics
-    }
+    } catch {}
     if (decompilePath) {
       try {
         const decompiled = readFileSync(decompilePath, "utf8");
@@ -192,9 +182,7 @@ for (const idx of indices) {
       if (funcLine) {
         console.log(funcLine);
       }
-    } catch {
-      // optional diagnostics
-    }
+    } catch {}
   }
 
   const offset = frameOffsetFor(idx);
@@ -220,9 +208,7 @@ for (const idx of indices) {
               }
             }
           }
-        } catch {
-          // optional diagnostics
-        }
+        } catch {}
       }
     }
   }
@@ -232,7 +218,5 @@ for (const idx of indices) {
 for (const file of cleanup) {
   try {
     unlinkSync(file);
-  } catch {
-    // ignore cleanup errors
-  }
+  } catch {}
 }

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
+import { ContentWarning } from "./components/ContentWarning.js";
 import { GamePanel } from "./components/GamePanel.js";
 import { DevConsole } from "../../engine/ui/DevConsole.js";
 import { ArchiveIcon, MuteIcon, RecorderIcon, VolumeIcon } from "./components/Icons.js";
@@ -142,6 +143,30 @@ export function App() {
     await restart();
   }, [restart]);
 
+  const requestSlotRestart = useCallback(
+    (slotIndex: number) => {
+      const modalId = "content-warning";
+      openModal({
+        id: modalId,
+        title: t("contentWarning.title"),
+        eyebrow: t("contentWarning.eyebrow"),
+        tone: "amber",
+        size: "md",
+        children: (
+          <ContentWarning
+            onCancel={() => closeModal(modalId)}
+            onConfirm={() => {
+              closeModal(modalId);
+              resetMusicTracking();
+              restartSlot(slotIndex);
+            }}
+          />
+        ),
+      });
+    },
+    [closeModal, openModal, restartSlot, t],
+  );
+
   const handleSave = useCallback(() => openSaveModal(save()), [openSaveModal, save]);
 
   const handleOpenLoad = useCallback(() => openSaveModal(savedState), [openSaveModal, savedState]);
@@ -272,7 +297,7 @@ export function App() {
             menuLoading={menuLoading}
             initialSlot={session.returnedFromSlot}
             onContinueSlot={continueSlot}
-            onRestartSlot={restartSlot}
+            onRestartSlot={requestSlotRestart}
             onCreateSupportBundle={() => handleCreateSupportBundle(true)}
           />
         ) : (

@@ -116,11 +116,6 @@ function _sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-/**
- * iOS (incl. iPadOS, which reports as MacIntel) needs the full belt-and-braces
- * recovery: after backgrounding, the context can report "running" while the
- * device stays silent, so the reported state can never be trusted there.
- */
 export const IOS_AUDIO_QUIRKS =
   typeof navigator !== "undefined" &&
   (/iP(hone|ad|od)/.test(navigator.userAgent) ||
@@ -176,7 +171,6 @@ export class AudioEngine {
       this._sfxBus.gain.value = this._sfxVol;
       this._sfxBus.connect(this._masterGain);
 
-      // Re-attach channel gains for any channels that survived a context rebuild.
       for (const ch of this._channels.values()) {
         const gain = ctx.createGain();
         gain.gain.value = ch.muted ? 0 : ch.volume;
@@ -409,10 +403,6 @@ export class AudioEngine {
     return !!ch?.active?.playing;
   }
 
-  /**
-   * Crossfade when a track is already playing: `fadeOut` on the outgoing track
-   * and `fadeIn` on the incoming one are independent.
-   */
   play(channelName: string, src: string, opts: PlayOptions = {}): void {
     const ctx = this._getCtx();
     const ch = this._getChannel(channelName);
@@ -645,8 +635,6 @@ export class AudioEngine {
     if (!this._ctx) return;
     logger.debug("audio", "Suspending for background", { state: this._state() });
     this._selfSuspended = true;
-    // The session is suspect until a gesture-verified unlock, even if iOS later
-    // reports a clean "running" state.
     this._recoveryPending = true;
     this._haltAllTracks();
     if (this._state() === "running") {

@@ -118,6 +118,14 @@ export function SilentArchivePage() {
               <p>Dark sci-fi noir · Narrative RPG · Play in browser</p>
             </div>
 
+            <aside className="games-content-warning" aria-label="Content warning">
+              <span className="games-content-warning-label">Content warning</span>
+              <p>
+                This game explores psychological distress, institutional abuse, confinement,
+                death, assisted dying, identity disturbance, and morally difficult choices.
+              </p>
+            </aside>
+
             <div className="games-briefing-grid">
               <div className="games-briefing-title">
                 <p className="games-stamp">Meridian Cognitive Systems</p>

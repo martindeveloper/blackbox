@@ -3089,6 +3089,43 @@ a {
   text-transform: uppercase;
 }
 
+.games-content-warning {
+  position: relative;
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  align-items: baseline;
+  gap: clamp(1.5rem, 3vw, 3rem);
+  margin-top: 1.5rem;
+  padding: 1.2rem 1.35rem 1.2rem 1.7rem;
+  border: 1px solid var(--briefing-line);
+  background: color-mix(in srgb, var(--briefing-rust) 5%, transparent);
+}
+
+.games-content-warning::before {
+  content: "";
+  position: absolute;
+  inset: -1px auto -1px -1px;
+  width: 3px;
+  background: var(--briefing-rust);
+}
+
+.games-content-warning-label {
+  color: var(--briefing-rust);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.games-content-warning p {
+  max-width: 52rem;
+  color: var(--briefing-copy);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  line-height: 1.7;
+  letter-spacing: 0.025em;
+}
+
 .games-briefing-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(18rem, 0.8fr);
@@ -3861,6 +3898,12 @@ a {
     gap: 1.15rem;
     font-size: 0.95rem;
     line-height: 1.75;
+  }
+
+  .games-content-warning {
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
+    padding: 1rem 1rem 1rem 1.25rem;
   }
 
   .games-question {

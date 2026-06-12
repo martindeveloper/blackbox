@@ -90,12 +90,10 @@
 .editor-dock-left {
   min-width: 0;
   overflow: hidden;
-  /* border supplied by adjacent .resize-handle */
 }
 
 .editor-dock-right {
   background: var(--editor-inspector);
-  /* border supplied by adjacent .resize-handle */
 }
 
 .panel-expand-strip {

@@ -1,6 +1,3 @@
-/** Game strings. Engine defaults (modal, save, confirm, actions, errors,
- *  preloader, relative time) live in engine/i18n/en.ts; anything here
- *  overrides them. */
 export const en = {
   header: {
     brand: "BLACKBOX",
@@ -26,6 +23,13 @@ export const en = {
     resumeHint: "Continue from last recorded checkpoint.",
     purgeLabel: "PURGE MEMORY & RESTART",
     purgeHint: "Wipe local session data and begin a new incident.",
+  },
+  contentWarning: {
+    eyebrow: "READER ADVISORY",
+    title: "CONTENT WARNING",
+    body: "This game explores psychological distress, institutional abuse, confinement, death, assisted dying, identity disturbance, and morally difficult choices.",
+    cancel: "RETURN",
+    confirm: "I UNDERSTAND — BEGIN INCIDENT",
   },
   game: {
     casePrefix: "CASE",

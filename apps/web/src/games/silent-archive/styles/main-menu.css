@@ -160,7 +160,7 @@
     transform: scale(1) translate(0, 0);
   }
   100% {
-    transform: scale(1.08) translate(1.2%, 0.6%);
+    transform: scale(1.13) translate(1.8%, 1%);
   }
 }
 

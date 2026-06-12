@@ -14,6 +14,7 @@ import {
   SLOT_COUNT,
   type SlotData,
 } from "../../../engine/lib/slots.js";
+import { useModal } from "../../../engine/ui/ModalContext.js";
 import { MenuButton, SettingsPanel } from "../../../engine/ui/menu.js";
 import { BugIcon, HeadphonesIcon } from "./Icons.js";
 import { RestartConfirmButtons } from "./RestartConfirm.js";
@@ -47,6 +48,7 @@ export function MainMenu({
   const [lastUsedSlot, setLastUsedSlot] = useState<number | null>(readLastUsedSlot);
   const [showOptions, setShowOptions] = useState(false);
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
+  const { hasOpenModals } = useModal();
   const { url: bgUrl } = useManagedTexture("main_menu:bg", "textures/backgrounds/mainmenu.png");
 
   const selectedSlotData = selectedSlot !== null ? (slots[selectedSlot] ?? null) : null;
@@ -106,7 +108,6 @@ export function MainMenu({
     if (selectedSlot === null || menuLoading) return;
     persistLastUsedSlot(selectedSlot);
     setLastUsedSlot(selectedSlot);
-    setLoadingAction("restart");
     onRestartSlot(selectedSlot);
   }, [selectedSlot, menuLoading, onRestartSlot]);
 
@@ -116,6 +117,7 @@ export function MainMenu({
     if (view !== "menu") return;
 
     function handleKey(e: KeyboardEvent) {
+      if (hasOpenModals()) return;
       if (isEditableTarget(e.target)) return;
       if (e.metaKey || e.ctrlKey || e.altKey || e.repeat) return;
       if (e.key === "1" && selectedSlotData) {
@@ -135,7 +137,7 @@ export function MainMenu({
 
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
-  }, [view, selectedSlotData, handleContinue, handleRestart, handleBack]);
+  }, [view, selectedSlotData, handleContinue, handleRestart, handleBack, hasOpenModals]);
 
   const inMenu = view === "menu";
 

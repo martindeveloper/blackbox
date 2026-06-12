@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { isEditableTarget } from "../lib/keyboard.js";
 
-/** Maps number keys 1..count to `onSelect(index)` while `enabled`. */
 export function useNumberKeySelect(
   count: number,
   onSelect: (index: number) => void,
