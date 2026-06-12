@@ -568,76 +568,78 @@ export function GamePanel({
         )}
       </div>
 
-      <div
-        ref={scrollRef}
-        className={`scroll-fade flex-1 overflow-y-auto px-4 sm:px-8 py-7 sm:py-10${isGameOver ? " death-record-scroll" : ""}${isEnding ? " case-resolved-scroll" : ""}`}
-      >
+      <div className="narrative-scroll-shell flex-1 min-h-0">
         <div
-          ref={contentRef}
-          className={`max-w-[42rem] mx-auto${isGameOver ? " death-record" : ""}${isEnding ? " case-resolved" : ""}`}
+          ref={scrollRef}
+          className={`scroll-fade h-full overflow-y-auto px-4 sm:px-8 py-7 sm:py-10${isGameOver ? " death-record-scroll" : ""}${isEnding ? " case-resolved-scroll" : ""}`}
         >
-          {isGameOver && (
-            <div className="death-record-seal">
-              <span className="death-record-seal__index">{t("game.deathRecordIndex")}</span>
-              <span className="death-record-seal__status">{t("game.deathRecordStatus")}</span>
-            </div>
-          )}
-
-          {isEnding && (
-            <div className="case-resolved-seal">
-              <span className="case-resolved-seal__index">{t("game.caseResolvedIndex")}</span>
-              <span className="case-resolved-seal__status">
-                <span className="case-resolved-seal__dot" />
-                {t("game.caseResolvedStatus")}
-              </span>
-            </div>
-          )}
-
           <div
-            className={`section-rule transmission-rule mb-8${isGameOver ? " transmission-rule--game-over" : ""}${isEnding ? " transmission-rule--ending" : ""}`}
+            ref={contentRef}
+            className={`max-w-[42rem] mx-auto${isGameOver ? " death-record" : ""}${isEnding ? " case-resolved" : ""}`}
           >
-            {isGameOver ? t("game.finalTransmission") : t("game.fieldReport")}
-          </div>
+            {isGameOver && (
+              <div className="death-record-seal">
+                <span className="death-record-seal__index">{t("game.deathRecordIndex")}</span>
+                <span className="death-record-seal__status">{t("game.deathRecordStatus")}</span>
+              </div>
+            )}
 
-          <div
-            className={`narrative-margin mb-10${isGameOver ? " narrative-margin--game-over" : ""}${isEnding ? " narrative-margin--ending" : ""}`}
-          >
-            <div ref={narrativeRef} className="narrative-stack">
-              {showNarrative &&
-                view.text.map((block, i) => (
-                  <NarrativeBlock
-                    key={`${view.node_id}-${i}-${block.kind}`}
-                    block={block}
-                    prevBlock={view.text[i - 1]}
-                    characters={characterLookup}
-                    isGameOver={isGameOver}
-                    onCharacterProfile={openCharacterProfile}
-                  />
-                ))}
+            {isEnding && (
+              <div className="case-resolved-seal">
+                <span className="case-resolved-seal__index">{t("game.caseResolvedIndex")}</span>
+                <span className="case-resolved-seal__status">
+                  <span className="case-resolved-seal__dot" />
+                  {t("game.caseResolvedStatus")}
+                </span>
+              </div>
+            )}
+
+            <div
+              className={`section-rule transmission-rule mb-8${isGameOver ? " transmission-rule--game-over" : ""}${isEnding ? " transmission-rule--ending" : ""}`}
+            >
+              {isGameOver ? t("game.finalTransmission") : t("game.fieldReport")}
             </div>
-          </div>
 
-          {showResolution && <ResolutionLog rolls={lastRolls} notifications={notifications} />}
+            <div
+              className={`narrative-margin mb-10${isGameOver ? " narrative-margin--game-over" : ""}${isEnding ? " narrative-margin--ending" : ""}`}
+            >
+              <div ref={narrativeRef} className="narrative-stack">
+                {showNarrative &&
+                  view.text.map((block, i) => (
+                    <NarrativeBlock
+                      key={`${view.node_id}-${i}-${block.kind}`}
+                      block={block}
+                      prevBlock={view.text[i - 1]}
+                      characters={characterLookup}
+                      isGameOver={isGameOver}
+                      onCharacterProfile={openCharacterProfile}
+                    />
+                  ))}
+              </div>
+            </div>
+
+            {showResolution && <ResolutionLog rolls={lastRolls} notifications={notifications} />}
+          </div>
         </div>
+
+        {showScrollHint && (
+          <div
+            className="scroll-hint"
+            aria-hidden
+            onClick={() => scrollRef.current?.scrollBy({ top: 120, behavior: "smooth" })}
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path
+                d="M2.5 5.5l5.5 5.5 5.5-5.5"
+                stroke="currentColor"
+                strokeWidth="1.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </div>
+        )}
       </div>
-
-      {showScrollHint && (
-        <div
-          className="scroll-hint"
-          aria-hidden
-          onClick={() => scrollRef.current?.scrollBy({ top: 120, behavior: "smooth" })}
-        >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path
-              d="M2.5 5.5l5.5 5.5 5.5-5.5"
-              stroke="currentColor"
-              strokeWidth="1.4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </div>
-      )}
 
       <ChoiceList
         view={view}

@@ -561,9 +561,13 @@
   );
 }
 
+.narrative-scroll-shell {
+  position: relative;
+}
+
 .scroll-hint {
   position: absolute;
-  bottom: 3.5rem;
+  bottom: 0.75rem;
   left: 50%;
   transform: translateX(-50%);
   z-index: 10;
