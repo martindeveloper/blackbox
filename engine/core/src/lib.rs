@@ -59,5 +59,5 @@ pub use state::GameState;
 pub use value::DynamicValue;
 pub use view::{
     CharacterView, CheckPreview, GameView, InventoryItemView, ItemActionView, ItemExamineView,
-    MusicCue, RelationshipMetricView, RollRecord, SfxCue, TextureCue,
+    MusicCue, RelationshipCharacterView, RelationshipMetricView, RollRecord, SfxCue, TextureCue,
 };

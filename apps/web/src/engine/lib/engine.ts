@@ -269,6 +269,7 @@ export function normalizeGameView(wire: unknown): GameView {
     scenario_title: (raw.scenario_title ?? raw.scenarioTitle) as string | undefined,
     chapter_id: (raw.chapter_id ?? raw.chapterId) as string | undefined,
     chapter_title: (raw.chapter_title ?? raw.chapterTitle) as string | undefined,
+    relationships: (raw.relationships ?? []) as GameView["relationships"],
   };
 }
 
@@ -383,6 +384,9 @@ function applyGameViewDelta(view: GameView, delta: Record<string, unknown>): Gam
   if ("item_actions" in normalized)
     next.item_actions = normalized.item_actions as GameView["item_actions"];
   if ("characters" in normalized) next.characters = normalized.characters as GameView["characters"];
+  if ("relationships" in normalized) {
+    next.relationships = normalized.relationships as GameView["relationships"];
+  }
   if ("player_stats" in normalized)
     next.player_stats = normalized.player_stats as GameView["player_stats"];
   if ("inventory" in normalized) next.inventory = normalized.inventory as GameView["inventory"];

@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use std::sync::Arc;
 
 use crate::choice_gate::{ChoiceGateResult, materialize_disabled_reason};
-use crate::content::{ChoiceContent, GameContent, NodeContent};
+use crate::content::{CharacterDefinition, ChoiceContent, GameContent, NodeContent};
 use crate::error::EngineError;
 use crate::expr::ReadContext;
 use crate::gate::evaluate_gate_readonly;
@@ -12,7 +12,7 @@ use crate::state::GameState;
 use crate::text::resolve_text_blocks;
 use crate::view::{
     CharacterView, CheckPreview, ChoiceView, GameView, InventoryItemView, ItemActionView,
-    RelationshipMetricView,
+    RelationshipCharacterView, RelationshipMetricView,
 };
 
 use super::cache::ItemActionGateEntry;
@@ -68,7 +68,8 @@ pub(super) fn build_game_view(
         background,
         inventory_items: build_inventory_items(ctx.content, ctx.state),
         item_actions: build_item_actions(ctx.item_action_cache),
-        characters: build_characters(ctx.content, ctx.state, node),
+        characters: build_scene_characters(ctx.content, ctx.state, node),
+        relationships: build_relationship_roster(ctx.content, ctx.state, node),
         player_stats: ctx.state.player.stats.clone(),
         inventory: ctx.state.inventory.items.clone(),
         flags: ctx.state.flags.clone(),
@@ -115,30 +116,18 @@ fn build_item_actions(item_action_cache: &[ItemActionGateEntry]) -> Vec<ItemActi
         .collect()
 }
 
-fn build_characters(
+fn build_scene_characters(
     content: &GameContent,
     state: &GameState,
     node: &NodeContent,
 ) -> Vec<CharacterView> {
-    let scene_ids = scene_character_ids(content, state, node);
+    let speaker_ids = speaker_character_ids(content, state, node);
     let mut characters: Vec<_> = content
         .characters
         .characters
         .values()
-        .filter(|character| scene_ids.contains(&character.id))
+        .filter(|character| speaker_ids.contains(&character.id))
         .map(|character| {
-            let live = state.relationships.get(&character.id);
-            let mut keys: Vec<&String> = character.relationships.0.keys().collect();
-            keys.sort();
-            let metrics = keys
-                .into_iter()
-                .map(|key| RelationshipMetricView {
-                    key: key.clone(),
-                    value: live
-                        .map(|scores| scores.get(key))
-                        .unwrap_or_else(|| character.relationships.get(key)),
-                })
-                .collect();
             CharacterView {
                 ref_id: character.id.clone(),
                 name: character.name.clone(),
@@ -149,7 +138,7 @@ fn build_characters(
                     .and_then(|ref_id| content.assets.resolve_texture(ref_id)),
                 voice_ref: character.voice_ref.clone(),
                 color: character.color.clone(),
-                metrics,
+                metrics: build_character_metrics(state, character),
             }
         })
         .collect();
@@ -157,7 +146,62 @@ fn build_characters(
     characters
 }
 
-fn scene_character_ids(
+fn build_relationship_roster(
+    content: &GameContent,
+    state: &GameState,
+    node: &NodeContent,
+) -> Vec<RelationshipCharacterView> {
+    let speaker_ids = speaker_character_ids(content, state, node);
+    let mut roster: Vec<_> = content
+        .characters
+        .characters
+        .values()
+        .filter(|character| {
+            if speaker_ids.contains(&character.id) {
+                return false;
+            }
+            let current = state
+                .relationships
+                .get(&character.id)
+                .cloned()
+                .unwrap_or_default();
+            let default = content
+                .default_relationships
+                .get(&character.id)
+                .cloned()
+                .unwrap_or_default();
+            relationship_scores_differ(&current, &default)
+        })
+        .map(|character| RelationshipCharacterView {
+            ref_id: character.id.clone(),
+            name: character.name.clone(),
+            subtitle: character.subtitle.clone(),
+            color: character.color.clone(),
+            metrics: build_character_metrics(state, character),
+        })
+        .collect();
+    roster.sort_by(|left, right| left.ref_id.cmp(&right.ref_id));
+    roster
+}
+
+fn build_character_metrics(
+    state: &GameState,
+    character: &CharacterDefinition,
+) -> Vec<RelationshipMetricView> {
+    let live = state.relationships.get(&character.id);
+    let mut keys: Vec<&String> = character.relationships.0.keys().collect();
+    keys.sort();
+    keys.into_iter()
+        .map(|key| RelationshipMetricView {
+            key: key.clone(),
+            value: live
+                .map(|scores| scores.get(key))
+                .unwrap_or_else(|| character.relationships.get(key)),
+        })
+        .collect()
+}
+
+fn speaker_character_ids(
     content: &GameContent,
     state: &GameState,
     node: &NodeContent,
@@ -173,22 +217,6 @@ fn scene_character_ids(
             && let Some(character_id) = resolve_speaker_character_id(content, speaker)
         {
             ids.insert(character_id);
-        }
-    }
-
-    for character in content.characters.characters.values() {
-        let current = state
-            .relationships
-            .get(&character.id)
-            .cloned()
-            .unwrap_or_default();
-        let default = content
-            .default_relationships
-            .get(&character.id)
-            .cloned()
-            .unwrap_or_default();
-        if relationship_scores_differ(&current, &default) {
-            ids.insert(character.id.clone());
         }
     }
 

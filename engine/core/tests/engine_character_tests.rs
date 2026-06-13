@@ -112,3 +112,63 @@ fn character_subtitle_omitted_from_view_json_when_absent() {
         "view JSON should omit subtitle when the character has none"
     );
 }
+
+#[test]
+fn relationship_roster_excludes_scene_speakers() {
+    let mut engine = support::load_scenario_engine(support::SCENARIO);
+    let ask = engine.submit_command(PlayerCommand::Choose {
+        choice_id: "ask_guide".to_string(),
+    });
+    assert!(ask.ok);
+    let continue_result = engine.submit_command(PlayerCommand::Choose {
+        choice_id: "continue".to_string(),
+    });
+    assert!(continue_result.ok);
+    let view = engine.get_current_view().unwrap();
+    assert_eq!(view.node_id, "hub_exit");
+
+    assert!(
+        !view
+            .characters
+            .iter()
+            .any(|character| character.ref_id == "guide_npc"),
+        "guide_npc should not appear in scene characters when not speaking"
+    );
+
+    let guide = view
+        .relationships
+        .iter()
+        .find(|character| character.ref_id == "guide_npc")
+        .expect("guide_npc should appear in relationship roster");
+    assert_eq!(guide.metrics.iter().find(|metric| metric.key == "affinity").map(|metric| metric.value), Some(2));
+    assert_eq!(guide.metrics.iter().find(|metric| metric.key == "trust").map(|metric| metric.value), Some(2));
+}
+
+#[test]
+fn relationship_roster_serializes_without_portrait_cues() {
+    let mut engine = support::load_scenario_engine(support::SCENARIO);
+    assert!(engine
+        .submit_command(PlayerCommand::Choose {
+            choice_id: "ask_guide".to_string(),
+        })
+        .ok);
+    assert!(engine
+        .submit_command(PlayerCommand::Choose {
+            choice_id: "continue".to_string(),
+        })
+        .ok);
+
+    let view = engine.get_current_view().unwrap();
+    let json = encode_view_json(&view).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+
+    let guide = parsed["relationships"]
+        .as_array()
+        .expect("relationships array")
+        .iter()
+        .find(|entry| entry["ref_id"] == "guide_npc")
+        .expect("guide_npc in relationship roster JSON");
+
+    assert!(guide.get("portrait").is_none(), "relationship roster must not carry portrait cues");
+    assert!(guide.get("voiceRef").is_none(), "relationship roster must not carry voice cues");
+}

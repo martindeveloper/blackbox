@@ -46,6 +46,15 @@ export interface CharacterView {
   metrics: RelationshipMetricView[];
 }
 
+/** Characters with live relationship scores who are not speaking on this node. */
+export interface RelationshipCharacterView {
+  ref_id: string;
+  name: string;
+  subtitle?: string;
+  color?: string;
+  metrics: RelationshipMetricView[];
+}
+
 export interface InventoryItemView {
   ref_id: string;
   name: string;
@@ -182,6 +191,7 @@ export interface GameView {
   inventory_items: InventoryItemView[];
   item_actions: ItemActionView[];
   characters: CharacterView[];
+  relationships: RelationshipCharacterView[];
   player_stats: Record<string, number>;
   inventory: Record<string, number>;
   flags: Record<string, unknown>;

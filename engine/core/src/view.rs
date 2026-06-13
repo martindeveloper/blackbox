@@ -65,6 +65,19 @@ pub struct CharacterView {
     pub metrics: Vec<RelationshipMetricView>,
 }
 
+/// Characters whose relationship scores have diverged from scenario defaults
+/// but who are not speaking on the current node. Carries live metrics and
+/// display metadata only — no portrait or voice cues, because those assets are
+/// chapter-scoped and may not be loaded until the character appears on screen.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RelationshipCharacterView {
+    pub ref_id: String,
+    pub name: String,
+    pub subtitle: Option<String>,
+    pub color: Option<String>,
+    pub metrics: Vec<RelationshipMetricView>,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RelationshipMetricView {
     pub key: String,
@@ -187,6 +200,7 @@ pub struct GameView {
     pub inventory_items: Vec<InventoryItemView>,
     pub item_actions: Vec<ItemActionView>,
     pub characters: Vec<CharacterView>,
+    pub relationships: Vec<RelationshipCharacterView>,
     pub player_stats: HashMap<String, i32>,
     pub inventory: HashMap<String, u32>,
     pub flags: HashMap<String, DynamicValue>,

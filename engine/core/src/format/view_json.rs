@@ -16,7 +16,7 @@ use crate::error::EngineError;
 use crate::value::DynamicValue;
 use crate::view::{
     CharacterView, CheckPreview, ChoiceView, GameView, InventoryItemView, ItemActionView,
-    ItemExamineView, MusicCue, RollRecord, SfxCue, TextureCue,
+    ItemExamineView, MusicCue, RelationshipCharacterView, RollRecord, SfxCue, TextureCue,
 };
 
 const VIEW_PROTOCOL_VERSION: u8 = 1;
@@ -420,6 +420,9 @@ impl Serialize for GameViewDelta<'_> {
         if previous.characters != current.characters {
             state.serialize_entry("characters", &current.characters)?;
         }
+        if previous.relationships != current.relationships {
+            state.serialize_entry("relationships", &current.relationships)?;
+        }
         if previous.player_stats != current.player_stats {
             state.serialize_entry("player_stats", &current.player_stats)?;
         }
@@ -453,7 +456,7 @@ impl Serialize for GameViewDelta<'_> {
 
 impl Serialize for GameView {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        let mut state = serializer.serialize_struct("GameView", 17)?;
+        let mut state = serializer.serialize_struct("GameView", 18)?;
         if let Some(value) = &self.scenario_title {
             state.serialize_field("scenarioTitle", value)?;
         }
@@ -479,6 +482,7 @@ impl Serialize for GameView {
         state.serialize_field("inventory_items", &self.inventory_items)?;
         state.serialize_field("item_actions", &self.item_actions)?;
         state.serialize_field("characters", &self.characters)?;
+        state.serialize_field("relationships", &self.relationships)?;
         state.serialize_field("player_stats", &self.player_stats)?;
         state.serialize_field("inventory", &self.inventory)?;
         state.serialize_field("flags", &HostFlags(&self.flags))?;
@@ -579,6 +583,22 @@ impl Serialize for CharacterView {
         }
         if let Some(value) = &self.voice_ref {
             state.serialize_field("voiceRef", value)?;
+        }
+        if let Some(value) = &self.color {
+            state.serialize_field("color", value)?;
+        }
+        state.serialize_field("metrics", &CharacterMetricsHost(&self.metrics))?;
+        state.end()
+    }
+}
+
+impl Serialize for RelationshipCharacterView {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        let mut state = serializer.serialize_struct("RelationshipCharacterView", 5)?;
+        state.serialize_field("ref_id", &self.ref_id)?;
+        state.serialize_field("name", &self.name)?;
+        if let Some(value) = &self.subtitle {
+            state.serialize_field("subtitle", value)?;
         }
         if let Some(value) = &self.color {
             state.serialize_field("color", value)?;

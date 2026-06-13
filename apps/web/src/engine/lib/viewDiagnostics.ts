@@ -64,6 +64,11 @@ export function logViewDiagnostics(view: GameView, context?: string): void {
       name: character.name,
       portrait: assetStatus(character.portrait?.src),
     })),
+    relationships: (view.relationships ?? []).map((character) => ({
+      ref: character.ref_id,
+      name: character.name,
+      metrics: character.metrics,
+    })),
     background: assetStatus(view.background?.src),
     music: assetStatus(view.music?.src),
     bundle: diagnostics(),
