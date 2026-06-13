@@ -55,7 +55,7 @@ export const en = {
     title: "Case Log",
     eyebrow: "INCIDENT TIMELINE",
     empty: "No events have been recorded in the case timeline.",
-    ledgerKicker: "CHRONOLOGICAL RECORD",
+    ledgerKicker: "LATEST FILED FIRST",
     entryPrefix: "LOG",
     entrySingular: "ENTRY",
     entryPlural: "ENTRIES",

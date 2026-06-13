@@ -1008,8 +1008,6 @@
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
   padding: 0.45rem 0.85rem 0.5rem;
   min-width: 0;
 }
@@ -1042,31 +1040,6 @@
   letter-spacing: 0.08em;
   line-height: 1.45;
   text-transform: uppercase;
-}
-
-.memory-card-signal {
-  display: flex;
-  align-items: flex-end;
-  gap: 2px;
-  height: 1rem;
-  flex-shrink: 0;
-}
-
-.memory-card-signal span {
-  width: 3px;
-  background: color-mix(in srgb, var(--panel-intel) calc(0.55 * 100%), transparent);
-}
-
-.memory-card-signal span:nth-child(1) {
-  height: 0.35rem;
-}
-
-.memory-card-signal span:nth-child(2) {
-  height: 0.7rem;
-}
-
-.memory-card-signal span:nth-child(3) {
-  height: 1rem;
 }
 
 .journal-modal-content {

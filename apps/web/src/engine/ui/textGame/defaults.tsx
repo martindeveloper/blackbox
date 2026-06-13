@@ -377,7 +377,7 @@ export function DefaultJournal({ events, meta }: JournalProps) {
   if (!events.length) return <p className="bb-default-empty-state">{t("journal.empty")}</p>;
   return (
     <ol className="bb-default-journal">
-      {events.map((id, index) => (
+      {[...events].reverse().map((id, index) => (
         <li key={`${index}-${id}`} className="bb-default-journal__entry">
           <strong>{meta.events[id]?.title ?? formatRefId(id)}</strong>
           {meta.events[id]?.description && <p>{meta.events[id].description}</p>}

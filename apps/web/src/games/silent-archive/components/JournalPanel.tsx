@@ -18,6 +18,8 @@ export function JournalPanel({ events, meta }: JournalPanelProps) {
     );
   }
 
+  const newestEvents = [...events].reverse();
+
   return (
     <div className="journal-modal-content">
       <div className="journal-ledger">
@@ -29,10 +31,11 @@ export function JournalPanel({ events, meta }: JournalPanelProps) {
       </div>
 
       <ol className="journal-timeline" aria-label={t("journal.title")}>
-        {events.map((eventId, index) => {
+        {newestEvents.map((eventId, index) => {
           const entry = meta.events[eventId];
           const title = entry?.title ?? eventId;
           const description = entry?.description;
+          const entryNumber = events.length - index;
           return (
             <li
               key={`${index}-${eventId}`}
@@ -41,12 +44,12 @@ export function JournalPanel({ events, meta }: JournalPanelProps) {
             >
               <div className="journal-entry-rail" aria-hidden>
                 <span className="journal-entry-node" />
-                {index < events.length - 1 && <span className="journal-entry-line" />}
+                {index < newestEvents.length - 1 && <span className="journal-entry-line" />}
               </div>
               <div className="journal-entry-body">
                 <div className="journal-entry-head">
                   <span className="journal-entry-index">
-                    {t("journal.entryPrefix")} {String(index + 1).padStart(2, "0")}
+                    {t("journal.entryPrefix")} {String(entryNumber).padStart(2, "0")}
                   </span>
                   <span className="journal-entry-stamp">{t("journal.stamped")}</span>
                 </div>

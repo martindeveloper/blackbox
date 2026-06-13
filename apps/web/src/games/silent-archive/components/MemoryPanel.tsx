@@ -31,11 +31,6 @@ export function MemoryPanel({ memories, meta }: MemoryPanelProps) {
             <div className="memory-card-body">
               <h3>{title}</h3>
               {description && <p className="memory-card-detail">{description}</p>}
-              <div className="memory-card-signal">
-                <span />
-                <span />
-                <span />
-              </div>
             </div>
           </article>
         );
