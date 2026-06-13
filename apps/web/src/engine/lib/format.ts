@@ -35,6 +35,6 @@ export function activeFlagKeys(flags: Record<string, unknown>): string[] {
 
 export function activeIntelKeys(flags: Record<string, unknown>, meta: MetaCatalog): string[] {
   return Object.entries(flags)
-    .filter(([key, value]) => value === true && !meta.flags[key]?.internal)
+    .filter(([key, value]) => value === true && meta.flags[key]?.internal === false)
     .map(([key]) => key);
 }
