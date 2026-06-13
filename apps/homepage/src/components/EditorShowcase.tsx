@@ -43,8 +43,10 @@ export function EditorShowcase() {
         <div className="editor-showcase-link-row">
           <Link className="editor-showcase-link" href="/editor">
             <span className="editor-showcase-link-copy">
-              <span className="editor-showcase-link-kicker">Editor tour</span>
-              <strong>Explore every editor feature</strong>
+              <span className="editor-showcase-link-kicker">
+                {t("editor.showcase.tour_link.kicker")}
+              </span>
+              <strong>{t("editor.showcase.tour_link.title")}</strong>
             </span>
             <span className="editor-showcase-link-action" aria-hidden="true">
               <i>
@@ -65,26 +67,31 @@ export function EditorShowcase() {
 
         <div className="editor-canvas">
           <div className="editor-canvas-head">
-            <span>BLACKBOX / EDITOR</span>
+            <span>{t("editor.showcase.canvas.header")}</span>
             <span className="editor-canvas-status">
               <i aria-hidden="true" />
-              WORKSPACE ONLINE
+              {t("editor.showcase.canvas.status")}
             </span>
           </div>
 
           <figure className="editor-primary">
             <img src={graph.src} alt={graph.alt} draggable={false} loading="lazy" />
             <figcaption>
-              <span className="editor-primary-kicker">01 / STORY MAP</span>
+              <span className="editor-primary-kicker">{t("editor.showcase.primary_kicker")}</span>
               <strong>{graph.label}</strong>
               <p>{graph.caption}</p>
             </figcaption>
           </figure>
 
           <div className="editor-supporting-head" aria-hidden="true">
-            <span>SUPPORTING VIEWS</span>
+            <span>{t("editor.showcase.supporting_heading")}</span>
             <i />
-            <span>03 / 04</span>
+            <span>
+              {t("editor.showcase.supporting_count", {
+                current: String(supporting.length + 1).padStart(2, "0"),
+                total: String(tabs.length).padStart(2, "0"),
+              })}
+            </span>
           </div>
 
           <div className="editor-contact-sheet">

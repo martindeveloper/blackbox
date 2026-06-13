@@ -10,8 +10,8 @@ export function Hero() {
       <div className="container hero-inner">
         <p className="hero-eyebrow">{t("hero.eyebrow")}</p>
         <h1 className="hero-headline" aria-label={t("hero.headline")}>
-          <span className="hero-headline-black">BLACK</span>
-          <span className="hero-headline-box">BOX</span>
+          <span className="hero-headline-black">{t("brand.wordmark_black")}</span>
+          <span className="hero-headline-box">{t("brand.wordmark_box")}</span>
         </h1>
         <p className="hero-tagline">
           {t("hero.tagline")

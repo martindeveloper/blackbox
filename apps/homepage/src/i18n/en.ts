@@ -1,5 +1,9 @@
 export const en = {
   github_url: "https://github.com/martindeveloper/blackbox",
+  brand: {
+    wordmark_black: "BLACK",
+    wordmark_box: "BOX",
+  },
   metadata: {
     siteName: "Blackbox",
     title: {
@@ -179,6 +183,11 @@ export const en = {
     label: "Architecture",
     headline: "Pure logic. Zero coupling.",
     body: "The engine does one thing: take a command, advance state, return a view. No I/O, no rendering, no audio. Your host app owns all of that — the engine just tells it what changed.",
+    diagram: {
+      frame_left: "BBX / CORE CONTRACT",
+      frame_right: "DETERMINISTIC",
+      host_tag: "I/O · RENDER · AUDIO",
+    },
     layers: [
       {
         id: "content",
@@ -226,11 +235,57 @@ export const en = {
     label: "Scenario Format",
     headline: "Author in JSON.\nPlay anywhere.",
     body: "Scenarios are plain JSON — chapters, nodes, conditional text, gated choices, effects. The linter validates your content before it ships.",
+    filename: "node.json",
+    code: `{
+  "id": "investigation_begin",
+  "narrative": [
+    {
+      "text": "The corridor is silent. Water drips somewhere below."
+    },
+    {
+      "speaker": "CASE",
+      "text": "Your access log shows no movement on this floor for fourteen months.",
+      "emotion": "neutral",
+      "side": "left"
+    }
+  ],
+  "choices": [
+    {
+      "text": "Check the security terminal.",
+      "effects": [
+        { "type": "stat", "key": "logic", "delta": 1 }
+      ]
+    },
+    {
+      "text": "Proceed to the lower ward.",
+      "requires": { "stat": "conviction", "gte": 3 }
+    },
+    {
+      "text": "[SKILL CHECK] Force the door. (STR · DC 14)",
+      "check": { "stat": "strength", "dc": 14 },
+      "on_success": "lower_ward_forced",
+      "on_failure": "door_holds"
+    }
+  ]
+}`,
   },
   editor: {
     label: "Editor",
     headline: "Author everything\nin one place.",
     body: "Blackbox ships with a desktop editor for building scenario content — node graphs, item libraries, chapter structure, and a live simulator that runs your story end-to-end before it ships.",
+    showcase: {
+      tour_link: {
+        kicker: "Editor tour",
+        title: "Explore every editor feature",
+      },
+      canvas: {
+        header: "BLACKBOX / EDITOR",
+        status: "WORKSPACE ONLINE",
+      },
+      primary_kicker: "01 / STORY MAP",
+      supporting_heading: "SUPPORTING VIEWS",
+      supporting_count: "{{current}} / {{total}}",
+    },
     tabs: [
       {
         id: "project",
@@ -404,12 +459,14 @@ export const en = {
     },
     transmission: {
       aria: "Recovered archive transmission",
-      image_alt: "A rain-soaked industrial city surrounding Archive Complex 7-Meridian",
+      image_alt:
+        "CASE and the maintenance synthetic VESPER standing among preserved records inside Archive Complex 7-Meridian",
       case: "7-Meridian",
-      meta: ["Case memorandum / 7MER-031", "Clearance provisional"],
-      label: "Investigator directive · Details withheld",
-      quote: "Enter with a brief. Leave with your own account.",
-      footer: ["Document 001 / 07", "Distribution restricted"],
+      meta: ["Recovered visual / 7MER-001", "Source integrity uncertain"],
+      label: "First witness · Maintenance record",
+      quote: "Someone should know they were here.",
+      note: "The first witness CASE finds has spent fourteen months filing reports into a system that no longer answers. It calls the work maintenance.",
+      footer: ["Visual record 001 / 07", "Distribution restricted"],
     },
     evidence: {
       index: "02 / Recovered evidence",

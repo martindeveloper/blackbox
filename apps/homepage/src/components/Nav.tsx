@@ -141,8 +141,8 @@ export function Nav({ mode, setMode, items }: Props) {
         <Link href="/" className="nav-logo" aria-label={t("nav.home_aria")}>
           <LogoMark className="nav-logo-mark" />
           <span className="nav-logo-text">
-            <span className="nav-logo-text-black">BLACK</span>
-            <span className="nav-logo-text-box">BOX</span>
+            <span className="nav-logo-text-black">{t("brand.wordmark_black")}</span>
+            <span className="nav-logo-text-box">{t("brand.wordmark_box")}</span>
           </span>
         </Link>
         <div className="nav-links">

@@ -176,7 +176,7 @@ export function SilentArchivePage() {
         <section className="games-transmission" aria-label={t("silentArchive.transmission.aria")}>
           <Image
             className="games-transmission-image"
-            src="/games/silent-archive/city.webp"
+            src="/games/silent-archive/case-vesper.webp"
             alt={t("silentArchive.transmission.image_alt")}
             fill
             sizes="100vw"
@@ -185,11 +185,6 @@ export function SilentArchivePage() {
           <div className="games-transmission-grid" aria-hidden="true" />
           <div className="games-transmission-case" aria-hidden="true">
             {t("silentArchive.transmission.case")}
-          </div>
-          <div className="games-transmission-redactions" aria-hidden="true">
-            <span />
-            <span />
-            <span />
           </div>
           <div className="games-transmission-frame" aria-hidden="true">
             <span />
@@ -206,6 +201,7 @@ export function SilentArchivePage() {
             <div className="games-transmission-copy">
               <p className="games-transmission-label">{t("silentArchive.transmission.label")}</p>
               <blockquote>{t("silentArchive.transmission.quote")}</blockquote>
+              <p className="games-transmission-note">{t("silentArchive.transmission.note")}</p>
             </div>
             <div className="games-transmission-time">
               {transmissionFooter.map((item) => (

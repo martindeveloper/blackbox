@@ -19,8 +19,8 @@ export function Architecture() {
           </div>
           <div className="arch-diagram" aria-label={t("architecture.headline")}>
             <div className="arch-frame-head" aria-hidden="true">
-              <span>BBX / CORE CONTRACT</span>
-              <span>DETERMINISTIC</span>
+              <span>{t("architecture.diagram.frame_left")}</span>
+              <span>{t("architecture.diagram.frame_right")}</span>
             </div>
             <div className="arch-flow">
               {flowLayers.map((layer, i) => (
@@ -58,7 +58,7 @@ export function Architecture() {
                   <p className="arch-layer-detail">{hostLayer.detail}</p>
                 </div>
                 <span className="arch-host-tag" aria-hidden="true">
-                  I/O · RENDER · AUDIO
+                  {t("architecture.diagram.host_tag")}
                 </span>
               </div>
             )}

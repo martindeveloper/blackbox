@@ -4325,13 +4325,12 @@ a {
   --transmission-line: rgba(230, 209, 174, 0.22);
   --transmission-grid: rgba(230, 209, 174, 0.16);
   --transmission-pattern: rgba(232, 220, 200, 0.055);
-  --transmission-redaction: rgba(232, 220, 200, 0.09);
   --transmission-scan: rgba(232, 220, 200, 0.035);
-  --transmission-image-opacity: 0.52;
-  --transmission-image-filter: saturate(0.58) contrast(1.08) brightness(0.72) sepia(0.08);
+  --transmission-image-opacity: 0.78;
+  --transmission-image-filter: saturate(0.68) contrast(1.08) brightness(0.72);
   --transmission-wash:
-    linear-gradient(90deg, rgba(11, 9, 7, 0.96) 0%, rgba(11, 9, 7, 0.76) 48%, rgba(11, 9, 7, 0.38)),
-    linear-gradient(0deg, rgba(11, 9, 7, 0.7), transparent 62%);
+    linear-gradient(90deg, rgba(11, 9, 7, 0.88) 0%, rgba(11, 9, 7, 0.52) 42%, rgba(11, 9, 7, 0.16)),
+    linear-gradient(0deg, rgba(11, 9, 7, 0.86) 0%, transparent 72%);
   position: relative;
   min-height: min(42rem, 72svh);
   overflow: hidden;
@@ -4384,30 +4383,6 @@ a {
   letter-spacing: -0.05em;
   text-transform: uppercase;
   white-space: nowrap;
-}
-
-.games-transmission-redactions {
-  position: absolute;
-  top: 24%;
-  right: clamp(2rem, 8vw, 8rem);
-  display: grid;
-  gap: 0.75rem;
-  width: min(22rem, 32vw);
-  transform: rotate(-2deg);
-}
-
-.games-transmission-redactions span {
-  display: block;
-  height: 0.65rem;
-  background: var(--transmission-redaction);
-}
-
-.games-transmission-redactions span:nth-child(2) {
-  width: 72%;
-}
-
-.games-transmission-redactions span:nth-child(3) {
-  width: 88%;
 }
 
 .games-transmission::after {
@@ -4491,7 +4466,7 @@ a {
 
 .games-transmission-copy {
   align-self: end;
-  width: min(43rem, 76%);
+  width: min(40rem, 68%);
   padding-bottom: clamp(2rem, 6vw, 5rem);
 }
 
@@ -4503,10 +4478,20 @@ a {
 .games-transmission blockquote {
   color: var(--transmission-ink);
   font-family: var(--font-display);
-  font-size: clamp(2.7rem, 6.5vw, 6.8rem);
-  line-height: 0.9;
+  font-size: clamp(2.7rem, 5.5vw, 5.8rem);
+  line-height: 0.92;
   text-transform: uppercase;
   text-shadow: 0 0.5rem 2rem color-mix(in srgb, var(--transmission-bg) 72%, transparent);
+}
+
+.games-transmission-note {
+  max-width: 32rem;
+  margin-top: 1.4rem;
+  color: color-mix(in srgb, var(--transmission-ink) 68%, transparent);
+  font-family: var(--font-mono);
+  font-size: clamp(0.66rem, 1vw, 0.76rem);
+  line-height: 1.75;
+  letter-spacing: 0.025em;
 }
 
 .games-evidence {
@@ -5029,17 +5014,6 @@ a {
     font-size: 8rem;
   }
 
-  .games-transmission-redactions {
-    top: 22%;
-    right: 1.5rem;
-    width: 8rem;
-    gap: 0.45rem;
-  }
-
-  .games-transmission-redactions span {
-    height: 0.4rem;
-  }
-
   .games-transmission-inner {
     padding-block: 1.5rem;
   }
@@ -5050,12 +5024,17 @@ a {
   }
 
   .games-transmission-copy {
-    width: 100%;
+    width: min(100%, 30rem);
     padding-bottom: 2rem;
   }
 
   .games-transmission blockquote {
-    font-size: clamp(2.6rem, 13vw, 4.25rem);
+    font-size: clamp(2.45rem, 12vw, 4rem);
+  }
+
+  .games-transmission-note {
+    margin-top: 1rem;
+    font-size: 0.65rem;
   }
 
   .games-facts {
@@ -5257,10 +5236,9 @@ a {
   --transmission-line: rgba(83, 66, 47, 0.22);
   --transmission-grid: rgba(83, 66, 47, 0.16);
   --transmission-pattern: rgba(55, 37, 23, 0.07);
-  --transmission-redaction: rgba(55, 37, 23, 0.11);
   --transmission-scan: rgba(55, 37, 23, 0.035);
-  --transmission-image-opacity: 0.38;
-  --transmission-image-filter: saturate(0.32) contrast(0.86) brightness(1.16) sepia(0.34);
+  --transmission-image-opacity: 0.46;
+  --transmission-image-filter: saturate(0.42) contrast(0.9) brightness(1.08) sepia(0.18);
   --transmission-wash:
     linear-gradient(
       90deg,

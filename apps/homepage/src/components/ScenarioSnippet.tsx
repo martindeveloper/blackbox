@@ -2,39 +2,6 @@ import type { ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { useClientOS } from "../hooks/useClientOS";
 
-const SNIPPET = `{
-  "id": "investigation_begin",
-  "narrative": [
-    {
-      "text": "The corridor is silent. Water drips somewhere below."
-    },
-    {
-      "speaker": "CASE",
-      "text": "Your access log shows no movement on this floor for fourteen months.",
-      "emotion": "neutral",
-      "side": "left"
-    }
-  ],
-  "choices": [
-    {
-      "text": "Check the security terminal.",
-      "effects": [
-        { "type": "stat", "key": "logic", "delta": 1 }
-      ]
-    },
-    {
-      "text": "Proceed to the lower ward.",
-      "requires": { "stat": "conviction", "gte": 3 }
-    },
-    {
-      "text": "[SKILL CHECK] Force the door. (STR · DC 14)",
-      "check": { "stat": "strength", "dc": 14 },
-      "on_success": "lower_ward_forced",
-      "on_failure": "door_holds"
-    }
-  ]
-}`;
-
 function tokenize(code: string): ReactElement[] {
   const elements: ReactElement[] = [];
   let i = 0;
@@ -98,21 +65,21 @@ function tokenize(code: string): ReactElement[] {
   return elements;
 }
 
-function MacWindowChrome() {
+function MacWindowChrome({ filename }: { filename: string }) {
   return (
     <>
       <span className="snippet-dot" />
       <span className="snippet-dot" />
       <span className="snippet-dot" />
-      <span className="snippet-filename">node.json</span>
+      <span className="snippet-filename">{filename}</span>
     </>
   );
 }
 
-function WindowsWindowChrome() {
+function WindowsWindowChrome({ filename }: { filename: string }) {
   return (
     <>
-      <span className="snippet-filename">node.json</span>
+      <span className="snippet-filename">{filename}</span>
       <div className="snippet-win-controls" aria-hidden="true">
         <span className="snippet-win-btn snippet-win-btn--min" />
         <span className="snippet-win-btn snippet-win-btn--max" />
@@ -126,6 +93,8 @@ export function ScenarioSnippet() {
   const { t } = useTranslation();
   const os = useClientOS();
   const isWindows = os === "windows";
+  const filename = t("snippet.filename");
+  const snippet = t("snippet.code");
 
   return (
     <section className="snippet section">
@@ -151,10 +120,14 @@ export function ScenarioSnippet() {
             <div
               className={`snippet-code-bar ${isWindows ? "snippet-code-bar--win" : "snippet-code-bar--mac"}`}
             >
-              {isWindows ? <WindowsWindowChrome /> : <MacWindowChrome />}
+              {isWindows ? (
+                <WindowsWindowChrome filename={filename} />
+              ) : (
+                <MacWindowChrome filename={filename} />
+              )}
             </div>
             <pre className="snippet-code">
-              <code>{tokenize(SNIPPET)}</code>
+              <code>{tokenize(snippet)}</code>
             </pre>
           </div>
         </div>
