@@ -60,6 +60,7 @@ function createGamePanelModal(
         tone: "green",
         children: (
           <Inventory
+            key={target.itemRef ?? "default"}
             view={ctx.view}
             examine={ctx.examine}
             commandPending={ctx.commandPending}

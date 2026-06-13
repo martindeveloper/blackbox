@@ -205,15 +205,24 @@ export function InventoryPanel({
     const targetedItem = initialItemRef
       ? items.find((item) => item.ref_id === initialItemRef)
       : undefined;
-    const firstItem = targetedItem ?? items[0];
-    let autoExamine: string | null = null;
+    const fallbackRef = items[0]?.ref_id ?? null;
+    let nextRef: string | null = null;
+
     setSelectedRef((prev) => {
-      if (prev && items.some((item) => item.ref_id === prev)) return prev;
-      autoExamine = firstItem?.ref_id ?? null;
-      return autoExamine;
+      if (targetedItem) {
+        nextRef = targetedItem.ref_id;
+        return targetedItem.ref_id;
+      }
+      if (prev && items.some((item) => item.ref_id === prev)) {
+        nextRef = prev;
+        return prev;
+      }
+      nextRef = fallbackRef;
+      return fallbackRef;
     });
-    if (autoExamine) onExamine(autoExamine);
-  }, [initialItemRef, items, onExamine]);
+
+    if (nextRef && !commandPending && examine?.ref_id !== nextRef) onExamine(nextRef);
+  }, [commandPending, examine?.ref_id, initialItemRef, items, onExamine]);
 
   useEffect(() => {
     if (!initialItemRef || selectedRef !== initialItemRef) return;
