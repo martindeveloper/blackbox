@@ -82,6 +82,7 @@ export function GamesIndexPage() {
                   <div>
                     <p className="game-catalog-location">Archive Complex 7-Meridian</p>
                     <h2>Silent Archive</h2>
+                    <p className="game-catalog-subtitle">Every Record Remembers</p>
                   </div>
                   <p>
                     A company investigator enters a facility that has been silent for fourteen

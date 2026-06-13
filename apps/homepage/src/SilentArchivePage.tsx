@@ -73,6 +73,9 @@ export function SilentArchivePage() {
                 <span>Silent</span>
                 <span>Archive</span>
               </h1>
+              <p className="games-subtitle games-reveal games-delay-3">
+                Every Record Remembers
+              </p>
               <p className="games-hero-thesis games-reveal games-delay-3">
                 Fourteen months without contact.
                 <br />

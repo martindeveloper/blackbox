@@ -3436,6 +3436,23 @@ a {
   text-transform: uppercase;
 }
 
+.game-catalog-subtitle {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-top: 1.25rem;
+  color: var(--catalog-rust);
+  font-size: clamp(0.9rem, 1.5vw, 1.1rem);
+  letter-spacing: 0.08em;
+}
+
+.game-catalog-subtitle::before {
+  width: 2.5rem;
+  height: 1px;
+  background: currentColor;
+  content: "";
+}
+
 .game-catalog-copy > p {
   color: var(--catalog-copy);
   font-size: clamp(0.95rem, 1.5vw, 1.05rem);
@@ -3824,10 +3841,30 @@ a {
   -webkit-text-stroke: 1px rgba(238, 229, 214, 0.72);
 }
 
+.games-subtitle {
+  grid-column: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-top: 1.6rem;
+  color: var(--games-rust);
+  font-family: var(--font-mono);
+  font-size: clamp(0.68rem, 1.1vw, 0.82rem);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.games-subtitle::before {
+  width: clamp(2rem, 5vw, 4rem);
+  height: 1px;
+  background: currentColor;
+  content: "";
+}
+
 .games-hero-thesis {
   grid-column: 2;
   width: min(31rem, 100%);
-  margin-top: 1.9rem;
+  margin-top: 1rem;
   color: rgba(232, 220, 200, 0.78);
   font-family: var(--font-mono);
   font-size: clamp(0.7rem, 1.1vw, 0.82rem);
@@ -4616,6 +4653,7 @@ a {
     display: none;
   }
 
+  .games-subtitle,
   .games-hero-thesis {
     grid-column: 1;
   }
@@ -4690,8 +4728,18 @@ a {
     margin-left: 0.55rem;
   }
 
+  .games-subtitle {
+    gap: 0.6rem;
+    margin-top: 1rem;
+    font-size: 0.6rem;
+  }
+
+  .games-subtitle::before {
+    width: 1.75rem;
+  }
+
   .games-hero-thesis {
-    margin-top: 1.15rem;
+    margin-top: 0.75rem;
     font-size: 0.65rem;
     line-height: 1.65;
   }
