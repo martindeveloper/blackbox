@@ -210,8 +210,10 @@ export const fetchAudioBytes: ContentSource["fetchAudioBytes"] = (src) =>
   activeSource().fetchAudioBytes(src);
 export const projectInfo: ContentSource["projectInfo"] = () => activeSource().projectInfo;
 export const diagnostics: ContentSource["diagnostics"] = () => activeSource().diagnostics;
-export const loadContent: ContentSource["loadContent"] = (bundlePath, onProgress) =>
-  activeSource().loadContent(bundlePath, onProgress);
+export const loadContent: ContentSource["loadContent"] = (_bundlePath, _onProgress) => {
+  if (!contentLoader) throw new Error("Preview content loader is not configured");
+  return contentLoader();
+};
 export const loadSourceBundle: ContentSource["loadSourceBundle"] = () =>
   activeSource().loadSourceBundle();
 export const createSourceEngine: ContentSource["createSourceEngine"] = (bundle, seed) =>
