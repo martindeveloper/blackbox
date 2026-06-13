@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
 
 type EndingTone = "orange" | "blue" | "green" | "amber";
@@ -66,6 +66,27 @@ const EDGE_LAYOUT: Pick<GraphEdge, "from" | "to" | "labelX" | "labelY" | "pass" 
   { from: "server", to: "witness", labelX: 1080, labelY: 486 },
 ];
 
+const FLOW_INTERVAL_MS = 5200;
+
+function randomRoute(previous: string[] = []): string[] {
+  let route: string[];
+
+  do {
+    route = ["start"];
+    let current = "start";
+
+    while (true) {
+      const choices = EDGE_LAYOUT.filter((edge) => edge.from === current);
+      if (choices.length === 0) break;
+      const next = choices[Math.floor(Math.random() * choices.length)]!.to;
+      route.push(next);
+      current = next;
+    }
+  } while (route.join("/") === previous.join("/"));
+
+  return route;
+}
+
 function buildGraph(
   nodeText: NodeText[],
   edgeText: EdgeText[],
@@ -102,17 +123,26 @@ function edgePath(from: GraphNode, to: GraphNode): string {
   return `M ${sx} ${sy} C ${sx} ${c1y}, ${ex} ${c2y}, ${ex} ${ey}`;
 }
 
-function GraphNodeCard({ node }: { node: GraphNode }) {
+function GraphNodeCard({ node, flowStep }: { node: GraphNode; flowStep?: number }) {
   const boxClass = node.ending
     ? `hero-graph-node-box hero-graph-node-box--ending hero-graph-node-box--ending-${node.ending}`
     : `hero-graph-node-box${node.accent ? " hero-graph-node-box--accent" : ""}`;
   const idClass = node.ending
     ? `hero-graph-node-id hero-graph-node-id--ending-${node.ending}`
     : "hero-graph-node-id";
+  const flowStyle =
+    flowStep === undefined ? undefined : ({ "--hero-flow-step": flowStep } as CSSProperties);
 
   return (
-    <g className="hero-graph-node" transform={`translate(${node.x}, ${node.y})`}>
+    <g
+      className={`hero-graph-node${flowStep === undefined ? "" : " hero-graph-node--flow"}`}
+      transform={`translate(${node.x}, ${node.y})`}
+      style={flowStyle}
+    >
       <rect className={boxClass} width={node.w} height={node.h} rx={4} />
+      {flowStep !== undefined && (
+        <rect className="hero-graph-node-flow-ring" width={node.w} height={node.h} rx={4} />
+      )}
       {node.ending && (
         <rect
           className={`hero-graph-node-rail hero-graph-node-rail--${node.ending}`}
@@ -171,6 +201,10 @@ function EdgeLabel({ edge }: { edge: GraphEdge }) {
 export function HeroGraphBg() {
   const { t } = useTranslation();
   const [mobile, setMobile] = useState(false);
+  const [flow, setFlow] = useState({
+    cycle: 0,
+    route: ["start", "archive", "tunnels", "shepherd"],
+  });
   const { nodes, edges } = useMemo(
     () =>
       buildGraph(
@@ -187,6 +221,32 @@ export function HeroGraphBg() {
     mq.addEventListener("change", apply);
     return () => mq.removeEventListener("change", apply);
   }, []);
+
+  useEffect(() => {
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (motion.matches) return;
+
+    const timer = window.setInterval(() => {
+      setFlow((current) => ({
+        cycle: current.cycle + 1,
+        route: randomRoute(current.route),
+      }));
+    }, FLOW_INTERVAL_MS);
+
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const flowEdges = useMemo(
+    () =>
+      new Map(
+        flow.route.slice(0, -1).map((from, step) => [`${from}-${flow.route[step + 1]}`, step]),
+      ),
+    [flow.route],
+  );
+  const flowNodes = useMemo(
+    () => new Map(flow.route.map((nodeId, step) => [nodeId, step])),
+    [flow.route],
+  );
 
   return (
     <svg
@@ -213,13 +273,24 @@ export function HeroGraphBg() {
         {edges.map((edge) => {
           const from = getNode(nodes, edge.from);
           const to = getNode(nodes, edge.to);
+          const edgeKey = `${edge.from}-${edge.to}`;
+          const flowStep = flowEdges.get(edgeKey);
           return (
-            <g key={`${edge.from}-${edge.to}`}>
+            <g key={edgeKey}>
               <path
                 className="hero-graph-edge"
                 d={edgePath(from, to)}
                 markerEnd="url(#hero-graph-arrow)"
               />
+              {flowStep !== undefined && (
+                <path
+                  key={`${flow.cycle}-${edgeKey}`}
+                  className="hero-graph-edge-flow"
+                  d={edgePath(from, to)}
+                  pathLength={1}
+                  style={{ "--hero-flow-step": flowStep } as CSSProperties}
+                />
+              )}
               <EdgeLabel edge={edge} />
             </g>
           );
@@ -228,7 +299,11 @@ export function HeroGraphBg() {
 
       <g className="hero-graph-nodes">
         {nodes.map((node) => (
-          <GraphNodeCard key={node.id} node={node} />
+          <GraphNodeCard
+            key={`${flow.cycle}-${node.id}`}
+            node={node}
+            flowStep={flowNodes.get(node.id)}
+          />
         ))}
       </g>
     </svg>

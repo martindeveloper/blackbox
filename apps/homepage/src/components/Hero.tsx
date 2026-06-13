@@ -50,7 +50,9 @@ export function Hero() {
         </div>
       </div>
       <div className="hero-scroll-hint" aria-hidden="true">
-        <span className="hero-scroll-line" />
+        <svg viewBox="0 0 12 12" width="12" height="12" fill="none">
+          <path d="M2.5 4 6 7.5 9.5 4" />
+        </svg>
       </div>
     </section>
   );

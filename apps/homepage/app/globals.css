@@ -544,6 +544,17 @@ a {
   vector-effect: non-scaling-stroke;
 }
 
+.hero-graph-edge-flow {
+  fill: none;
+  stroke: var(--color-accent);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-dasharray: 0.16 0.84;
+  stroke-dashoffset: 1;
+  opacity: 0;
+  vector-effect: non-scaling-stroke;
+}
+
 .hero-graph-arrow {
   fill: var(--color-accent);
   fill-opacity: 0.42;
@@ -585,6 +596,14 @@ a {
   fill: var(--color-surface);
   stroke: var(--color-border-2);
   stroke-width: 1;
+}
+
+.hero-graph-node-flow-ring {
+  fill: none;
+  stroke: var(--color-accent);
+  stroke-width: 1.5;
+  opacity: 0;
+  vector-effect: non-scaling-stroke;
 }
 
 .hero-graph-node-box--accent {
@@ -696,12 +715,69 @@ a {
   }
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  .hero-graph-edge-flow {
+    animation: hero-graph-flow-edge 1.15s cubic-bezier(0.35, 0, 0.65, 1) both;
+    animation-delay: calc(var(--hero-flow-step) * 0.92s + 0.3s);
+  }
+
+  .hero-graph-node--flow {
+    animation: hero-graph-flow-glow 0.85s ease-out both;
+    animation-delay: calc(var(--hero-flow-step) * 0.92s + 0.12s);
+  }
+
+  .hero-graph-node-flow-ring {
+    animation: hero-graph-flow-node 0.7s ease-out both;
+    animation-delay: calc(var(--hero-flow-step) * 0.92s + 0.18s);
+  }
+}
+
 @keyframes hero-graph-drift {
   0% {
     transform: translate(0, 0);
   }
   100% {
     transform: translate(-6px, 4px);
+  }
+}
+
+@keyframes hero-graph-flow-edge {
+  0% {
+    opacity: 0;
+    stroke-dashoffset: 1;
+  }
+  12%,
+  78% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0;
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes hero-graph-flow-node {
+  0% {
+    opacity: 0;
+    stroke-width: 2;
+  }
+  28% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+    stroke-width: 0.6;
+  }
+}
+
+@keyframes hero-graph-flow-glow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 0 transparent);
+  }
+  30% {
+    filter: drop-shadow(0 0 5px color-mix(in srgb, var(--color-accent) 75%, transparent))
+      drop-shadow(0 0 14px color-mix(in srgb, var(--color-accent) 42%, transparent));
   }
 }
 
@@ -796,40 +872,41 @@ a {
   bottom: 2rem;
   left: 50%;
   transform: translateX(-50%);
-  display: flex;
-  flex-direction: column;
+  display: inline-flex;
+  width: 2rem;
+  height: 2rem;
   align-items: center;
+  justify-content: center;
+  color: var(--color-text-2);
+  background: color-mix(in srgb, var(--color-surface) 88%, transparent);
+  border: 1px solid var(--color-border-2);
+  border-radius: 999px;
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--color-bg) 45%, transparent);
+  backdrop-filter: blur(8px);
 }
 
-.hero-scroll-line {
+.hero-scroll-hint svg {
   display: block;
-  width: 1px;
-  height: 3rem;
-  background: linear-gradient(to bottom, var(--color-accent), transparent);
-  animation: scroll-hint-drop 1.6s ease-in-out infinite;
+  overflow: visible;
+  stroke: var(--color-accent);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.hero-scroll-hint path {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: scroll-hint-drop 1.8s ease-in-out infinite;
 }
 
 @keyframes scroll-hint-drop {
   0%,
   100% {
-    opacity: 0;
-    transform: scaleY(0);
-    transform-origin: top;
+    opacity: 0.5;
   }
-  30% {
+  50% {
     opacity: 1;
-    transform: scaleY(1);
-    transform-origin: top;
-  }
-  70% {
-    opacity: 1;
-    transform: scaleY(1);
-    transform-origin: top;
-  }
-  100% {
-    opacity: 0;
-    transform: scaleY(0);
-    transform-origin: bottom;
   }
 }
 
@@ -2977,9 +3054,9 @@ a {
 /* ─── Reduced motion ───────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
-  .hero-scroll-line {
+  .hero-scroll-hint path {
     animation: none;
-    opacity: 0.4;
+    opacity: 0.7;
   }
   .editor-showcase-link:hover,
   .editor-showcase-link:hover .editor-showcase-link-action i {
