@@ -426,7 +426,7 @@ export const en = {
       location: "Archive Complex\n7-Meridian",
       title: "Silent\nArchive",
       subtitle: "Every Record Remembers",
-      thesis: "Fourteen months without contact.\nOne investigation left to complete.",
+      thesis: "Fourteen months without contact.\nOne report still waiting to be written.",
       telemetry_aria: "Archive telemetry",
       telemetry: [
         { label: "Signal", value: "Recovered" },
@@ -447,9 +447,9 @@ export const en = {
       headline: "You were sent to file a report. Your brief ends at the entrance.",
       copy: [
         "Archive Complex 7-Meridian has been dark for fourteen months. No personnel contact. No maintenance pings. No distress signals. You are CASE, a company investigator sent to enter the facility, establish the facts, and file a final report.",
-        "Explore a sealed industrial complex, examine incomplete records, and decide how CASE responds when evidence refuses to fit neatly into the assignment. Every conclusion is yours to reach.",
+        "Descend through a facility that still preserves, classifies, and obeys. Follow maintenance logs, fractured testimony, and systems carrying out old orders; then decide what belongs in the record, and what its language was built to leave out.",
       ],
-      question: "In a place built to preserve information, how much can you trust what remains?",
+      question: "When every record is technically correct, what has the system decided not to name?",
       facts: [
         { label: "Format", value: "Choice-driven narrative" },
         { label: "Setting", value: "Corporate legal horror" },
@@ -495,14 +495,14 @@ export const en = {
           label: "The Memory Garden",
           image: "/games/silent-archive/memory-garden.webp",
           alt: "Memory Garden — server racks threaded with glowing fiber optic cabling in a warm cognitive archive",
-          note: "Cognitive archive. Fiber optics weave through the racks like vines; in the dark, amber and blue light reads almost like growth.",
+          note: "Cognitive archive. Fiber-optic light climbs through long-term storage like vines. The room looks almost alive; its records were built to outlast their readers.",
         },
       ],
     },
     final: {
       index: "03 / Authorization requested",
       headline: "The report is blank. The conclusion is yours.",
-      copy: "Enter Archive Complex 7-Meridian. Investigate carefully. What follows is determined by the choices you make.",
+      copy: "Follow the records. Question the categories. Decide what belongs in the final report — and what the report is allowed to call true.",
       cta: "Play Silent Archive",
       external: "silentarchive.onbbx.com",
     },
