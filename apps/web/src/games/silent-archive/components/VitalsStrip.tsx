@@ -25,7 +25,7 @@ export function VitalsStrip({ playerStats, borderColor, controls }: VitalsStripP
 
   return (
     <div
-      className="vitals-command-line flex-shrink-0 border-b px-4 sm:px-8 py-2.5"
+      className="vitals-command-line flex-shrink-0 border-b px-4 sm:px-8 py-1.5"
       style={{ borderColor, background: "var(--vitals-bg)" }}
     >
       <div className="vitals-bank">

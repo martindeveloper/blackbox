@@ -132,23 +132,24 @@
 
 .stat-gauge {
   display: inline-flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1px;
-  padding: 0.28rem 0.42rem 0.32rem;
+  flex-direction: row-reverse;
+  gap: 0.3rem;
+  padding: 0.2rem 0.4rem;
   background: rgba(255, 109, 26, 0.04);
   border: 1px solid rgba(255, 109, 26, 0.11);
   border-top: 1px solid rgba(255, 109, 26, 0.18);
-  width: 3.15rem;
-  height: 2.55rem;
+  width: auto;
+  min-width: 3.15rem;
+  height: 1.8rem;
   position: relative;
   overflow: hidden;
 }
 
 .stat-gauge-val {
   font-family: var(--font-display);
-  font-size: 1.35rem;
+  font-size: 1.08rem;
   line-height: 1;
   color: var(--color-accent);
   letter-spacing: 0.02em;
@@ -164,22 +165,23 @@
 
 .stat-gauge-key {
   font-family: "Space Mono", monospace;
-  font-size: 0.48rem;
-  letter-spacing: 0.2em;
-  color: rgba(255, 109, 26, 0.22);
+  font-size: 0.54rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: rgba(255, 109, 26, 0.34);
   text-transform: uppercase;
   user-select: none;
 }
 
 .stat-gauge--hp {
-  gap: 1px;
+  gap: 0.25rem;
   border-color: color-mix(in srgb, var(--category-damage) 15%, transparent);
   border-top-color: color-mix(in srgb, var(--category-damage) 24%, transparent);
   background: color-mix(in srgb, var(--category-damage) 4%, transparent);
 }
 
 .stat-gauge--hp .stat-gauge-val {
-  font-size: 0.92rem;
+  font-size: 0.82rem;
   color: var(--category-damage);
   text-shadow: 0 0 12px color-mix(in srgb, var(--category-damage) 34%, transparent);
 }
@@ -196,7 +198,7 @@
   position: absolute;
   left: 0.36rem;
   right: 0.36rem;
-  bottom: 0.2rem;
+  bottom: 0.12rem;
   height: 2px;
   background: rgba(255, 109, 26, 0.1);
   overflow: hidden;

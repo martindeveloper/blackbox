@@ -87,7 +87,7 @@ function SilentArchiveHeader({
   const hasMusic = music != null;
   return (
     <header
-      className="flex-shrink-0 flex items-center gap-2.5 px-4 sm:px-6 h-12 border-b border-border-2"
+      className="flex-shrink-0 flex items-center gap-2 px-3 sm:px-5 h-10 border-b border-border-2"
       style={{
         background: "var(--color-surface)",
         boxShadow: "0 1px 0 rgba(255,109,26,0.06), 0 4px 24px rgba(0,0,0,0.5)",
@@ -108,7 +108,7 @@ function SilentArchiveHeader({
         </div>
       </div>
 
-      <div className="ml-auto flex items-center gap-2.5">
+      <div className="ml-auto flex items-center gap-2">
         {hasMusic && (
           <div
             className="hidden sm:flex items-center gap-2"
@@ -128,7 +128,7 @@ function SilentArchiveHeader({
           onClick={toggleMute}
           className="sys-btn sys-btn-icon"
           style={{
-            padding: "4px 8px",
+            padding: "3px 7px",
             color: muted || audioBlocked ? "var(--color-muted)" : "var(--color-muted-2)",
           }}
           title={`${audioBlocked ? t("header.enableAudio") : muted ? t("shortcuts.unmute") : t("shortcuts.mute")} [${UI_SHORTCUTS.mute.display}]`}

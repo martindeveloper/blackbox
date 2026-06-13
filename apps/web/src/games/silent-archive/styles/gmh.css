@@ -1,9 +1,9 @@
 .gmh-main {
   display: flex;
   align-items: stretch;
-  gap: 0.22rem;
-  height: 2.75rem;
-  padding: 0.28rem 0.5rem;
+  gap: 0.18rem;
+  height: 2.15rem;
+  padding: 0.2rem 0.35rem;
 }
 
 .gmh-location {
@@ -46,17 +46,17 @@
 .gmh-actions {
   display: flex;
   align-items: stretch;
-  gap: 0.22rem;
+  gap: 0.18rem;
   flex: 1;
 }
 
 .gmh-btn {
   position: relative;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 0.2rem;
+  gap: 0.28rem;
   flex: 1;
   border: 1px solid;
   cursor: pointer;
@@ -69,8 +69,8 @@
 
 .gmh-btn-label {
   font-family: var(--font-mono);
-  font-size: 0.42rem;
-  letter-spacing: 0.14em;
+  font-size: 0.44rem;
+  letter-spacing: 0.11em;
   text-transform: uppercase;
   opacity: 0.65;
   line-height: 1;
@@ -113,14 +113,12 @@
 }
 
 .gmh-badge {
-  position: absolute;
-  top: 0.22rem;
-  right: 0.18rem;
+  position: static;
   font-family: var(--font-mono);
   font-size: 0.44rem;
   line-height: 1;
-  min-width: 0.82rem;
-  height: 0.82rem;
+  min-width: 0.76rem;
+  height: 0.76rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -145,30 +143,33 @@
 .gmh-stats {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 0.5rem 0.32rem;
+  justify-content: center;
+  gap: clamp(0.55rem, 4vw, 1.4rem);
+  min-height: 1.45rem;
+  padding: 0.1rem 0.5rem 0.18rem;
+  border-top: 1px solid rgba(255, 109, 26, 0.045);
 }
 
 .gmh-stat-pill {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 0.12rem;
-  flex: 1;
+  gap: 0.24rem;
   white-space: nowrap;
 }
 
 .gmh-stat-key {
   font-family: var(--font-mono);
-  font-size: 0.44rem;
-  letter-spacing: 0.16em;
+  font-size: 0.5rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(255, 109, 26, 0.32);
+  color: rgba(255, 109, 26, 0.46);
 }
 
 .gmh-stat-val {
   font-family: var(--font-display);
-  font-size: 0.84rem;
+  font-size: 0.72rem;
   letter-spacing: 0.04em;
   color: rgba(255, 109, 26, 0.82);
   line-height: 1;
