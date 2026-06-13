@@ -38,6 +38,7 @@ export interface NarrativeProps {
 export interface ResolutionProps {
   rolls: RollRecord[];
   notifications: UiNotification[];
+  onNotificationActivate?: (notification: UiNotification) => void;
 }
 
 export interface VitalsProps {
@@ -50,6 +51,7 @@ export interface InventoryProps {
   view: GameView;
   examine: ItemExamineView | null;
   commandPending: boolean;
+  initialItemRef?: string;
   onExamine: (itemRef: string) => void;
   onUse: (itemRef: string, actionId: string) => void;
 }
@@ -57,6 +59,7 @@ export interface InventoryProps {
 export interface IntelProps {
   memories: string[];
   meta: MetaCatalog;
+  initialIntelRef?: string;
 }
 
 export interface JournalProps {

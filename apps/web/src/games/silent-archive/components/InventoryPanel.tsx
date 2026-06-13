@@ -14,6 +14,7 @@ interface InventoryPanelProps {
   view: GameView;
   examine: ItemExamineView | null;
   commandPending: boolean;
+  initialItemRef?: string;
   onExamine: (itemRef: string) => void;
   onUse: (itemRef: string, actionId: string) => void;
 }
@@ -184,13 +185,16 @@ export function InventoryPanel({
   view,
   examine,
   commandPending,
+  initialItemRef,
   onExamine,
   onUse,
 }: InventoryPanelProps) {
   const { t } = useTranslation();
   const items = view.inventory_items;
   const itemActions = useMemo(() => actionsByItem(view), [view.item_actions]);
-  const [selectedRef, setSelectedRef] = useState<string | null>(null);
+  const [selectedRef, setSelectedRef] = useState<string | null>(() =>
+    initialItemRef && items.some((item) => item.ref_id === initialItemRef) ? initialItemRef : null,
+  );
 
   useEffect(() => {
     if (!items.length) {
@@ -198,7 +202,10 @@ export function InventoryPanel({
       return;
     }
 
-    const firstItem = items[0];
+    const targetedItem = initialItemRef
+      ? items.find((item) => item.ref_id === initialItemRef)
+      : undefined;
+    const firstItem = targetedItem ?? items[0];
     let autoExamine: string | null = null;
     setSelectedRef((prev) => {
       if (prev && items.some((item) => item.ref_id === prev)) return prev;
@@ -206,7 +213,16 @@ export function InventoryPanel({
       return autoExamine;
     });
     if (autoExamine) onExamine(autoExamine);
-  }, [items, onExamine]);
+  }, [initialItemRef, items, onExamine]);
+
+  useEffect(() => {
+    if (!initialItemRef || selectedRef !== initialItemRef) return;
+    const target = document.querySelector<HTMLElement>(
+      `[data-inventory-item-ref="${CSS.escape(initialItemRef)}"]`,
+    );
+    target?.scrollIntoView({ block: "nearest" });
+    target?.focus({ preventScroll: true });
+  }, [initialItemRef, selectedRef]);
 
   const selectItem = (ref: string) => {
     setSelectedRef(ref);
@@ -247,6 +263,7 @@ export function InventoryPanel({
                   type="button"
                   className={`inventory-slot-examine${isSelected ? " is-selected" : ""}`}
                   onClick={() => selectItem(item.ref_id)}
+                  data-inventory-item-ref={item.ref_id}
                   aria-pressed={isSelected}
                   aria-label={t("inventory.examineItem", { name: item.name })}
                 >

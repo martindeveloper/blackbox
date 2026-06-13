@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { formatRefId } from "../../../engine/lib/format.js";
 import type { MetaCatalog } from "../../../engine/types/game.js";
@@ -5,10 +6,20 @@ import type { MetaCatalog } from "../../../engine/types/game.js";
 interface MemoryPanelProps {
   memories: string[];
   meta: MetaCatalog;
+  initialIntelRef?: string;
 }
 
-export function MemoryPanel({ memories, meta }: MemoryPanelProps) {
+export function MemoryPanel({ memories, meta, initialIntelRef }: MemoryPanelProps) {
   const { t } = useTranslation();
+
+  useEffect(() => {
+    if (!initialIntelRef) return;
+    const target = document.querySelector<HTMLElement>(
+      `[data-intel-ref="${CSS.escape(initialIntelRef)}"]`,
+    );
+    target?.scrollIntoView({ block: "nearest" });
+    target?.focus({ preventScroll: true });
+  }, [initialIntelRef]);
 
   if (!memories.length) {
     return (
@@ -26,7 +37,12 @@ export function MemoryPanel({ memories, meta }: MemoryPanelProps) {
         const title = entry?.title ?? formatRefId(flagId);
         const description = entry?.description;
         return (
-          <article key={flagId} className="memory-card">
+          <article
+            key={flagId}
+            className={`memory-card${flagId === initialIntelRef ? " memory-card--focused" : ""}`}
+            data-intel-ref={flagId}
+            tabIndex={flagId === initialIntelRef ? -1 : undefined}
+          >
             <div className="memory-card-index">{String(index + 1).padStart(2, "0")}</div>
             <div className="memory-card-body">
               <h3>{title}</h3>

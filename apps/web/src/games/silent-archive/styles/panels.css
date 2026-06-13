@@ -968,6 +968,18 @@
     linear-gradient(180deg, rgba(255, 255, 255, 0.018), transparent), rgba(2, 12, 14, 0.66);
 }
 
+.memory-card--focused {
+  border-color: color-mix(in srgb, var(--panel-intel) 52%, transparent);
+  box-shadow:
+    inset 0 0 20px color-mix(in srgb, var(--panel-intel) 8%, transparent),
+    0 0 18px color-mix(in srgb, var(--panel-intel) 12%, transparent);
+}
+
+.memory-card:focus-visible {
+  outline: 1px solid color-mix(in srgb, var(--panel-intel) 72%, transparent);
+  outline-offset: 2px;
+}
+
 .memory-card::after {
   content: "";
   position: absolute;

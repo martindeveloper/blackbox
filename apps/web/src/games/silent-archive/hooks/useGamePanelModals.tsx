@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { ArchiveIcon, GridIcon, IncidentIcon } from "../components/Icons.js";
 import { usePanelModals } from "../../../engine/hooks/usePanelModals.js";
@@ -34,12 +34,18 @@ interface GamePanelModalContext {
   onCreateSupportBundle: () => void;
 }
 
+interface PanelTarget {
+  itemRef?: string;
+  intelRef?: string;
+}
+
 function createGamePanelModal(
   id: GamePanelId,
   ctx: GamePanelModalContext,
   components: TextGameComponents,
   t: (key: string) => string,
   onClose: () => void,
+  target: PanelTarget,
 ): ModalDescriptor {
   const shared = { id, size: "lg" as const, onClose };
 
@@ -57,6 +63,7 @@ function createGamePanelModal(
             view={ctx.view}
             examine={ctx.examine}
             commandPending={ctx.commandPending}
+            initialItemRef={target.itemRef}
             onExamine={ctx.onExamine}
             onUse={ctx.onUseItem}
           />
@@ -71,7 +78,9 @@ function createGamePanelModal(
         eyebrow: t("memory.eyebrow"),
         icon: <ArchiveIcon size={14} />,
         tone: "cyan",
-        children: <Intel memories={ctx.memoryKeys} meta={ctx.view.meta} />,
+        children: (
+          <Intel memories={ctx.memoryKeys} meta={ctx.view.meta} initialIntelRef={target.intelRef} />
+        ),
       };
     }
     case "journal": {
@@ -121,9 +130,21 @@ function createGamePanelModal(
 export function useGamePanelModals(ctx: GamePanelModalContext) {
   const { t } = useTranslation();
   const components = useTextGameComponents();
+  const targetRef = useRef<PanelTarget>({});
 
   const createModal = useCallback(
-    (id: GamePanelId, onClose: () => void) => createGamePanelModal(id, ctx, components, t, onClose),
+    (id: GamePanelId, onClose: () => void) =>
+      createGamePanelModal(
+        id,
+        ctx,
+        components,
+        t,
+        () => {
+          targetRef.current = {};
+          onClose();
+        },
+        targetRef.current,
+      ),
     [
       t,
       components,
@@ -141,11 +162,37 @@ export function useGamePanelModals(ctx: GamePanelModalContext) {
     ],
   );
 
-  return usePanelModals({
+  const { showPanel: showPanelModal } = usePanelModals({
     panelIds: ALL_PANELS,
     shortcuts: PANEL_SHORTCUTS,
     primaryPanelId: "system",
     primaryShortcut: UI_SHORTCUTS.system.key,
     createModal,
   });
+
+  const showPanel = useCallback(
+    (id: GamePanelId) => {
+      targetRef.current = {};
+      showPanelModal(id);
+    },
+    [showPanelModal],
+  );
+
+  const showInventoryItem = useCallback(
+    (itemRef: string) => {
+      targetRef.current = { itemRef };
+      showPanelModal("inventory");
+    },
+    [showPanelModal],
+  );
+
+  const showIntel = useCallback(
+    (intelRef: string) => {
+      targetRef.current = { intelRef };
+      showPanelModal("memory");
+    },
+    [showPanelModal],
+  );
+
+  return { showPanel, showInventoryItem, showIntel };
 }

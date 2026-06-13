@@ -78,6 +78,24 @@
     cubic-bezier(0.16, 0.76, 0.24, 1) both;
 }
 
+.ui-notification--interactive {
+  width: 100%;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ui-notification--interactive:hover {
+  border-color: color-mix(in srgb, var(--notification-color) 34%, transparent);
+  border-left-color: color-mix(in srgb, var(--notification-color) 88%, transparent);
+  background-color: color-mix(in srgb, var(--notification-color) 5%, transparent);
+}
+
+.ui-notification--interactive:focus-visible {
+  outline: 1px solid color-mix(in srgb, var(--notification-color) 72%, transparent);
+  outline-offset: 2px;
+}
+
 .ui-notification--damage {
   --notification-color: var(--category-damage);
 }

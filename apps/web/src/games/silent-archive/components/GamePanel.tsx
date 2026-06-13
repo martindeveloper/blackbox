@@ -144,7 +144,7 @@ export function GamePanel({
   const mobileCoreStats = mobileStats.filter(([k]) => k !== "hp" && k !== "max_hp");
   const mobileIsLowHp = typeof mobileHpVal === "number" && mobileHpVal <= 3;
 
-  const { showPanel } = useGamePanelModals({
+  const { showPanel, showInventoryItem, showIntel } = useGamePanelModals({
     view,
     memoryKeys,
     isTerminal,
@@ -157,6 +157,14 @@ export function GamePanel({
     onRestart,
     onCreateSupportBundle,
   });
+
+  const activateNotification = (notification: UiNotification) => {
+    if (notification.category === "item" && notification.change === "acquired") {
+      showInventoryItem(notification.itemRef);
+    } else if (notification.category === "intel" && notification.change === "acquired") {
+      showIntel(notification.intelRef);
+    }
+  };
 
   const panelNav = [
     {
@@ -616,7 +624,13 @@ export function GamePanel({
               </div>
             </div>
 
-            {showResolution && <Resolution rolls={lastRolls} notifications={notifications} />}
+            {showResolution && (
+              <Resolution
+                rolls={lastRolls}
+                notifications={notifications}
+                onNotificationActivate={activateNotification}
+              />
+            )}
           </div>
         </div>
 

@@ -8,9 +8,14 @@ import { ArchiveIcon, DamageIcon, HealingIcon, KeycardIcon, StatIcon } from "./I
 interface ResolutionLogProps {
   rolls: RollRecord[];
   notifications: UiNotification[];
+  onNotificationActivate?: (notification: UiNotification) => void;
 }
 
-export function ResolutionLog({ rolls, notifications }: ResolutionLogProps) {
+export function ResolutionLog({
+  rolls,
+  notifications,
+  onNotificationActivate,
+}: ResolutionLogProps) {
   const { t } = useTranslation();
   const notificationEntries = useMemo(() => {
     const counts = new Map<string, number>();
@@ -38,6 +43,13 @@ export function ResolutionLog({ rolls, notifications }: ResolutionLogProps) {
             notification={notification}
             startDelay={notificationBaseDelay + index * UI_TIMING.notificationStaggerMs}
             categoryIndex={categoryIndex}
+            onActivate={
+              (notification.category === "item" || notification.category === "intel") &&
+              notification.change === "acquired" &&
+              onNotificationActivate
+                ? () => onNotificationActivate(notification)
+                : undefined
+            }
           />
         ))}
       </div>
@@ -49,10 +61,12 @@ function NotificationEntry({
   notification,
   categoryIndex,
   startDelay,
+  onActivate,
 }: {
   notification: UiNotification;
   categoryIndex: number;
   startDelay: number;
+  onActivate?: () => void;
 }) {
   const { t } = useTranslation();
   const [visible, setVisible] = useState(startDelay === 0);
@@ -137,6 +151,7 @@ function NotificationEntry({
         }
         subject={notification.intelName}
         detail={t("resolution.intelUpdated")}
+        onActivate={onActivate}
       />
     );
   }
@@ -155,6 +170,7 @@ function NotificationEntry({
           ? t("resolution.itemAdded", { amount: notification.amount })
           : t("resolution.itemRemoved", { amount: notification.amount })
       }
+      onActivate={onActivate}
     />
   );
 }
@@ -174,6 +190,7 @@ function NotificationShell({
   subject,
   detail,
   assertive = false,
+  onActivate,
 }: {
   category: UiNotification["category"];
   modifier?: "acquired" | "lost" | "gained";
@@ -182,21 +199,39 @@ function NotificationShell({
   subject: string;
   detail: string;
   assertive?: boolean;
+  onActivate?: () => void;
 }) {
-  return (
-    <div
-      className={`ui-notification ui-notification--${category}${
-        modifier ? ` ui-notification--${modifier}` : ""
-      }`}
-      role="status"
-      aria-live={assertive ? "assertive" : "polite"}
-    >
+  const content = (
+    <>
       <span className="ui-notification-icon" aria-hidden>
         {icon}
       </span>
       <span className="ui-notification-label">{label}</span>
       <strong className="ui-notification-subject">{subject}</strong>
       <span className="ui-notification-detail">{detail}</span>
+    </>
+  );
+  const className = `ui-notification ui-notification--${category}${
+    modifier ? ` ui-notification--${modifier}` : ""
+  }${onActivate ? " ui-notification--interactive" : ""}`;
+
+  if (onActivate) {
+    return (
+      <button
+        type="button"
+        className={className}
+        role="status"
+        aria-live={assertive ? "assertive" : "polite"}
+        onClick={onActivate}
+      >
+        {content}
+      </button>
+    );
+  }
+
+  return (
+    <div className={className} role="status" aria-live={assertive ? "assertive" : "polite"}>
+      {content}
     </div>
   );
 }
