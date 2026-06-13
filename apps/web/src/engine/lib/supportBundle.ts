@@ -1,7 +1,7 @@
 import type { GameView } from "../types/game.js";
+import { diagnostics } from "@content-source";
 import { type StatusKind } from "./engine.js";
 import { readAllSlots } from "./slots.js";
-import { bundleStore } from "./bundleStore.js";
 import { getLogLevel, logger } from "./logger.js";
 import { getClientLogEntries, getEngineLogEntries, MAX_LOG_ENTRIES } from "./supportLog.js";
 import { createZip } from "./zip.js";
@@ -107,7 +107,7 @@ function collectDiagnostics(
       },
       devicePixelRatio: window.devicePixelRatio,
     },
-    bundle: bundleStore.diagnostics,
+    bundle: diagnostics(),
     session: {
       status: input.status,
       statusKind: input.statusKind,

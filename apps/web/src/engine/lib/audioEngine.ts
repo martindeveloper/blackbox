@@ -37,7 +37,7 @@
  *    making the game mute on most real devices after an interruption.
  */
 
-import { bundleStore } from "./bundleStore.js";
+import { fetchAudioBytes } from "@content-source";
 import { logger } from "./logger.js";
 import { clampVolume } from "./math.js";
 
@@ -758,7 +758,7 @@ export class AudioEngine {
    * the current context — the original may have been rebuilt mid-decode.
    */
   private async _decode(src: string, kind: "music" | "sfx"): Promise<AudioBuffer> {
-    const bytes = bundleStore.read(src);
+    const bytes = await fetchAudioBytes(src);
     if (!bytes) {
       logger.error("audio", `${kind} asset missing from bundle`, { src });
       throw new Error(`Audio asset not found in bundle: ${src}`);

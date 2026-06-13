@@ -1,0 +1,221 @@
+.preview-screen {
+  min-width: 0;
+  background: var(--editor-bg);
+}
+
+.preview-toolbar {
+  min-height: 48px;
+  background: var(--editor-toolbar);
+}
+
+.preview-toolbar-title {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+}
+
+.preview-toolbar-actions {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.preview-control-group {
+  display: inline-flex;
+  flex-shrink: 0;
+  isolation: isolate;
+}
+
+.preview-control {
+  position: relative;
+  display: inline-flex;
+  height: 26px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0 8px;
+  border: 1px solid var(--editor-border-2);
+  border-radius: 3px;
+  background: var(--editor-btn-bg);
+  color: var(--editor-btn-text);
+  cursor: pointer;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  box-shadow: 0 1px 0 rgb(255 255 255 / 4%);
+  transition:
+    background 100ms,
+    border-color 100ms,
+    color 100ms,
+    opacity 100ms;
+}
+
+.preview-control:hover:not(:disabled) {
+  z-index: 2;
+  border-color: var(--editor-selection-border);
+  background: var(--editor-btn-bg-hover);
+  color: var(--editor-text);
+}
+
+.preview-control.is-active {
+  z-index: 1;
+  border-color: var(--editor-primary);
+  background: var(--editor-selection);
+  color: var(--editor-primary);
+}
+
+.preview-control--danger {
+  color: var(--editor-danger);
+}
+
+.preview-control:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.preview-control:focus-visible {
+  z-index: 3;
+  outline: 1px solid var(--editor-primary);
+  outline-offset: 1px;
+}
+
+.preview-control-group .preview-control {
+  border-radius: 0;
+}
+
+.preview-control-group .preview-control + .preview-control {
+  margin-left: -1px;
+}
+
+.preview-control-group .preview-control:first-child {
+  border-radius: 3px 0 0 3px;
+}
+
+.preview-control-group .preview-control:last-child {
+  border-radius: 0 3px 3px 0;
+}
+
+.preview-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--editor-text-subtle);
+}
+
+.preview-live::before {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: currentColor;
+  content: "";
+}
+
+.preview-live--connected {
+  color: var(--editor-success);
+}
+
+.preview-live--connected::before {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--editor-success) 15%, transparent);
+}
+
+.preview-workspace {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+}
+
+.preview-frame {
+  display: block;
+  border: 0;
+  background: #090a0c;
+  transform-origin: top left;
+}
+
+.preview-stage {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background:
+    linear-gradient(
+        45deg,
+        color-mix(in srgb, var(--editor-border) 16%, transparent) 25%,
+        transparent 25%
+      )
+      0 0 / 16px 16px,
+    linear-gradient(
+        -45deg,
+        color-mix(in srgb, var(--editor-border) 16%, transparent) 25%,
+        transparent 25%
+      )
+      0 8px / 16px 16px,
+    var(--editor-bg);
+}
+
+.preview-stage--desktop {
+  display: block;
+}
+
+.preview-device-viewport {
+  position: relative;
+  overflow: hidden;
+  background: #090a0c;
+}
+
+.preview-stage--desktop .preview-device-viewport,
+.preview-stage--desktop .preview-frame {
+  width: 100%;
+  height: 100%;
+}
+
+.preview-stage--tablet .preview-device-viewport {
+  border-radius: 8px;
+  box-shadow:
+    0 0 0 1px var(--editor-border-2),
+    0 14px 40px rgb(0 0 0 / 24%);
+}
+
+.preview-stage--mobile .preview-device-viewport {
+  border-radius: 14px;
+  box-shadow:
+    0 0 0 1px var(--editor-border-2),
+    0 14px 40px rgb(0 0 0 / 28%);
+}
+
+.preview-device-dimensions {
+  position: absolute;
+  right: 10px;
+  bottom: 8px;
+  padding: 3px 6px;
+  border: 1px solid var(--editor-border);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--editor-bg) 88%, transparent);
+  color: var(--editor-text-subtle);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.04em;
+}
+
+@media (max-width: 1050px) {
+  .preview-control span {
+    display: none;
+  }
+
+  .preview-control {
+    width: 26px;
+    padding: 0;
+  }
+}

@@ -1,13 +1,34 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { app, BrowserWindow, dialog, ipcMain, nativeTheme, shell } from "electron";
+import { app, BrowserWindow, dialog, ipcMain, nativeTheme, protocol, shell } from "electron";
 import { loadAppIcon } from "./icon.mjs";
+import {
+  createEditorProtocolHandler,
+  createEditorSocketPath,
+  EDITOR_ORIGIN,
+  EDITOR_SCHEME,
+  removeEditorSocket,
+} from "./local-transport.mjs";
 import { setupMacApplicationMenu } from "./menu.mjs";
 
 const ELECTRON_ROOT = path.dirname(fileURLToPath(import.meta.url));
 const CLIENT_ROOT = path.resolve(ELECTRON_ROOT, "..");
 const APP_NAME = "Blackbox Editor";
+
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: EDITOR_SCHEME,
+    privileges: {
+      standard: true,
+      secure: true,
+      supportFetchAPI: true,
+      corsEnabled: true,
+      stream: true,
+      codeCache: true,
+    },
+  },
+]);
 
 if (process.platform === "darwin") {
   process.title = APP_NAME;
@@ -16,6 +37,7 @@ app.setName(APP_NAME);
 
 let mainWindow = null;
 let editorServer = null;
+let editorSocketPath = null;
 
 async function configureRuntimePaths() {
   process.env.BLACKBOX_PACKAGED = "1";
@@ -36,11 +58,17 @@ async function configureRuntimePaths() {
 async function startServer() {
   const serverEntry = pathToFileURL(path.join(CLIENT_ROOT, "server", "app.js")).href;
   const { startEditorServer } = await import(serverEntry);
-  return startEditorServer({ quiet: true });
+  editorSocketPath = createEditorSocketPath();
+  await removeEditorSocket(editorSocketPath);
+  const server = await startEditorServer({ quiet: true, socketPath: editorSocketPath });
+  protocol.handle(EDITOR_SCHEME, createEditorProtocolHandler(editorSocketPath));
+  return server;
 }
 
 async function createWindow() {
-  editorServer = await startServer();
+  if (!editorServer) {
+    editorServer = await startServer();
+  }
 
   const icon = loadAppIcon(CLIENT_ROOT);
   mainWindow = new BrowserWindow({
@@ -65,13 +93,20 @@ async function createWindow() {
     return { action: "deny" };
   });
 
-  await mainWindow.loadURL(editorServer.url);
+  await mainWindow.loadURL(EDITOR_ORIGIN);
 }
 
 async function shutdown() {
+  if (protocol.isProtocolHandled(EDITOR_SCHEME)) {
+    protocol.unhandle(EDITOR_SCHEME);
+  }
   if (editorServer) {
     await editorServer.close();
     editorServer = null;
+  }
+  if (editorSocketPath) {
+    await removeEditorSocket(editorSocketPath);
+    editorSocketPath = null;
   }
 }
 

@@ -9,6 +9,7 @@ export type ActivityView =
   | "meta"
   | "library"
   | "tools"
+  | "preview"
   | "about";
 
 export const enum Page {
@@ -24,6 +25,7 @@ export const enum Page {
   EditorMeta = "/editor/$projectId/meta",
   EditorLibrary = "/editor/$projectId/library",
   EditorTools = "/editor/$projectId/tools",
+  EditorPreview = "/editor/$projectId/preview",
   EditorAbout = "/editor/$projectId/about",
 }
 
@@ -38,6 +40,7 @@ export const ACTIVITY_PAGES: Record<ActivityView, Page> = {
   meta: Page.EditorMeta,
   library: Page.EditorLibrary,
   tools: Page.EditorTools,
+  preview: Page.EditorPreview,
   about: Page.EditorAbout,
 };
 

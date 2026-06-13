@@ -16,7 +16,7 @@ function readBundleEntry(box, entry) {
 
 function loadBundlePart(metaName, blobName) {
   const map = JSON.parse(readFileSync(join(bundleDir, metaName), "utf8"));
-  const box = readFileSync(join(bundleDir, map.blob || blobName)).buffer;
+  const box = readFileSync(join(bundleDir, blobName));
   return { map, box };
 }
 
@@ -36,13 +36,14 @@ const scenario = readPath(parts, "content/scenario");
 const items = readPath(parts, "content/items");
 const characters = readPath(parts, "content/characters");
 const assets = readPath(parts, "content/assets");
+const library = readPath(parts, "content/library");
 const chapters = [readPath(parts, "content/chapters/chapel")];
 
 const wasm = await import(join(wasmPkgDir, "blackbox_wasm.js"));
 const wasmBytes = new Uint8Array(readFileSync(join(wasmPkgDir, "blackbox_wasm_bg.wasm")));
 await wasm.default({ module_or_path: wasmBytes });
 
-const engine = new wasm.BlackboxEngine(scenario, items, characters, assets, chapters);
+const engine = new wasm.BlackboxEngine(scenario, items, characters, assets, chapters, library);
 
 const initial = JSON.parse(engine.get_current_view());
 if (initial.protocol !== 1 || initial.revision !== 0 || initial.view?.player_stats?.hp !== 10) {
@@ -82,15 +83,15 @@ const askJson = engine.submit_command(
 );
 const ask = JSON.parse(askJson);
 if (!ask.ok) throw new Error(`ask failed: ${JSON.stringify(ask)}`);
-if (ask.delta?.node_id !== "android_chapel_prayer_answer") {
+if (ask.delta?.node_id !== "android_chapel_prayer_first_answer") {
   throw new Error(`ask did not return the expected node delta: ${JSON.stringify(ask)}`);
 }
 
 const current = JSON.parse(engine.get_current_view());
 if (
-  current.view?.node_id !== "android_chapel_prayer_answer" ||
+  current.view?.node_id !== "android_chapel_prayer_first_answer" ||
   current.view?.player_stats?.hp !== 8 ||
-  current.view?.events?.length !== 1
+  current.view?.events?.length !== 0
 ) {
   throw new Error(`stale command mutated engine state: ${JSON.stringify(current)}`);
 }

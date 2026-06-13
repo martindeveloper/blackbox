@@ -1,5 +1,5 @@
 import type { GameView } from "../types/game.js";
-import { bundleStore } from "./bundleStore.js";
+import { diagnostics, hasAsset } from "@content-source";
 import { tryAssetUrl } from "./engine.js";
 import { getLogLevel, logger } from "./logger.js";
 
@@ -13,7 +13,7 @@ function assetStatus(src: string | undefined): {
   }
   return {
     src,
-    inBundle: bundleStore.hasEntry(src),
+    inBundle: hasAsset(src),
     blobUrl: tryAssetUrl(src) !== null,
   };
 }
@@ -28,16 +28,16 @@ function textKindCounts(view: GameView): Record<string, number> {
 
 function missingAssetPaths(view: GameView): string[] {
   const missing: string[] = [];
-  if (view.background?.src && !bundleStore.hasEntry(view.background.src)) {
+  if (view.background?.src && !hasAsset(view.background.src)) {
     missing.push(view.background.src);
   }
   for (const character of view.characters) {
     const src = character.portrait?.src;
-    if (src && !bundleStore.hasEntry(src)) {
+    if (src && !hasAsset(src)) {
       missing.push(src);
     }
   }
-  if (view.music?.src && !bundleStore.hasEntry(view.music.src)) {
+  if (view.music?.src && !hasAsset(view.music.src)) {
     missing.push(view.music.src);
   }
   return missing;
@@ -66,7 +66,7 @@ export function logViewDiagnostics(view: GameView, context?: string): void {
     })),
     background: assetStatus(view.background?.src),
     music: assetStatus(view.music?.src),
-    bundle: bundleStore.diagnostics,
+    bundle: diagnostics(),
     textBlocks: view.text.map((block, index) => ({
       index,
       kind: block.kind,

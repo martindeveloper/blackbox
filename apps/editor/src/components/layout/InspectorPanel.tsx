@@ -12,6 +12,7 @@ import { ConditionInspector } from "../catalogs/ConditionInspector.js";
 import { ToolsInspector } from "../tools/ToolsInspector.js";
 import { ValidationPanel } from "../validation/ValidationPanel.js";
 import { MediaInspector } from "../media/MediaInspector.js";
+import { PreviewInspector } from "../preview/PreviewInspector.js";
 import { EmptyState } from "../ui/EmptyState.js";
 import { Panel, PanelBody, PanelHeader } from "../ui/Panel.js";
 import { parseMediaCategory } from "../../lib/mediaLibrary.js";
@@ -54,6 +55,7 @@ function inspectorTitle(
     const slash = file.lastIndexOf("/");
     return slash === -1 ? file : file.slice(slash + 1);
   }
+  if (activity === "preview") return t("preview.stateInspector");
   return t("inspector.header");
 }
 
@@ -157,6 +159,9 @@ export function InspectorPanel() {
       break;
     case "tools":
       body = <ToolsInspector />;
+      break;
+    case "preview":
+      body = <PreviewInspector />;
       break;
     case "about":
       body = <EmptyState>{t("about.inspectorHint")}</EmptyState>;

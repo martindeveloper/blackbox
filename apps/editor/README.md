@@ -87,7 +87,7 @@ reload.
 
 ## Desktop app (Electron)
 
-The editor can be packaged as a self-contained desktop app. Electron hosts the same Fastify API and React UI, stores editor state under the OS user-data directory, and bundles release builds of `blackbox-lint`, `blackbox-bundler`, and `blackbox-simulator`.
+The editor can be packaged as a self-contained desktop app. Electron hosts the same Fastify API and React UI over a private OS IPC socket, stores editor state under the OS user-data directory, and bundles release builds of `blackbox-lint`, `blackbox-bundler`, and `blackbox-simulator`. Electron does not open a TCP port; browser access on `localhost:8081` is reserved for `npm run dev` and `npm start`.
 
 ```bash
 cd apps/editor

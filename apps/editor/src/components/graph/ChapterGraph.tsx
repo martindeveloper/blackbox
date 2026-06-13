@@ -48,7 +48,10 @@ function GlobalDeathView() {
     <div className={`flex h-full flex-col ${theme === "dark" ? "dark" : ""}`}>
       <div className="graph-canvas flex-1 bg-bg relative">
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="graph-node graph-node-selected pointer-events-auto" style={{ width: 220 }}>
+          <div
+            className="graph-node graph-node-selected pointer-events-auto"
+            style={{ width: 220 }}
+          >
             <div className="flex items-center justify-between gap-1 mb-1">
               <span className="graph-node-id truncate flex-1">global_death</span>
               <Icon icon={Skull} size={10} className="text-danger shrink-0" />
@@ -64,11 +67,11 @@ function GlobalDeathView() {
             )}
             <div className="flex items-center gap-1 text-[10px] text-muted-2">
               <Icon icon={GitBranch} size={10} />
-              <span>
-                {t("graph.choices", { count: deathNode?.choices?.length ?? 0 })}
-              </span>
+              <span>{t("graph.choices", { count: deathNode?.choices?.length ?? 0 })}</span>
               {deathNode?.mode && deathNode.mode !== "normal" && (
-                <span className={`graph-node-badge ${deathNode.mode === "game_over" ? "graph-node-badge--danger" : "graph-node-badge--success"}`}>
+                <span
+                  className={`graph-node-badge ${deathNode.mode === "game_over" ? "graph-node-badge--danger" : "graph-node-badge--success"}`}
+                >
                   {t(`node.modes.${deathNode.mode}`)}
                 </span>
               )}

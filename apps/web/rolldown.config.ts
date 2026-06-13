@@ -16,6 +16,10 @@ export default defineConfig({
     tsconfigFilename: "tsconfig.bundler.json",
     alias: {
       "@game": new URL(`src/games/${GAME}`, import.meta.url).pathname,
+      "@content-source": new URL("src/engine/lib/bundleSource.ts", import.meta.url).pathname,
+      "@preview-mode": new URL("src/engine/lib/previewMode.stub.ts", import.meta.url).pathname,
+      "@preview-reporter": new URL("src/preview/PreviewReporter.stub.tsx", import.meta.url)
+        .pathname,
     },
   },
   transform: {

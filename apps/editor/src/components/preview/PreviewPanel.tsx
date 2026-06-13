@@ -1,0 +1,298 @@
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  Database,
+  ExternalLink,
+  Monitor,
+  RotateCw,
+  Smartphone,
+  Terminal,
+  Trash2,
+  type LucideIcon,
+} from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { isPreviewPlayerMessage, postPreviewHostMessage } from "../../../shared/previewProtocol.js";
+import { useScenarioStore } from "../../store/useScenarioStore.js";
+import { usePreviewStore, type PreviewCommandSender } from "../../store/usePreviewStore.js";
+import { notifyError, notifySuccess } from "../../lib/notifyApi.js";
+import { Icon } from "../icons/Icon.js";
+import { TabletLandscapeIcon } from "../icons/TabletLandscapeIcon.js";
+import { EmptyState } from "../ui/EmptyState.js";
+
+type PreviewDevice = "desktop" | "tablet" | "mobile";
+
+interface DevicePreset {
+  id: PreviewDevice;
+  icon: LucideIcon;
+  labelKey: string;
+  width?: number;
+  height?: number;
+}
+
+const DEVICE_PRESETS: readonly DevicePreset[] = [
+  { id: "desktop", icon: Monitor, labelKey: "preview.deviceDesktop" },
+  {
+    id: "tablet",
+    icon: TabletLandscapeIcon,
+    labelKey: "preview.deviceTablet",
+    width: 1024,
+    height: 768,
+  },
+  { id: "mobile", icon: Smartphone, labelKey: "preview.deviceMobile", width: 390, height: 844 },
+];
+
+export function PreviewPanel() {
+  const { t } = useTranslation();
+  const projectId = useScenarioStore((s) => s.projectId);
+  const saveProject = useScenarioStore((s) => s.save);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+  const [device, setDevice] = useState<PreviewDevice>("desktop");
+  const [stageSize, setStageSize] = useState({ width: 0, height: 0 });
+  const [preparedProject, setPreparedProject] = useState<string | null>(null);
+  const connected = usePreviewStore((state) => state.connected);
+  const setConnected = usePreviewStore((state) => state.setConnected);
+  const setRuntimeState = usePreviewStore((state) => state.setRuntimeState);
+  const setStorageState = usePreviewStore((state) => state.setStorageState);
+  const addProfilerEvent = usePreviewStore((state) => state.addProfilerEvent);
+  const setProfilerEvents = usePreviewStore((state) => state.setProfilerEvents);
+  const resetPreviewState = usePreviewStore((state) => state.reset);
+  const setCommandSender = usePreviewStore((state) => state.setCommandSender);
+
+  const sendCommand = useCallback<PreviewCommandSender>((command) => {
+    const target = iframeRef.current?.contentWindow;
+    if (target) postPreviewHostMessage(target, command);
+  }, []);
+
+  useEffect(() => {
+    setCommandSender(sendCommand);
+    return () => setCommandSender(null);
+  }, [sendCommand, setCommandSender]);
+
+  useEffect(() => {
+    let active = true;
+    setPreparedProject(null);
+    if (projectId) {
+      void saveProject().then((saved) => {
+        if (active && saved) setPreparedProject(projectId);
+      });
+    }
+    return () => {
+      active = false;
+    };
+  }, [projectId, saveProject]);
+
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== location.origin || event.source !== iframeRef.current?.contentWindow)
+        return;
+      if (!isPreviewPlayerMessage(event.data)) return;
+
+      switch (event.data.type) {
+        case "ready":
+          setConnected(true);
+          sendCommand({ type: "request-state" });
+          break;
+        case "runtime-state":
+          setRuntimeState(event.data.state);
+          break;
+        case "storage-state":
+          setStorageState(event.data.state);
+          break;
+        case "storage-cleared":
+          setReloadKey((key) => key + 1);
+          break;
+        case "profiler-event":
+          addProfilerEvent(event.data.event);
+          break;
+        case "profiler-history":
+          setProfilerEvents(event.data.events);
+          break;
+        case "storage-load-result":
+          if (event.data.ok) {
+            notifySuccess(event.data.message);
+          } else {
+            notifyError(event.data.message);
+          }
+          break;
+      }
+    };
+    globalThis.addEventListener("message", handleMessage);
+    return () => {
+      globalThis.removeEventListener("message", handleMessage);
+      resetPreviewState();
+    };
+  }, [
+    addProfilerEvent,
+    resetPreviewState,
+    sendCommand,
+    setConnected,
+    setProfilerEvents,
+    setRuntimeState,
+    setStorageState,
+  ]);
+
+  const previewReady = preparedProject === projectId;
+
+  useEffect(() => {
+    if (!previewReady) {
+      setStageSize({ width: 0, height: 0 });
+      return;
+    }
+    const stage = stageRef.current;
+    if (!stage) return;
+    const observer = new ResizeObserver(([entry]) => {
+      if (!entry) return;
+      setStageSize({
+        width: entry.contentRect.width,
+        height: entry.contentRect.height,
+      });
+    });
+    observer.observe(stage);
+    return () => observer.disconnect();
+  }, [previewReady, device]);
+
+  if (!projectId) {
+    return (
+      <div className="preview-screen flex h-full items-center justify-center">
+        <EmptyState>{t("preview.noProject")}</EmptyState>
+      </div>
+    );
+  }
+
+  if (preparedProject !== projectId) {
+    return (
+      <div className="preview-screen flex h-full items-center justify-center">
+        <EmptyState>{t("preview.preparing")}</EmptyState>
+      </div>
+    );
+  }
+
+  const src = `/preview?project=${encodeURIComponent(projectId)}&api=/api/v1`;
+  const preset = DEVICE_PRESETS.find((candidate) => candidate.id === device)!;
+  const scale =
+    preset.width && preset.height && stageSize.width > 0 && stageSize.height > 0
+      ? Math.min((stageSize.width - 32) / preset.width, (stageSize.height - 32) / preset.height, 1)
+      : 1;
+
+  return (
+    <div className="preview-screen flex h-full flex-col">
+      <div className="preview-toolbar flex items-center justify-between gap-3 border-b border-[var(--editor-border)] px-3 py-2">
+        <div className="preview-toolbar-title">
+          <div className="text-sm font-medium">{t("preview.title")}</div>
+          <span className={connected ? "preview-live preview-live--connected" : "preview-live"}>
+            {connected ? t("preview.live") : t("preview.connecting")}
+          </span>
+        </div>
+        <div className="preview-toolbar-actions">
+          <div className="preview-control-group" role="group" aria-label={t("preview.devices")}>
+            {DEVICE_PRESETS.map((candidate) => {
+              const selected = candidate.id === device;
+              return (
+                <button
+                  key={candidate.id}
+                  type="button"
+                  className={selected ? "preview-control is-active" : "preview-control"}
+                  aria-pressed={selected}
+                  title={t(candidate.labelKey)}
+                  onClick={() => setDevice(candidate.id)}
+                >
+                  <Icon icon={candidate.icon} size={14} />
+                  <span>{t(candidate.labelKey)}</span>
+                </button>
+              );
+            })}
+          </div>
+          <button
+            type="button"
+            className="preview-control"
+            disabled={!connected}
+            onClick={() => sendCommand({ type: "toggle-console" })}
+          >
+            <Icon icon={Terminal} size={14} />
+            <span>{t("preview.openConsole")}</span>
+          </button>
+          <button
+            type="button"
+            className="preview-control"
+            disabled={!connected}
+            onClick={() => sendCommand({ type: "clear-saves" })}
+          >
+            <Icon icon={Trash2} size={14} />
+            <span>{t("preview.clearSaves")}</span>
+          </button>
+          <button
+            type="button"
+            className="preview-control preview-control--danger"
+            disabled={!connected}
+            onClick={() => sendCommand({ type: "clear-all" })}
+          >
+            <Icon icon={Database} size={14} />
+            <span>{t("preview.clearAll")}</span>
+          </button>
+          <button
+            type="button"
+            className="preview-control"
+            onClick={() => setReloadKey((key) => key + 1)}
+          >
+            <Icon icon={RotateCw} size={14} />
+            <span>{t("preview.reload")}</span>
+          </button>
+          {!window.electronAPI && (
+            <button
+              type="button"
+              className="preview-control"
+              onClick={() => window.open(src, "_blank", "noopener")}
+            >
+              <Icon icon={ExternalLink} size={14} />
+              <span>{t("preview.openExternal")}</span>
+            </button>
+          )}
+        </div>
+      </div>
+      <div className="preview-workspace">
+        <div ref={stageRef} className={`preview-stage preview-stage--${device}`}>
+          <div
+            className="preview-device-viewport"
+            style={
+              preset.width && preset.height
+                ? {
+                    width: preset.width * scale,
+                    height: preset.height * scale,
+                  }
+                : undefined
+            }
+          >
+            <iframe
+              ref={iframeRef}
+              key={reloadKey}
+              className="preview-frame"
+              style={
+                preset.width && preset.height
+                  ? {
+                      width: preset.width,
+                      height: preset.height,
+                      transform: `scale(${scale})`,
+                    }
+                  : undefined
+              }
+              src={src}
+              title={t("preview.title")}
+              allow="autoplay"
+              onLoad={() => {
+                setConnected(false);
+                setRuntimeState({ phase: "loading" });
+              }}
+            />
+          </div>
+          {preset.width && preset.height ? (
+            <div className="preview-device-dimensions">
+              {preset.width} × {preset.height}
+              {scale < 1 ? ` · ${Math.round(scale * 100)}%` : ""}
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -13,13 +13,18 @@
     "noUncheckedIndexedAccess": true,
     "resolveJsonModule": true,
     "paths": {
-      "@game/*": ["./src/games/silent-archive/*"]
+      "@game/*": ["./src/games/silent-archive/*"],
+      "@content-source": ["./src/engine/lib/bundleSource.ts"],
+      "@preview-mode": ["./src/engine/lib/previewMode.stub.ts"],
+      "@preview-reporter": ["./src/preview/PreviewReporter.stub.tsx"],
+      "@preview-protocol": ["../editor/shared/previewProtocol.ts"]
     }
   },
   "include": [
     "src/**/*.ts",
     "src/**/*.tsx",
     "../../.cache/wasm/clients-web/**/*.d.ts",
+    "../editor/shared/**/*.ts",
     "rolldown.config.ts"
   ]
 }

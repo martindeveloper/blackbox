@@ -6,10 +6,12 @@ import {
   type SessionPhase,
   type SessionPresentationAdapter,
 } from "../../hooks/useBlackboxSession.js";
-import { bundleStore } from "../../lib/bundleStore.js";
+import { projectInfo } from "@content-source";
 import { musicAssetLabel, serializeEngineState } from "../../lib/engine.js";
 import { isEditableTarget, matchesShortcut } from "../../lib/keyboard.js";
 import { formatPageTitle, pageTitleContextFromSession } from "../../lib/pageTitle.js";
+import { PREVIEW_ENABLED } from "@preview-mode";
+import { PreviewReporter } from "@preview-reporter";
 import { downloadSupportBundle } from "../../lib/supportBundle.js";
 import type { AudioPlaybackConfig } from "../../hooks/useAudio.js";
 import type { MusicCue, SfxCue } from "../../types/game.js";
@@ -180,16 +182,16 @@ export function TextGamePlayerApp<FadeKind extends string>({
   });
   playSfxRef.current = playSfx;
 
-  const scenarioTitle =
-    view?.scenario_title?.trim() || bundleStore.projectInfo?.title?.trim() || t("header.brand");
+  const projectTitle = projectInfo()?.title;
+  const scenarioTitle = view?.scenario_title?.trim() || projectTitle?.trim() || t("header.brand");
   const musicLabel = activeMusic ? musicAssetLabel(activeMusic.src) : "";
 
   useEffect(() => {
     document.title = formatPageTitle(
-      pageTitleContextFromSession(session, bundleStore.projectInfo?.title),
+      pageTitleContextFromSession(session, projectTitle),
       t("header.brand"),
     );
-  }, [session, t]);
+  }, [session, projectTitle, t]);
 
   useEffect(() => {
     if (!config.muteShortcut) return;
@@ -350,10 +352,19 @@ export function TextGamePlayerApp<FadeKind extends string>({
         )}
       </main>
 
+      <PreviewReporter
+        session={session}
+        lastRolls={lastRolls}
+        presentationBaselineStats={presentationBaselineStats}
+        presentationLocation={presentationLocation}
+      />
       <DevConsole
-        enabled={Boolean(
-          (globalThis as typeof globalThis & { __BLACKBOX_DEV__?: boolean }).__BLACKBOX_DEV__,
-        )}
+        enabled={
+          PREVIEW_ENABLED ||
+          Boolean(
+            (globalThis as typeof globalThis & { __BLACKBOX_DEV__?: boolean }).__BLACKBOX_DEV__,
+          )
+        }
         onExecute={executeDevCommand}
       />
     </div>

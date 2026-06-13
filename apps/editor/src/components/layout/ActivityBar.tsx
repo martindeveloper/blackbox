@@ -7,6 +7,7 @@ import {
   Info,
   Layers,
   Package,
+  Play,
   Users,
   Wrench,
   Workflow,
@@ -30,6 +31,7 @@ const MAIN_ITEMS: { id: ActivityView; labelKey: string; icon: LucideIcon }[] = [
   { id: "meta", labelKey: "activity.meta", icon: BookMarked },
   { id: "library", labelKey: "activity.library", icon: BookCopy },
   { id: "tools", labelKey: "activity.tools", icon: Wrench },
+  { id: "preview", labelKey: "activity.preview", icon: Play },
 ];
 
 const ABOUT_ITEM = { id: "about" as const, labelKey: "activity.about", icon: Info };

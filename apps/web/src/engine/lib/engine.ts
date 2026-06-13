@@ -5,10 +5,23 @@ import type {
   ScenarioBundle,
   SfxCue,
 } from "../types/game.js";
-import { bundleStore } from "./bundleStore.js";
+import {
+  assetUrl,
+  createSourceEngine,
+  ensureSourceChapter,
+  loadSourceBundle,
+  loadSourceChapter,
+  logSourceDiagnostics,
+  projectInfo,
+  sourceLoadedChapters,
+  sourceScenarioLabel,
+  submitAfterLoadingAllChapters,
+  unloadSourceChapter,
+} from "@content-source";
+import type { PreviewEngineSnapshot } from "@preview-protocol";
 import { engineText } from "./localization.js";
 import { logger, markWasmLoggingReady } from "./logger.js";
-import { type BlackboxEngine, initWasm, requireWasmPkg } from "./wasmHost.js";
+import { type BlackboxEngine, initWasm } from "./wasmHost.js";
 
 export type { BlackboxEngine };
 
@@ -22,7 +35,6 @@ export class EngineBusyError extends Error {
 }
 
 const engineBusy = new WeakMap<BlackboxEngine, boolean>();
-const engineLoadedChapters = new WeakMap<BlackboxEngine, Set<string>>();
 const engineViews = new WeakMap<BlackboxEngine, ViewSnapshot>();
 const VIEW_PROTOCOL_VERSION = 1;
 
@@ -81,18 +93,12 @@ function withEngine<T>(engine: BlackboxEngine, operation: string, fn: () => T): 
   }
 }
 
-const CONTENT_SCENARIO = "content/scenario";
-const CONTENT_ITEMS = "content/items";
-const CONTENT_CHARACTERS = "content/characters";
-const CONTENT_ASSETS = "content/assets";
-const CONTENT_CHAPTERS_PREFIX = "content/chapters/";
-
 export function musicAssetLabel(src: string): string {
   return (src.split("/").pop() ?? src).replace(/\.[^/.]+$/, "").toUpperCase();
 }
 
 export function tryAssetUrl(src: string): string | null {
-  return bundleStore.getBlobUrl(src);
+  return assetUrl(src);
 }
 
 export type StatusKind = "info" | "ready" | "error";
@@ -103,71 +109,15 @@ export interface BootResult {
   view: GameView;
 }
 
-function chapterPath(chapterId: string): string {
-  return `${CONTENT_CHAPTERS_PREFIX}${chapterId}`;
-}
-
-function loadedChapterIds(engine: BlackboxEngine): Set<string> {
-  let ids = engineLoadedChapters.get(engine);
-  if (!ids) {
-    ids = new Set(bundleStore.chapterPartIds());
-    engineLoadedChapters.set(engine, ids);
-  }
-  return ids;
-}
-
-function chapterBytesForEngine(): Uint8Array[] {
-  return bundleStore.listPaths(CONTENT_CHAPTERS_PREFIX).map((path) => requireBytes(path));
-}
-
-async function loadChapterIntoEngine(engine: BlackboxEngine, chapterId: string): Promise<void> {
-  if (loadedChapterIds(engine).has(chapterId)) return;
-
-  await bundleStore.ensureChapter(chapterId);
-  try {
-    engine.loadChapter(requireBytes(chapterPath(chapterId)));
-  } catch (error) {
-    try {
-      engine.unloadChapter(chapterId);
-    } catch (unloadError) {
-      logger.debug("engine", "Failed to roll back partial chapter load", {
-        chapterId,
-        error: toErrorMessage(unloadError),
-      });
-    }
-    throw error;
-  }
-  loadedChapterIds(engine).add(chapterId);
-}
-
-function requireBytes(path: string): Uint8Array {
-  const bytes = bundleStore.read(path);
-  if (!bytes) {
-    throw new Error(engineText("errors.bundleContentMissing", { path }));
-  }
-  return bytes;
-}
-
-function loadScenarioBundle(): ScenarioBundle {
-  if (!bundleStore.loaded) {
-    throw new Error(engineText("errors.bundleNotLoaded"));
-  }
-
-  return {
-    scenario: requireBytes(CONTENT_SCENARIO),
-    items: requireBytes(CONTENT_ITEMS),
-    characters: requireBytes(CONTENT_CHARACTERS),
-    assets: requireBytes(CONTENT_ASSETS),
-    project: bundleStore.projectInfo ?? undefined,
-  };
-}
-
 export async function ensureChapterLoaded(
   engine: BlackboxEngine,
   chapterId: string,
 ): Promise<void> {
-  if (!bundleStore.projectInfo) return;
-  await loadChapterIntoEngine(engine, chapterId);
+  await loadSourceChapter(engine, chapterId);
+}
+
+export async function ensureChapterResident(chapterId: string): Promise<void> {
+  await ensureSourceChapter(chapterId);
 }
 
 type PlayerCommand =
@@ -191,8 +141,6 @@ export async function ensureChaptersForCommand(
   command: PlayerCommand,
   view: GameView,
 ): Promise<void> {
-  if (!bundleStore.projectInfo) return;
-
   for (const chapterId of chapterIdsForCommand(command, view)) {
     await ensureChapterLoaded(engine, chapterId);
   }
@@ -205,24 +153,7 @@ export async function retryUnknownNodeCommand(
   submit: () => CommandResult,
 ): Promise<CommandResult> {
   await ensureChaptersForCommand(engine, command, view);
-  let result = submit();
-  if (result.ok || result.error?.type !== "unknownNode") {
-    return result;
-  }
-
-  const project = bundleStore.projectInfo;
-  if (!project) return result;
-
-  for (const chapter of project.chapters) {
-    if (loadedChapterIds(engine).has(chapter.id)) continue;
-    await ensureChapterLoaded(engine, chapter.id);
-    result = submit();
-    if (result.ok || result.error?.type !== "unknownNode") {
-      return result;
-    }
-  }
-
-  return result;
+  return submitAfterLoadingAllChapters(engine, submit);
 }
 
 export async function handleChapterTransition(
@@ -230,18 +161,17 @@ export async function handleChapterTransition(
   previousChapterId: string | undefined,
   nextChapterId: string | undefined,
 ): Promise<void> {
-  if (!bundleStore.projectInfo || !nextChapterId) return;
+  if (!nextChapterId) return;
 
   await ensureChapterLoaded(engine, nextChapterId);
 
   if (previousChapterId && previousChapterId !== nextChapterId) {
     try {
-      engine.unloadChapter(previousChapterId);
-      loadedChapterIds(engine).delete(previousChapterId);
+      unloadSourceChapter(engine, previousChapterId);
       logger.debug("engine", "Chapter transition unloaded engine chapter", {
         from: previousChapterId,
         to: nextChapterId,
-        loadedChapters: bundleStore.chapterPartIds(),
+        loadedChapters: [...sourceLoadedChapters(engine)],
       });
     } catch (error: unknown) {
       logger.debug("engine", "Skipped chapter unload", {
@@ -269,10 +199,10 @@ export async function bootEngine(): Promise<{ bundle: ScenarioBundle }> {
 
     markWasmLoggingReady();
 
-    const bundle = loadScenarioBundle();
-    logBundleDiagnostics(bundle);
+    const bundle = loadSourceBundle();
+    logSourceDiagnostics(bundle);
     logger.info("engine", "Bundle ready — awaiting slot selection", {
-      scenario: bundleStore.meta?.scenario,
+      scenario: sourceScenarioLabel(),
     });
     return { bundle };
   })();
@@ -293,7 +223,6 @@ export function randomGameSeed(): bigint {
 }
 
 export interface CreateEngineOptions {
-  /** Web player: roll a new RNG seed instead of using the bundled scenario seed. */
   freshStart?: boolean;
 }
 
@@ -308,42 +237,10 @@ export function createEngine(
   options: CreateEngineOptions = {},
 ): BlackboxEngine {
   try {
-    const { BlackboxEngine: EngineCtor } = requireWasmPkg();
-    const engine = new EngineCtor(
-      bundle.scenario,
-      bundle.items,
-      bundle.characters,
-      bundle.assets,
-      chapterBytesForEngine(),
-      bundleStore.libraryBytes ?? undefined,
-      options.freshStart ? freshGameSeedOverride() : undefined,
-    );
-    engineLoadedChapters.set(engine, new Set(bundleStore.chapterPartIds()));
-    const catalogBytes = bundleStore.catalogBytes;
-    if (catalogBytes) {
-      engine.loadCatalog(catalogBytes);
-    }
-    return engine;
+    return createSourceEngine(bundle, options.freshStart ? freshGameSeedOverride() : undefined);
   } catch (error: unknown) {
     throw makeBootError(engineText("errors.engineConstructorFailed"), error);
   }
-}
-
-function logBundleDiagnostics(bundle: ScenarioBundle): void {
-  const meta = bundleStore.meta;
-  logger.debug("engine", "Scenario bundle ready for WASM msgpack decode", {
-    platform: meta?.platform,
-    scenario: meta?.scenario,
-    bytes: {
-      scenario: bundle.scenario.byteLength,
-      items: bundle.items.byteLength,
-      characters: bundle.characters.byteLength,
-      assets: bundle.assets.byteLength,
-      chapters: bundleStore
-        .listPaths(CONTENT_CHAPTERS_PREFIX)
-        .map((path) => requireBytes(path).byteLength),
-    },
-  });
 }
 
 export function makeBootError(stage: string, error: unknown): Error {
@@ -589,7 +486,7 @@ function runDebugViewCommand(
 }
 
 export async function debugGotoNode(engine: BlackboxEngine, nodeId: string): Promise<GameView> {
-  const project = bundleStore.projectInfo;
+  const project = projectInfo();
   if (project) {
     for (const chapter of project.chapters) {
       await ensureChapterLoaded(engine, chapter.id);
@@ -672,6 +569,11 @@ export function serializeEngineState(engine: BlackboxEngine): string {
   return withEngine(engine, "serializeState", () => engine.serialize_state());
 }
 
+/** Parsed engine save snapshot for inspection (not for restore). */
+export function snapshotEngineState(engine: BlackboxEngine): PreviewEngineSnapshot {
+  return JSON.parse(serializeEngineState(engine)) as PreviewEngineSnapshot;
+}
+
 export function restoreEngineState(engine: BlackboxEngine, stateJson: string): GameView {
   return withEngine(engine, "restoreState", () => {
     return cacheViewSnapshot(engine, engine.restore_state(stateJson));
@@ -694,7 +596,7 @@ export async function rebuildEngineFromAutosave(
   chapterId?: string | null,
 ): Promise<BootResult> {
   if (bundle.project) {
-    await bundleStore.ensureChapter(chapterId ?? bundle.project.startChapterId);
+    await ensureChapterResident(chapterId ?? bundle.project.startChapterId);
   }
   const engine = createEngine(bundle);
   const view = restoreEngineState(engine, autosaveJson.trim());

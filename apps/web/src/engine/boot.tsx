@@ -6,7 +6,8 @@ import { ModalProvider } from "./ui/ModalContext.js";
 import { MobileLandscapeNotice } from "./ui/MobileLandscapeNotice.js";
 import { TextGamePresentationProvider } from "./ui/textGame/TextGamePresentation.js";
 import i18n, { initI18n, type I18nResources } from "./i18n/index.js";
-import { bundleStore, type BundleLoadProgress } from "./lib/bundleStore.js";
+import { loadContent } from "@content-source";
+import type { BundleLoadProgress } from "./lib/bundleStore.js";
 import { setEngineTranslator } from "./lib/localization.js";
 import {
   configureWebPlayer,
@@ -102,8 +103,7 @@ export function bootGame(game: GameDefinition): void {
     appRoot.textContent = i18n.t("errors.bundleLoadFailedDetail", { detail });
   }
 
-  bundleStore
-    .load(game.bundlePath ?? "/bundle/", onBundleProgress)
+  loadContent(game.bundlePath ?? "/bundle/", onBundleProgress)
     .then(renderApp)
     .catch(renderBootError);
 }

@@ -210,29 +210,45 @@
   color: var(--editor-primary);
 }
 
-.editor-play-btn--play {
-  padding: 0 12px 0 10px;
+.editor-play-btn--simulator:not(:disabled):hover {
+  background: color-mix(in srgb, var(--editor-secondary) 10%, var(--editor-surface));
   color: var(--editor-text);
-  background: color-mix(in srgb, var(--editor-primary) 16%, var(--editor-surface));
-  border-left: 1px solid color-mix(in srgb, var(--editor-primary) 30%, var(--editor-border-2));
-  margin-left: 3px;
 }
 
-.editor-play-btn--play::before {
+.editor-play-btn--simulator:not(:disabled):hover .editor-play-btn-icon,
+.editor-play-btn--simulator.editor-play-btn--running .editor-play-btn-icon {
+  color: var(--editor-secondary);
+}
+
+.editor-play-btn--preview {
+  min-width: 92px;
+  margin-left: 4px;
+  padding: 0 13px 0 11px;
+  border-left: 1px solid color-mix(in srgb, var(--editor-primary) 45%, var(--editor-border-2));
+  background: color-mix(in srgb, var(--editor-primary) 18%, var(--editor-surface));
+  color: var(--editor-text);
+}
+
+.editor-play-btn--preview::before {
   display: none;
 }
 
-.editor-play-btn--play .editor-play-btn-icon {
+.editor-play-btn--preview .editor-play-btn-icon {
   color: var(--editor-primary);
 }
 
-.editor-play-btn--play:not(:disabled):hover {
-  background: color-mix(in srgb, var(--editor-primary) 24%, var(--editor-surface));
-  color: var(--editor-text);
+.editor-play-btn--preview:not(:disabled):hover {
+  background: color-mix(in srgb, var(--editor-primary) 27%, var(--editor-surface));
 }
 
-.editor-play-btn--play:not(:disabled):active {
-  background: color-mix(in srgb, var(--editor-primary) 30%, var(--editor-surface));
+.editor-play-btn--preview:not(:disabled):active,
+.editor-play-btn--preview.editor-play-btn--active {
+  background: var(--editor-primary);
+  color: var(--editor-btn-primary-text);
+}
+
+.editor-play-btn--preview.editor-play-btn--active .editor-play-btn-icon {
+  color: currentColor;
 }
 
 .editor-play-btn--running {
@@ -245,10 +261,6 @@
 
 .editor-play-btn--bundle.editor-play-btn--running .editor-play-btn-icon {
   color: var(--editor-primary);
-}
-
-.editor-play-btn--play.editor-play-btn--running {
-  background: color-mix(in srgb, var(--editor-primary) 20%, var(--editor-surface));
 }
 
 .editor-play-btn-spin {

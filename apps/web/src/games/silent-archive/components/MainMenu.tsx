@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { projectInfo } from "@content-source";
 import { useManagedTexture } from "../../../engine/hooks/useAssetScope.js";
 import { useNumberKeySelect } from "../../../engine/hooks/useNumberKeySelect.js";
-import { bundleStore } from "../../../engine/lib/bundleStore.js";
 import { formatPlaytime, relativeTime } from "../../../engine/lib/format.js";
 import { isEditableTarget } from "../../../engine/lib/keyboard.js";
 import {
@@ -51,6 +51,7 @@ export function MainMenu({
   const { hasOpenModals } = useModal();
   const { url: bgUrl } = useManagedTexture("main_menu:bg", "textures/backgrounds/mainmenu.png");
   const slotCount = getSlotCount();
+  const projectRevision = projectInfo()?.revision;
 
   const selectedSlotData = selectedSlot !== null ? (slots[selectedSlot] ?? null) : null;
 
@@ -199,9 +200,7 @@ export function MainMenu({
         >
           <BugIcon size={11} />
         </button>
-        {bundleStore.projectInfo?.revision ? (
-          <span className="mm-footer-version">v{bundleStore.projectInfo.revision}</span>
-        ) : null}
+        {projectRevision ? <span className="mm-footer-version">v{projectRevision}</span> : null}
       </footer>
     </div>
   );

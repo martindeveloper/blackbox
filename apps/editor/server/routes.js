@@ -216,6 +216,11 @@ export async function registerRoutes(app, service) {
     }),
   );
 
+  app.get(
+    "/projects/:id/preview-docs",
+    projectRequest(service, (project) => service.readPreviewDocs(project.id)),
+  );
+
   app.post(
     "/projects/:id/media",
     projectRequest(service, async (project, request, reply) => {

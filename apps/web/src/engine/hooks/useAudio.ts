@@ -3,6 +3,7 @@ import { useAppSettings } from "../context/AppSettings.js";
 import { assetManager } from "../lib/assetManager.js";
 import { AudioEngine, IOS_AUDIO_QUIRKS } from "../lib/audioEngine.js";
 import { logger } from "../lib/logger.js";
+import { Profiler } from "../lib/profiler.js";
 import type { MusicCue, SfxCue } from "../types/game.js";
 
 const MUSIC_CHANNEL = "music";
@@ -110,7 +111,7 @@ export function useAudio<FadeKind extends string>(
           if (running) {
             replayMusicIfStopped();
           } else {
-            arm(); // retry on the next gesture
+            arm();
           }
         })
         .catch((error: unknown) => {
@@ -230,6 +231,10 @@ export function useAudio<FadeKind extends string>(
         fadeIn,
         fadeOut,
       });
+      Profiler.event("audio.track_changed", music.src, {
+        refId: music.ref_id,
+        loop: music.loop,
+      });
       engine.play(MUSIC_CHANNEL, music.src, {
         loop: music.loop,
         loopDelayMs,
@@ -242,6 +247,7 @@ export function useAudio<FadeKind extends string>(
         fadeKind: fadeKind ?? "default",
         fadeOut,
       });
+      Profiler.event("audio.track_stopped", "music");
       engine.stop(MUSIC_CHANNEL, { fadeOut });
     }
   }, [config, music, fadeKind]);
@@ -269,6 +275,7 @@ export function useAudio<FadeKind extends string>(
   const playSfx = useCallback(
     (sfx: SfxCue) => {
       logger.debug("audio", `SFX → ${sfx.src}`, { ref_id: sfx.ref_id });
+      Profiler.event("audio.sfx_played", sfx.src, { refId: sfx.ref_id });
       assetManager.touchEphemeral(`audio:sfx:${sfx.src}`, "sfx", sfx.src, SFX_CACHE_TTL_MS);
       getSharedEngine(config.defaultSfx).playSfx(sfx.src);
     },

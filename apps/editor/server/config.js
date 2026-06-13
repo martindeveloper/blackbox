@@ -46,6 +46,15 @@ export const MIME = {
   ".svg": "image/svg+xml",
   ".ico": "image/x-icon",
   ".png": "image/png",
+  // Preview player assets (WASM engine + raw media streamed from disk).
+  ".wasm": "application/wasm",
+  ".mp3": "audio/mpeg",
+  ".wav": "audio/wav",
+  ".ogg": "audio/ogg",
+  ".m4a": "audio/mp4",
+  ".webp": "image/webp",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
 };
 
 export function toolBinName(name) {

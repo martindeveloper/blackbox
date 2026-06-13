@@ -47,6 +47,10 @@ export async function staticFileHandler(request, reply) {
     const ext = path.extname(filePath).toLowerCase();
     const type = MIME[ext] ?? "application/octet-stream";
 
+    if (urlPath.startsWith("/preview/")) {
+      reply.header("Cache-Control", "no-store");
+    }
+
     if (DEV_MODE && ext === ".html") {
       return reply.type(type).send(maybeInjectLiveReload(data.toString()));
     }

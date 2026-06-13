@@ -2,21 +2,23 @@ import {
   AlertCircle,
   AlertTriangle,
   Circle,
+  FlaskConical,
   FolderOpen,
   Loader2,
+  MonitorPlay,
   Package,
-  Play,
   Save,
   ShieldCheck,
   X,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { Icon } from "../icons/Icon.js";
 import { ThemeSelector } from "./ThemeSelector.js";
 import { useScenarioStore } from "../../store/useScenarioStore.js";
 import { transitionToHome } from "../../lib/projectTransition.js";
-import { navigateToTool } from "../../lib/routeHelpers.js";
+import { editorNavigate, navigateToTool } from "../../lib/routeHelpers.js";
+import { isActiveEditorPage, Page } from "../../lib/pages.js";
 import { useToolRunnerStore } from "../../store/useToolRunnerStore.js";
 import { Button } from "../ui/Button.js";
 import { IconButton } from "../ui/IconButton.js";
@@ -25,6 +27,7 @@ import { StatusPill } from "../ui/StatusPill.js";
 export function TopBar() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
 
   const bundle = useScenarioStore((s) => s.bundle);
   const projectName = useScenarioStore((s) => s.projectName);
@@ -36,6 +39,7 @@ export function TopBar() {
   const activeTool = useToolRunnerStore((s) => s.activeTool);
   const toolRunState = useToolRunnerStore((s) => s.runState);
   const toolsBusy = toolRunState === "running";
+  const previewActive = isActiveEditorPage(pathname, Page.EditorPreview);
 
   const errorCount = validationIssues.filter((i) => i.severity === "error").length;
   const warnCount = validationIssues.filter((i) => i.severity === "warning").length;
@@ -53,6 +57,11 @@ export function TopBar() {
   const handleRunTool = (tool: "linter" | "bundle" | "simulator") => {
     if (!projectName || toolsBusy) return;
     void navigateToTool(navigate, tool, { run: true });
+  };
+
+  const handleOpenPreview = () => {
+    if (!projectName) return;
+    void editorNavigate(navigate, { to: Page.EditorPreview });
   };
 
   return (
@@ -126,7 +135,7 @@ export function TopBar() {
 
             <button
               type="button"
-              className={`editor-play-btn editor-play-btn--play${activeTool === "simulator" && toolsBusy ? " editor-play-btn--running" : ""}`}
+              className={`editor-play-btn editor-play-btn--simulator${activeTool === "simulator" && toolsBusy ? " editor-play-btn--running" : ""}`}
               disabled={!projectName || toolsBusy}
               title={t("tools.simulator.description")}
               onClick={() => handleRunTool("simulator")}
@@ -135,10 +144,24 @@ export function TopBar() {
                 {activeTool === "simulator" && toolsBusy ? (
                   <Icon icon={Loader2} size={12} className="editor-play-btn-spin" />
                 ) : (
-                  <Icon icon={Play} size={12} strokeWidth={2.5} className="fill-current" />
+                  <Icon icon={FlaskConical} size={12} strokeWidth={2.2} />
                 )}
               </span>
               <span className="editor-play-btn-label">{t("topBar.simulate")}</span>
+            </button>
+
+            <button
+              type="button"
+              className={`editor-play-btn editor-play-btn--preview${previewActive ? " editor-play-btn--active" : ""}`}
+              disabled={!projectName}
+              title={t("preview.title")}
+              aria-current={previewActive ? "page" : undefined}
+              onClick={handleOpenPreview}
+            >
+              <span className="editor-play-btn-icon" aria-hidden>
+                <Icon icon={MonitorPlay} size={13} strokeWidth={2.3} />
+              </span>
+              <span className="editor-play-btn-label">{t("topBar.preview")}</span>
             </button>
           </div>
         ) : null}

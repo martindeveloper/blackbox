@@ -72,14 +72,29 @@ export async function createEditorServer(options = {}) {
     return reply.code(404).type("text/plain; charset=utf-8").send("Not found");
   });
 
+  fastify.get("/preview", async (request, reply) => {
+    try {
+      const html = await fs.readFile(path.join(DIST, "preview", "preview.html"));
+      return reply.header("Cache-Control", "no-store").type("text/html; charset=utf-8").send(html);
+    } catch {
+      return reply
+        .code(404)
+        .type("text/plain; charset=utf-8")
+        .send("Preview not built; run the editor build to generate dist/preview.");
+    }
+  });
+
   fastify.get("/*", staticFileHandler);
 
   return { fastify, projectService };
 }
 
 export async function startEditorServer(options = {}) {
-  const port = options.port ?? (await reservePort(options.preferredPort ?? PORT));
-  const host = options.host ?? process.env.HOST ?? "127.0.0.1";
+  const socketPath = options.socketPath ?? null;
+  const port = socketPath
+    ? null
+    : (options.port ?? (await reservePort(options.preferredPort ?? PORT)));
+  const host = socketPath ? null : (options.host ?? process.env.HOST ?? "127.0.0.1");
   const { fastify, projectService } = await createEditorServer(options);
 
   await fastify.ready();
@@ -97,13 +112,19 @@ export async function startEditorServer(options = {}) {
     console.warn("dist/ is missing; run: npm run build or npm run dev");
   }
 
-  await fastify.listen({ port, host });
+  if (socketPath) {
+    await fastify.listen({ path: socketPath });
+  } else {
+    await fastify.listen({ port, host });
+  }
 
   if (DEV_MODE) {
     console.log(`Live reload enabled on port ${LIVERELOAD_PORT}`);
   }
   if (!options.quiet) {
-    console.log(`Blackbox editor: http://${host}:${port}`);
+    console.log(
+      socketPath ? `Blackbox editor IPC: ${socketPath}` : `Blackbox editor: http://${host}:${port}`,
+    );
   }
 
   return {
@@ -111,7 +132,8 @@ export async function startEditorServer(options = {}) {
     projectService,
     port,
     host,
-    url: `http://${host}:${port}`,
+    socketPath,
+    url: socketPath ? null : `http://${host}:${port}`,
     async close() {
       await projectService.close();
       await fastify.close();

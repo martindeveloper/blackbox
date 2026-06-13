@@ -6,8 +6,12 @@ use blackbox_engine::{
     Engine, GameView, encode_command_delta_json, encode_view_revision_mismatch_json,
     encode_view_snapshot_json,
 };
+#[cfg(feature = "preview-json")]
+use blackbox_format::decode_scenario_bundle_json;
 use blackbox_format::{JsonFormat, decode_catalog_document, decode_msgpack_bundle_bytes};
 use js_sys::{Array, Uint8Array};
+#[cfg(feature = "preview-json")]
+use serde::Deserialize;
 use wasm_bindgen::prelude::*;
 
 fn chapters_from_array(chapters: &Array) -> Result<Vec<Vec<u8>>, JsValue> {
@@ -22,6 +26,24 @@ fn chapters_from_array(chapters: &Array) -> Result<Vec<Vec<u8>>, JsValue> {
         buffers.push(Uint8Array::from(value).to_vec());
     }
     Ok(buffers)
+}
+
+#[cfg(feature = "preview-json")]
+#[derive(Deserialize)]
+struct PreviewBundle {
+    scenario: String,
+    items: String,
+    characters: String,
+    assets: String,
+    catalog: Option<String>,
+    library: Option<String>,
+    chapters: Vec<PreviewChapter>,
+}
+
+#[cfg(feature = "preview-json")]
+#[derive(Deserialize)]
+struct PreviewChapter {
+    json: String,
 }
 
 #[wasm_bindgen]
@@ -61,6 +83,42 @@ impl BlackboxEngine {
             assets,
             chapter_refs,
             library.as_deref(),
+        )
+        .map_err(|error| JsValue::from_str(&error.to_string()))?;
+        if let Some(seed) = random_seed_override {
+            content.random_seed = Some(seed);
+        }
+        let engine =
+            Engine::new_game(content).map_err(|error| JsValue::from_str(&error.to_string()))?;
+
+        Ok(Self {
+            engine,
+            format: JsonFormat,
+            view_revision: 0,
+            last_view: None,
+        })
+    }
+
+    #[cfg(feature = "preview-json")]
+    #[wasm_bindgen(js_name = fromJsonBundle)]
+    pub fn from_json_bundle(
+        bundle_json: &str,
+        random_seed_override: Option<u64>,
+    ) -> Result<BlackboxEngine, JsValue> {
+        let bundle: PreviewBundle = serde_json::from_str(bundle_json)
+            .map_err(|error| JsValue::from_str(&error.to_string()))?;
+        let mut content = decode_scenario_bundle_json(
+            bundle.scenario.as_bytes(),
+            bundle.items.as_bytes(),
+            bundle.characters.as_bytes(),
+            bundle.assets.as_bytes(),
+            bundle.catalog.as_deref().map(str::as_bytes),
+            bundle.library.as_deref().map(str::as_bytes),
+            bundle
+                .chapters
+                .into_iter()
+                .map(|chapter| chapter.json)
+                .collect(),
         )
         .map_err(|error| JsValue::from_str(&error.to_string()))?;
         if let Some(seed) = random_seed_override {

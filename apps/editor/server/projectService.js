@@ -651,6 +651,40 @@ export class ProjectService {
     return { data: await fs.readFile(target.absolute), mimeType: mimeFromName(target.relative) };
   }
 
+  /**
+   * Raw authored JSON documents for the in-editor preview. Returns the on-disk
+   * text verbatim (envelopes intact) so the engine can decode it directly with
+   * no bundler. Media is fetched separately from `readMedia`.
+   */
+  async readPreviewDocs(id) {
+    const project = this.requireProject(id);
+    const readText = (relativePath) =>
+      fs.readFile(this.resolvePath(project, relativePath).absolute, "utf8");
+
+    const scenario = await readText("scenario.json");
+    const parsed = JSON.parse(scenario);
+    const chapterRefs = parsed.chapters ?? [];
+    const [items, characters, assets, catalog, library, ...chapterTexts] = await Promise.all([
+      readText(parsed.itemsRef ?? "items.json"),
+      readText(parsed.charactersRef ?? "characters.json"),
+      readText(parsed.assetsRef ?? "assets.json"),
+      parsed.catalogRef ? readText(parsed.catalogRef) : undefined,
+      parsed.libraryRef ? readText(parsed.libraryRef) : undefined,
+      ...chapterRefs.map((chapterRef) => readText(chapterRef.ref)),
+    ]);
+    const chapters = chapterRefs.map((chapterRef, index) => ({
+      id: chapterRef.id,
+      title: chapterRef.title ?? chapterRef.id,
+      json: chapterTexts[index],
+    }));
+
+    return {
+      projectId: project.id,
+      revision: project.revision,
+      docs: { scenario, items, characters, assets, catalog, library, chapters },
+    };
+  }
+
   async moveMediaToTrash(id, { baseRevision, relativePath, clientId = null }) {
     const project = this.requireProject(id);
     return this.exclusive(id, async () => {

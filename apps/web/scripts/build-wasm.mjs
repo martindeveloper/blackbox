@@ -7,7 +7,6 @@ import { commandExists, runSync } from "../../../scripts/lib/spawn.mjs";
 
 const clientRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.resolve(clientRoot, "../..");
-const pkgDir = path.join(repoRoot, ".cache/wasm/clients-web");
 const crate = path.join(repoRoot, "engine/wasm");
 
 function parseProfile(argv) {
@@ -18,19 +17,27 @@ function parseProfile(argv) {
   return process.env.PROFILE ?? "release";
 }
 
-const profile = parseProfile(process.argv.slice(2));
+const argv = process.argv.slice(2);
+const profile = parseProfile(argv);
+const preview = argv.includes("--preview");
+const pkgDir = path.join(repoRoot, ".cache/wasm", preview ? "editor-preview" : "clients-web");
 
 if (!commandExists("wasm-pack")) {
   console.error("error: wasm-pack not found; install with: cargo install wasm-pack");
   process.exit(1);
 }
 
-console.log(`==> building browser wasm (wasm-bindgen, ${profile})`);
+console.log(`==> building ${preview ? "preview" : "browser"} wasm (${profile})`);
 mkdirSync(pkgDir, { recursive: true });
 
 const packFlags = ["--target", "web", "--out-dir", pkgDir, "--out-name", "blackbox_wasm"];
 if (profile === "release") {
   packFlags.push("--release");
+} else {
+  packFlags.push("--dev");
+}
+if (preview) {
+  packFlags.push("--features", "preview-json");
 }
 
 runSync("wasm-pack", ["build", crate, ...packFlags], { cwd: repoRoot });
