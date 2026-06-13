@@ -14,11 +14,8 @@ pub struct SourceBundle {
     pub catalog_flags: HashSet<String>,
     /// Relationship metrics declared per character in `characters.json`.
     pub declared_relationship_metrics: HashMap<String, HashSet<String>>,
-    /// Snippet ids declared in `library.json`.
     pub library_snippets: HashSet<String>,
-    /// Template ids declared in `library.json`.
     pub library_templates: HashSet<String>,
-    /// Named condition ids declared in `library.json`.
     pub library_conditions: HashSet<String>,
     /// Value of `libraryRef` on the scenario manifest, when set.
     pub scenario_library_ref: Option<String>,

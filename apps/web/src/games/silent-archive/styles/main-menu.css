@@ -1059,7 +1059,6 @@
   background: rgba(143, 79, 55, 0.18);
 }
 
-/* Active (open) menu item must override the base !important fill */
 :root[data-theme="light"] .mm-root .mm-menu-item--active {
   background: rgba(195, 189, 178, 0.92) !important;
   border-left-color: rgba(143, 79, 55, 0.58) !important;

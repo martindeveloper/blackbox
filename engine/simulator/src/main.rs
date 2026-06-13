@@ -56,8 +56,6 @@ fn main() -> ExitCode {
     match run() {
         Ok(code) => code,
         Err(err) => {
-            // Route the fatal error through the shared Output: a log to stderr in
-            // human mode, or a structured `{ok:false, logs:[…]}` line in JSON mode.
             let out = blackbox_output::Output::new(args.iter().any(|a| a == "--json"));
             out.error(format!("blackbox-simulator: {err:#}"));
             let _ = out.emit(

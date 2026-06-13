@@ -117,8 +117,6 @@
   background: var(--bb-ui-accent);
 }
 
-/* Default text-game presentation. Games may override every component and
- * class, but these rules keep the engine defaults complete and usable. */
 .text-game-player-app {
   display: flex;
   flex-direction: column;

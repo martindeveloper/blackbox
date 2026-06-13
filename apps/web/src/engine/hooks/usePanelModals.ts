@@ -36,8 +36,7 @@ export function usePanelModals<Id extends string>({
       setOpenPanel(id);
       openModal(createModal(id, () => closePanel(id)));
     },
-    // panelIds is expected to be a stable module-level array.
-    [closePanel, createModal, closeModal, openModal],
+    [closePanel, createModal, closeModal, openModal], // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   useEffect(() => {

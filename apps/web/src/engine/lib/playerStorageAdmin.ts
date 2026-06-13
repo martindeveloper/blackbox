@@ -34,7 +34,6 @@ function parseStoredValue(key: string, raw: string): unknown {
   }
 }
 
-/** Parsed player storage keyed by short names (`save-slot:0`, `last-used-slot`, …). */
 export function readPlayerStorageSnapshot(): Record<string, unknown> {
   const prefix = playerStorageKey("");
   const result: Record<string, unknown> = {};

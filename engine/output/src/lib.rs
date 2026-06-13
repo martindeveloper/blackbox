@@ -28,7 +28,6 @@ pub enum Format {
     Json,
 }
 
-/// Severity of a diagnostic log line.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LogLevel {
     Info,
@@ -187,7 +186,6 @@ mod tests {
 
     #[test]
     fn emit_runs_only_the_active_renderer() {
-        // Text mode must not invoke the JSON renderer.
         let out = Output::new(false);
         out.emit(
             || -> serde_json::Value { panic!("json renderer ran in text mode") },
@@ -195,7 +193,6 @@ mod tests {
         )
         .unwrap();
 
-        // JSON mode must not invoke the text renderer.
         let out = Output::new(true);
         out.emit(
             || serde_json::json!({"ok": true}),

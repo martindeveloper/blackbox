@@ -597,11 +597,6 @@ export class AudioEngine {
     logger.debug("audio", "Suspending for background", { state: this._state() });
     this._selfSuspended = true;
     this._recoveryPending = true;
-    // Slam the master gain to zero BEFORE stopping anything. When iOS tears down the
-    // audio session it repeats the last rendered quantum from the output ring buffer;
-    // if that quantum still held a full-amplitude slice of a looping track you get the
-    // loud "beep". Forcing the final quantum to silence means iOS repeats silence.
-    // Restored by _syncPlayback on resume (or by the fresh graph on rebuild).
     if (this._masterGain) {
       this._masterGain.gain.cancelScheduledValues(this._ctx.currentTime);
       this._masterGain.gain.setValueAtTime(0, this._ctx.currentTime);

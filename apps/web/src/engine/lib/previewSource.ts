@@ -24,7 +24,6 @@ export interface PreviewProjectDocs {
 export interface PreviewSourceConfig {
   apiBase: string;
   projectId: string;
-  /** Current document revision; used to cache-bust media URLs on hot reload. */
   revision: number;
   docs: PreviewProjectDocs;
 }

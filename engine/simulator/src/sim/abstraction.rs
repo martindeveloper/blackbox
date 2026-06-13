@@ -419,13 +419,9 @@ mod tests {
     #[test]
     fn bucket_separates_by_thresholds() {
         let thr = vec![3, 5];
-        // Distinct classes: <3, =3, (3,5), =5, >5.
         let codes: Vec<u32> = [2, 3, 4, 5, 6].iter().map(|&v| bucket(&thr, v)).collect();
-        // All five sample values fall in five distinct buckets.
         let unique: HashSet<u32> = codes.iter().copied().collect();
         assert_eq!(unique.len(), 5);
-        // Values within the same open interval share a bucket; values past the
-        // top threshold collapse together (this is what kills the loop blow-up).
         assert_eq!(bucket(&thr, 6), bucket(&thr, 100));
         assert_eq!(bucket(&thr, 0), bucket(&thr, 2));
         assert_ne!(bucket(&thr, 5), bucket(&thr, 6));
@@ -461,7 +457,6 @@ mod tests {
 
         assert!(matches!(abs.stat("logic", 99), Abstracted::Drop));
         assert!(matches!(abs.stat("empathy", 1), Abstracted::Bucket(_)));
-        // Two empathy values on the same side of the only threshold merge.
         let (b1, b5) = (abs.stat("empathy", 1), abs.stat("empathy", 5));
         match (b1, b5) {
             (Abstracted::Bucket(a), Abstracted::Bucket(b)) => assert_ne!(a, b),

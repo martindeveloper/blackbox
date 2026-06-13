@@ -664,7 +664,6 @@ mod tests {
         let content = dead_end_content();
         let graph = GraphIndex::build(&content);
         let issues = graph.static_analysis(&content, "start");
-        // "sink" has a self-loop and can't reach any terminal → trapping loop
         assert!(
             issues.dead_end_nodes.is_empty(),
             "no isolated dead ends expected"
