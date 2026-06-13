@@ -62,7 +62,7 @@
 
 .choice-item {
   display: flex;
-  align-items: flex-start;
+  align-items: baseline;
   gap: 0.875rem;
   width: 100%;
   text-align: left;
