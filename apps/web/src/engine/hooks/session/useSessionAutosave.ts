@@ -45,18 +45,18 @@ export function useSessionAutosave({
   }, []);
 
   const persistAutosave = useCallback(
-    (engine: BlackboxEngine, mode: GameView["mode"], chapterId?: string) => {
+    (engine: BlackboxEngine, view: GameView) => {
       if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
       const generation = autosaveGenerationRef.current;
       autosaveTimerRef.current = setTimeout(() => {
         autosaveTimerRef.current = null;
         if (generation !== autosaveGenerationRef.current) return;
         if (commandPendingRef.current) {
-          persistAutosave(engine, mode, chapterId);
+          persistAutosave(engine, view);
           return;
         }
         try {
-          if (mode === "normal") {
+          if (view.mode === "normal") {
             const stateStr = serializeEngineState(engine);
             if (!isValidAutosaveJson(stateStr)) {
               logger.error("session", "Skipped autosave — serialize returned invalid JSON", {
@@ -71,27 +71,27 @@ export function useSessionAutosave({
             writeSlot(
               activeSlotRef.current,
               stateStr,
-              chapterId ?? null,
-              null,
+              view.chapter_id ?? null,
+              view.title ?? view.chapter_title ?? null,
               takePlaytimeDelta(),
             );
             lastAutosaveRef.current = stateStr;
             logger.debug("session", "Autosaved to slot", {
               slot: activeSlotRef.current,
-              chapterId,
-              mode,
+              chapterId: view.chapter_id,
+              mode: view.mode,
             });
           } else {
             addSlotPlaytime(activeSlotRef.current, takePlaytimeDelta());
             logger.debug("session", "Kept last safe autosave (terminal node)", {
               slot: activeSlotRef.current,
-              mode,
+              mode: view.mode,
             });
           }
         } catch (error: unknown) {
           if (error instanceof EngineBusyError) {
             logger.debug("session", "Autosave deferred (engine busy)");
-            persistAutosave(engine, mode, chapterId);
+            persistAutosave(engine, view);
             return;
           }
           logger.error("session", "Autosave failed", error);

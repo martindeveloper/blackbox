@@ -107,7 +107,7 @@ export function useApplyCommandResult(
 
       logger.debug("session", `-> ${resultView.node_id}`, { mode: resultView.mode });
       logViewDiagnostics(resultView, "command");
-      persistAutosave(engine, resultView.mode, resultView.chapter_id);
+      persistAutosave(engine, resultView);
 
       return { applied: true, chapterChanged: Boolean(result.chapter_changed) };
     },

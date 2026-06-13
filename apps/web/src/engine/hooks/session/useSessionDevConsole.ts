@@ -105,7 +105,7 @@ export function useSessionDevConsole(
           });
         }
 
-        persistAutosave(s.engine, nextView.mode, nextView.chapter_id);
+        persistAutosave(s.engine, nextView);
         setAppStatus(t("status.devCommandApplied"), "ready");
         logger.warn("dev-console", "Applied runtime command", { command, node: nextView.node_id });
 

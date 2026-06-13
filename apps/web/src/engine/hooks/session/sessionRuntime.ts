@@ -37,7 +37,7 @@ export interface SessionRuntimeActions {
   setChapterLoadingDone: Dispatch<SetStateAction<boolean>>;
   cancelAutosave: () => void;
   clearTransientUi: () => void;
-  persistAutosave: (engine: BlackboxEngine, mode: GameView["mode"], chapterId?: string) => void;
+  persistAutosave: (engine: BlackboxEngine, view: GameView) => void;
   takePlaytimeDelta: () => number;
   playSfxSafe: (sfx: SfxCue, label: string) => void;
   reportBootError: (stage: string, error: unknown) => void;
