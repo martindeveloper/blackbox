@@ -1,4 +1,4 @@
-import { game } from "@game/game.js";
+import { game, webPlayerOptions } from "@game/game.js";
 import { bootGame } from "./engine/boot.js";
 
-bootGame(game);
+bootGame(game, webPlayerOptions);

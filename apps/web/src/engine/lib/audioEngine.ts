@@ -135,16 +135,7 @@ export class AudioEngine {
   private _masterMuted = false;
   private _destroyed = false;
   private _sessionUnlocked = false;
-  /** True between suspendForBackground and the next successful resume — keeps the
-   *  statechange watchdog from treating our own suspend as an interruption. */
   private _selfSuspended = false;
-  /**
-   * Set whenever the audio session may have been torn down behind our back
-   * (backgrounding, interruption). On iOS this forces a full context rebuild on
-   * the next unlock gesture, because the reported "running" state can be a lie
-   * (silent output) after the session cycles. Cleared only by a verified-healthy
-   * gesture unlock.
-   */
   private _recoveryPending = false;
   private _blockedListener: ((blocked: boolean) => void) | null = null;
 
@@ -178,10 +169,6 @@ export class AudioEngine {
         ch.gain = gain;
       }
 
-      // Watchdog for out-of-band interruptions (phone call, Siri, iOS re-lock):
-      // freeze positions immediately so nothing drifts silently, and tell the UI
-      // a gesture is needed. Self-initiated suspends while hidden are expected
-      // and handled by suspend/resumeFromBackground instead.
       ctx.onstatechange = () => {
         if (this._ctx !== ctx || this._destroyed) return;
         const state = ctx.state as string;
@@ -196,8 +183,6 @@ export class AudioEngine {
           return;
         }
         if (state === "closed" || this._selfSuspended) return;
-        // Interrupted/suspended behind our back — the session is suspect from
-        // here on, whatever the state claims later.
         this._recoveryPending = true;
         const visible = typeof document === "undefined" || document.visibilityState === "visible";
         if (visible) {
@@ -240,22 +225,12 @@ export class AudioEngine {
     this._blockedListener = listener;
   }
 
-  /**
-   * Synchronous half of audio unlock — must run directly inside a user-gesture
-   * handler (click / touchend / keydown). iOS Safari rejects resume() calls that
-   * happen after an await or in a later microtask. Creating the context here is
-   * deliberate: a context born inside a gesture starts in the "running" state.
-   */
   unlockGesture(): void {
     if (this._destroyed) return;
 
     try {
       const nav = navigator as Navigator & { audioSession?: { type: string } };
       if (nav.audioSession) {
-        // "playback" ignores the ring/silent switch and reactivates reliably after
-        // interruptions. "ambient" (used previously) silently re-subjected Web Audio
-        // to the mute switch and undid the silent-WAV session upgrade below —
-        // a major source of "audio dead after backgrounding" reports.
         nav.audioSession.type = "playback";
       }
     } catch {}
@@ -268,9 +243,6 @@ export class AudioEngine {
       }
     } catch {}
 
-    // Playing a (silent) media element inside a gesture (re)activates iOS's output
-    // session. Must also run when the context *claims* to be running: after a
-    // background cycle iOS can report "running" while the session is actually dead.
     if (!this._sessionUnlocked || this._recoveryPending || !this._isRunning()) {
       try {
         new Audio(SILENT_WAV).play().catch(() => {});
@@ -311,14 +283,6 @@ export class AudioEngine {
     return healthy;
   }
 
-  /**
-   * Async half of unlock. Verifies the context actually renders (state alone can
-   * lie on iOS — "running" while silent) and rebuilds the context from scratch
-   * when it doesn't, or unconditionally on iOS after a background/interruption
-   * cycle, since a rebuilt context is the only thing known to recover the output
-   * session there. Returns true when audio is live; playback intent is
-   * re-rendered automatically.
-   */
   async ensureRunning(): Promise<boolean> {
     if (this._destroyed) return false;
     this._getCtx();
@@ -361,11 +325,6 @@ export class AudioEngine {
     return healthy;
   }
 
-  /**
-   * Tear down the current (wedged) context and build a fresh one. Playback intent,
-   * positions, decoded buffers, volumes, and mute flags all live outside the
-   * context, so `_syncPlayback` can restore everything afterwards.
-   */
   private _rebuildContext(): void {
     for (const ch of this._channels.values()) {
       if (ch.outgoing) {
@@ -625,12 +584,6 @@ export class AudioEngine {
     this._haltTrack(track);
   }
 
-  /**
-   * Called on visibilitychange→hidden and pagehide. Stops all sources (capturing
-   * positions) and self-suspends the context BEFORE iOS interrupts it — a context
-   * we suspend ourselves resumes reliably, and stopping sources first prevents
-   * the hardware-buffer glitch ("beep") on minimize. Idempotent.
-   */
   suspendForBackground(): void {
     if (!this._ctx) return;
     logger.debug("audio", "Suspending for background", { state: this._state() });

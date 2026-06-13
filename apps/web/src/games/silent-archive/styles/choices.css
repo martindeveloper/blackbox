@@ -36,7 +36,6 @@
   }
 }
 
-/* Individual delays set via inline animationDelay on each <button> */
 .choice-list-shell {
   width: 100%;
   max-width: min(100%, 52rem);

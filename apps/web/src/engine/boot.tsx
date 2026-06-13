@@ -3,21 +3,23 @@ import { createRoot } from "react-dom/client";
 import { I18nextProvider } from "react-i18next";
 import { AppSettingsProvider } from "./context/AppSettings.js";
 import { ModalProvider } from "./ui/ModalContext.js";
+import { MobileLandscapeNotice } from "./ui/MobileLandscapeNotice.js";
 import i18n, { initI18n, type I18nResources } from "./i18n/index.js";
 import { bundleStore, type BundleLoadProgress } from "./lib/bundleStore.js";
 import { setEngineTranslator } from "./lib/localization.js";
 
 export interface GameDefinition {
-  /** Folder name under src/games/, selected at build time via
-   *  BLACKBOX_WEB_PLAYER_GAME. */
   id: string;
   App: ComponentType;
   i18nResources: I18nResources;
-  /** Base path the scenario bundle is served from. */
   bundlePath?: string;
 }
 
-export function bootGame(game: GameDefinition): void {
+export interface WebPlayerOptions {
+  disableLandscapeModeOnMobile?: boolean;
+}
+
+export function bootGame(game: GameDefinition, options: WebPlayerOptions = {}): void {
   initI18n(game.i18nResources);
   setEngineTranslator((key, options) => i18n.t(key, options));
 
@@ -62,6 +64,7 @@ export function bootGame(game: GameDefinition): void {
         <I18nextProvider i18n={i18n}>
           <AppSettingsProvider>
             <ModalProvider>
+              {options.disableLandscapeModeOnMobile && <MobileLandscapeNotice />}
               <GameApp />
             </ModalProvider>
           </AppSettingsProvider>

@@ -94,21 +94,13 @@ export function useAudio<FadeKind extends string>(
       logger.debug("audio", "Resumed music after unlock", { src: m.src });
     };
 
-    // Robust gesture-recovery path. Safe to call from any user gesture and idempotent
-    // within a single event (the capture-phase listener and an explicit toggleMute call
-    // both fire on a mute-button tap — the in-flight guard collapses them to one run).
     const runUnlock = () => {
       if (unlockInFlight) return;
       unlockInFlight = true;
-      armed = false; // the {once} listeners have removed themselves; allow re-arming
+      armed = false;
 
-      // The synchronous part must run inside the user-event call stack — iOS Safari
-      // only honors resume()/context creation there (not after an await).
       engine.unlockGesture();
 
-      // The async part verifies the context actually runs and, if iOS wedged it in
-      // the "interrupted" state, rebuilds the whole context — playback state is
-      // re-rendered onto the new graph automatically.
       engine
         .ensureRunning()
         .then((running) => {
@@ -146,9 +138,6 @@ export function useAudio<FadeKind extends string>(
 
     arm();
 
-    // Out-of-band interruptions (phone call, Siri, iOS spontaneously re-locking the
-    // context) are reported by the engine's statechange watchdog — surface the
-    // "enable audio" control and arm a recovery gesture.
     engine.setBlockedListener((blocked) => {
       setAudioBlocked(blocked);
       if (blocked) arm();
@@ -260,9 +249,6 @@ export function useAudio<FadeKind extends string>(
   const toggleMute = useCallback(() => {
     const engine = getSharedEngine(config.defaultSfx);
     if (audioBlocked) {
-      // Tapping "enable audio" is an explicit request for sound: unmute, then run the
-      // shared recovery routine (which also fires via the global capture-phase listener
-      // on this same tap — the in-flight guard collapses the two into one attempt).
       if (engine.isMasterMuted()) {
         engine.unmuteMaster(0.25);
         setMuted(false);

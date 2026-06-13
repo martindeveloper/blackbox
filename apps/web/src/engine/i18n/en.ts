@@ -11,6 +11,12 @@ export const engineEn = {
     label: "CORP SYSTEMS ACCESSING",
     sublabel: "INITIALIZING SECURE ARCHIVE",
   },
+  orientation: {
+    kicker: "DISPLAY ORIENTATION / UNSUPPORTED",
+    title: "ROTATE TO PORTRAIT",
+    description: "This game cannot be played in landscape on a phone.",
+    status: "WAITING FOR PORTRAIT",
+  },
   confirm: {
     confirm: "Confirm",
     cancel: "Cancel",

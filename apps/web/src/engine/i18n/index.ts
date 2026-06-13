@@ -23,8 +23,6 @@ function deepMerge(
 
 const engineResources: I18nResources = { en: engineEn };
 
-/** Initializes the shared i18next instance with engine defaults merged under
- *  the game's resources (game keys win). Must run before the first render. */
 export function initI18n(gameResources: I18nResources): typeof i18n {
   const languages = new Set([...Object.keys(engineResources), ...Object.keys(gameResources)]);
   const resources: Record<string, { translation: object }> = {};

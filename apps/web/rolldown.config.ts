@@ -3,8 +3,6 @@ import { defineConfig } from "rolldown";
 // The config runs under Node, but the project tsconfig has no Node types.
 declare const process: { env: Record<string, string | undefined> };
 
-/** Game folder under src/games/ to bundle. The `@game` alias points the
- *  shared entry (src/main.tsx) at the selected game's manifest. */
 const GAME = process.env.BLACKBOX_WEB_PLAYER_GAME ?? "silent-archive";
 
 export default defineConfig({

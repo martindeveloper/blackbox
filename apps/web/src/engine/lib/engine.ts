@@ -678,7 +678,6 @@ export function restoreEngineState(engine: BlackboxEngine, stateJson: string): G
   });
 }
 
-/** True when autosave JSON parses to a non-null object (guards corrupt WASM serialize output). */
 export function isValidAutosaveJson(json: string): boolean {
   try {
     const parsed: unknown = JSON.parse(json.trim());

@@ -11,5 +11,13 @@ Reusable browser host code for Blackbox games:
 - character indexing, stat deltas, and `GameView` notification diffing
 - engine wire and view types
 
+Games configure player-owned behavior in their `game.ts` manifest:
+
+```ts
+export const webPlayerOptions: WebPlayerOptions = {
+  disableLandscapeModeOnMobile: true,
+};
+```
+
 This directory must not import from `src/games/`. Game-specific presentation behavior is supplied
 to reusable hooks through adapters such as `SessionPresentationAdapter`.

@@ -33,10 +33,6 @@ export interface ObjSelectorCatalogMode {
 
 export interface ObjSelectorSidecarMode {
   kind: "sidecar";
-  /**
-   * When set, the sidebar pre-selects these spec values as an active filter.
-   * If only one spec is provided and all files match, the sidebar is hidden.
-   */
   specs?: string[];
 }
 

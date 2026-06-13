@@ -754,7 +754,6 @@
   opacity: 1;
 }
 
-/* Blocked = another button in the group is loading */
 .mm-menu-item--blocked {
   opacity: 0.28;
   pointer-events: none;

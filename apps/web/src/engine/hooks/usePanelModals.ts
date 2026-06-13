@@ -4,17 +4,9 @@ import { useModal, type ModalDescriptor } from "../ui/ModalContext.js";
 
 export interface PanelModalsOptions<Id extends string> {
   panelIds: readonly Id[];
-  /** Keyboard key per panel (matched via `matchesShortcut`). Panels listed
-   *  here can be opened directly and switched between while another panel
-   *  modal is open. */
   shortcuts: Partial<Record<Id, string>>;
-  /** Panel whose shortcut only fires when no modal is open at all (e.g. a
-   *  system menu bound to Escape, which otherwise closes the top modal). */
   primaryPanelId?: Id;
   primaryShortcut?: string;
-  /** Builds the modal for a panel. Re-memoize (useCallback) on the data the
-   *  panel contents render from — an identity change refreshes the currently
-   *  open panel modal in place. */
   createModal: (id: Id, onClose: () => void) => ModalDescriptor;
 }
 

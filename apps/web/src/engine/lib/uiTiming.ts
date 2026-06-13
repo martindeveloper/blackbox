@@ -1,8 +1,5 @@
 import type { CSSProperties } from "react";
 
-/** Per-game presentation timing table. Values are tuning; the formulas over
- *  them live in `createUiTiming` so every game shares the same sequencing
- *  semantics. */
 export interface UiTimingValues {
   chapterTransitionMs: number;
   musicCrossfadeSecs: number;
