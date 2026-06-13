@@ -1852,8 +1852,10 @@ a {
 .footer-tagline {
   font-family: var(--font-mono);
   font-size: 0.68rem;
+  line-height: 1;
   letter-spacing: 0.08em;
   color: var(--footer-muted);
+  transform: translateY(0.1em);
 }
 
 .footer-tagline::before {
