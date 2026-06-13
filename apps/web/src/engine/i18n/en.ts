@@ -29,6 +29,38 @@ export const engineEn = {
     on: "ON",
     off: "OFF",
   },
+  choices: {
+    selectResponse: "CHOOSE A RESPONSE",
+    continue: "CONTINUE",
+    restart: "RESTART",
+    returnToChapterStart: "RETURN TO CHAPTER START",
+    goToMainMenu: "MAIN MENU",
+    resolving: "RESOLVING…",
+    locked: "LOCKED",
+    dc: "DC",
+  },
+  inventory: {
+    title: "Inventory",
+    eyebrow: "ITEMS",
+    empty: "Your inventory is empty.",
+    selectPrompt: "Select an item to inspect.",
+    loading: "Loading item details…",
+  },
+  memory: {
+    title: "Intel",
+    eyebrow: "DISCOVERED INFORMATION",
+    empty: "No intel has been discovered.",
+  },
+  journal: {
+    title: "Journal",
+    eyebrow: "STORY LOG",
+    empty: "No journal entries have been recorded.",
+  },
+  resolution: {
+    title: "OUTCOME",
+    pass: "PASS",
+    fail: "FAIL",
+  },
   save: {
     title: "INCIDENT ARCHIVE",
     eyebrow: "CHECKPOINT ARCHIVE",

@@ -1,15 +1,17 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-
-const PHONE_MAX_SHORT_EDGE = 500;
+import { getWebPlayerOptions } from "../lib/playerConfig.js";
 
 function isPhoneLandscape(): boolean {
+  const { requirePortrait, maxShortEdgePx } = getWebPlayerOptions().mobile;
+  if (!requirePortrait) return false;
+
   const orientation = window.matchMedia("(orientation: landscape)").matches;
   const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
   const touchCapable = navigator.maxTouchPoints > 0;
   const shortScreenEdge = Math.min(window.screen.width, window.screen.height);
 
-  return orientation && shortScreenEdge <= PHONE_MAX_SHORT_EDGE && (coarsePointer || touchCapable);
+  return orientation && shortScreenEdge <= maxShortEdgePx && (coarsePointer || touchCapable);
 }
 
 export function MobileLandscapeNotice() {

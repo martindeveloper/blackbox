@@ -89,10 +89,12 @@ export function SettingsPanel() {
   const {
     theme,
     toggleTheme,
+    canToggleTheme,
     masterVolume,
     musicVolume,
     sfxVolume,
     analyticsEnabled,
+    analyticsAvailable,
     setMasterVolume,
     setMusicVolume,
     setSfxVolume,
@@ -109,25 +111,29 @@ export function SettingsPanel() {
       <VolumeRow label={t("mainMenu.musicVolume")} value={musicVolume} onChange={setMusicVolume} />
       <VolumeRow label={t("mainMenu.sfxVolume")} value={sfxVolume} onChange={setSfxVolume} />
 
-      <div className="mm-options-sep" />
+      {(canToggleTheme || analyticsAvailable) && <div className="mm-options-sep" />}
 
-      <button type="button" className="mm-theme-toggle" onClick={toggleTheme}>
-        <span className="mm-theme-label">{t("mainMenu.themeLabel")}</span>
-        <span className="mm-theme-value">
-          {theme === "dark" ? t("mainMenu.themeDark") : t("mainMenu.themeLight")}
-        </span>
-        <span className="mm-theme-arrow">↺</span>
-      </button>
+      {canToggleTheme && (
+        <button type="button" className="mm-theme-toggle" onClick={toggleTheme}>
+          <span className="mm-theme-label">{t("mainMenu.themeLabel")}</span>
+          <span className="mm-theme-value">
+            {theme === "dark" ? t("mainMenu.themeDark") : t("mainMenu.themeLight")}
+          </span>
+          <span className="mm-theme-arrow">↺</span>
+        </button>
+      )}
 
-      <button type="button" className="mm-theme-toggle" onClick={toggleAnalytics}>
-        <span className="mm-theme-label">{t("mainMenu.analyticsLabel")}</span>
-        <span className="mm-theme-value">
-          {analyticsEnabled ? t("actions.on") : t("actions.off")}
-        </span>
-        <span className="mm-theme-arrow" aria-hidden>
-          ◌
-        </span>
-      </button>
+      {analyticsAvailable && (
+        <button type="button" className="mm-theme-toggle" onClick={toggleAnalytics}>
+          <span className="mm-theme-label">{t("mainMenu.analyticsLabel")}</span>
+          <span className="mm-theme-value">
+            {analyticsEnabled ? t("actions.on") : t("actions.off")}
+          </span>
+          <span className="mm-theme-arrow" aria-hidden>
+            ◌
+          </span>
+        </button>
+      )}
     </div>
   );
 }

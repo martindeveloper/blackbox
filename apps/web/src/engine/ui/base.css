@@ -117,6 +117,390 @@
   background: var(--bb-ui-accent);
 }
 
+/* Default text-game presentation. Games may override every component and
+ * class, but these rules keep the engine defaults complete and usable. */
+.text-game-player-app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--bb-ui-surface);
+  color: var(--bb-ui-text);
+}
+
+.text-game-player-header {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 1rem;
+  min-height: 3rem;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--bb-ui-border);
+}
+
+.text-game-player-header h1 {
+  flex: 1;
+  margin: 0;
+  color: var(--bb-ui-accent);
+  font-family: var(--bb-font-display);
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+}
+
+.text-game-player-header span {
+  color: var(--bb-ui-muted);
+  font-family: var(--bb-font-mono);
+  font-size: 0.75rem;
+}
+
+.text-game-player-header button,
+.text-game-confirmation button {
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--bb-ui-border);
+  background: transparent;
+  color: var(--bb-ui-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.text-game-player-main {
+  flex: 1;
+  min-height: 0;
+}
+
+.text-game-boot-screen,
+.text-game-chapter-transition {
+  display: grid;
+  place-content: center;
+  height: 100%;
+  padding: 2rem;
+  color: var(--bb-ui-muted);
+  text-align: center;
+}
+
+.text-game-boot-screen {
+  gap: 0.5rem;
+}
+
+.text-game-chapter-transition {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--bb-ui-overlay);
+  color: var(--bb-ui-accent);
+  font-family: var(--bb-font-display);
+}
+
+.text-game-confirmation {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.text-game-confirmation p {
+  margin: 0 0 0.5rem;
+  color: var(--bb-ui-muted);
+}
+
+.text-game-screen {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--bb-ui-surface);
+  color: var(--bb-ui-text);
+}
+
+.text-game-location {
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid var(--bb-ui-border);
+}
+
+.text-game-location h2 {
+  margin: 0;
+  color: var(--bb-ui-accent);
+  font-family: var(--bb-font-display);
+  letter-spacing: 0.08em;
+}
+
+.text-game-location span {
+  color: var(--bb-ui-muted);
+}
+
+.text-game-narrative {
+  flex: 1;
+  min-height: 0;
+  padding: 1.5rem 1rem;
+  overflow-y: auto;
+}
+
+.text-game-panel-actions,
+.text-game-menu-actions,
+.text-game-system-menu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.text-game-panel-actions button,
+.text-game-menu-actions button,
+.text-game-system-menu button,
+.text-game-main-menu > button {
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--bb-ui-border);
+  background: transparent;
+  color: var(--bb-ui-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.text-game-main-menu {
+  display: grid;
+  align-content: center;
+  width: min(100% - 2rem, 48rem);
+  min-height: 100%;
+  margin-inline: auto;
+  gap: 1rem;
+  padding-block: 2rem;
+}
+
+.text-game-slot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 0.75rem;
+}
+
+.text-game-slot {
+  display: grid;
+  border: 1px solid var(--bb-ui-border);
+}
+
+.text-game-slot--selected {
+  border-color: var(--bb-ui-accent);
+}
+
+.text-game-slot button {
+  display: grid;
+  gap: 0.35rem;
+  padding: 1rem;
+  border: 0;
+  background: transparent;
+  color: var(--bb-ui-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.choice-list-footer {
+  flex-shrink: 0;
+  padding: 0.9rem 1rem max(1rem, env(safe-area-inset-bottom, 1rem));
+  border-top: 1px solid var(--bb-ui-border);
+  background: var(--bb-ui-surface);
+}
+
+.choice-list-shell,
+.narrative-stack,
+.resolution-entry-stack {
+  width: min(100%, 46rem);
+  margin-inline: auto;
+}
+
+.choice-list-stack,
+.resolution-entry-stack {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.choice-btn,
+.inventory-slot,
+.inventory-detail-pane button {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--bb-ui-border);
+  background: transparent;
+  color: var(--bb-ui-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.choice-btn:hover:not(:disabled),
+.inventory-slot:hover,
+.inventory-detail-pane button:hover:not(:disabled) {
+  border-color: var(--bb-ui-accent);
+}
+
+.choice-btn:disabled,
+.inventory-detail-pane button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.choice-num,
+.choice-check-tag,
+.choice-lock-reason {
+  color: var(--bb-ui-muted);
+  font-family: var(--bb-font-mono);
+  font-size: 0.72em;
+}
+
+.choice-check-tag,
+.choice-lock-reason {
+  display: block;
+  margin-top: 0.25rem;
+}
+
+.section-rule {
+  margin-bottom: 0.6rem;
+  color: var(--bb-ui-muted);
+  font-family: var(--bb-font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.narrative-para,
+.dialogue-line,
+.thought-line,
+.stage-direction {
+  margin: 0 0 1rem;
+  color: var(--bb-ui-text);
+  line-height: 1.75;
+}
+
+.dialogue-speaker,
+.thought-speaker {
+  margin-bottom: 0.25rem;
+  color: var(--bb-ui-accent);
+  font-family: var(--bb-font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.stage-direction {
+  color: var(--bb-ui-muted);
+  font-style: italic;
+}
+
+.roll-entry,
+.ui-notification {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.7rem 0.85rem;
+  border-left: 2px solid var(--bb-ui-border);
+  background: color-mix(in srgb, var(--bb-ui-surface) 85%, transparent);
+}
+
+.roll-entry--pass {
+  border-color: var(--bb-ui-info);
+}
+
+.roll-entry--fail,
+.ui-notification--damage {
+  border-color: var(--bb-ui-danger);
+}
+
+.vitals-command-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid var(--bb-ui-border);
+}
+
+.vitals-bank,
+.vitals-command-bank {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.stat-gauge {
+  min-width: 3rem;
+}
+
+.stat-gauge-val {
+  color: var(--bb-ui-text);
+  font-size: 1rem;
+}
+
+.stat-gauge-key {
+  color: var(--bb-ui-muted);
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+}
+
+.inventory-split {
+  display: grid;
+  grid-template-columns: minmax(10rem, 0.8fr) minmax(14rem, 1.2fr);
+  gap: 1rem;
+}
+
+.inventory-grid,
+.memory-grid {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.inventory-slot {
+  justify-content: space-between;
+}
+
+.inventory-slot--selected {
+  border-color: var(--bb-ui-accent);
+}
+
+.inventory-detail-pane,
+.memory-card,
+.journal-entry {
+  padding: 1rem;
+  border: 1px solid var(--bb-ui-border);
+  background: var(--bb-input-bg);
+}
+
+.inventory-detail-pane {
+  display: grid;
+  align-content: start;
+  gap: 0.75rem;
+}
+
+.memory-grid {
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+}
+
+.journal-timeline {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.inventory-empty,
+.memory-empty,
+.journal-empty {
+  padding: 2rem;
+  color: var(--bb-ui-muted);
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .inventory-split {
+    grid-template-columns: 1fr;
+  }
+
+  .vitals-command-line {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
 .bracket {
   position: absolute;
   width: 14px;

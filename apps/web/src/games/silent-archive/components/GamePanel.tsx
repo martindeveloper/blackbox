@@ -14,9 +14,9 @@ import { useCharacterProfileModal } from "../hooks/useCharacterProfileModal.js";
 import { useGamePanelModals } from "../hooks/useGamePanelModals.js";
 import { useManagedTexture } from "../../../engine/hooks/useAssetScope.js";
 import { useResolutionPresentation } from "../../../engine/hooks/useResolutionPresentation.js";
+import { useTextGameComponents } from "../../../engine/ui/textGame/TextGamePresentation.js";
 
 import { timing, UI_SHORTCUTS, UI_TIMING } from "../uiConfig.js";
-import { ChoiceList } from "./ChoiceList.js";
 import {
   ArchiveIcon,
   GridIcon,
@@ -25,10 +25,7 @@ import {
   LocationIcon,
   SkullIcon,
 } from "./Icons.js";
-import { NarrativeBlock } from "./NarrativeBlock.js";
-import { ResolutionLog } from "./ResolutionLog.js";
 import { DamageVignette } from "./DamageVignette.js";
-import { VitalsStrip } from "./VitalsStrip.js";
 
 interface GamePanelProps {
   view: GameView;
@@ -89,6 +86,7 @@ export function GamePanel({
   onCreateSupportBundle,
 }: GamePanelProps) {
   const { t } = useTranslation();
+  const { Choices, Narrative, Resolution, Vitals } = useTextGameComponents();
 
   const {
     showResolution,
@@ -494,7 +492,7 @@ export function GamePanel({
         </div>
       </div>
 
-      <VitalsStrip
+      <Vitals
         playerStats={displayStats}
         borderColor={borderDim}
         controls={
@@ -606,7 +604,7 @@ export function GamePanel({
               <div ref={narrativeRef} className="narrative-stack">
                 {showNarrative &&
                   view.text.map((block, i) => (
-                    <NarrativeBlock
+                    <Narrative
                       key={`${view.node_id}-${i}-${block.kind}`}
                       block={block}
                       prevBlock={view.text[i - 1]}
@@ -618,7 +616,7 @@ export function GamePanel({
               </div>
             </div>
 
-            {showResolution && <ResolutionLog rolls={lastRolls} notifications={notifications} />}
+            {showResolution && <Resolution rolls={lastRolls} notifications={notifications} />}
           </div>
         </div>
 
@@ -641,7 +639,7 @@ export function GamePanel({
         )}
       </div>
 
-      <ChoiceList
+      <Choices
         view={view}
         isGameOver={isGameOver}
         isEnding={isEnding}

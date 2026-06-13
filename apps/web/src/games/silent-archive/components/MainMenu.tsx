@@ -8,10 +8,10 @@ import { isEditableTarget } from "../../../engine/lib/keyboard.js";
 import {
   clearAllPlayerData,
   clearSlot,
+  getSlotCount,
   persistLastUsedSlot,
   readAllSlots,
   readLastUsedSlot,
-  SLOT_COUNT,
   type SlotData,
 } from "../../../engine/lib/slots.js";
 import { useModal } from "../../../engine/ui/ModalContext.js";
@@ -50,6 +50,7 @@ export function MainMenu({
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
   const { hasOpenModals } = useModal();
   const { url: bgUrl } = useManagedTexture("main_menu:bg", "textures/backgrounds/mainmenu.png");
+  const slotCount = getSlotCount();
 
   const selectedSlotData = selectedSlot !== null ? (slots[selectedSlot] ?? null) : null;
 
@@ -111,7 +112,7 @@ export function MainMenu({
     onRestartSlot(selectedSlot);
   }, [selectedSlot, menuLoading, onRestartSlot]);
 
-  useNumberKeySelect(SLOT_COUNT, handleSelectSlot, view === "slots" && !menuLoading);
+  useNumberKeySelect(slotCount, handleSelectSlot, view === "slots" && !menuLoading);
 
   useEffect(() => {
     if (view !== "menu") return;
@@ -161,6 +162,7 @@ export function MainMenu({
           onSelect={handleSelectSlot}
           onDestroySlot={handleDestroySlot}
           onDestroyAllData={handleDestroyAllData}
+          slotCount={slotCount}
           t={t}
         />
       ) : view === "headphones" ? (
@@ -251,6 +253,7 @@ function SlotSelector({
   onSelect,
   onDestroySlot,
   onDestroyAllData,
+  slotCount,
   t,
 }: {
   slots: (SlotData | null)[];
@@ -258,6 +261,7 @@ function SlotSelector({
   onSelect: (index: number) => void;
   onDestroySlot: (index: number) => void;
   onDestroyAllData: () => void;
+  slotCount: number;
   t: ReturnType<typeof useTranslation>["t"];
 }) {
   const [destroyAllPending, setDestroyAllPending] = useState(false);
@@ -279,7 +283,7 @@ function SlotSelector({
         className="mm-slot-grid"
         style={{ animation: "fade-up 0.42s ease-out both", animationDelay: "0.15s" }}
       >
-        {Array.from({ length: SLOT_COUNT }, (_, index) => (
+        {Array.from({ length: slotCount }, (_, index) => (
           <SlotCard
             key={index}
             index={index}

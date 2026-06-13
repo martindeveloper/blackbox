@@ -5,12 +5,7 @@ import { bundleStore } from "./bundleStore.js";
 import { getLogLevel, logger } from "./logger.js";
 import { getClientLogEntries, getEngineLogEntries, MAX_LOG_ENTRIES } from "./supportLog.js";
 import { createZip } from "./zip.js";
-
-const VOLUME_STORAGE_KEYS = {
-  master: "blackbox_master_volume",
-  music: "blackbox_music_volume",
-  sfx: "blackbox_sfx_volume",
-} as const;
+import { getWebPlayerOptions, readPlayerStorage } from "./playerConfig.js";
 
 interface SupportBundleInput {
   stateJson?: string;
@@ -125,11 +120,15 @@ function collectDiagnostics(
     settings: {
       theme: document.documentElement.dataset.theme ?? "unknown",
       logLevel: getLogLevel(),
-      masterVolume: readStorage(VOLUME_STORAGE_KEYS.master),
-      musicVolume: readStorage(VOLUME_STORAGE_KEYS.music),
-      sfxVolume: readStorage(VOLUME_STORAGE_KEYS.sfx),
+      analyticsAvailable: getWebPlayerOptions().settings.analytics.available,
+      analyticsEnabled: readPlayerStorage("analytics-enabled"),
+      masterVolume: readPlayerStorage("master-volume"),
+      musicVolume: readPlayerStorage("music-volume"),
+      sfxVolume: readPlayerStorage("sfx-volume"),
     },
     storage: {
+      gameId: getWebPlayerOptions().gameId,
+      slotCount: getWebPlayerOptions().saves.slots,
       slotsOccupied: readAllSlots().filter(Boolean).length,
       localStorageAvailable: storageAvailable(),
     },
@@ -149,14 +148,6 @@ function collectDiagnostics(
 function toNdjson(entries: readonly unknown[]): string {
   if (!entries.length) return "";
   return `${entries.map((entry) => JSON.stringify(entry)).join("\n")}\n`;
-}
-
-function readStorage(key: string): string | null {
-  try {
-    return localStorage.getItem(key);
-  } catch {
-    return null;
-  }
 }
 
 function storageAvailable(): boolean {

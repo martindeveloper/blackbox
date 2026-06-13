@@ -4,22 +4,31 @@ import { I18nextProvider } from "react-i18next";
 import { AppSettingsProvider } from "./context/AppSettings.js";
 import { ModalProvider } from "./ui/ModalContext.js";
 import { MobileLandscapeNotice } from "./ui/MobileLandscapeNotice.js";
+import { TextGamePresentationProvider } from "./ui/textGame/TextGamePresentation.js";
 import i18n, { initI18n, type I18nResources } from "./i18n/index.js";
 import { bundleStore, type BundleLoadProgress } from "./lib/bundleStore.js";
 import { setEngineTranslator } from "./lib/localization.js";
+import {
+  configureWebPlayer,
+  getWebPlayerOptions,
+  type WebPlayerOptions,
+} from "./lib/playerConfig.js";
+import { initializePlayerLogger } from "./lib/logger.js";
 
 export interface GameDefinition {
   id: string;
   App: ComponentType;
   i18nResources: I18nResources;
   bundlePath?: string;
+  player?: WebPlayerOptions;
 }
 
-export interface WebPlayerOptions {
-  disableLandscapeModeOnMobile?: boolean;
-}
+export type { WebPlayerOptions } from "./lib/playerConfig.js";
 
-export function bootGame(game: GameDefinition, options: WebPlayerOptions = {}): void {
+export function bootGame(game: GameDefinition): void {
+  configureWebPlayer(game.id, game.player);
+  const playerOptions = getWebPlayerOptions();
+  initializePlayerLogger();
   initI18n(game.i18nResources);
   setEngineTranslator((key, options) => i18n.t(key, options));
 
@@ -64,8 +73,10 @@ export function bootGame(game: GameDefinition, options: WebPlayerOptions = {}): 
         <I18nextProvider i18n={i18n}>
           <AppSettingsProvider>
             <ModalProvider>
-              {options.disableLandscapeModeOnMobile && <MobileLandscapeNotice />}
-              <GameApp />
+              <TextGamePresentationProvider components={game.player?.components}>
+                {playerOptions.mobile.requirePortrait && <MobileLandscapeNotice />}
+                <GameApp />
+              </TextGamePresentationProvider>
             </ModalProvider>
           </AppSettingsProvider>
         </I18nextProvider>

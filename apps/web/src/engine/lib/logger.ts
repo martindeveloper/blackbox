@@ -1,5 +1,6 @@
 import { setWasmLogLevel } from "./wasmHost.js";
 import { captureClientLog } from "./supportLog.js";
+import { readPlayerStorage, writePlayerStorage } from "./playerConfig.js";
 
 export type LogLevel = "debug" | "info" | "warn" | "error";
 
@@ -10,25 +11,19 @@ const LOG_LEVEL_ORDER: Record<LogLevel, number> = {
   error: 3,
 };
 
-const LOG_LEVEL_STORAGE_KEY = "blackbox_log_level";
-
 let _minLevel: LogLevel = "info";
 let _wasmReady = false;
 
 function readStoredLevel(): LogLevel {
-  try {
-    const stored = localStorage.getItem(LOG_LEVEL_STORAGE_KEY);
-    if (stored === "debug" || stored === "info" || stored === "warn" || stored === "error") {
-      return stored;
-    }
-  } catch {}
+  const stored = readPlayerStorage("log-level", "blackbox_log_level");
+  if (stored === "debug" || stored === "info" || stored === "warn" || stored === "error") {
+    return stored;
+  }
   return "info";
 }
 
 function persistLevel(level: LogLevel): void {
-  try {
-    localStorage.setItem(LOG_LEVEL_STORAGE_KEY, level);
-  } catch {}
+  writePlayerStorage("log-level", level);
 }
 
 function syncWasmLevel(level: LogLevel): void {
@@ -45,7 +40,10 @@ export function markWasmLoggingReady(): void {
   syncWasmLevel(_minLevel);
 }
 
-_minLevel = readStoredLevel();
+export function initializePlayerLogger(): void {
+  _minLevel = readStoredLevel();
+  syncWasmLevel(_minLevel);
+}
 
 export function getLogLevel(): LogLevel {
   return _minLevel;

@@ -1,5 +1,6 @@
 import { tryAssetUrl } from "./engine.js";
 import { getLogLevel, logger } from "./logger.js";
+import { getWebPlayerOptions } from "./playerConfig.js";
 
 export type AssetKind = "texture" | "music" | "sfx";
 
@@ -35,22 +36,20 @@ interface AssetRecord {
 type AssetListener = () => void;
 type SfxReleaseHandler = (src: string) => void;
 
-const FALLBACK_PORTRAIT_SRC = "textures/characters/generic.png";
-const FALLBACK_BACKGROUND_SRC = "textures/backgrounds/generic.png";
-
 function assetKey(kind: AssetKind, src: string): string {
   return `${kind}:${src}`;
 }
 
 function textureFallbackSrc(src: string): string | undefined {
-  if (src === FALLBACK_PORTRAIT_SRC || src === FALLBACK_BACKGROUND_SRC) {
+  const { fallbackPortrait, fallbackBackground } = getWebPlayerOptions().assets;
+  if (src === fallbackPortrait || src === fallbackBackground) {
     return undefined;
   }
   if (src.startsWith("textures/characters/")) {
-    return FALLBACK_PORTRAIT_SRC;
+    return fallbackPortrait;
   }
   if (src.startsWith("textures/backgrounds/")) {
-    return FALLBACK_BACKGROUND_SRC;
+    return fallbackBackground;
   }
   return undefined;
 }

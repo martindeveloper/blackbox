@@ -1,13 +1,13 @@
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { ArchiveIcon, GridIcon, IncidentIcon } from "../components/Icons.js";
-import { InventoryPanel } from "../components/InventoryPanel.js";
-import { JournalPanel } from "../components/JournalPanel.js";
-import { MemoryPanel } from "../components/MemoryPanel.js";
-import { SystemMenu } from "../components/SystemMenu.js";
 import { usePanelModals } from "../../../engine/hooks/usePanelModals.js";
 import type { ModalDescriptor } from "../../../engine/ui/ModalContext.js";
 import type { GameView, ItemExamineView } from "../../../engine/types/game.js";
+import {
+  useTextGameComponents,
+  type TextGameComponents,
+} from "../../../engine/ui/textGame/TextGamePresentation.js";
 import { UI_SHORTCUTS } from "../uiConfig.js";
 
 type GamePanelId = "inventory" | "memory" | "journal" | "system";
@@ -37,13 +37,15 @@ interface GamePanelModalContext {
 function createGamePanelModal(
   id: GamePanelId,
   ctx: GamePanelModalContext,
+  components: TextGameComponents,
   t: (key: string) => string,
   onClose: () => void,
 ): ModalDescriptor {
   const shared = { id, size: "lg" as const, onClose };
 
   switch (id) {
-    case "inventory":
+    case "inventory": {
+      const Inventory = components.Inventory;
       return {
         ...shared,
         title: t("inventory.title"),
@@ -51,7 +53,7 @@ function createGamePanelModal(
         icon: <GridIcon size={12} />,
         tone: "green",
         children: (
-          <InventoryPanel
+          <Inventory
             view={ctx.view}
             examine={ctx.examine}
             commandPending={ctx.commandPending}
@@ -60,25 +62,31 @@ function createGamePanelModal(
           />
         ),
       };
-    case "memory":
+    }
+    case "memory": {
+      const Intel = components.Intel;
       return {
         ...shared,
         title: t("memory.title"),
         eyebrow: t("memory.eyebrow"),
         icon: <ArchiveIcon size={14} />,
         tone: "cyan",
-        children: <MemoryPanel memories={ctx.memoryKeys} meta={ctx.view.meta} />,
+        children: <Intel memories={ctx.memoryKeys} meta={ctx.view.meta} />,
       };
-    case "journal":
+    }
+    case "journal": {
+      const Journal = components.Journal;
       return {
         ...shared,
         title: t("journal.title"),
         eyebrow: t("journal.eyebrow"),
         icon: <IncidentIcon size={12} />,
         tone: "copper",
-        children: <JournalPanel events={ctx.view.events} meta={ctx.view.meta} />,
+        children: <Journal events={ctx.view.events} meta={ctx.view.meta} />,
       };
-    case "system":
+    }
+    case "system": {
+      const SystemMenu = components.SystemMenu;
       return {
         id,
         size: "md",
@@ -106,16 +114,19 @@ function createGamePanelModal(
           />
         ),
       };
+    }
   }
 }
 
 export function useGamePanelModals(ctx: GamePanelModalContext) {
   const { t } = useTranslation();
+  const components = useTextGameComponents();
 
   const createModal = useCallback(
-    (id: GamePanelId, onClose: () => void) => createGamePanelModal(id, ctx, t, onClose),
+    (id: GamePanelId, onClose: () => void) => createGamePanelModal(id, ctx, components, t, onClose),
     [
       t,
+      components,
       ctx.examine,
       ctx.commandPending,
       ctx.view,

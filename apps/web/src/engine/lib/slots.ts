@@ -1,6 +1,11 @@
 import { parseSavePreview } from "./savePreview.js";
-
-export const SLOT_COUNT = 3;
+import {
+  clearPlayerStorage,
+  getWebPlayerOptions,
+  readPlayerStorage,
+  removePlayerStorage,
+  writePlayerStorage,
+} from "./playerConfig.js";
 
 export interface SlotData {
   state: string;
@@ -21,7 +26,15 @@ export interface ChapterCheckpoint {
 }
 
 function slotStorageKey(index: number): string {
+  return `save-slot:${index}`;
+}
+
+function legacySlotStorageKey(index: number): string {
   return `blackbox_save_slot_${index}`;
+}
+
+export function getSlotCount(): number {
+  return getWebPlayerOptions().saves.slots;
 }
 
 function normalizedPlaytime(value: unknown): number {
@@ -30,7 +43,7 @@ function normalizedPlaytime(value: unknown): number {
 
 export function readSlot(index: number): SlotData | null {
   try {
-    const raw = localStorage.getItem(slotStorageKey(index));
+    const raw = readPlayerStorage(slotStorageKey(index), legacySlotStorageKey(index));
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<SlotData>;
     if (typeof parsed.state !== "string" || typeof parsed.savedAt !== "string") return null;
@@ -78,7 +91,7 @@ export function writeSlot(
       randomSeed: preview?.randomSeed ?? null,
       chapterCheckpoint: existing?.chapterCheckpoint ?? null,
     };
-    localStorage.setItem(slotStorageKey(index), JSON.stringify(data));
+    writePlayerStorage(slotStorageKey(index), JSON.stringify(data));
   } catch {}
 }
 
@@ -108,7 +121,7 @@ export function writeChapterCheckpoint(
         location,
       },
     };
-    localStorage.setItem(slotStorageKey(index), JSON.stringify(data));
+    writePlayerStorage(slotStorageKey(index), JSON.stringify(data));
   } catch {}
 }
 
@@ -117,7 +130,7 @@ export function addSlotPlaytime(index: number, playtimeDeltaMs: number): void {
     const existing = readSlot(index);
     const delta = normalizedPlaytime(playtimeDeltaMs);
     if (!existing || delta === 0) return;
-    localStorage.setItem(
+    writePlayerStorage(
       slotStorageKey(index),
       JSON.stringify({
         ...existing,
@@ -129,40 +142,23 @@ export function addSlotPlaytime(index: number, playtimeDeltaMs: number): void {
 }
 
 export function clearSlot(index: number): void {
-  try {
-    localStorage.removeItem(slotStorageKey(index));
-  } catch {}
+  removePlayerStorage(slotStorageKey(index));
 }
 
-const PLAYER_DATA_PREFIX = "blackbox_";
-
 export function clearAllPlayerData(): void {
-  try {
-    const keysToRemove: string[] = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key?.startsWith(PLAYER_DATA_PREFIX)) {
-        keysToRemove.push(key);
-      }
-    }
-    for (const key of keysToRemove) {
-      localStorage.removeItem(key);
-    }
-  } catch {}
+  clearPlayerStorage();
 }
 
 export function readAllSlots(): (SlotData | null)[] {
-  return Array.from({ length: SLOT_COUNT }, (_, i) => readSlot(i));
+  return Array.from({ length: getSlotCount() }, (_, i) => readSlot(i));
 }
-
-const LAST_USED_SLOT_KEY = `${PLAYER_DATA_PREFIX}last_used_slot`;
 
 export function readLastUsedSlot(): number | null {
   try {
-    const raw = localStorage.getItem(LAST_USED_SLOT_KEY);
+    const raw = readPlayerStorage("last-used-slot", "blackbox_last_used_slot");
     if (raw === null || raw === "") return null;
     const index = Number(raw);
-    return Number.isInteger(index) && index >= 0 && index < SLOT_COUNT ? index : null;
+    return Number.isInteger(index) && index >= 0 && index < getSlotCount() ? index : null;
   } catch {
     return null;
   }
@@ -171,9 +167,9 @@ export function readLastUsedSlot(): number | null {
 export function persistLastUsedSlot(index: number | null): void {
   try {
     if (index === null) {
-      localStorage.removeItem(LAST_USED_SLOT_KEY);
+      removePlayerStorage("last-used-slot");
     } else {
-      localStorage.setItem(LAST_USED_SLOT_KEY, String(index));
+      writePlayerStorage("last-used-slot", String(index));
     }
   } catch {}
 }

@@ -8,8 +8,9 @@ Game-owned presentation for Silent Archive:
 - keyboard shortcuts, animation timing, and music fades
 - character, stat, notification, and resolution presentation
 
-Thin wrappers in `hooks/useAudio.ts`, `lib/characters.ts`, and `lib/notifications.ts` configure
-generic engine behavior with Silent Archive fades, labels, colors, and stat ordering.
+The game configures the engine-owned `TextGamePlayerApp` with Silent Archive audio, timing, header,
+transition, and confirmation overrides. Character and notification adapters supply labels, colors,
+and stat ordering to otherwise generic engine behavior.
 
 Engine protocol and browser-runtime changes belong in `src/engine/`. Silent Archive may import the
 engine, but the engine must not import this directory.

@@ -36,6 +36,8 @@ export function SystemMenu({
     musicVolume,
     sfxVolume,
     analyticsEnabled,
+    analyticsAvailable,
+    canToggleTheme,
     toggleTheme,
     toggleAnalytics,
     cycleLogLevel,
@@ -117,15 +119,17 @@ export function SystemMenu({
       <div className="sys-menu-section">
         <div className="sys-menu-section-hdr">{t("menu.systemUtilities")}</div>
         <div className="sys-menu-utility-strip" role="group">
-          <button className="sys-menu-utility-btn" role="menuitem" onClick={toggleTheme}>
-            <span className="sys-menu-utility-icon">
-              {theme === "dark" ? <MoonIcon size={9} /> : <SunIcon size={9} />}
-            </span>
-            <span>{t("menu.theme")}</span>
-            <span className="sys-menu-utility-value">
-              {theme === "dark" ? t("actions.dark") : t("actions.light")}
-            </span>
-          </button>
+          {canToggleTheme && (
+            <button className="sys-menu-utility-btn" role="menuitem" onClick={toggleTheme}>
+              <span className="sys-menu-utility-icon">
+                {theme === "dark" ? <MoonIcon size={9} /> : <SunIcon size={9} />}
+              </span>
+              <span>{t("menu.theme")}</span>
+              <span className="sys-menu-utility-value">
+                {theme === "dark" ? t("actions.dark") : t("actions.light")}
+              </span>
+            </button>
+          )}
           <button className="sys-menu-utility-btn" role="menuitem" onClick={cycleLogLevel}>
             <span className="sys-menu-utility-icon" style={{ fontSize: "0.6rem" }}>
               ◉
@@ -135,15 +139,17 @@ export function SystemMenu({
               {t(`menu.logLevels.${logLevel}`)}
             </span>
           </button>
-          <button className="sys-menu-utility-btn" role="menuitem" onClick={toggleAnalytics}>
-            <span className="sys-menu-utility-icon" aria-hidden>
-              ◌
-            </span>
-            <span>{t("menu.analytics")}</span>
-            <span className="sys-menu-utility-value">
-              {analyticsEnabled ? t("actions.on") : t("actions.off")}
-            </span>
-          </button>
+          {analyticsAvailable && (
+            <button className="sys-menu-utility-btn" role="menuitem" onClick={toggleAnalytics}>
+              <span className="sys-menu-utility-icon" aria-hidden>
+                ◌
+              </span>
+              <span>{t("menu.analytics")}</span>
+              <span className="sys-menu-utility-value">
+                {analyticsEnabled ? t("actions.on") : t("actions.off")}
+              </span>
+            </button>
+          )}
           <button className="sys-menu-utility-btn" role="menuitem" onClick={onCreateSupportBundle}>
             <span className="sys-menu-utility-icon">
               <IncidentIcon size={9} />
