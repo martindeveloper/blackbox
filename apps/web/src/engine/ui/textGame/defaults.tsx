@@ -32,7 +32,7 @@ import { indexCharacters } from "../../lib/characters.js";
 function LockReason({ reason }: { reason: string }) {
   const { t } = useTranslation();
   return (
-    <span className="choice-lock-reason">{t("choices.locked", { defaultValue: reason })}</span>
+    <span className="bb-default-choice__lock">{t("choices.locked", { defaultValue: reason })}</span>
   );
 }
 
@@ -113,7 +113,7 @@ export function DefaultChoices({
     visible,
   ]);
 
-  if (!visible) return <div className="choice-list-footer" style={{ borderColor }} />;
+  if (!visible) return <div className="bb-default-choices" style={{ borderColor }} />;
 
   const actions = isGameOver
     ? [
@@ -128,22 +128,24 @@ export function DefaultChoices({
         : null;
 
   return (
-    <div className="choice-list-footer" style={{ borderColor }}>
-      <div className="choice-list-shell">
-        <div className="section-rule response-rule">{t("choices.selectResponse")}</div>
+    <div className="bb-default-choices" style={{ borderColor }}>
+      <div className="bb-default-choices__shell">
+        <div className="bb-default-section-rule">{t("choices.selectResponse")}</div>
         {isRolling ? (
-          <div className="choice-resolving">{t("choices.resolving")}</div>
+          <div className="bb-default-choices__resolving">{t("choices.resolving")}</div>
         ) : (
-          <div className="choice-list-stack">
+          <div className="bb-default-choices__list">
             {actions
               ? actions.map((action, index) => (
                   <button
                     key={action.label}
                     type="button"
-                    className={`choice-btn ${choiceClass}`}
+                    className={`bb-default-choice ${choiceClass}`}
                     onClick={action.action}
                   >
-                    <span className="choice-num">[{String(index + 1).padStart(2, "0")}]</span>
+                    <span className="bb-default-choice__number">
+                      [{String(index + 1).padStart(2, "0")}]
+                    </span>
                     <span>{action.label}</span>
                   </button>
                 ))
@@ -151,17 +153,19 @@ export function DefaultChoices({
                   <button
                     key={choice.id}
                     type="button"
-                    className={`choice-btn ${choiceClass}${choice.enabled ? "" : " choice-item--disabled"}`}
+                    className={`bb-default-choice ${choiceClass}${choice.enabled ? "" : " bb-default-choice--disabled"}`}
                     disabled={!choice.enabled}
                     onClick={() =>
                       dispatchChoice(choice, { onChoose, onRestart, onOpenLoad, onOpenMainMenu })
                     }
                   >
-                    <span className="choice-num">[{String(index + 1).padStart(2, "0")}]</span>
+                    <span className="bb-default-choice__number">
+                      [{String(index + 1).padStart(2, "0")}]
+                    </span>
                     <span>
                       {choice.label}
                       {choice.check && (
-                        <span className="choice-check-tag">
+                        <span className="bb-default-choice__check">
                           {choice.check.label ?? choice.check.stat.toUpperCase()} ·{" "}
                           {t("choices.dc")} {choice.check.difficulty}
                         </span>
@@ -186,23 +190,25 @@ export function DefaultNarrative({ block, characters, isGameOver, prevBlock }: N
     Boolean(block.speaker) && prevBlock?.kind === block.kind && prevBlock.speaker === block.speaker;
 
   if (block.kind === "stage_direction") {
-    return <p className="stage-direction">{block.text}</p>;
+    return <p className="bb-default-narrative__stage-direction">{block.text}</p>;
   }
   if (block.kind === "dialogue" || block.kind === "thought") {
     return (
       <div
-        className={`${block.kind}-block${continuation ? ` ${block.kind}-block--continuation` : ""}`}
+        className={`bb-default-narrative__${block.kind}${continuation ? ` bb-default-narrative__${block.kind}--continuation` : ""}`}
       >
-        {!continuation && speaker && <div className={`${block.kind}-speaker`}>{speaker}</div>}
-        <p className={`${block.kind}-line`}>
-          {block.emotion && <span className="dialogue-mood-inline">{block.emotion}</span>}
+        {!continuation && speaker && <div className="bb-default-narrative__speaker">{speaker}</div>}
+        <p className="bb-default-narrative__line">
+          {block.emotion && <span className="bb-default-narrative__emotion">{block.emotion}</span>}
           {block.text}
         </p>
       </div>
     );
   }
   return (
-    <p className={`narrative-para${isGameOver ? " narrative-para--game-over" : ""}`}>
+    <p
+      className={`bb-default-narrative__paragraph${isGameOver ? " bb-default-narrative__paragraph--game-over" : ""}`}
+    >
       {block.text}
     </p>
   );
@@ -212,12 +218,12 @@ export function DefaultResolution({ rolls, notifications }: ResolutionProps) {
   const { t } = useTranslation();
   if (!rolls.length && !notifications.length) return null;
   return (
-    <div className="resolution-entry-stack">
-      <div className="section-rule">{t("resolution.title")}</div>
+    <div className="bb-default-resolution">
+      <div className="bb-default-section-rule">{t("resolution.title")}</div>
       {rolls.map((roll, index) => (
         <div
           key={`${roll.kind}-${index}`}
-          className={`roll-entry${roll.kind === "skillCheck" ? (roll.success ? " roll-entry--pass" : " roll-entry--fail") : ""}`}
+          className={`bb-default-roll${roll.kind === "skillCheck" ? (roll.success ? " bb-default-roll--pass" : " bb-default-roll--fail") : ""}`}
         >
           <strong>{roll.label ?? (roll.kind === "skillCheck" ? roll.stat : roll.kind)}</strong>
           <span>
@@ -232,7 +238,7 @@ export function DefaultResolution({ rolls, notifications }: ResolutionProps) {
       {notifications.map((notification) => (
         <div
           key={notification.id}
-          className={`ui-notification ui-notification--${notification.category}`}
+          className={`bb-default-notification bb-default-notification--${notification.category}`}
         >
           {notification.category === "stat"
             ? `${formatRefId(notification.stat)} ${notification.change} ${notification.amount}`
@@ -255,16 +261,16 @@ export function DefaultVitals({ playerStats, borderColor, controls }: VitalsProp
   const stats = Object.entries(playerStats ?? {});
   if (!stats.length && !controls) return null;
   return (
-    <div className="vitals-command-line" style={{ borderColor }}>
-      <div className="vitals-bank">
+    <div className="bb-default-vitals" style={{ borderColor }}>
+      <div className="bb-default-vitals__stats">
         {stats.map(([key, value]) => (
-          <div key={key} className="stat-gauge">
-            <div className="stat-gauge-val">{value}</div>
-            <div className="stat-gauge-key">{statLabel(key)}</div>
+          <div key={key} className="bb-default-stat">
+            <div className="bb-default-stat__value">{value}</div>
+            <div className="bb-default-stat__key">{statLabel(key)}</div>
           </div>
         ))}
       </div>
-      {controls && <div className="vitals-command-bank">{controls}</div>}
+      {controls && <div className="bb-default-vitals__controls">{controls}</div>}
     </div>
   );
 }
@@ -305,15 +311,15 @@ export function DefaultInventory({
   }, [onExamine, selectedRef, view.inventory_items]);
 
   if (!view.inventory_items.length)
-    return <p className="inventory-empty">{t("inventory.empty")}</p>;
+    return <p className="bb-default-empty-state">{t("inventory.empty")}</p>;
   return (
-    <div className="inventory-modal-content inventory-split">
-      <div className="inventory-grid">
+    <div className="bb-default-inventory">
+      <div className="bb-default-inventory__grid">
         {view.inventory_items.map((item) => (
           <button
             key={item.ref_id}
             type="button"
-            className={`inventory-slot${selectedRef === item.ref_id ? " inventory-slot--selected" : ""}`}
+            className={`bb-default-inventory__slot${selectedRef === item.ref_id ? " bb-default-inventory__slot--selected" : ""}`}
             onClick={() => {
               setSelectedRef(item.ref_id);
               onExamine(item.ref_id);
@@ -324,7 +330,7 @@ export function DefaultInventory({
           </button>
         ))}
       </div>
-      <aside className="inventory-detail-pane">
+      <aside className="bb-default-inventory__detail">
         {selected && <h3>{selected.name}</h3>}
         {commandPending && examine?.ref_id !== selectedRef ? (
           <p>{t("inventory.loading")}</p>
@@ -353,11 +359,11 @@ export function DefaultInventory({
 
 export function DefaultIntel({ memories, meta }: IntelProps) {
   const { t } = useTranslation();
-  if (!memories.length) return <p className="memory-empty">{t("memory.empty")}</p>;
+  if (!memories.length) return <p className="bb-default-empty-state">{t("memory.empty")}</p>;
   return (
-    <div className="memory-grid">
+    <div className="bb-default-intel">
       {memories.map((id) => (
-        <article key={id} className="memory-card">
+        <article key={id} className="bb-default-intel__card">
           <h3>{meta.flags[id]?.title ?? formatRefId(id)}</h3>
           {meta.flags[id]?.description && <p>{meta.flags[id].description}</p>}
         </article>
@@ -368,11 +374,11 @@ export function DefaultIntel({ memories, meta }: IntelProps) {
 
 export function DefaultJournal({ events, meta }: JournalProps) {
   const { t } = useTranslation();
-  if (!events.length) return <p className="journal-empty">{t("journal.empty")}</p>;
+  if (!events.length) return <p className="bb-default-empty-state">{t("journal.empty")}</p>;
   return (
-    <ol className="journal-timeline">
+    <ol className="bb-default-journal">
       {events.map((id, index) => (
-        <li key={`${index}-${id}`} className="journal-entry">
+        <li key={`${index}-${id}`} className="bb-default-journal__entry">
           <strong>{meta.events[id]?.title ?? formatRefId(id)}</strong>
           {meta.events[id]?.description && <p>{meta.events[id].description}</p>}
         </li>
@@ -390,7 +396,7 @@ export function DefaultSystemMenu({
 }: SystemMenuProps) {
   const { t } = useTranslation();
   return (
-    <div className="text-game-system-menu">
+    <div className="bb-default-system-menu">
       <button type="button" onClick={onSave}>
         {t("save.title")}
       </button>
@@ -422,17 +428,17 @@ export function DefaultMainMenu({
   const slotCount = getSlotCount();
 
   return (
-    <div className="text-game-main-menu">
+    <div className="bb-default-main-menu">
       <header>
         <h1>{t("mainMenu.title", { defaultValue: "SELECT A SAVE" })}</h1>
       </header>
-      <div className="text-game-slot-grid">
+      <div className="bb-default-main-menu__slots">
         {Array.from({ length: slotCount }, (_, index) => {
           const slot = slots[index];
           return (
             <article
               key={index}
-              className={`text-game-slot${selectedSlot === index ? " text-game-slot--selected" : ""}`}
+              className={`bb-default-main-menu__slot${selectedSlot === index ? " bb-default-main-menu__slot--selected" : ""}`}
             >
               <button type="button" onClick={() => setSelectedSlot(index)}>
                 <strong>
@@ -460,7 +466,7 @@ export function DefaultMainMenu({
         })}
       </div>
       {selectedSlot !== null && (
-        <div className="text-game-menu-actions">
+        <div className="bb-default-main-menu__actions">
           {slots[selectedSlot] && (
             <button
               type="button"
@@ -576,8 +582,8 @@ export function DefaultGameScreen({
   const Choices = components.Choices;
 
   return (
-    <div className="text-game-screen">
-      <header className="text-game-location">
+    <div className="bb-default-game-screen">
+      <header className="bb-default-game-screen__location">
         <h2>{view.title ?? view.node_id}</h2>
         <span>{view.chapter_title}</span>
       </header>
@@ -585,7 +591,7 @@ export function DefaultGameScreen({
         playerStats={view.player_stats}
         borderColor="var(--bb-ui-border)"
         controls={
-          <div className="text-game-panel-actions">
+          <div className="bb-default-game-screen__panel-actions">
             <button type="button" onClick={() => openPanel("inventory")}>
               {t("inventory.title")} ({view.inventory_items.length})
             </button>
@@ -601,8 +607,8 @@ export function DefaultGameScreen({
           </div>
         }
       />
-      <main className="text-game-narrative">
-        <div className="narrative-stack">
+      <main className="bb-default-game-screen__narrative">
+        <div className="bb-default-game-screen__narrative-stack">
           {view.text.map((block, index) => (
             <Narrative
               key={`${view.node_id}-${index}`}
@@ -622,7 +628,7 @@ export function DefaultGameScreen({
         isTerminal={isTerminal}
         isRolling={commandPending}
         visible
-        choiceClass="choice-item"
+        choiceClass="bb-default-choice-item"
         borderColor="var(--bb-ui-border)"
         onChoose={onChoose}
         onContinue={onContinue}
