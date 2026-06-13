@@ -486,6 +486,161 @@
     0 24px 48px rgba(42, 34, 27, 0.14);
 }
 
+:root[data-theme="light"] .modal-panel--subject .modal-header {
+  border-bottom-color: color-mix(in srgb, var(--modal-accent) 22%, transparent);
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--modal-accent) 6%, transparent),
+      transparent 65%
+    ),
+    color-mix(in srgb, var(--modal-accent) 3%, transparent);
+}
+
+:root[data-theme="light"] .modal-panel--subject .modal-icon {
+  color: color-mix(in srgb, var(--modal-accent) 55%, #1e1710);
+  opacity: 1;
+  filter: none;
+}
+
+:root[data-theme="light"] .modal-panel--subject .modal-eyebrow {
+  color: color-mix(in srgb, var(--modal-accent) 55%, #544539);
+}
+
+:root[data-theme="light"] .modal-panel--subject .modal-title {
+  color: color-mix(in srgb, var(--modal-accent) 48%, #1e1710);
+  text-shadow: none;
+}
+
+:root[data-theme="light"] .modal-panel--green {
+  background:
+    radial-gradient(
+      circle at 82% 16%,
+      color-mix(in srgb, var(--panel-inventory) 8%, transparent),
+      transparent 32%
+    ),
+    radial-gradient(
+      circle at 12% 82%,
+      color-mix(in srgb, var(--panel-inventory-deep) 5%, transparent),
+      transparent 28%
+    ),
+    linear-gradient(160deg, #ece8e0 0%, #e2ddd4 58%, #d8d2c8 100%);
+  border-color: color-mix(in srgb, var(--panel-inventory) 28%, transparent);
+  box-shadow:
+    0 0 60px color-mix(in srgb, var(--panel-inventory) 5%, transparent),
+    0 24px 48px rgba(42, 34, 27, 0.14);
+}
+
+:root[data-theme="light"] .modal-panel--green .modal-header {
+  border-bottom-color: color-mix(in srgb, var(--panel-inventory) 22%, transparent);
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--panel-inventory) 8%, transparent),
+      transparent 65%
+    ),
+    color-mix(in srgb, var(--panel-inventory) 4%, transparent);
+}
+
+:root[data-theme="light"] .modal-panel--green .modal-icon {
+  color: var(--panel-inventory-deep);
+  filter: none;
+  opacity: 1;
+}
+
+:root[data-theme="light"] .modal-panel--green .modal-eyebrow {
+  color: color-mix(in srgb, var(--panel-inventory) 62%, #544539);
+}
+
+:root[data-theme="light"] .modal-panel--green .modal-title {
+  color: color-mix(in srgb, var(--panel-inventory-deep) 72%, #1e1710);
+  text-shadow: none;
+}
+
+:root[data-theme="light"] .modal-panel--cyan {
+  background:
+    radial-gradient(
+      circle at 78% 22%,
+      color-mix(in srgb, var(--panel-intel) 8%, transparent),
+      transparent 34%
+    ),
+    linear-gradient(160deg, #e8ecec 0%, #dde4e4 58%, #d2dada 100%);
+  border-color: color-mix(in srgb, var(--panel-intel) 28%, transparent);
+  box-shadow:
+    0 0 60px color-mix(in srgb, var(--panel-intel) 5%, transparent),
+    0 24px 48px rgba(42, 34, 27, 0.14);
+}
+
+:root[data-theme="light"] .modal-panel--cyan .modal-header {
+  border-bottom-color: color-mix(in srgb, var(--panel-intel) 22%, transparent);
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--panel-intel) 8%, transparent),
+      transparent 65%
+    ),
+    color-mix(in srgb, var(--panel-intel) 4%, transparent);
+}
+
+:root[data-theme="light"] .modal-panel--cyan .modal-icon {
+  color: var(--color-cyan);
+  filter: none;
+  opacity: 1;
+}
+
+:root[data-theme="light"] .modal-panel--cyan .modal-eyebrow {
+  color: color-mix(in srgb, var(--panel-intel) 62%, #544539);
+}
+
+:root[data-theme="light"] .modal-panel--cyan .modal-title {
+  color: color-mix(in srgb, var(--panel-intel) 55%, #1e1710);
+  text-shadow: none;
+}
+
+:root[data-theme="light"] .modal-panel--copper {
+  background:
+    radial-gradient(
+      circle at 16% 18%,
+      color-mix(in srgb, var(--panel-journal) 9%, transparent),
+      transparent 32%
+    ),
+    linear-gradient(160deg, #ede7df 0%, #e4dcd2 58%, #dbd2c6 100%);
+  border-color: color-mix(in srgb, var(--panel-journal) 28%, transparent);
+  box-shadow:
+    0 0 60px color-mix(in srgb, var(--panel-journal) 5%, transparent),
+    0 24px 48px rgba(42, 34, 27, 0.14);
+}
+
+:root[data-theme="light"] .modal-panel--copper .modal-header {
+  border-bottom-color: color-mix(in srgb, var(--panel-journal) 22%, transparent);
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--panel-journal) 8%, transparent),
+      transparent 65%
+    ),
+    color-mix(in srgb, var(--panel-journal) 4%, transparent);
+}
+
+:root[data-theme="light"] .modal-panel--copper .modal-icon {
+  color: var(--panel-journal);
+  filter: none;
+  opacity: 1;
+}
+
+:root[data-theme="light"] .modal-panel--copper .modal-eyebrow {
+  color: color-mix(in srgb, var(--panel-journal) 62%, #544539);
+}
+
+:root[data-theme="light"] .modal-panel--copper .modal-title {
+  color: color-mix(in srgb, var(--panel-journal) 52%, #1e1710);
+  text-shadow: none;
+}
+
+:root[data-theme="light"] .modal-body {
+  scrollbar-color: rgba(100, 80, 62, 0.22) transparent;
+}
+
 .modal-panel--md {
   max-width: 34rem;
 }

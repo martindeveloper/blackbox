@@ -525,6 +525,43 @@
   }
 }
 
+:root[data-theme="light"] .mobile-landscape-notice {
+  background:
+    radial-gradient(circle at 50% 46%, rgba(143, 79, 55, 0.06), transparent 42%), var(--color-bg);
+}
+
+:root[data-theme="light"] .mobile-landscape-grid {
+  background-image:
+    linear-gradient(rgba(143, 79, 55, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(143, 79, 55, 0.08) 1px, transparent 1px);
+}
+
+:root[data-theme="light"] .mobile-landscape-card {
+  border-color: rgba(143, 79, 55, 0.28);
+  background: linear-gradient(145deg, rgba(232, 227, 218, 0.98), rgba(214, 207, 196, 0.98));
+  box-shadow:
+    0 0 0 1px rgba(143, 79, 55, 0.05),
+    0 0 48px rgba(143, 79, 55, 0.06),
+    0 24px 80px rgba(42, 34, 27, 0.12);
+}
+
+:root[data-theme="light"] .mobile-landscape-card h2 {
+  text-shadow: none;
+}
+
+:root[data-theme="light"] .mobile-landscape-device {
+  filter: drop-shadow(0 0 12px rgba(143, 79, 55, 0.18));
+}
+
+:root[data-theme="light"] .mobile-landscape-device-screen {
+  border-color: rgba(143, 79, 55, 0.22);
+  background: rgba(143, 79, 55, 0.04);
+}
+
+:root[data-theme="light"] .mobile-landscape-status {
+  color: rgba(143, 79, 55, 0.72);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .mobile-landscape-card,
   .mobile-landscape-rotate-arrow,

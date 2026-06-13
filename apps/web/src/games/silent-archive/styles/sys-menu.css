@@ -110,6 +110,58 @@
   background: rgba(143, 79, 55, 0.055);
 }
 
+:root[data-theme="light"] .modal-panel--subject .modal-header .sys-btn {
+  color: color-mix(in srgb, var(--modal-accent) 55%, #544539);
+  border-color: color-mix(in srgb, var(--modal-accent) 22%, transparent);
+  background: color-mix(in srgb, var(--modal-accent) 4%, transparent);
+}
+
+:root[data-theme="light"] .modal-panel--subject .modal-header .sys-btn:hover,
+:root[data-theme="light"] .modal-panel--subject .modal-header .sys-btn:focus-visible {
+  color: color-mix(in srgb, var(--modal-accent) 45%, #1e1710);
+  border-color: color-mix(in srgb, var(--modal-accent) 34%, transparent);
+  background: color-mix(in srgb, var(--modal-accent) 8%, transparent);
+}
+
+:root[data-theme="light"] .modal-panel--green .modal-header .sys-btn {
+  color: color-mix(in srgb, var(--panel-inventory-deep) 78%, #544539);
+  border-color: color-mix(in srgb, var(--panel-inventory) 24%, transparent);
+  background: color-mix(in srgb, var(--panel-inventory) 5%, transparent);
+}
+
+:root[data-theme="light"] .modal-panel--green .modal-header .sys-btn:hover,
+:root[data-theme="light"] .modal-panel--green .modal-header .sys-btn:focus-visible {
+  color: var(--panel-inventory-deep);
+  border-color: color-mix(in srgb, var(--panel-inventory) 36%, transparent);
+  background: color-mix(in srgb, var(--panel-inventory) 10%, transparent);
+}
+
+:root[data-theme="light"] .modal-panel--cyan .modal-header .sys-btn {
+  color: color-mix(in srgb, var(--panel-intel) 72%, #544539);
+  border-color: color-mix(in srgb, var(--panel-intel) 24%, transparent);
+  background: color-mix(in srgb, var(--panel-intel) 5%, transparent);
+}
+
+:root[data-theme="light"] .modal-panel--cyan .modal-header .sys-btn:hover,
+:root[data-theme="light"] .modal-panel--cyan .modal-header .sys-btn:focus-visible {
+  color: color-mix(in srgb, var(--panel-intel) 55%, #1e1710);
+  border-color: color-mix(in srgb, var(--panel-intel) 36%, transparent);
+  background: color-mix(in srgb, var(--panel-intel) 10%, transparent);
+}
+
+:root[data-theme="light"] .modal-panel--copper .modal-header .sys-btn {
+  color: color-mix(in srgb, var(--panel-journal) 72%, #544539);
+  border-color: color-mix(in srgb, var(--panel-journal) 24%, transparent);
+  background: color-mix(in srgb, var(--panel-journal) 5%, transparent);
+}
+
+:root[data-theme="light"] .modal-panel--copper .modal-header .sys-btn:hover,
+:root[data-theme="light"] .modal-panel--copper .modal-header .sys-btn:focus-visible {
+  color: color-mix(in srgb, var(--panel-journal) 52%, #1e1710);
+  border-color: color-mix(in srgb, var(--panel-journal) 36%, transparent);
+  background: color-mix(in srgb, var(--panel-journal) 10%, transparent);
+}
+
 @keyframes sys-menu-in {
   from {
     opacity: 0;

@@ -189,6 +189,47 @@
 :root[data-theme="light"] .gmh-btn {
   color: rgba(80, 60, 40, 0.52);
 }
+
+:root[data-theme="light"] .gmh-btn--inventory {
+  color: color-mix(in srgb, var(--panel-inventory-deep) 82%, var(--color-muted));
+  border-color: color-mix(in srgb, var(--panel-inventory) 28%, transparent);
+  background: color-mix(in srgb, var(--panel-inventory) 8%, transparent);
+}
+
+:root[data-theme="light"] .gmh-btn--inventory:active {
+  background: color-mix(in srgb, var(--panel-inventory) 14%, transparent);
+}
+
+:root[data-theme="light"] .gmh-btn--memory {
+  color: color-mix(in srgb, var(--panel-intel) 78%, var(--color-muted));
+  border-color: color-mix(in srgb, var(--panel-intel) 26%, transparent);
+  background: color-mix(in srgb, var(--panel-intel) 7%, transparent);
+}
+
+:root[data-theme="light"] .gmh-btn--memory:active {
+  background: color-mix(in srgb, var(--panel-intel) 13%, transparent);
+}
+
+:root[data-theme="light"] .gmh-btn--journal {
+  color: color-mix(in srgb, var(--panel-journal) 78%, var(--color-muted));
+  border-color: color-mix(in srgb, var(--panel-journal) 28%, transparent);
+  background: color-mix(in srgb, var(--panel-journal) 7%, transparent);
+}
+
+:root[data-theme="light"] .gmh-btn--journal:active {
+  background: color-mix(in srgb, var(--panel-journal) 13%, transparent);
+}
+
+:root[data-theme="light"] .gmh-btn--system {
+  color: color-mix(in srgb, var(--color-accent) 78%, var(--color-muted));
+  border-color: rgba(100, 80, 62, 0.24);
+  background: rgba(65, 54, 43, 0.06);
+}
+
+:root[data-theme="light"] .gmh-btn--system:active {
+  background: rgba(143, 79, 55, 0.1);
+}
+
 :root[data-theme="light"] .gmh-stat-key {
   color: rgba(100, 70, 40, 0.45);
 }

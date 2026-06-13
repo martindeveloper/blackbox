@@ -374,3 +374,39 @@
 .character-portrait-slot--interactive:active {
   transform: translateY(0);
 }
+
+:root[data-theme="light"] .chapter-transition {
+  background: rgba(216, 210, 198, 0.88);
+  backdrop-filter: blur(18px) saturate(0.85);
+  -webkit-backdrop-filter: blur(18px) saturate(0.85);
+}
+
+:root[data-theme="light"] .ct-bar {
+  background: rgba(200, 193, 180, 0.92);
+}
+
+:root[data-theme="light"] .ct-bar::after {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(143, 79, 55, 0.12) 15%,
+    rgba(143, 79, 55, 0.32) 50%,
+    rgba(143, 79, 55, 0.12) 85%,
+    transparent 100%
+  );
+}
+
+:root[data-theme="light"] .ct-rule {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(143, 79, 55, 0.18) 15%,
+    rgba(143, 79, 55, 0.42) 50%,
+    rgba(143, 79, 55, 0.18) 85%,
+    transparent 100%
+  );
+}
+
+:root[data-theme="light"] .ct-title {
+  text-shadow: none;
+}

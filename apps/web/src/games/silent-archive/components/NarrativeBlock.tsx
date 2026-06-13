@@ -143,9 +143,7 @@ function CharacterBlock({
         }
       >
         {isContinuation && block.emotion ? (
-          <span className="dialogue-mood-inline" style={{ color: accent }}>
-            {block.emotion}
-          </span>
+          <span className="dialogue-mood-inline">{block.emotion}</span>
         ) : null}
         {block.text}
       </p>
