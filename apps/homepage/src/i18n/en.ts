@@ -449,7 +449,8 @@ export const en = {
         "Archive Complex 7-Meridian has been dark for fourteen months. No personnel contact. No maintenance pings. No distress signals. You are CASE, a company investigator sent to enter the facility, establish the facts, and file a final report.",
         "Descend through a facility that still preserves, classifies, and obeys. Follow maintenance logs, fractured testimony, and systems carrying out old orders; then decide what belongs in the record, and what its language was built to leave out.",
       ],
-      question: "When every record is technically correct, what has the system decided not to name?",
+      question:
+        "When every record is technically correct, what has the system decided not to name?",
       facts: [
         { label: "Format", value: "Choice-driven narrative" },
         { label: "Setting", value: "Corporate legal horror" },
