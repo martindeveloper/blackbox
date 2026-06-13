@@ -132,7 +132,10 @@ export function SilentArchivePage() {
               <p>{t("silentArchive.briefing.tags")}</p>
             </div>
 
-            <aside className="games-content-warning" aria-label={t("silentArchive.briefing.content_warning.label")}>
+            <aside
+              className="games-content-warning"
+              aria-label={t("silentArchive.briefing.content_warning.label")}
+            >
               <span className="games-content-warning-label">
                 {t("silentArchive.briefing.content_warning.label")}
               </span>

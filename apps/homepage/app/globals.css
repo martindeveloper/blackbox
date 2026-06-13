@@ -3661,6 +3661,7 @@ a {
   --games-ink: #e8dcc8;
   --games-black: #070706;
   --games-line: rgba(230, 209, 174, 0.2);
+  --games-section-line: rgba(230, 209, 174, 0.22);
   --games-rust: #d65f2e;
   background: var(--games-black);
   color: var(--games-ink);
@@ -3675,6 +3676,7 @@ a {
   display: flex;
   overflow: hidden;
   isolation: isolate;
+  border-bottom: 1px solid var(--games-section-line);
   background: #090909;
 }
 
@@ -4148,7 +4150,7 @@ a {
   min-height: min(42rem, 72svh);
   overflow: hidden;
   isolation: isolate;
-  border-block: 1px solid var(--transmission-line);
+  border-block: 1px solid var(--games-section-line);
   background:
     radial-gradient(circle at 76% 38%, var(--transmission-glow), transparent 24rem),
     linear-gradient(135deg, var(--transmission-bg), var(--transmission-bg-2) 68%);
@@ -4956,6 +4958,7 @@ a {
   --games-ink: #241910;
   --games-black: #e3d8c6;
   --games-line: rgba(48, 32, 20, 0.24);
+  --games-section-line: rgba(83, 66, 47, 0.22);
   --games-rust: #b84b27;
 }
 
@@ -4964,18 +4967,23 @@ a {
 }
 
 :root[data-theme="light"] .games-hero-image {
-  filter: saturate(0.34) sepia(0.28) brightness(1.15) contrast(0.82);
+  filter: saturate(0.52) sepia(0.16) brightness(1.06) contrast(0.94);
 }
 
 :root[data-theme="light"] .games-hero-wash {
   background:
     linear-gradient(
       90deg,
-      rgba(236, 226, 208, 0.94) 0%,
-      rgba(236, 226, 208, 0.52) 54%,
-      rgba(218, 205, 183, 0.76) 100%
+      rgba(236, 226, 208, 0.72) 0%,
+      rgba(236, 226, 208, 0.34) 54%,
+      rgba(218, 205, 183, 0.52) 100%
     ),
-    linear-gradient(0deg, #e3d8c6 0%, transparent 46%, rgba(237, 228, 212, 0.5) 100%);
+    linear-gradient(
+      0deg,
+      rgba(227, 216, 198, 0.72) 0%,
+      transparent 46%,
+      rgba(237, 228, 212, 0.32) 100%
+    );
 }
 
 :root[data-theme="light"] .games-hero-grid {
@@ -5000,6 +5008,25 @@ a {
 :root[data-theme="light"] .games-hero-thesis,
 :root[data-theme="light"] .games-status {
   color: rgba(36, 25, 16, 0.7);
+}
+
+:root[data-theme="light"] .games-hero-telemetry {
+  border-top-color: rgba(36, 25, 16, 0.32);
+  background: rgba(238, 229, 213, 0.55);
+  backdrop-filter: blur(6px);
+  padding-inline: 0.85rem;
+}
+
+:root[data-theme="light"] .games-hero-telemetry > div {
+  border-bottom-color: rgba(36, 25, 16, 0.24);
+}
+
+:root[data-theme="light"] .games-hero-telemetry span {
+  color: rgba(36, 25, 16, 0.56);
+}
+
+:root[data-theme="light"] .games-hero-telemetry strong {
+  color: #21170f;
 }
 
 :root[data-theme="light"] .games-title {
@@ -5115,8 +5142,13 @@ a {
 @media (max-width: 767px) {
   :root[data-theme="light"] .games-hero-wash {
     background:
-      linear-gradient(90deg, rgba(236, 226, 208, 0.88), rgba(218, 205, 183, 0.58)),
-      linear-gradient(0deg, #e3d8c6 0%, transparent 58%, rgba(237, 228, 212, 0.58) 100%);
+      linear-gradient(90deg, rgba(236, 226, 208, 0.66), rgba(218, 205, 183, 0.38)),
+      linear-gradient(
+        0deg,
+        rgba(227, 216, 198, 0.62) 0%,
+        transparent 58%,
+        rgba(237, 228, 212, 0.36) 100%
+      );
   }
 }
 
