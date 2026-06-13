@@ -165,8 +165,38 @@
 }
 
 .text-game-player-main {
+  position: relative;
   flex: 1;
   min-height: 0;
+  overflow: hidden;
+}
+
+.text-game-boot-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  background: var(--bb-ui-surface);
+  opacity: 1;
+  will-change: opacity;
+}
+
+.text-game-boot-layer--visible {
+  animation: text-game-boot-layer-in 0.7s ease-out both;
+}
+
+.text-game-boot-layer--exiting {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes text-game-boot-layer-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .text-game-boot-screen,
@@ -177,6 +207,16 @@
   padding: 2rem;
   color: var(--bb-ui-muted);
   text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .text-game-boot-layer--visible {
+    animation-duration: 0.2s;
+  }
+
+  .text-game-boot-layer--exiting {
+    transition-duration: 0.2s;
+  }
 }
 
 .text-game-boot-screen {

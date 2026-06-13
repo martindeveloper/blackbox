@@ -1,3 +1,7 @@
+.text-game-boot-layer {
+  background: var(--color-bg);
+}
+
 @keyframes boot-scan {
   0% {
     transform: translateY(-8%);

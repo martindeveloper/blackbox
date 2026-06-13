@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, type CSSProperties, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import { useTranslation } from "react-i18next";
 import { useAudio, resetMusicTracking as resetEngineMusicTracking } from "../../hooks/useAudio.js";
 import {
@@ -296,6 +304,12 @@ export function TextGamePlayerApp<FadeKind extends string>({
   const Header = config.Header ?? DefaultHeader;
   const BootScreen = config.BootScreen ?? DefaultBootScreen;
   const ChapterTransition = config.ChapterTransition ?? DefaultChapterTransition;
+  const bootActive = session.phase === "loading" || session.phase === "error";
+  const [showBootLayer, setShowBootLayer] = useState(bootActive);
+
+  useEffect(() => {
+    if (bootActive) setShowBootLayer(true);
+  }, [bootActive]);
 
   return (
     <div className={config.rootClassName ?? "text-game-player-app"} style={config.rootStyle}>
@@ -318,9 +332,7 @@ export function TextGamePlayerApp<FadeKind extends string>({
       />
 
       <main className="text-game-player-main">
-        {session.phase === "loading" || session.phase === "error" ? (
-          <BootScreen errorMessage={session.phase === "error" ? session.message : undefined} />
-        ) : session.phase === "selecting_slot" ? (
+        {session.phase === "selecting_slot" ? (
           <MainMenu
             menuLoading={menuLoading}
             initialSlot={session.returnedFromSlot}
@@ -328,7 +340,7 @@ export function TextGamePlayerApp<FadeKind extends string>({
             onRestartSlot={requestSlotRestart}
             onCreateSupportBundle={() => handleCreateSupportBundle(true)}
           />
-        ) : (
+        ) : session.phase === "ready" ? (
           <GameScreen
             view={session.view}
             lastRolls={lastRolls}
@@ -349,6 +361,20 @@ export function TextGamePlayerApp<FadeKind extends string>({
             onOpenMainMenu={goToMainMenu}
             onCreateSupportBundle={handleCreateSupportBundle}
           />
+        ) : null}
+
+        {showBootLayer && (
+          <div
+            className={`text-game-boot-layer text-game-boot-layer--${
+              bootActive ? "visible" : "exiting"
+            }`}
+            aria-hidden={bootActive ? undefined : "true"}
+            onTransitionEnd={(event) => {
+              if (event.currentTarget === event.target && !bootActive) setShowBootLayer(false);
+            }}
+          >
+            <BootScreen errorMessage={session.phase === "error" ? session.message : undefined} />
+          </div>
         )}
       </main>
 

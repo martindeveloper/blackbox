@@ -1471,11 +1471,7 @@
 
 :root[data-theme="light"] .memory-card-index {
   background:
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--panel-intel) 12%, transparent),
-      transparent
-    ),
+    linear-gradient(180deg, color-mix(in srgb, var(--panel-intel) 12%, transparent), transparent),
     color-mix(in srgb, var(--panel-intel) 6%, rgba(255, 255, 255, 0.6));
   color: color-mix(in srgb, var(--panel-intel) 62%, #1e1710);
 }

@@ -574,11 +574,7 @@
 :root[data-theme="light"] .modal-panel--cyan .modal-header {
   border-bottom-color: color-mix(in srgb, var(--panel-intel) 22%, transparent);
   background:
-    linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--panel-intel) 8%, transparent),
-      transparent 65%
-    ),
+    linear-gradient(90deg, color-mix(in srgb, var(--panel-intel) 8%, transparent), transparent 65%),
     color-mix(in srgb, var(--panel-intel) 4%, transparent);
 }
 

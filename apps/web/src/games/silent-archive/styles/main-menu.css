@@ -139,6 +139,18 @@
   align-items: center;
   justify-content: center;
   padding: 0 1rem;
+  animation: mm-boot-reveal 1s cubic-bezier(0.16, 0.76, 0.24, 1) both;
+}
+
+@keyframes mm-boot-reveal {
+  from {
+    opacity: 0;
+    transform: scale(1.008);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .mm-root--menu {

@@ -6,7 +6,16 @@
   place-items: center;
   background: #0b0b0d;
   color: #d6d6d8;
-  transition: opacity 0.4s ease;
+  transition:
+    opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+    background-color 0.8s ease;
+  will-change: opacity;
+}
+
+.bb-preloader-root--exiting {
+  opacity: 0;
+  background-color: #070503;
+  pointer-events: none;
 }
 
 .bb-preloader-content {
@@ -69,6 +78,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .bb-preloader-root {
+    transition-duration: 0.2s;
+  }
+
   .bb-preloader-spinner {
     animation-duration: 1.8s;
   }

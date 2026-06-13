@@ -62,12 +62,13 @@ export function bootGame(game: GameDefinition): void {
 
   function hidePreloader(): void {
     if (!preloader) return;
-    preloader.style.opacity = "0";
-    setTimeout(() => preloader.remove(), 450);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => preloader.classList.add("bb-preloader-root--exiting"));
+    });
+    setTimeout(() => preloader.remove(), 850);
   }
 
   function renderApp(): void {
-    hidePreloader();
     const GameApp = game.App;
     createRoot(appRoot).render(
       <StrictMode>
@@ -83,6 +84,7 @@ export function bootGame(game: GameDefinition): void {
         </I18nextProvider>
       </StrictMode>,
     );
+    hidePreloader();
   }
 
   function renderBootError(error: unknown): void {
