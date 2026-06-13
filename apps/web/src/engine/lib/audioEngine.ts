@@ -570,6 +570,14 @@ export class AudioEngine {
 
   private _syncPlayback(): void {
     if (!this._isRunning()) return;
+    // Undo the background gain-zero (see suspendForBackground). Reapplying the honest
+    // master target here means every resume path restores audibility uniformly, while
+    // a rebuild gets the correct value from a fresh masterGain in _getCtx.
+    if (this._masterGain && this._ctx) {
+      const target = this._masterMuted ? 0 : this._masterVol;
+      this._masterGain.gain.cancelScheduledValues(this._ctx.currentTime);
+      this._masterGain.gain.setValueAtTime(target, this._ctx.currentTime);
+    }
     for (const ch of this._channels.values()) {
       if (ch.active) this._startTrack(ch, ch.active);
     }
@@ -589,6 +597,15 @@ export class AudioEngine {
     logger.debug("audio", "Suspending for background", { state: this._state() });
     this._selfSuspended = true;
     this._recoveryPending = true;
+    // Slam the master gain to zero BEFORE stopping anything. When iOS tears down the
+    // audio session it repeats the last rendered quantum from the output ring buffer;
+    // if that quantum still held a full-amplitude slice of a looping track you get the
+    // loud "beep". Forcing the final quantum to silence means iOS repeats silence.
+    // Restored by _syncPlayback on resume (or by the fresh graph on rebuild).
+    if (this._masterGain) {
+      this._masterGain.gain.cancelScheduledValues(this._ctx.currentTime);
+      this._masterGain.gain.setValueAtTime(0, this._ctx.currentTime);
+    }
     this._haltAllTracks();
     if (this._state() === "running") {
       this._ctx.suspend().catch(() => {});
