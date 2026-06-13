@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { useTranslation } from "react-i18next";
 
 type Tab = {
@@ -40,7 +41,7 @@ export function EditorShowcase() {
         </div>
 
         <div className="editor-showcase-link-row">
-          <a className="editor-showcase-link" href="/editor">
+          <Link className="editor-showcase-link" href="/editor">
             Explore every editor feature
             <svg
               width="14"
@@ -53,7 +54,7 @@ export function EditorShowcase() {
             >
               <path d="M5 12h14M13 6l6 6-6 6" />
             </svg>
-          </a>
+          </Link>
         </div>
 
         <div className="editor-canvas">

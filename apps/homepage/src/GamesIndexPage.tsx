@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { Footer } from "./components/Footer";
 import "./i18n/index";
 
@@ -51,7 +52,7 @@ export function GamesIndexPage() {
             </div>
 
             <article className="game-catalog-card">
-              <a
+              <Link
                 className="game-catalog-visual"
                 href="/games/silent-archive"
                 style={{ position: "relative" }}
@@ -69,7 +70,7 @@ export function GamesIndexPage() {
                   <i />
                   Case file open
                 </span>
-              </a>
+              </Link>
 
               <div className="game-catalog-body">
                 <div className="game-catalog-meta">
@@ -89,10 +90,10 @@ export function GamesIndexPage() {
                   </p>
                 </div>
                 <div className="game-catalog-actions">
-                  <a className="game-catalog-detail" href="/games/silent-archive">
+                  <Link className="game-catalog-detail" href="/games/silent-archive">
                     Explore the case
                     <ArrowIcon />
-                  </a>
+                  </Link>
                   <a className="game-catalog-play" href="https://silentarchive.onbbx.com">
                     Play now
                     <ArrowIcon />

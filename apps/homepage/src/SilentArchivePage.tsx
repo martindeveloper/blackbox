@@ -121,8 +121,8 @@ export function SilentArchivePage() {
             <aside className="games-content-warning" aria-label="Content warning">
               <span className="games-content-warning-label">Content warning</span>
               <p>
-                This game explores psychological distress, institutional abuse, confinement,
-                death, assisted dying, identity disturbance, and morally difficult choices.
+                This game explores psychological distress, institutional abuse, confinement, death,
+                assisted dying, identity disturbance, and morally difficult choices.
               </p>
             </aside>
 

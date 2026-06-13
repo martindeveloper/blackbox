@@ -1,4 +1,5 @@
-import { useEffect, useState, type ReactElement } from "react";
+import Link from "next/link";
+import { useEffect, useState, type ReactElement, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { cycleTheme, type ThemeMode } from "../hooks/useTheme";
 import { LogoMark } from "./LogoMark";
@@ -89,6 +90,31 @@ type Props = {
   items?: NavItem[];
 };
 
+function NavAnchor({
+  href,
+  className,
+  children,
+  ...rest
+}: {
+  href: string;
+  className?: string;
+  children: ReactNode;
+} & Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, "href">) {
+  if (href.startsWith("/")) {
+    return (
+      <Link href={href} className={className} {...rest}>
+        {children}
+      </Link>
+    );
+  }
+
+  return (
+    <a href={href} className={className} {...rest}>
+      {children}
+    </a>
+  );
+}
+
 export function Nav({ mode, setMode, items }: Props) {
   const { t } = useTranslation();
   const [isScrolled, setIsScrolled] = useState(false);
@@ -112,22 +138,22 @@ export function Nav({ mode, setMode, items }: Props) {
   return (
     <nav className={`nav${isScrolled ? " nav--scrolled" : ""}`}>
       <div className="container nav-inner">
-        <a href="/" className="nav-logo" aria-label="Blackbox home">
+        <Link href="/" className="nav-logo" aria-label="Blackbox home">
           <LogoMark className="nav-logo-mark" />
           <span className="nav-logo-text">
             <span className="nav-logo-text-black">BLACK</span>
             <span className="nav-logo-text-box">BOX</span>
           </span>
-        </a>
+        </Link>
         <div className="nav-links">
           <div className="nav-anchor-links">
             {navItems.map((item) => (
-              <a key={item.href} href={item.href} className="nav-link">
+              <NavAnchor key={item.href} href={item.href} className="nav-link">
                 {item.label}
-              </a>
+              </NavAnchor>
             ))}
           </div>
-          <a href="/games" className="nav-link nav-link--games">
+          <Link href="/games" className="nav-link nav-link--games">
             <span>{t("nav.games")}</span>
             <svg
               width="13"
@@ -140,7 +166,7 @@ export function Nav({ mode, setMode, items }: Props) {
             >
               <path d="M5 12h14M13 6l6 6-6 6" />
             </svg>
-          </a>
+          </Link>
           <button
             type="button"
             className="theme-btn"
