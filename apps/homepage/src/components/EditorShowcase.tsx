@@ -42,18 +42,24 @@ export function EditorShowcase() {
 
         <div className="editor-showcase-link-row">
           <Link className="editor-showcase-link" href="/editor">
-            Explore every editor feature
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              aria-hidden="true"
-            >
-              <path d="M5 12h14M13 6l6 6-6 6" />
-            </svg>
+            <span className="editor-showcase-link-copy">
+              <span className="editor-showcase-link-kicker">Editor tour</span>
+              <strong>Explore every editor feature</strong>
+            </span>
+            <span className="editor-showcase-link-action" aria-hidden="true">
+              <i>
+                <svg
+                  width="17"
+                  height="17"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                >
+                  <path d="M5 12h14M13 6l6 6-6 6" />
+                </svg>
+              </i>
+            </span>
           </Link>
         </div>
 
