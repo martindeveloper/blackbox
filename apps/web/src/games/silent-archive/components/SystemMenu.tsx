@@ -49,17 +49,6 @@ export function SystemMenu({
   return (
     <div className="sys-menu-panel" role="menu" aria-label={t("menu.title")}>
       <div className="sys-menu-section">
-        <button className="sys-menu-item sys-menu-item--primary" role="menuitem" onClick={onSave}>
-          <span className="sys-menu-item-icon">
-            <ArchiveIcon size={13} />
-          </span>
-          <span className="sys-menu-item-body">
-            <span className="sys-menu-item-label">{t("menu.archive")}</span>
-            <span className="sys-menu-item-meta">{t("menu.archiveHint")}</span>
-          </span>
-          <span className="sys-menu-item-arrow">→</span>
-        </button>
-
         <button className="sys-menu-item" role="menuitem" onClick={onOpenMainMenu}>
           <span className="sys-menu-item-icon">
             <RecorderIcon size={11} />
@@ -156,6 +145,13 @@ export function SystemMenu({
             </span>
             <span>{t("menu.createSupportBundle")}</span>
             <span className="sys-menu-utility-value">↓</span>
+          </button>
+          <button className="sys-menu-utility-btn" role="menuitem" onClick={onSave}>
+            <span className="sys-menu-utility-icon">
+              <ArchiveIcon size={9} />
+            </span>
+            <span>{t("menu.archive")}</span>
+            <span className="sys-menu-utility-value">→</span>
           </button>
         </div>
       </div>
