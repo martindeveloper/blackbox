@@ -2,6 +2,7 @@
 @source "../../";
 
 @import "../../engine/ui/tokens.css";
+@import "../../engine/ui/preloader.css";
 @import "../../engine/ui/base.css";
 @import "./styles/theme.css";
 @import "./styles/boot.css";

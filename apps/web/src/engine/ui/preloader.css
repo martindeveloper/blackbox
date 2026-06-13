@@ -1,0 +1,75 @@
+.bb-preloader-root {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  background: #0b0b0d;
+  color: #d6d6d8;
+  transition: opacity 0.4s ease;
+}
+
+.bb-preloader-content {
+  display: flex;
+  width: min(12rem, calc(100vw - 3rem));
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.bb-preloader-spinner {
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-top-color: rgba(255, 255, 255, 0.78);
+  border-radius: 50%;
+  animation: bb-preloader-spin 0.8s linear infinite;
+}
+
+.bb-preloader-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  text-align: center;
+}
+
+.bb-preloader-label {
+  font-family: var(--bb-font-mono, "Courier New", monospace);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  color: inherit;
+}
+
+.bb-preloader-sublabel {
+  font-family: var(--bb-font-mono, "Courier New", monospace);
+  font-size: 0.6rem;
+  letter-spacing: 0.06em;
+  color: rgba(214, 214, 216, 0.48);
+}
+
+.bb-preloader-progress {
+  width: 100%;
+  height: 1px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.bb-preloader-progress-fill {
+  width: 0%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.7);
+  transition: width 0.25s ease-out;
+}
+
+@keyframes bb-preloader-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bb-preloader-spinner {
+    animation-duration: 1.8s;
+  }
+}

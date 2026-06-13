@@ -8,8 +8,8 @@ export const engineEn = {
   },
   preloader: {
     loading: "Loading",
-    label: "CORP SYSTEMS ACCESSING",
-    sublabel: "INITIALIZING SECURE ARCHIVE",
+    label: "BLACKBOX ENGINE",
+    sublabel: "PREPARING GAME",
   },
   orientation: {
     kicker: "DISPLAY ORIENTATION / UNSUPPORTED",

@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { ContentWarning } from "./components/ContentWarning.js";
-import { ArchiveIcon, MuteIcon, RecorderIcon, VolumeIcon } from "./components/Icons.js";
+import { ArchiveIcon, MuteIcon, VolumeIcon } from "./components/Icons.js";
 import { resetMusicTracking } from "../../engine/hooks/useAudio.js";
 import { DEFAULT_CHOICE_SFX } from "../../engine/lib/engine.js";
 import type { MusicCue } from "../../engine/types/game.js";
@@ -234,16 +234,23 @@ function BootScreen({ errorMessage }: { errorMessage?: string }) {
 
       <div
         style={{
-          color: errorMessage ? "var(--color-danger)" : "var(--color-accent)",
-          opacity: 0.65,
-          filter: errorMessage
-            ? "drop-shadow(0 0 24px rgba(232,32,32,0.4))"
-            : "drop-shadow(0 0 24px rgba(255,109,26,0.5))",
           animation: "fade-up 0.5s ease-out both",
           animationDelay: "0.1s",
         }}
       >
-        <RecorderIcon size={48} />
+        <img
+          src="/silent-archive-tags.svg"
+          alt=""
+          width={112}
+          height={104}
+          style={{
+            display: "block",
+            opacity: errorMessage ? 0.35 : 0.8,
+            filter: errorMessage
+              ? "grayscale(1) sepia(1) saturate(5) hue-rotate(320deg)"
+              : undefined,
+          }}
+        />
       </div>
 
       <div

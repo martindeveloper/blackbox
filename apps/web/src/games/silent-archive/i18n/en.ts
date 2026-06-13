@@ -11,7 +11,7 @@ export const en = {
     loading: "Loading chapter",
   },
   boot: {
-    corp: "BLACKBOX SYSTEMS CORP",
+    corp: "MERIDIAN COGNITIVE SYSTEMS",
     accessing: "ACCESSING CLASSIFIED RECORDS",
     failed: "SYSTEM INITIALIZATION FAILED",
   },

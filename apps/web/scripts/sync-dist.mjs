@@ -18,7 +18,7 @@ const wasmGlueFiles = [
   "blackbox_wasm_bg.wasm.d.ts",
 ];
 const legacyWasmArtifacts = ["blackbox_wasm.wasm", "package.json"];
-const faviconFiles = ["favicon.svg", "favicon.ico", "game-icon.png"];
+const faviconFiles = ["favicon.svg", "favicon.ico", "game-icon.png", "silent-archive-tags.svg"];
 
 const watchMode = process.argv.includes("--watch");
 

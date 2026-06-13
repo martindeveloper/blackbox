@@ -95,8 +95,10 @@ export function bootGame(game: GameDefinition): void {
         label.style.color = "var(--bb-ui-danger, #e82020)";
       }
       if (bar) bar.style.display = "none";
-      const dots = preloader.querySelectorAll<HTMLElement>(".boot-dot");
-      dots.forEach((d) => (d.style.background = "var(--bb-ui-danger, #e82020)"));
+      const spinner = preloader.querySelector<HTMLElement>(".bb-preloader-spinner");
+      if (spinner) {
+        spinner.style.borderTopColor = "var(--bb-ui-danger, #e82020)";
+      }
       return;
     }
     const detail = error instanceof Error ? error.message : String(error);
