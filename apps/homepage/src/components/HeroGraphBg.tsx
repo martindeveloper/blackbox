@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 type EndingTone = "orange" | "blue" | "green" | "amber";
 
@@ -25,131 +26,67 @@ type GraphEdge = {
   fail?: boolean;
 };
 
-const NODES: GraphNode[] = [
-  {
-    id: "start",
-    x: 700,
-    y: 48,
-    w: 178,
-    h: 64,
-    sid: "prologue_arrival",
-    title: "Prologue · Arrival",
-    meta: "1 choice",
-    accent: true,
-  },
-  {
-    id: "archive",
-    x: 502,
-    y: 188,
-    w: 196,
-    h: 72,
-    sid: "archive_terminal",
-    title: "Archive Terminal",
-    meta: "3 choices",
-  },
-  {
-    id: "security",
-    x: 812,
-    y: 192,
-    w: 200,
-    h: 72,
-    sid: "security_door",
-    title: "Security Door",
-    meta: "2 choices",
-    accent: true,
-  },
-  {
-    id: "tunnels",
-    x: 452,
-    y: 336,
-    w: 210,
-    h: 76,
-    sid: "lower_service_tunn…",
-    title: "Lower Service Tunnels",
-    meta: "5 choices",
-  },
-  {
-    id: "chapel",
-    x: 712,
-    y: 340,
-    w: 204,
-    h: 76,
-    sid: "chapel_hatch_seq…",
-    title: "Chapel Hatch Sequence",
-    meta: "4 choices",
-  },
-  {
-    id: "server",
-    x: 968,
-    y: 336,
-    w: 184,
-    h: 72,
-    sid: "server_room",
-    title: "Server Room",
-    meta: "2 choices",
-  },
-  {
-    id: "shepherd",
-    x: 356,
-    y: 540,
-    w: 198,
-    h: 80,
-    sid: "ending_last_shepherd",
-    title: "Last Shepherd",
-    meta: "168 states · 62 ch",
-    ending: "orange",
-  },
-  {
-    id: "question",
-    x: 576,
-    y: 576,
-    w: 200,
-    h: 80,
-    sid: "ending_open_question",
-    title: "Open Question",
-    meta: "161 states · 64 ch",
-    ending: "blue",
-  },
-  {
-    id: "protocol",
-    x: 800,
-    y: 540,
-    w: 210,
-    h: 80,
-    sid: "ending_protocol_main…",
-    title: "Protocol Maintained",
-    meta: "142 states · 61 ch",
-    ending: "green",
-  },
-  {
-    id: "witness",
-    x: 1026,
-    y: 576,
-    w: 200,
-    h: 80,
-    sid: "ending_witness_proto…",
-    title: "Witness Protocol",
-    meta: "200 states · 77 ch",
-    ending: "amber",
-  },
+type NodeText = {
+  id: string;
+  sid: string;
+  title: string;
+  meta?: string;
+};
+
+type EdgeText = {
+  from: string;
+  to: string;
+  label?: string;
+};
+
+const NODE_LAYOUT: Pick<GraphNode, "id" | "x" | "y" | "w" | "h" | "accent" | "ending">[] = [
+  { id: "start", x: 700, y: 48, w: 178, h: 64, accent: true },
+  { id: "archive", x: 502, y: 188, w: 196, h: 72 },
+  { id: "security", x: 812, y: 192, w: 200, h: 72, accent: true },
+  { id: "tunnels", x: 452, y: 336, w: 210, h: 76 },
+  { id: "chapel", x: 712, y: 340, w: 204, h: 76 },
+  { id: "server", x: 968, y: 336, w: 184, h: 72 },
+  { id: "shepherd", x: 356, y: 540, w: 198, h: 80, ending: "orange" },
+  { id: "question", x: 576, y: 576, w: 200, h: 80, ending: "blue" },
+  { id: "protocol", x: 800, y: 540, w: 210, h: 80, ending: "green" },
+  { id: "witness", x: 1026, y: 576, w: 200, h: 80, ending: "amber" },
 ];
 
-const EDGES: GraphEdge[] = [
-  { from: "start", to: "archive", label: "Enter archive", labelX: 612, labelY: 150 },
-  { from: "start", to: "security", label: "Check door", labelX: 800, labelY: 150 },
-  { from: "archive", to: "tunnels", label: "Descend stairs", labelX: 540, labelY: 300 },
-  { from: "security", to: "chapel", label: "Pass — Whisper", labelX: 820, labelY: 300, pass: true },
-  { from: "security", to: "server", label: "Fail — Force", labelX: 980, labelY: 300, fail: true },
-  { from: "tunnels", to: "shepherd", label: "Unlock hatch", labelX: 470, labelY: 484 },
-  { from: "tunnels", to: "question", label: "Wait", labelX: 612, labelY: 490 },
-  { from: "chapel", to: "question", label: "Confess", labelX: 720, labelY: 492 },
-  { from: "chapel", to: "protocol", label: "Comply", labelX: 832, labelY: 484 },
-  { from: "server", to: "protocol", label: "Bridge net", labelX: 962, labelY: 486 },
-  { from: "server", to: "witness", label: "Broadcast", labelX: 1080, labelY: 486 },
+const EDGE_LAYOUT: Pick<GraphEdge, "from" | "to" | "labelX" | "labelY" | "pass" | "fail">[] = [
+  { from: "start", to: "archive", labelX: 612, labelY: 150 },
+  { from: "start", to: "security", labelX: 800, labelY: 150 },
+  { from: "archive", to: "tunnels", labelX: 540, labelY: 300 },
+  { from: "security", to: "chapel", labelX: 820, labelY: 300, pass: true },
+  { from: "security", to: "server", labelX: 980, labelY: 300, fail: true },
+  { from: "tunnels", to: "shepherd", labelX: 470, labelY: 484 },
+  { from: "tunnels", to: "question", labelX: 612, labelY: 490 },
+  { from: "chapel", to: "question", labelX: 720, labelY: 492 },
+  { from: "chapel", to: "protocol", labelX: 832, labelY: 484 },
+  { from: "server", to: "protocol", labelX: 962, labelY: 486 },
+  { from: "server", to: "witness", labelX: 1080, labelY: 486 },
 ];
 
-function getNode(id: string): GraphNode {
-  const node = NODES.find((n) => n.id === id);
+function buildGraph(
+  nodeText: NodeText[],
+  edgeText: EdgeText[],
+): { nodes: GraphNode[]; edges: GraphEdge[] } {
+  const nodes = NODE_LAYOUT.map((layout) => {
+    const text = nodeText.find((node) => node.id === layout.id);
+    if (!text) throw new Error(`Missing hero graph node text: ${layout.id}`);
+    return { ...layout, ...text };
+  });
+
+  const edges = EDGE_LAYOUT.map((layout) => {
+    const text = edgeText.find((edge) => edge.from === layout.from && edge.to === layout.to);
+    if (!text) throw new Error(`Missing hero graph edge text: ${layout.from}->${layout.to}`);
+    return { ...layout, ...text };
+  });
+
+  return { nodes, edges };
+}
+
+function getNode(nodes: GraphNode[], id: string): GraphNode {
+  const node = nodes.find((n) => n.id === id);
   if (!node) throw new Error(`Missing graph node: ${id}`);
   return node;
 }
@@ -232,7 +169,16 @@ function EdgeLabel({ edge }: { edge: GraphEdge }) {
 }
 
 export function HeroGraphBg() {
+  const { t } = useTranslation();
   const [mobile, setMobile] = useState(false);
+  const { nodes, edges } = useMemo(
+    () =>
+      buildGraph(
+        t("heroGraph.nodes", { returnObjects: true }) as NodeText[],
+        t("heroGraph.edges", { returnObjects: true }) as EdgeText[],
+      ),
+    [t],
+  );
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)");
@@ -264,9 +210,9 @@ export function HeroGraphBg() {
       </defs>
 
       <g className="hero-graph-edges">
-        {EDGES.map((edge) => {
-          const from = getNode(edge.from);
-          const to = getNode(edge.to);
+        {edges.map((edge) => {
+          const from = getNode(nodes, edge.from);
+          const to = getNode(nodes, edge.to);
           return (
             <g key={`${edge.from}-${edge.to}`}>
               <path
@@ -281,7 +227,7 @@ export function HeroGraphBg() {
       </g>
 
       <g className="hero-graph-nodes">
-        {NODES.map((node) => (
+        {nodes.map((node) => (
           <GraphNodeCard key={node.id} node={node} />
         ))}
       </g>

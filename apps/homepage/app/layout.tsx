@@ -1,16 +1,13 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "./providers";
+import { en } from "../src/i18n/en";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.onbbx.com"),
-  title: {
-    default: "Blackbox",
-    template: "%s | Blackbox",
-  },
-  description:
-    "Build choice-driven narrative games with Blackbox, a text-based RPG engine for branching stories, persistent state, and cross-platform play.",
-  applicationName: "Blackbox",
+  title: en.metadata.title,
+  description: en.metadata.description,
+  applicationName: en.metadata.siteName,
   alternates: {
     canonical: "/",
   },
@@ -18,16 +15,14 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: "/",
-    siteName: "Blackbox",
-    title: "Blackbox — Text-Based Narrative RPG Engine",
-    description:
-      "Build worlds. Write choices. Let Blackbox handle branching stories, persistent state, and cross-platform play.",
+    siteName: en.metadata.siteName,
+    title: en.metadata.openGraph.title,
+    description: en.metadata.openGraph.description,
   },
   twitter: {
     card: "summary",
-    title: "Blackbox — Text-Based Narrative RPG Engine",
-    description:
-      "Build worlds. Write choices. Let Blackbox handle branching stories, persistent state, and cross-platform play.",
+    title: en.metadata.twitter.title,
+    description: en.metadata.twitter.description,
   },
   icons: [
     { rel: "icon", type: "image/png", sizes: "32x32", url: "/icon-32.png" },

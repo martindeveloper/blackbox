@@ -1,37 +1,28 @@
 "use client";
 
 import Image from "next/image";
+import { useTranslation } from "react-i18next";
 import { Footer } from "./components/Footer";
 import "./i18n/index";
 
-const GAME_URL = "https://silentarchive.onbbx.com";
+type EvidenceItem = {
+  id: string;
+  code: string;
+  label: string;
+  image: string;
+  alt: string;
+  note: string;
+};
 
-const EVIDENCE = [
-  {
-    id: "01",
-    code: "7MER / 01.119",
-    label: "The Chapel",
-    image: "/games/silent-archive/chapel.webp",
-    alt: "Maintenance Chapel — a dark alcove lit by residual charge from dead server racks",
-    note: "Maintenance alcove, emergency relay, redundant cooling access. Neglect made it something the staff never filed a name for.",
-  },
-  {
-    id: "02",
-    code: "7MER / 04.032",
-    label: "The Quiet Ward",
-    image: "/games/silent-archive/quiet-ward.webp",
-    alt: "The Quiet Ward — a soft-lit decommissioning bay with a single reclined cradle",
-    note: "The sign on the door does not lie. The quietest room in the complex — built so that nothing here would disturb anything else.",
-  },
-  {
-    id: "03",
-    code: "7MER / 05.406",
-    label: "The Memory Garden",
-    image: "/games/silent-archive/memory-garden.webp",
-    alt: "Memory Garden — server racks threaded with glowing fiber optic cabling in a warm cognitive archive",
-    note: "Cognitive archive. Fiber optics weave through the racks like vines; in the dark, amber and blue light reads almost like growth.",
-  },
-] as const;
+type TelemetryItem = {
+  label: string;
+  value: string;
+};
+
+type FactItem = {
+  label: string;
+  value: string;
+};
 
 function ArrowIcon() {
   return (
@@ -42,6 +33,19 @@ function ArrowIcon() {
 }
 
 export function SilentArchivePage() {
+  const { t } = useTranslation();
+  const gameUrl = t("silentArchive.game_url");
+  const evidence = t("silentArchive.evidence.items", { returnObjects: true }) as EvidenceItem[];
+  const telemetry = t("silentArchive.hero.telemetry", { returnObjects: true }) as TelemetryItem[];
+  const facts = t("silentArchive.briefing.facts", { returnObjects: true }) as FactItem[];
+  const briefingCopy = t("silentArchive.briefing.copy", { returnObjects: true }) as string[];
+  const transmissionMeta = t("silentArchive.transmission.meta", {
+    returnObjects: true,
+  }) as string[];
+  const transmissionFooter = t("silentArchive.transmission.footer", {
+    returnObjects: true,
+  }) as string[];
+
   return (
     <>
       <main className="games-page">
@@ -49,7 +53,7 @@ export function SilentArchivePage() {
           <Image
             className="games-hero-image"
             src="/games/silent-archive/mainmenu.webp"
-            alt="Archive Complex 7-Meridian rising above a rain-soaked industrial city"
+            alt={t("silentArchive.hero.image_alt")}
             fill
             priority
             sizes="100vw"
@@ -58,56 +62,63 @@ export function SilentArchivePage() {
           <div className="games-hero-grid" aria-hidden="true" />
           <div className="container games-hero-inner">
             <div className="games-hero-kicker games-reveal">
-              <span>Blackbox release 001</span>
+              <span>{t("silentArchive.hero.kicker.release")}</span>
               <span className="games-kicker-rule" />
-              <span>Case file open</span>
+              <span>{t("silentArchive.hero.kicker.status")}</span>
             </div>
 
             <div className="games-title-wrap">
               <p className="games-case-number games-reveal games-delay-1">
-                Archive Complex
-                <br />
-                7-Meridian
+                {t("silentArchive.hero.location")
+                  .split("\n")
+                  .map((line, i) => (
+                    <span key={i}>
+                      {line}
+                      {i === 0 && <br />}
+                    </span>
+                  ))}
               </p>
               <h1 className="games-title games-reveal games-delay-2">
-                <span>Silent</span>
-                <span>Archive</span>
+                {t("silentArchive.hero.title")
+                  .split("\n")
+                  .map((line) => (
+                    <span key={line}>{line}</span>
+                  ))}
               </h1>
               <p className="games-subtitle games-reveal games-delay-3">
-                Every Record Remembers
+                {t("silentArchive.hero.subtitle")}
               </p>
               <p className="games-hero-thesis games-reveal games-delay-3">
-                Fourteen months without contact.
-                <br />
-                One investigation left to complete.
+                {t("silentArchive.hero.thesis")
+                  .split("\n")
+                  .map((line, i) => (
+                    <span key={i}>
+                      {line}
+                      {i === 0 && <br />}
+                    </span>
+                  ))}
               </p>
             </div>
 
             <aside
               className="games-hero-telemetry games-reveal games-delay-3"
-              aria-label="Archive telemetry"
+              aria-label={t("silentArchive.hero.telemetry_aria")}
             >
-              <div>
-                <span>Signal</span>
-                <strong>Recovered</strong>
-              </div>
-              <div>
-                <span>Occupancy</span>
-                <strong>Unknown</strong>
-              </div>
-              <div>
-                <span>Last contact</span>
-                <strong>14 mo.</strong>
-              </div>
+              {telemetry.map((item) => (
+                <div key={item.label}>
+                  <span>{item.label}</span>
+                  <strong>{item.value}</strong>
+                </div>
+              ))}
             </aside>
 
             <div className="games-hero-footer games-reveal games-delay-4">
               <div className="games-status">
                 <span className="games-status-light" />
-                <span>Investigation active</span>
+                <span>{t("silentArchive.hero.status")}</span>
               </div>
-              <a className="games-launch games-launch--hero" href={GAME_URL}>
-                Enter the archive
+              <a className="games-launch games-launch--hero" href={gameUrl}>
+                {t("silentArchive.hero.cta")}
                 <ArrowIcon />
               </a>
             </div>
@@ -117,36 +128,27 @@ export function SilentArchivePage() {
         <section className="games-briefing" id="briefing">
           <div className="container">
             <div className="games-section-heading">
-              <span className="games-index">01 / Investigation brief</span>
-              <p>Dark sci-fi noir · Narrative RPG · Play in browser</p>
+              <span className="games-index">{t("silentArchive.briefing.index")}</span>
+              <p>{t("silentArchive.briefing.tags")}</p>
             </div>
 
-            <aside className="games-content-warning" aria-label="Content warning">
-              <span className="games-content-warning-label">Content warning</span>
-              <p>
-                This game explores psychological distress, institutional abuse, confinement, death,
-                assisted dying, identity disturbance, and morally difficult choices.
-              </p>
+            <aside className="games-content-warning" aria-label={t("silentArchive.briefing.content_warning.label")}>
+              <span className="games-content-warning-label">
+                {t("silentArchive.briefing.content_warning.label")}
+              </span>
+              <p>{t("silentArchive.briefing.content_warning.body")}</p>
             </aside>
 
             <div className="games-briefing-grid">
               <div className="games-briefing-title">
-                <p className="games-stamp">Meridian Cognitive Systems</p>
-                <h2>You were sent to file a report. Your brief ends at the entrance.</h2>
+                <p className="games-stamp">{t("silentArchive.briefing.stamp")}</p>
+                <h2>{t("silentArchive.briefing.headline")}</h2>
               </div>
 
               <div className="games-briefing-copy">
-                <p>
-                  Archive Complex 7-Meridian has been dark for fourteen months. No personnel
-                  contact. No maintenance pings. No distress signals. You are CASE, a company
-                  investigator sent to enter the facility, establish the facts, and file a final
-                  report.
-                </p>
-                <p>
-                  Explore a sealed industrial complex, examine incomplete records, and decide how
-                  CASE responds when evidence refuses to fit neatly into the assignment. Every
-                  conclusion is yours to reach.
-                </p>
+                {briefingCopy.map((paragraph) => (
+                  <p key={paragraph}>{paragraph}</p>
+                ))}
               </div>
             </div>
 
@@ -154,42 +156,32 @@ export function SilentArchivePage() {
               <span className="games-question-mark" aria-hidden="true">
                 “
               </span>
-              <p>In a place built to preserve information, how much can you trust what remains?</p>
+              <p>{t("silentArchive.briefing.question")}</p>
             </blockquote>
 
             <div className="games-facts">
-              <div>
-                <span>Format</span>
-                <strong>Choice-driven narrative</strong>
-              </div>
-              <div>
-                <span>Setting</span>
-                <strong>Corporate legal horror</strong>
-              </div>
-              <div>
-                <span>Case status</span>
-                <strong>Unresolved</strong>
-              </div>
-              <div>
-                <span>Powered by</span>
-                <strong>Blackbox Engine</strong>
-              </div>
+              {facts.map((fact) => (
+                <div key={fact.label}>
+                  <span>{fact.label}</span>
+                  <strong>{fact.value}</strong>
+                </div>
+              ))}
             </div>
           </div>
         </section>
 
-        <section className="games-transmission" aria-label="Recovered archive transmission">
+        <section className="games-transmission" aria-label={t("silentArchive.transmission.aria")}>
           <Image
             className="games-transmission-image"
             src="/games/silent-archive/city.webp"
-            alt="A rain-soaked industrial city surrounding Archive Complex 7-Meridian"
+            alt={t("silentArchive.transmission.image_alt")}
             fill
             sizes="100vw"
           />
           <div className="games-transmission-wash" aria-hidden="true" />
           <div className="games-transmission-grid" aria-hidden="true" />
           <div className="games-transmission-case" aria-hidden="true">
-            7-Meridian
+            {t("silentArchive.transmission.case")}
           </div>
           <div className="games-transmission-redactions" aria-hidden="true">
             <span />
@@ -204,16 +196,18 @@ export function SilentArchivePage() {
           </div>
           <div className="container games-transmission-inner">
             <div className="games-transmission-meta">
-              <span>Case memorandum / 7MER-031</span>
-              <span>Clearance provisional</span>
+              {transmissionMeta.map((item) => (
+                <span key={item}>{item}</span>
+              ))}
             </div>
             <div className="games-transmission-copy">
-              <p className="games-transmission-label">Investigator directive · Details withheld</p>
-              <blockquote>Enter with a brief. Leave with your own account.</blockquote>
+              <p className="games-transmission-label">{t("silentArchive.transmission.label")}</p>
+              <blockquote>{t("silentArchive.transmission.quote")}</blockquote>
             </div>
             <div className="games-transmission-time">
-              <span>Document 001 / 07</span>
-              <span>Distribution restricted</span>
+              {transmissionFooter.map((item) => (
+                <span key={item}>{item}</span>
+              ))}
             </div>
           </div>
         </section>
@@ -221,12 +215,12 @@ export function SilentArchivePage() {
         <section className="games-evidence" id="evidence">
           <div className="container">
             <div className="games-section-heading games-section-heading--dark">
-              <span className="games-index">02 / Recovered evidence</span>
-              <p>Selected locations · Spoiler-safe archive</p>
+              <span className="games-index">{t("silentArchive.evidence.index")}</span>
+              <p>{t("silentArchive.evidence.subheading")}</p>
             </div>
 
             <div className="games-evidence-list">
-              {EVIDENCE.map((item) => (
+              {evidence.map((item) => (
                 <article className="games-evidence-item" key={item.id}>
                   <div className="games-evidence-image-wrap">
                     <Image
@@ -239,7 +233,7 @@ export function SilentArchivePage() {
                     <div className="games-evidence-scan" aria-hidden="true" />
                     <div className="games-evidence-hud" aria-hidden="true">
                       <span>{item.code}</span>
-                      <span>Visual record</span>
+                      <span>{t("silentArchive.evidence.visual_record")}</span>
                     </div>
                   </div>
                   <div className="games-evidence-caption">
@@ -257,19 +251,16 @@ export function SilentArchivePage() {
           <div className="games-final-noise" aria-hidden="true" />
           <div className="container games-final-inner">
             <div>
-              <span className="games-index">03 / Authorization requested</span>
-              <h2>The report is blank. The conclusion is yours.</h2>
+              <span className="games-index">{t("silentArchive.final.index")}</span>
+              <h2>{t("silentArchive.final.headline")}</h2>
             </div>
             <div className="games-final-action">
-              <p>
-                Enter Archive Complex 7-Meridian. Investigate carefully. What follows is determined
-                by the choices you make.
-              </p>
-              <a className="games-launch" href={GAME_URL}>
-                Play Silent Archive
+              <p>{t("silentArchive.final.copy")}</p>
+              <a className="games-launch" href={gameUrl}>
+                {t("silentArchive.final.cta")}
                 <ArrowIcon />
               </a>
-              <span className="games-external">silentarchive.onbbx.com</span>
+              <span className="games-external">{t("silentArchive.final.external")}</span>
             </div>
           </div>
         </section>

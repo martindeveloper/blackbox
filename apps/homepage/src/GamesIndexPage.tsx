@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import { Footer } from "./components/Footer";
 import "./i18n/index";
 
@@ -14,6 +15,22 @@ function ArrowIcon() {
 }
 
 export function GamesIndexPage() {
+  const { t } = useTranslation();
+  const game = t("gamesIndex.silentArchive", { returnObjects: true }) as {
+    image_alt: string;
+    number: string;
+    status: string;
+    tags: string[];
+    location: string;
+    title: string;
+    subtitle: string;
+    description: string;
+    explore: string;
+    play: string;
+    play_url: string;
+  };
+  const ledger = t("gamesIndex.ledger", { returnObjects: true }) as string[];
+
   return (
     <>
       <main className="games-index-page">
@@ -21,25 +38,26 @@ export function GamesIndexPage() {
           <div className="games-index-grid" aria-hidden="true" />
           <div className="container games-index-hero-inner">
             <div className="games-index-eyebrow">
-              <span>Blackbox Games</span>
-              <span>Catalog 001</span>
+              <span>{t("gamesIndex.eyebrow.brand")}</span>
+              <span>{t("gamesIndex.eyebrow.catalog")}</span>
             </div>
             <div className="games-index-title-row">
               <h1>
-                Stories that
-                <br />
-                remember you.
+                {t("gamesIndex.headline")
+                  .split("\n")
+                  .map((line, i) => (
+                    <span key={i}>
+                      {line}
+                      {i === 0 && <br />}
+                    </span>
+                  ))}
               </h1>
-              <p>
-                Choice-driven worlds built on the Blackbox narrative engine. Every decision is
-                state. Every consequence stays written.
-              </p>
+              <p>{t("gamesIndex.description")}</p>
             </div>
-            <div className="games-index-ledger" aria-label="Catalog summary">
-              <span>01 published work</span>
-              <span>07 chapters</span>
-              <span>Browser playable</span>
-              <span>More records pending</span>
+            <div className="games-index-ledger" aria-label={t("gamesIndex.ledger_aria")}>
+              {ledger.map((item) => (
+                <span key={item}>{item}</span>
+              ))}
             </div>
           </div>
         </section>
@@ -47,8 +65,8 @@ export function GamesIndexPage() {
         <section className="games-catalog" id="releases">
           <div className="container">
             <div className="games-catalog-heading">
-              <span>Current releases</span>
-              <p>Open an entry to inspect the case file.</p>
+              <span>{t("gamesIndex.catalog.heading")}</span>
+              <p>{t("gamesIndex.catalog.subheading")}</p>
             </div>
 
             <article className="game-catalog-card">
@@ -59,44 +77,40 @@ export function GamesIndexPage() {
               >
                 <Image
                   src="/games/silent-archive/mainmenu.webp"
-                  alt="Archive Complex 7-Meridian above a rain-soaked industrial city"
+                  alt={game.image_alt}
                   fill
                   priority
                   sizes="(max-width: 767px) 100vw, 72vw"
                 />
                 <div className="game-catalog-image-wash" />
-                <span className="game-catalog-number">001</span>
+                <span className="game-catalog-number">{game.number}</span>
                 <span className="game-catalog-status">
                   <i />
-                  Case file open
+                  {game.status}
                 </span>
               </Link>
 
               <div className="game-catalog-body">
                 <div className="game-catalog-meta">
-                  <span>Dark sci-fi noir</span>
-                  <span>Narrative RPG</span>
-                  <span>Play in browser</span>
+                  {game.tags.map((tag) => (
+                    <span key={tag}>{tag}</span>
+                  ))}
                 </div>
                 <div className="game-catalog-copy">
                   <div>
-                    <p className="game-catalog-location">Archive Complex 7-Meridian</p>
-                    <h2>Silent Archive</h2>
-                    <p className="game-catalog-subtitle">Every Record Remembers</p>
+                    <p className="game-catalog-location">{game.location}</p>
+                    <h2>{game.title}</h2>
+                    <p className="game-catalog-subtitle">{game.subtitle}</p>
                   </div>
-                  <p>
-                    A company investigator enters a facility that has been silent for fourteen
-                    months. Explore the complex, examine incomplete records, and file a report
-                    shaped by your choices.
-                  </p>
+                  <p>{game.description}</p>
                 </div>
                 <div className="game-catalog-actions">
                   <Link className="game-catalog-detail" href="/games/silent-archive">
-                    Explore the case
+                    {game.explore}
                     <ArrowIcon />
                   </Link>
-                  <a className="game-catalog-play" href="https://silentarchive.onbbx.com">
-                    Play now
+                  <a className="game-catalog-play" href={game.play_url}>
+                    {game.play}
                     <ArrowIcon />
                   </a>
                 </div>
@@ -104,9 +118,9 @@ export function GamesIndexPage() {
             </article>
 
             <div className="games-catalog-pending">
-              <span>002</span>
-              <p>Next transmission not yet cleared for release.</p>
-              <strong>Record pending</strong>
+              <span>{t("gamesIndex.pending.number")}</span>
+              <p>{t("gamesIndex.pending.message")}</p>
+              <strong>{t("gamesIndex.pending.label")}</strong>
             </div>
           </div>
         </section>

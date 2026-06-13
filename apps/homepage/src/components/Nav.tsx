@@ -138,7 +138,7 @@ export function Nav({ mode, setMode, items }: Props) {
   return (
     <nav className={`nav${isScrolled ? " nav--scrolled" : ""}`}>
       <div className="container nav-inner">
-        <Link href="/" className="nav-logo" aria-label="Blackbox home">
+        <Link href="/" className="nav-logo" aria-label={t("nav.home_aria")}>
           <LogoMark className="nav-logo-mark" />
           <span className="nav-logo-text">
             <span className="nav-logo-text-black">BLACK</span>
@@ -171,8 +171,8 @@ export function Nav({ mode, setMode, items }: Props) {
             type="button"
             className="theme-btn"
             onClick={() => setMode(cycleTheme(mode))}
-            title={`${label} — click to change`}
-            aria-label={`${label}, click to change theme`}
+            title={t("nav.theme_title", { label })}
+            aria-label={t("nav.theme_aria", { label })}
           >
             {icon}
           </button>
