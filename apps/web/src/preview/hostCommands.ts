@@ -8,6 +8,7 @@ import {
   importPlayerStorageSnapshot,
   readPlayerStorageSnapshot,
 } from "../engine/lib/playerStorageAdmin.js";
+import { publishPreviewRuntimeState } from "./runtimeStatePublisher.js";
 
 const STORAGE_PUBLISH_DEBOUNCE_MS = 200;
 
@@ -62,6 +63,7 @@ function handlePreviewHostCommand(message: PreviewHostMessage, profilerHistory: 
       }
       break;
     case "request-state":
+      publishPreviewRuntimeState();
       flushPreviewStorage();
       postPreviewMessage({ type: "profiler-history", events: profilerHistory });
       break;
