@@ -48,6 +48,19 @@ win:
   target:
     - zip
 
+appx:
+  identityName: Blackbox.BlackboxEditor
+  applicationId: BlackboxEditor
+  publisherDisplayName: Blackbox
+  displayName: Blackbox Editor
+  artifactName: ${productName}-${version}-${arch}.msix
+  publisher: CN=Blackbox
+  capabilities:
+    - runFullTrust
+    - internetClient
+  languages:
+    - en-US
+
 linux:
   target:
     - AppImage

@@ -11,6 +11,15 @@ on:
         options:
           - x64
           - arm64
+      package_format:
+        description: Package format
+        required: true
+        default: msix
+        type: choice
+        options:
+          - msix
+          - zip
+          - all
   workflow_call:
     inputs:
       architecture:
@@ -18,35 +27,32 @@ on:
         required: false
         default: x64
         type: string
+      package_format:
+        description: Windows package format (msix, zip, or all)
+        required: false
+        default: msix
+        type: string
 
 permissions:
   contents: read
 
 concurrency:
-  group: editor-windows-${{ github.ref }}-${{ inputs.architecture }}
+  group: editor-windows-${{ github.ref }}-${{ inputs.architecture }}-${{ inputs.package_format }}
   cancel-in-progress: true
 
 jobs:
   build:
-    name: Build Windows ${{ inputs.architecture }}
-    runs-on: ubuntu-24.04
+    name: Build Windows ${{ inputs.architecture }} (${{ inputs.package_format }})
+    runs-on: windows-latest
     timeout-minutes: 60
     env:
       ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
       XDG_CACHE_HOME: ${{ github.workspace }}/.cache
-      XWIN_ARCH: ${{ inputs.architecture == 'arm64' && 'aarch64' || 'x86_64' }}
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
-
-      - name: Restore MSVC CRT cache
-        id: cache-xwin
-        uses: actions/cache@v4
-        with:
-          path: .cache/cargo-xwin
-          key: xwin-v0.22.0-${{ inputs.architecture }}-${{ runner.os }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
@@ -60,24 +66,15 @@ jobs:
       - name: Restore Rust cache
         uses: Swatinem/rust-cache@v2
         with:
-          key: ${{ inputs.architecture }}
+          key: windows-${{ inputs.architecture }}
           workspaces: . -> .cache/target
 
-      - name: Install Windows cross-build tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install --yes --no-install-recommends llvm-18
-          echo "/usr/lib/llvm-18/bin" >> "$GITHUB_PATH"
-          /usr/lib/llvm-18/bin/llvm-lib --version
+      - name: Add Rust Windows target
+        if: inputs.architecture == 'arm64'
+        run: rustup target add aarch64-pc-windows-msvc
 
-      - name: Install Rust build tools
-        run: |
-          cargo install --locked wasm-pack --version 0.15.0
-          cargo install --locked cargo-xwin --version 0.22.0
-
-      - name: Pre-download MSVC CRT
-        if: steps.cache-xwin.outputs.cache-hit != 'true'
-        run: cargo xwin cache xwin
+      - name: Install wasm-pack
+        run: cargo install --locked wasm-pack --version 0.15.0
 
       - name: Install web dependencies
         run: npm ci --prefix apps/web
@@ -86,13 +83,15 @@ jobs:
         run: npm ci --prefix apps/editor
 
       - name: Build Windows editor
-        run: npm run electron:release --prefix apps/editor -- --platform windows --arch ${{ inputs.architecture }}
+        run: npm run electron:release --prefix apps/editor -- --platform windows --arch ${{ inputs.architecture }} --format ${{ inputs.package_format }}
 
-      - name: Upload Windows application
+      - name: Upload Windows packages
         uses: actions/upload-artifact@v7
         with:
           name: blackbox-editor-windows-${{ inputs.architecture }}
-          path: apps/editor/release/*.zip
+          path: |
+            apps/editor/release/*.zip
+            apps/editor/release/*.msix
           if-no-files-found: error
           compression-level: 0
           retention-days: 14

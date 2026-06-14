@@ -61,6 +61,7 @@ jobs:
     uses: ./.github/workflows/editor-windows.yml
     with:
       architecture: arm64
+      package_format: msix
 
   windows-x64:
     name: Windows x64
@@ -69,6 +70,7 @@ jobs:
     uses: ./.github/workflows/editor-windows.yml
     with:
       architecture: x64
+      package_format: msix
 
   release:
     name: Create GitHub release
@@ -96,8 +98,8 @@ jobs:
           mkdir release-assets
           cp downloaded-artifacts/blackbox-editor-macos-arm64/*.dmg release-assets/blackbox-editor-macos-arm64.dmg
           cp downloaded-artifacts/blackbox-editor-macos-x64/*.dmg release-assets/blackbox-editor-macos-x64.dmg
-          cp downloaded-artifacts/blackbox-editor-windows-arm64/*.zip release-assets/blackbox-editor-windows-arm64.zip
-          cp downloaded-artifacts/blackbox-editor-windows-x64/*.zip release-assets/blackbox-editor-windows-x64.zip
+          cp downloaded-artifacts/blackbox-editor-windows-arm64/*.msix release-assets/blackbox-editor-windows-arm64.msix
+          cp downloaded-artifacts/blackbox-editor-windows-x64/*.msix release-assets/blackbox-editor-windows-x64.msix
           cp downloaded-artifacts/blackbox-editor-linux-x64/*.AppImage release-assets/blackbox-editor-linux-x64.AppImage
           cp downloaded-artifacts/blackbox-editor-linux-x64/*.deb release-assets/blackbox-editor-linux-x64.deb
           (

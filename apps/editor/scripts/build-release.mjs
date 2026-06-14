@@ -13,6 +13,12 @@ const resourcesBinDir = path.join(editorRoot, "resources", "bin");
 const cargoTargetDir = resolveCargoTargetDir(repoRoot);
 const tools = ["blackbox-lint", "blackbox-bundler", "blackbox-simulator"];
 
+const windowsPackageFormats = {
+  zip: ["zip"],
+  msix: ["appx"],
+  all: ["zip", "appx"],
+};
+
 const platformArchitectures = {
   macos: {
     defaultArch: "arm64",
@@ -63,18 +69,21 @@ function usage() {
   console.log(`Build release editor packages with matching Rust engine tools.
 
 Usage:
-  node ./scripts/build-release.mjs [--platform <all|macos|linux|windows>] [--arch <x64|arm64>]
+  node ./scripts/build-release.mjs [--platform <all|macos|linux|windows>] [--arch <x64|arm64>] [--format <zip|msix|all>]
 
 Examples:
   npm run electron:release
   npm run electron:release -- --platform linux
   npm run electron:release -- --platform windows --arch arm64
+  npm run electron:release -- --platform windows --format msix
+  npm run electron:release -- --platform windows --format all
 `);
 }
 
 function parseOptions(args) {
   let platform = "all";
   let arch = null;
+  let format = null;
 
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
@@ -100,20 +109,37 @@ function parseOptions(args) {
       arch = arg.slice("--arch=".length);
       continue;
     }
+    if (arg === "--format" || arg === "-f") {
+      format = args[index + 1] ?? "";
+      index += 1;
+      continue;
+    }
+    if (arg.startsWith("--format=")) {
+      format = arg.slice("--format=".length);
+      continue;
+    }
     throw new Error(`unknown argument: ${arg}`);
   }
 
   const platformAliases = { mac: "macos", darwin: "macos", win: "windows", win32: "windows" };
   const archAliases = { amd64: "x64", x86_64: "x64", aarch64: "arm64" };
+  const formatAliases = { appx: "msix" };
   platform = platformAliases[platform] ?? platform;
   arch = archAliases[arch] ?? arch;
+  format = formatAliases[format] ?? format;
   if (platform !== "all" && !(platform in platformArchitectures)) {
     throw new Error(`unsupported platform "${platform}"`);
   }
   if (arch !== null && arch !== "x64" && arch !== "arm64") {
     throw new Error(`unsupported architecture "${arch}"`);
   }
-  return { platform, arch };
+  if (format !== null && !(format in windowsPackageFormats)) {
+    throw new Error(`unsupported format "${format}" (expected zip, msix, or all)`);
+  }
+  if (format !== null && platform !== "all" && platform !== "windows") {
+    throw new Error(`--format applies only to Windows builds`);
+  }
+  return { platform, arch, format };
 }
 
 function createZigWrapper(zigTarget, compiler) {
@@ -162,10 +188,18 @@ function cargoEnvironment(config) {
   return env;
 }
 
+function resolveWindowsConfig(config) {
+  if (process.platform === "win32") {
+    return { ...config, cargoSubcommand: undefined };
+  }
+  return config;
+}
+
 function buildTools(platform, config) {
-  console.log(`\n==> building engine tools for ${platform} (${config.rustTarget})`);
-  ensureTarget(config.rustTarget);
-  if (config.cargoSubcommand === "xwin" && !commandExists("cargo-xwin")) {
+  const resolvedConfig = platform === "windows" ? resolveWindowsConfig(config) : config;
+  console.log(`\n==> building engine tools for ${platform} (${resolvedConfig.rustTarget})`);
+  ensureTarget(resolvedConfig.rustTarget);
+  if (resolvedConfig.cargoSubcommand === "xwin" && !commandExists("cargo-xwin")) {
     throw new Error(
       "cargo-xwin is required for Windows cross-compilation; run: cargo install --locked cargo-xwin",
     );
@@ -173,12 +207,12 @@ function buildTools(platform, config) {
   runSync(
     "cargo",
     [
-      ...(config.cargoSubcommand ? [config.cargoSubcommand] : []),
+      ...(resolvedConfig.cargoSubcommand ? [resolvedConfig.cargoSubcommand] : []),
       "build",
       "--release",
       "--locked",
       "--target",
-      config.rustTarget,
+      resolvedConfig.rustTarget,
       "-p",
       "blackbox-lint",
       "-p",
@@ -186,7 +220,7 @@ function buildTools(platform, config) {
       "-p",
       "blackbox-simulator",
     ],
-    { cwd: repoRoot, env: cargoEnvironment(config) },
+    { cwd: repoRoot, env: cargoEnvironment(resolvedConfig) },
   );
 }
 
@@ -214,8 +248,12 @@ function stageTools(config) {
   }
 }
 
-function packageEditor(platform, config) {
+function packageEditor(platform, config, format) {
   console.log(`==> packaging editor for ${platform}`);
+  const extraArgs = [];
+  if (platform === "windows" && format) {
+    extraArgs.push("-c", JSON.stringify({ win: { target: windowsPackageFormats[format] } }));
+  }
   runSync(
     "npm",
     [
@@ -227,6 +265,7 @@ function packageEditor(platform, config) {
       "--publish",
       "never",
       ...config.electronArgs,
+      ...extraArgs,
     ],
     { cwd: editorRoot },
   );
@@ -243,6 +282,13 @@ try {
 
 if (process.platform !== "darwin" && (options.platform === "all" || options.platform === "macos")) {
   console.error("error: macOS packages require a macOS host with Xcode Command Line Tools");
+  process.exit(1);
+}
+
+const msixRequested = options.format === "msix" || options.format === "all";
+const windowsBuildRequested = options.platform === "all" || options.platform === "windows";
+if (msixRequested && windowsBuildRequested && process.platform === "linux") {
+  console.error("error: MSIX packages require a Windows or macOS host");
   process.exit(1);
 }
 
@@ -266,7 +312,7 @@ for (const [platform, platformConfig] of selectedPlatforms) {
   console.log(`\n==> selected ${platform}/${arch}`);
   buildTools(platform, config);
   stageTools(config);
-  packageEditor(platform, config);
+  packageEditor(platform, config, platform === "windows" ? options.format : null);
 }
 
 console.log(`\n==> editor release packages are ready under ${path.join(editorRoot, "release")}`);
