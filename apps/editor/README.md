@@ -111,14 +111,14 @@ npm run electron:release -- --platform windows --arch arm64
 
 Installers and unpacked builds are written to `apps/editor/release/`.
 
-| Command                        | Purpose                                                                           |
-| ------------------------------ | --------------------------------------------------------------------------------- |
-| `npm run electron:dev`         | Run the editor in Electron (auto-builds engine tools if missing)                  |
-| `npm run electron:build:tools` | Build and copy Rust engine CLIs into `resources/bin/`                             |
-| `npm run electron:pack`        | Build UI, icon, and release engine tools for packaging                            |
-| `npm run electron:dist`        | Produce `.dmg`/`.zip` (macOS), portable `.zip` (Windows), or AppImage/deb (Linux) |
-| `npm run electron:dist:dir`    | Unpacked app directory only (faster smoke test)                                   |
-| `npm run electron:release`     | Build all three desktop platforms, or one selected with `--platform`              |
+| Command                        | Purpose                                                                    |
+| ------------------------------ | -------------------------------------------------------------------------- |
+| `npm run electron:dev`         | Run the editor in Electron (auto-builds engine tools if missing)           |
+| `npm run electron:build:tools` | Build and copy Rust engine CLIs into `resources/bin/`                      |
+| `npm run electron:pack`        | Build UI, icon, and release engine tools for packaging                     |
+| `npm run electron:dist`        | Produce `.dmg` (macOS), portable `.zip` (Windows), or AppImage/deb (Linux) |
+| `npm run electron:dist:dir`    | Unpacked app directory only (faster smoke test)                            |
+| `npm run electron:release`     | Build all three desktop platforms, or one selected with `--platform`       |
 
 The cross-platform release command must run on macOS because Apple packages require the macOS
 SDK. It supports x64 and ARM64 targets for macOS, Linux, and Windows. Install
@@ -136,5 +136,11 @@ the GitHub **Actions** tab, select the desired workflow, choose **Run workflow**
 or `arm64`. The defaults are macOS ARM64, Linux x64, and Windows x64. Each run uploads its
 packages as a workflow artifact retained for 14 days. Linux and Windows use an Ubuntu runner;
 only the macOS workflow consumes a macOS runner.
+
+The manually triggered **Editor Release** workflow runs five builds in parallel and creates one
+GitHub Release containing macOS ARM64 and x64 DMGs, Windows ARM64 and x64 ZIPs, and Linux x64
+AppImage and DEB packages. It also publishes a `SHA256SUMS` manifest for verifying downloads.
+Enter a new tag such as `v0.1.0` and optionally create a draft or prerelease. The release tag
+targets the exact commit from which the workflow was started.
 
 In the desktop app, use **Open project** on the welcome screen to pick any folder that contains `scenario.json`. Project registry, preferences, and bundle cache live in the app user-data folder instead of the repository `.blackbox/` directory.

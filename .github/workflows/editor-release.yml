@@ -1,0 +1,132 @@
+name: Editor Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag, for example v0.1.0
+        required: true
+        type: string
+      title:
+        description: Optional release title
+        required: false
+        type: string
+      draft:
+        description: Create as a draft release
+        required: true
+        default: false
+        type: boolean
+      prerelease:
+        description: Mark as a prerelease
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+concurrency:
+  group: editor-release-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  macos-arm64:
+    name: macOS ARM64
+    permissions:
+      contents: read
+    uses: ./.github/workflows/editor-macos.yml
+    with:
+      architecture: arm64
+
+  macos-x64:
+    name: macOS x64
+    permissions:
+      contents: read
+    uses: ./.github/workflows/editor-macos.yml
+    with:
+      architecture: x64
+
+  linux-x64:
+    name: Linux x64
+    permissions:
+      contents: read
+    uses: ./.github/workflows/editor-linux.yml
+    with:
+      architecture: x64
+
+  windows-arm64:
+    name: Windows ARM64
+    permissions:
+      contents: read
+    uses: ./.github/workflows/editor-windows.yml
+    with:
+      architecture: arm64
+
+  windows-x64:
+    name: Windows x64
+    permissions:
+      contents: read
+    uses: ./.github/workflows/editor-windows.yml
+    with:
+      architecture: x64
+
+  release:
+    name: Create GitHub release
+    needs:
+      - macos-arm64
+      - macos-x64
+      - linux-x64
+      - windows-arm64
+      - windows-x64
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - name: Download editor packages
+        uses: actions/download-artifact@v5
+        with:
+          pattern: blackbox-editor-*
+          path: downloaded-artifacts
+
+      - name: Prepare release assets
+        run: |
+          mkdir release-assets
+          cp downloaded-artifacts/blackbox-editor-macos-arm64/*.dmg release-assets/blackbox-editor-macos-arm64.dmg
+          cp downloaded-artifacts/blackbox-editor-macos-x64/*.dmg release-assets/blackbox-editor-macos-x64.dmg
+          cp downloaded-artifacts/blackbox-editor-windows-arm64/*.zip release-assets/blackbox-editor-windows-arm64.zip
+          cp downloaded-artifacts/blackbox-editor-windows-x64/*.zip release-assets/blackbox-editor-windows-x64.zip
+          cp downloaded-artifacts/blackbox-editor-linux-x64/*.AppImage release-assets/blackbox-editor-linux-x64.AppImage
+          cp downloaded-artifacts/blackbox-editor-linux-x64/*.deb release-assets/blackbox-editor-linux-x64.deb
+          (
+            cd release-assets
+            sha256sum blackbox-editor-* > SHA256SUMS
+          )
+          ls -lh release-assets
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+          RELEASE_TITLE: ${{ inputs.title }}
+          RELEASE_DRAFT: ${{ inputs.draft }}
+          RELEASE_PRERELEASE: ${{ inputs.prerelease }}
+        run: |
+          args=(
+            "$RELEASE_TAG"
+            release-assets/*
+            --target "$GITHUB_SHA"
+            --generate-notes
+          )
+
+          if [[ -n "$RELEASE_TITLE" ]]; then
+            args+=(--title "$RELEASE_TITLE")
+          fi
+          if [[ "$RELEASE_DRAFT" == "true" ]]; then
+            args+=(--draft)
+          fi
+          if [[ "$RELEASE_PRERELEASE" == "true" ]]; then
+            args+=(--prerelease)
+          fi
+
+          gh release create "${args[@]}"

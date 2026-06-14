@@ -13,7 +13,7 @@
     "build:wasm:preview": "node ./scripts/build-wasm.mjs --profile dev --preview",
     "build:favicon": "node ./scripts/build-favicon.mjs",
     "build:preview:js": "rolldown -c rolldown.preview.config.ts",
-    "build:preview:css": "tailwindcss -i ./src/games/${BLACKBOX_WEB_PLAYER_GAME:-silent-archive}/app.css -o ./dist/preview/style.css",
+    "build:preview:css": "tailwindcss -i ./src/games/editor-preview/app.css -o ./dist/preview/style.css",
     "build:preview": "npm run build:preview:js && npm run build:preview:css",
     "build:assets": "npm run build:favicon && node ./scripts/sync-dist.mjs",
     "build:bundle": "npm run build:bundler && npm run build:js && npm run build:css && npm run build:assets",

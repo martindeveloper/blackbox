@@ -11,12 +11,19 @@ on:
         options:
           - x64
           - arm64
+  workflow_call:
+    inputs:
+      architecture:
+        description: Target architecture
+        required: false
+        default: x64
+        type: string
 
 permissions:
   contents: read
 
 concurrency:
-  group: editor-windows-${{ github.ref }}
+  group: editor-windows-${{ github.ref }}-${{ inputs.architecture }}
   cancel-in-progress: true
 
 jobs:

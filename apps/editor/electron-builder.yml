@@ -36,7 +36,6 @@ mac:
   category: public.app-category.developer-tools
   target:
     - dmg
-    - zip
   hardenedRuntime: true
   gatekeeperAssess: false
 
@@ -50,7 +49,3 @@ linux:
     - deb
   category: Development
   maintainer: Blackbox
-
-nsis:
-  oneClick: false
-  allowToChangeInstallationDirectory: true

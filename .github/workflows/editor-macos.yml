@@ -11,12 +11,19 @@ on:
         options:
           - arm64
           - x64
+  workflow_call:
+    inputs:
+      architecture:
+        description: Target architecture
+        required: false
+        default: arm64
+        type: string
 
 permissions:
   contents: read
 
 concurrency:
-  group: editor-macos-${{ github.ref }}
+  group: editor-macos-${{ github.ref }}-${{ inputs.architecture }}
   cancel-in-progress: true
 
 jobs:
@@ -63,9 +70,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: blackbox-editor-macos-${{ inputs.architecture }}
-          path: |
-            apps/editor/release/*.dmg
-            apps/editor/release/*-mac.zip
+          path: apps/editor/release/*.dmg
           if-no-files-found: error
           compression-level: 0
           retention-days: 14
