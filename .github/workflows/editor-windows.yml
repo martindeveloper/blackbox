@@ -50,9 +50,13 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install --yes --no-install-recommends clang-19 lld-19 llvm-19
-          echo "/usr/lib/llvm-19/bin" >> "$GITHUB_PATH"
-          /usr/lib/llvm-19/bin/clang-cl --version
-          /usr/lib/llvm-19/bin/llvm-lib --version
+          mkdir -p "$RUNNER_TEMP/llvm-bin"
+          ln -s "$(command -v clang-cl-19)" "$RUNNER_TEMP/llvm-bin/clang-cl"
+          ln -s "$(command -v lld-link-19)" "$RUNNER_TEMP/llvm-bin/lld-link"
+          ln -s "$(command -v llvm-lib-19)" "$RUNNER_TEMP/llvm-bin/llvm-lib"
+          echo "$RUNNER_TEMP/llvm-bin" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/llvm-bin/clang-cl" --version
+          "$RUNNER_TEMP/llvm-bin/llvm-lib" --version
 
       - name: Install Rust build tools
         run: |
