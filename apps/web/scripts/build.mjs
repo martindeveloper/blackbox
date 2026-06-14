@@ -24,7 +24,16 @@ await run(process.execPath, [path.join(scriptsDir, "build-wasm.mjs"), "--profile
 
 console.log("==> bundling TypeScript with Rolldown and CSS with Tailwind v4");
 mkdirSync(dist, { recursive: true });
-runSync("npm", ["run", "build:bundle", "--prefix", clientRoot]);
+runSync(process.execPath, [
+  path.join(scriptsDir, "build-bundle.mjs"),
+  "--ignore-missing",
+  "--archive-compress",
+  "zstd",
+]);
+runSync("npm", ["run", "build:js", "--prefix", clientRoot]);
+runSync("npm", ["run", "build:css", "--prefix", clientRoot]);
+runSync("npm", ["run", "build:favicon", "--prefix", clientRoot]);
+runSync(process.execPath, [path.join(scriptsDir, "sync-dist.mjs")]);
 
 writeBuildInfo(dist, { crate: "blackbox-wasm", target: TARGET, profile });
 

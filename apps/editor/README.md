@@ -113,14 +113,13 @@ npm run electron:release -- --platform windows --arch arm64
 
 Installers and unpacked builds are written to `apps/editor/release/`.
 
-| Command                        | Purpose                                                                    |
-| ------------------------------ | -------------------------------------------------------------------------- |
-| `npm run electron:dev`         | Run the editor in Electron (auto-builds engine tools if missing)           |
-| `npm run electron:build:tools` | Build and copy Rust engine CLIs into `resources/bin/`                      |
-| `npm run electron:pack`        | Build UI, icon, and release engine tools for packaging                     |
-| `npm run electron:dist`        | Produce `.dmg` (macOS), portable `.zip` (Windows), or AppImage/deb (Linux) |
-| `npm run electron:dist:dir`    | Unpacked app directory only (faster smoke test)                            |
-| `npm run electron:release`     | Build all three desktop platforms, or one selected with `--platform`       |
+| Command                     | Purpose                                                                    |
+| --------------------------- | -------------------------------------------------------------------------- |
+| `npm run electron:dev`      | Run the editor in Electron (auto-builds engine tools if missing)           |
+| `npm run electron:pack`     | Build UI, icon, and release engine tools for packaging                     |
+| `npm run electron:dist`     | Produce `.dmg` (macOS), portable `.zip` (Windows), or AppImage/deb (Linux) |
+| `npm run electron:dist:dir` | Unpacked app directory only (faster smoke test)                            |
+| `npm run electron:release`  | Build all three desktop platforms, or one selected with `--platform`       |
 
 The cross-platform release command must run on macOS because Apple packages require the macOS
 SDK. It supports x64 and ARM64 targets for macOS, Linux, and Windows. Install

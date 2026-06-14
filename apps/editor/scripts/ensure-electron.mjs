@@ -12,7 +12,6 @@ const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const ELECTRON_DIR = path.join(ROOT, "node_modules", "electron");
 const APP_NAME = "Blackbox Editor";
 const APP_IDENTIFIER = "com.blackbox.editor.dev";
-const LEGACY_USER_DATA_NAMES = ["blackbox-editor"];
 const MAC_EXECUTABLE_NAME = APP_NAME;
 const MAC_BUNDLE_NAME = `${APP_NAME}.app`;
 
@@ -140,30 +139,6 @@ async function ensureMacBundleBranding() {
   await fs.utimes(appBundle, new Date(), new Date());
 }
 
-function legacyUserDataDirs() {
-  const home = os.homedir();
-  switch (process.platform) {
-    case "darwin":
-      return LEGACY_USER_DATA_NAMES.map((name) =>
-        path.join(home, "Library", "Application Support", name),
-      );
-    case "win32": {
-      const appData = process.env.APPDATA ?? path.join(home, "AppData", "Roaming");
-      return LEGACY_USER_DATA_NAMES.map((name) => path.join(appData, name));
-    }
-    default:
-      return LEGACY_USER_DATA_NAMES.map((name) => path.join(home, ".config", name));
-  }
-}
-
-async function removeLegacyUserData() {
-  for (const dir of legacyUserDataDirs()) {
-    if (!(await fileExists(dir))) continue;
-    await fs.rm(dir, { recursive: true, force: true });
-    console.log(`Removed legacy Electron user data: ${dir}`);
-  }
-}
-
 try {
   await fs.access(ELECTRON_DIR);
 } catch {
@@ -182,5 +157,3 @@ if (!(await isInstalled())) {
   console.log(`Electron ready (${os.platform()} ${os.arch()})`);
   await ensureMacBundleBranding();
 }
-
-await removeLegacyUserData();
