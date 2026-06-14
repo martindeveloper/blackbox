@@ -7,6 +7,7 @@ mod sim;
 /// The search workloads are allocation-bound (GameState clones on every
 /// transition, across many threads); mimalloc's per-thread heaps remove the
 /// system-allocator contention that otherwise dominates the profile.
+#[cfg(not(target_os = "windows"))]
 #[global_allocator]
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
