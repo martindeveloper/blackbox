@@ -218,7 +218,16 @@ function packageEditor(platform, config) {
   console.log(`==> packaging editor for ${platform}`);
   runSync(
     "npm",
-    ["exec", "--", "electron-builder", "--config", "electron-builder.yml", ...config.electronArgs],
+    [
+      "exec",
+      "--",
+      "electron-builder",
+      "--config",
+      "electron-builder.yml",
+      "--publish",
+      "never",
+      ...config.electronArgs,
+    ],
     { cwd: editorRoot },
   );
 }

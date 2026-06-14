@@ -46,12 +46,13 @@ jobs:
           key: ${{ inputs.architecture }}
           workspaces: . -> .cache/target
 
-      - name: Install LLVM tools
+      - name: Install Windows cross-build tools
         run: |
           sudo apt-get update
-          sudo apt-get install --yes --no-install-recommends llvm-18
+          sudo apt-get install --yes --no-install-recommends llvm-18 wine
           echo "/usr/lib/llvm-18/bin" >> "$GITHUB_PATH"
           /usr/lib/llvm-18/bin/llvm-lib --version
+          wine --version
 
       - name: Install Rust build tools
         run: |
