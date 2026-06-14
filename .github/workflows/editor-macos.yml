@@ -1,0 +1,56 @@
+name: Editor macOS
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: editor-macos-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build macOS ARM64
+    runs-on: macos-15
+    timeout-minutes: 60
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            apps/editor/package-lock.json
+            apps/web/package-lock.json
+
+      - name: Install wasm-pack
+        run: cargo install --locked wasm-pack --version 0.15.0
+
+      - name: Install web dependencies
+        run: npm ci --prefix apps/web
+
+      - name: Install editor dependencies
+        run: npm ci --prefix apps/editor
+
+      - name: Build macOS editor
+        run: npm run electron:release --prefix apps/editor -- --platform macos
+
+      - name: Upload macOS packages
+        uses: actions/upload-artifact@v7
+        with:
+          name: blackbox-editor-macos-arm64
+          path: |
+            apps/editor/release/*arm64.dmg
+            apps/editor/release/*arm64-mac.zip
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14

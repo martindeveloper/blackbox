@@ -1,0 +1,55 @@
+name: Editor Windows
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: editor-windows-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build Windows x64
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            apps/editor/package-lock.json
+            apps/web/package-lock.json
+
+      - name: Install Rust build tools
+        run: |
+          cargo install --locked wasm-pack --version 0.15.0
+          cargo install --locked cargo-xwin --version 0.22.0
+
+      - name: Install web dependencies
+        run: npm ci --prefix apps/web
+
+      - name: Install editor dependencies
+        run: npm ci --prefix apps/editor
+
+      - name: Build Windows editor
+        run: npm run electron:release --prefix apps/editor -- --platform windows
+
+      - name: Upload Windows installer
+        uses: actions/upload-artifact@v7
+        with:
+          name: blackbox-editor-windows-x64
+          path: apps/editor/release/*Setup*.exe
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14

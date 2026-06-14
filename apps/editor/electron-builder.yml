@@ -45,6 +45,7 @@ linux:
     - AppImage
     - deb
   category: Development
+  maintainer: Blackbox
 
 nsis:
   oneClick: false
