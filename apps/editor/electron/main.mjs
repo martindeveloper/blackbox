@@ -70,7 +70,13 @@ async function startServer() {
   const { startEditorServer } = await import(serverEntry);
   editorSocketPath = createEditorSocketPath();
   await removeEditorSocket(editorSocketPath);
-  const server = await startEditorServer({ quiet: true, socketPath: editorSocketPath });
+  const server = await startEditorServer({
+    quiet: true,
+    socketPath: editorSocketPath,
+    projectServiceOptions: {
+      trashItem: (target) => shell.trashItem(target),
+    },
+  });
   protocol.handle(EDITOR_SCHEME, createEditorProtocolHandler(editorSocketPath));
   return server;
 }

@@ -37,10 +37,11 @@ function analyticsFixture() {
   };
 }
 
-async function fixture() {
+async function fixture(options = {}) {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "blackbox-project-service-"));
   const projectsRoot = path.join(root, "data");
   const projectPath = path.join(projectsRoot, "test_project");
+  const trashedPaths = [];
   await fs.mkdir(projectPath, { recursive: true });
   const write = (name, value) =>
     fs.writeFile(path.join(projectPath, name), `${JSON.stringify(value, null, 2)}\n`);
@@ -79,11 +80,19 @@ async function fixture() {
   const service = new ProjectService({
     roots: [projectsRoot],
     dbPath: path.join(root, "editor.db"),
+    trashItem:
+      options.trashItem ??
+      (async (target) => {
+        const destination = path.join(root, `trashed-${path.basename(target)}`);
+        await fs.rename(target, destination);
+        trashedPaths.push(destination);
+      }),
   });
   await service.start();
   return {
     root,
     projectPath,
+    trashedPaths,
     service,
     async close() {
       await service.close();
@@ -394,13 +403,34 @@ test("re-registers a recreated project folder after the old path row is orphaned
   }
 });
 
-test("deleteProject removes registry entry and project folder", async () => {
+test("deleteProject moves the project to trash and removes its registry entry", async () => {
   const env = await fixture();
   try {
     const [project] = env.service.listProjects();
     await env.service.deleteProject(project.id, project.name);
     assert.equal(env.service.listProjects().length, 0);
     await assert.rejects(fs.access(env.projectPath), (error) => error?.code === "ENOENT");
+    assert.equal(env.trashedPaths.length, 1);
+    await fs.access(env.trashedPaths[0]);
+  } finally {
+    await env.close();
+  }
+});
+
+test("deleteProject keeps the project registered when moving to trash fails", async () => {
+  const env = await fixture({
+    trashItem: async () => {
+      throw new Error("Trash is unavailable");
+    },
+  });
+  try {
+    const [project] = env.service.listProjects();
+    await assert.rejects(
+      env.service.deleteProject(project.id, project.name),
+      (error) => error instanceof ProjectError && error.code === "project_trash_failed",
+    );
+    assert.equal(env.service.listProjects().length, 1);
+    await fs.access(env.projectPath);
   } finally {
     await env.close();
   }

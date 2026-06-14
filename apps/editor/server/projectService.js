@@ -8,6 +8,7 @@ import chokidar from "chokidar";
 import { projectHasLocalUi } from "../../../scripts/lib/gamePaths.mjs";
 import { PACKAGED, REPO_ROOT, STANDALONE, USER_DATA_ROOT } from "./config.js";
 import { ensureProjectEditorConfig, regenerateProjectEditorId } from "./editorConfig.js";
+import { moveToOsTrash } from "./osTrash.js";
 import { ensureProjectSidecars } from "./projectScaffold.js";
 import {
   EDITOR_DB_BASENAME,
@@ -219,6 +220,7 @@ export class ProjectService {
   constructor(options = {}) {
     this.roots = options.roots ?? projectRoots();
     this.standalone = options.standalone ?? STANDALONE;
+    this.trashItem = options.trashItem ?? moveToOsTrash;
     this.dbPath =
       options.dbPath ?? path.join(USER_DATA_ROOT, EDITOR_SIDECAR_DIR, EDITOR_DB_BASENAME);
     this.projects = new Map();
@@ -359,12 +361,17 @@ export class ProjectService {
       }
     }
 
-    this.removeProjectRow(id);
     try {
-      await fs.rm(project.path, { recursive: true, force: true });
+      await this.trashItem(project.path);
     } catch (error) {
-      if (error?.code !== "ENOENT") throw error;
+      if (error?.code !== "ENOENT") {
+        throw new ProjectError(
+          "project_trash_failed",
+          `Could not move the project to the system trash: ${error?.message ?? error}`,
+        );
+      }
     }
+    this.removeProjectRow(id);
   }
 
   async registerProject(projectPath) {
