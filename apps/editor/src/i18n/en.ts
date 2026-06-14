@@ -76,9 +76,9 @@ export const en = {
     deletingProject: "Moving…",
     trustProjectTitle: "Do you trust this project?",
     trustProjectMessage:
-      "This project contains custom UI code. Trusting it allows that code to run inside the editor. Only trust projects from sources you know.",
+      "This project contains custom code. Trusting it allows that code to run inside the editor. Only trust projects from sources you know.",
     trustProjectAction: "Trust and open",
-    openProjectSafely: "Open without custom UI",
+    openProjectSafely: "Open without running code",
     editor: "Editor",
     newProject: "New project",
     relative: {
@@ -379,7 +379,14 @@ export const en = {
     buildFailed: "build failed ({{code}})",
     buildTool: "Build {{label}}",
     refreshDiscovery: "Refresh tool discovery",
+    source: {
+      config: "config",
+      path: "path",
+      cargo: "cargo",
+      bundle: "bundle",
+    },
     cargoSource: "cargo",
+    bundleSource: "bundle",
     optionsLabel: "Options",
     startedAt: "Started {{datetime}}",
     lastRunAt: "Last run {{datetime}}",

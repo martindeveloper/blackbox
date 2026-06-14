@@ -355,7 +355,7 @@ export interface ToolBuildResult {
   error?: string;
 }
 
-export type ToolSource = "config" | "path" | "cargo";
+export type ToolSource = "config" | "path" | "cargo" | "bundle";
 
 export interface ToolInfo {
   available: boolean;

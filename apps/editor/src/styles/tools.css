@@ -1192,6 +1192,15 @@
   color: var(--editor-text-subtle);
 }
 
+.tools-inspector-tool-source--bundle {
+  background: color-mix(in srgb, #e8a838 14%, transparent);
+  color: #c9922e;
+}
+
+.tools-sidebar-source-tag--bundle {
+  color: #c9922e;
+}
+
 .tools-inspector-tool-error {
   font-size: 10px;
   color: color-mix(in srgb, #f87171 85%, transparent);

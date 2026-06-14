@@ -10,7 +10,7 @@ import {
   resolvePreviewGameSrc,
 } from "../shared/lib/gamePaths.mjs";
 import { createWebRolldownResolve } from "../shared/lib/webRolldownResolve.mjs";
-import { PREVIEW_CACHE, PREVIEW_WEB_ROOT } from "./config.js";
+import { PREVIEW_BUILD_CACHE, PREVIEW_CACHE, PREVIEW_WEB_ROOT } from "./config.js";
 
 // Engine + built-in shell sources whose mtimes invalidate a cached preview bundle.
 const SHARED_SRC = ["src/engine", "src/preview", "src/shells"];
@@ -115,6 +115,7 @@ async function buildGame(web, uiKey, gameSrc, force) {
     gameSrc,
     outFile: path.join(outDir, "style.css"),
     requireFrom: await previewRequireFrom(web),
+    cacheDir: path.join(PREVIEW_BUILD_CACHE, "tailwind"),
   });
   await fs.writeFile(fingerprintFile, fingerprint);
   return { game: uiKey, cached: false, durationMs: Date.now() - started };

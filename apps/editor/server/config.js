@@ -23,6 +23,8 @@ export const DIST = path.join(CLIENT_ROOT, "dist");
 export const BUNDLE_CACHE = path.join(USER_DATA_ROOT, ".cache", "bundle");
 // On-demand preview bundles (preview.js + style.css) are compiled here per game.
 export const PREVIEW_CACHE = path.join(USER_DATA_ROOT, ".cache", "preview");
+// Writable scratch space for preview toolchain temp files (tailwind wrappers, etc.).
+export const PREVIEW_BUILD_CACHE = path.join(USER_DATA_ROOT, ".cache", "preview-build");
 export const WORK_DIR = USER_DATA_ROOT;
 
 // Web workspace the preview player engine is built FROM (shared runtime + preview

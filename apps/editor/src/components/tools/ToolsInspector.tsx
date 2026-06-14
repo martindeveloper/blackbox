@@ -58,7 +58,7 @@ function ToolBadge({ info, label, toolName, projectId, buildEnabled, onBuilt }: 
           <span
             className={`tools-inspector-tool-source tools-inspector-tool-source--${info.source}`}
           >
-            {info.source}
+            {t(`tools.source.${info.source}`)}
           </span>
         )}
         {buildFailed && entry && (

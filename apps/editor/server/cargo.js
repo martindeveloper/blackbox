@@ -110,10 +110,12 @@ export function probeBin(binPath, source) {
   });
 }
 
-export async function discoverOneTool(defaultBinName, configuredBin) {
+export async function discoverOneTool(defaultBinName, configuredBin, configuredSource = "config") {
   if (configuredBin) {
-    const result = await probeBin(configuredBin, "config");
-    return result.ok ? result : { available: false, source: "config", error: result.error };
+    const result = await probeBin(configuredBin, configuredSource);
+    return result.ok
+      ? result
+      : { available: false, source: configuredSource, error: result.error };
   }
   const pathResult = await probeBin(defaultBinName, "path");
   if (pathResult.ok) return pathResult;

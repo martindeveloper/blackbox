@@ -1,6 +1,11 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { BUNDLE_CACHE, WORK_DIR, bundledToolsEnabled } from "./config.js";
+import {
+  BUNDLE_CACHE,
+  WORK_DIR,
+  bundledToolsEnabled,
+  toolBinPath,
+} from "./config.js";
 import { getCargoTargetDir, runProcess, runCargo, platformBin, discoverOneTool } from "./cargo.js";
 import { nullTools } from "./editorConfig.js";
 import { commandResult, appendOutput, parseLint, parseBundle, parseSimulator } from "./parsers.js";
@@ -9,6 +14,15 @@ import { ProjectError } from "./projectService.js";
 import { ToolRunRegistry } from "./toolRuns.js";
 import { ensurePreviewBuilt } from "./previewBuild.js";
 import { ensureProjectSidecars, writeNewProject } from "./projectScaffold.js";
+
+function toolDiscoverySource(defaultBinName, binPath) {
+  if (!binPath) return "config";
+  const bundled = toolBinPath(defaultBinName);
+  if (bundled && bundledToolsEnabled()) {
+    if (path.resolve(binPath) === path.resolve(bundled)) return "bundle";
+  }
+  return "config";
+}
 
 function sendError(reply, error) {
   if (!(error instanceof ProjectError)) throw error;
@@ -271,9 +285,21 @@ export async function registerRoutes(app, service) {
     projectRequest(service, async (project) => {
       const tools = project.tools ?? nullTools();
       const [linter, bundler, simulator] = await Promise.all([
-        discoverOneTool("blackbox-lint", tools.linter),
-        discoverOneTool("blackbox-bundler", tools.bundler),
-        discoverOneTool("blackbox-simulator", tools.simulator),
+        discoverOneTool(
+          "blackbox-lint",
+          tools.linter,
+          toolDiscoverySource("blackbox-lint", tools.linter),
+        ),
+        discoverOneTool(
+          "blackbox-bundler",
+          tools.bundler,
+          toolDiscoverySource("blackbox-bundler", tools.bundler),
+        ),
+        discoverOneTool(
+          "blackbox-simulator",
+          tools.simulator,
+          toolDiscoverySource("blackbox-simulator", tools.simulator),
+        ),
       ]);
       return {
         linter,

@@ -480,7 +480,7 @@ export class ProjectService {
     if (projectHasLocalUi(project.path) && project.uiTrusted === null) {
       throw new ProjectError(
         "project_trust_required",
-        "This project contains executable UI code and needs a trust decision",
+        "This project contains executable code and needs a trust decision",
       );
     }
     const now = new Date().toISOString();
