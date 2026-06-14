@@ -131,14 +131,20 @@ jobs:
             -CertificatePath "apps/editor/resources/msix-signing.cer" `
             -InstallScriptDir "apps/editor/resources/windows"
 
+      - name: Stage Windows release artifacts
+        shell: pwsh
+        run: |
+          & "${{ github.workspace }}/.github/scripts/stage-windows-release-artifacts.ps1" `
+            -ReleaseDir "apps/editor/release" `
+            -OutputDir "apps/editor/release/upload" `
+            -Architecture "${{ inputs.architecture }}" `
+            -PackageFormat "${{ inputs.package_format }}"
+
       - name: Upload Windows packages
         uses: actions/upload-artifact@v7
         with:
           name: blackbox-editor-windows-${{ inputs.architecture }}
-          path: |
-            apps/editor/release/*-sideload.zip
-            apps/editor/release/*.zip
-            !apps/editor/release/*-sideload.zip
+          path: apps/editor/release/upload/*
           if-no-files-found: error
           compression-level: 0
           retention-days: 14

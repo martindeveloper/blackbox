@@ -98,8 +98,8 @@ jobs:
           mkdir release-assets
           cp downloaded-artifacts/blackbox-editor-macos-arm64/*.dmg release-assets/blackbox-editor-macos-arm64.dmg
           cp downloaded-artifacts/blackbox-editor-macos-x64/*.dmg release-assets/blackbox-editor-macos-x64.dmg
-          cp downloaded-artifacts/blackbox-editor-windows-arm64/*-sideload.zip release-assets/blackbox-editor-windows-arm64.zip
-          cp downloaded-artifacts/blackbox-editor-windows-x64/*-sideload.zip release-assets/blackbox-editor-windows-x64.zip
+          cp downloaded-artifacts/blackbox-editor-windows-arm64/blackbox-editor-arm64.zip release-assets/blackbox-editor-windows-arm64.zip
+          cp downloaded-artifacts/blackbox-editor-windows-x64/blackbox-editor-x64.zip release-assets/blackbox-editor-windows-x64.zip
           cp downloaded-artifacts/blackbox-editor-linux-x64/*.AppImage release-assets/blackbox-editor-linux-x64.AppImage
           cp downloaded-artifacts/blackbox-editor-linux-x64/*.deb release-assets/blackbox-editor-linux-x64.deb
           (
