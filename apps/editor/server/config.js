@@ -34,6 +34,13 @@ export const DEV_MODE = process.argv.includes("--dev");
 export const API_VERSION = "v1";
 export const API_PREFIX = `/api/${API_VERSION}`;
 
+// The preview player ships one prebuilt bundle per game under dist/preview/<game>/.
+// Projects that don't declare a `game` in scenario.json preview with the
+// generic, game-agnostic UI.
+export const DEFAULT_PREVIEW_GAME = "editor-preview";
+// Folder-name shape for games; guards the value before it touches the filesystem.
+export const PREVIEW_GAME_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
+
 export const PORT = Number(process.env.PORT || 8081);
 export const LIVERELOAD_PORT = Number(process.env.LIVERELOAD_PORT || 35730);
 export const LIVERELOAD_SNIPPET = `<script src="http://localhost:${LIVERELOAD_PORT}/livereload.js?snipver=1"></script>`;

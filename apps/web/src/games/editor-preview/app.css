@@ -5,17 +5,59 @@
 @import "../../engine/ui/preloader.css";
 @import "../../engine/ui/base.css";
 
+/* Generic editor-preview theme.
+ *
+ * The UI shown for any project that hasn't shipped its own components/CSS yet
+ * (e.g. a game freshly created from scratch). It must read as clean and
+ * genre-neutral — no sci-fi/fantasy lean — so it's a calm editorial reader:
+ * serif narrative, quiet sans chrome, a single restrained accent.
+ *
+ * Tokens are set on :root (not the .editor-preview wrapper) because the modal
+ * stack renders outside that wrapper (boot.tsx mounts ModalProvider around the
+ * app root), so :root is the only place both the game screen and its modals
+ * inherit the same palette. Theme switching toggles html[data-theme]. */
 :root {
+  --bb-font-display:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --bb-font-narrative:
+    "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, Cambria,
+    "Times New Roman", serif;
+  --bb-font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono",
+    monospace;
+
   color-scheme: dark;
-  font-family:
-    Inter,
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
-  background: #111318;
+  --bb-ui-accent: #84a9d0;
+  --bb-ui-info: #74b3a2;
+  --bb-ui-danger: #d98c84;
+  --bb-ui-text: #e9ebef;
+  --bb-ui-muted: #9a9ea9;
+  --bb-input-bg: color-mix(in srgb, #ffffff 4%, transparent);
+  --bb-input-border: rgba(255, 255, 255, 0.12);
+  --bb-input-border-focus: color-mix(in srgb, var(--bb-ui-accent) 55%, transparent);
+  --bb-ui-surface: #1d1f24;
+  --bb-ui-border: rgba(255, 255, 255, 0.1);
+  --bb-ui-overlay: rgba(10, 11, 14, 0.62);
+  --bb-ui-shadow: rgba(0, 0, 0, 0.38);
+  --bb-ui-track: rgba(255, 255, 255, 0.1);
+  --bb-app-bg: #15161a;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bb-ui-accent: #3c6396;
+  --bb-ui-info: #2f8472;
+  --bb-ui-danger: #bd544a;
+  --bb-ui-text: #232631;
+  --bb-ui-muted: #6c707b;
+  --bb-input-bg: #ffffff;
+  --bb-input-border: rgba(24, 28, 38, 0.14);
+  --bb-input-border-focus: color-mix(in srgb, var(--bb-ui-accent) 55%, transparent);
+  --bb-ui-surface: #fbfaf8;
+  --bb-ui-border: rgba(24, 28, 38, 0.11);
+  --bb-ui-overlay: rgba(40, 43, 52, 0.3);
+  --bb-ui-shadow: rgba(36, 40, 52, 0.14);
+  --bb-ui-track: rgba(24, 28, 38, 0.12);
+  --bb-app-bg: #efeee9;
 }
 
 html,
@@ -28,26 +70,111 @@ body,
 
 body {
   overflow: hidden;
+  background: var(--bb-app-bg);
+  color: var(--bb-ui-text);
+  font-family: var(--bb-font-display);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--bb-ui-accent) 30%, transparent);
 }
 
 .editor-preview {
-  --bb-ui-accent: #8da2fb;
-  --bb-ui-info: #6bc7ad;
-  --bb-ui-danger: #f07178;
-  --bb-ui-text: #e6e8ef;
-  --bb-ui-muted: #969baa;
-  --bb-input-bg: #151820;
-  --bb-input-border: #2d3240;
-  --bb-input-border-focus: #596580;
-  --bb-ui-surface: #111318;
-  --bb-ui-border: #2d3240;
-  --bb-ui-overlay: rgba(7, 8, 12, 0.82);
-  --bb-ui-shadow: rgba(0, 0, 0, 0.55);
-  --bb-ui-track: #282d39;
-  --bb-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-  --bb-font-display: inherit;
+  background: var(--bb-app-bg);
 }
 
-.editor-preview button {
-  border-radius: 0.35rem;
+/* thin, theme-aware scrollbars */
+.editor-preview *,
+.modal-body {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--bb-ui-text) 22%, transparent) transparent;
+}
+
+.editor-preview button:focus-visible,
+.modal-panel button:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--bb-ui-accent) 60%, transparent);
+  outline-offset: 2px;
+}
+
+/* ----- App header ----- */
+.editor-preview .text-game-player-header {
+  gap: 0.75rem;
+  padding: 0.7rem 1.5rem;
+  background: var(--bb-ui-surface);
+}
+
+.editor-preview .text-game-player-header h1 {
+  color: var(--bb-ui-text);
+  font-family: var(--bb-font-display);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.editor-preview .text-game-player-header span {
+  color: var(--bb-ui-muted);
+  font-size: 0.72rem;
+}
+
+.editor-preview .text-game-player-header button {
+  border: 1px solid var(--bb-ui-border);
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--bb-ui-text) 3%, transparent);
+  color: var(--bb-ui-muted);
+  font-size: 0.72rem;
+  font-weight: 500;
+  transition:
+    color 0.16s ease,
+    border-color 0.16s ease,
+    background 0.16s ease;
+}
+
+.editor-preview .text-game-player-header button:hover {
+  color: var(--bb-ui-text);
+  border-color: color-mix(in srgb, var(--bb-ui-accent) 45%, var(--bb-ui-border));
+}
+
+/* ----- Modal chrome (generic build only) -----
+ * Drops the sci-fi corner brackets and softens the panel into a clean,
+ * rounded dialog so engine-rendered modals match the reader's calm look. */
+.modal-backdrop {
+  backdrop-filter: blur(6px);
+}
+
+.modal-panel {
+  border: 1px solid var(--bb-ui-border);
+  border-radius: 0.9rem;
+  box-shadow: 0 24px 60px var(--bb-ui-shadow);
+}
+
+.modal-panel .bracket {
+  display: none;
+}
+
+.modal-header {
+  border-bottom: 1px solid var(--bb-ui-border);
+}
+
+.modal-title {
+  font-family: var(--bb-font-display);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  color: var(--bb-ui-text);
+}
+
+.modal-eyebrow {
+  font-family: var(--bb-font-display);
+  letter-spacing: 0.18em;
+  color: var(--bb-ui-muted);
+}
+
+.sys-btn {
+  border-radius: 0.5rem;
+  font-family: var(--bb-font-display);
+  letter-spacing: 0.04em;
+  text-transform: none;
 }

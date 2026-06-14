@@ -240,6 +240,14 @@
   color: var(--bb-ui-muted);
 }
 
+/* Default (generic) text-game UI.
+ *
+ * These bb-default-* rules are only rendered by the engine's default
+ * components (textGame/defaults.tsx) — the look a game gets before it ships
+ * its own components/CSS. The aim is a clean, genre-neutral reading UI:
+ * serif narrative, quiet sans chrome, rounded cards. Token-driven only, so a
+ * game theme (or the editor preview) can recolor everything via --bb-* vars.
+ */
 .bb-default-game-screen {
   display: flex;
   flex-direction: column;
@@ -250,30 +258,84 @@
 }
 
 .bb-default-game-screen__location {
-  padding: 0.8rem 1rem;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  padding: 1.1rem 1.5rem 0.95rem;
   border-bottom: 1px solid var(--bb-ui-border);
 }
 
 .bb-default-game-screen__location h2 {
   margin: 0;
-  color: var(--bb-ui-accent);
+  color: var(--bb-ui-text);
   font-family: var(--bb-font-display);
-  letter-spacing: 0.08em;
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
 .bb-default-game-screen__location span {
+  order: -1;
+  margin-bottom: 0.25rem;
   color: var(--bb-ui-muted);
+  font-family: var(--bb-font-display);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
 }
 
-.bb-default-game-screen__narrative {
-  flex: 1;
-  min-height: 0;
-  padding: 1.5rem 1rem;
-  overflow-y: auto;
+.bb-default-vitals {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  gap: 0.75rem 1.25rem;
+  padding: 0.85rem 1.5rem;
+  border-bottom: 1px solid var(--bb-ui-border);
+}
+
+.bb-default-vitals__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.bb-default-vitals__controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.bb-default-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 3.25rem;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid var(--bb-ui-border);
+  border-radius: 0.6rem;
+  background: color-mix(in srgb, var(--bb-ui-text) 4%, transparent);
+}
+
+.bb-default-stat__value {
+  color: var(--bb-ui-text);
+  font-family: var(--bb-font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.bb-default-stat__key {
+  color: var(--bb-ui-muted);
+  font-size: 0.56rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .bb-default-game-screen__panel-actions,
-.bb-default-main-menu__actions,
 .bb-default-system-menu {
   display: flex;
   flex-wrap: wrap;
@@ -281,144 +343,115 @@
 }
 
 .bb-default-game-screen__panel-actions button,
-.bb-default-main-menu__actions button,
 .bb-default-system-menu button,
-.bb-default-main-menu > button {
-  padding: 0.55rem 0.75rem;
-  border: 1px solid var(--bb-ui-border);
-  background: transparent;
-  color: var(--bb-ui-text);
-  font: inherit;
-  cursor: pointer;
-}
-
-.bb-default-main-menu {
-  display: grid;
-  align-content: center;
-  width: min(100% - 2rem, 48rem);
-  min-height: 100%;
-  margin-inline: auto;
-  gap: 1rem;
-  padding-block: 2rem;
-}
-
-.bb-default-main-menu__slots {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
-  gap: 0.75rem;
-}
-
-.bb-default-main-menu__slot {
-  display: grid;
-  border: 1px solid var(--bb-ui-border);
-}
-
-.bb-default-main-menu__slot--selected {
-  border-color: var(--bb-ui-accent);
-}
-
-.bb-default-main-menu__slot button {
-  display: grid;
-  gap: 0.35rem;
-  padding: 1rem;
-  border: 0;
-  background: transparent;
-  color: var(--bb-ui-text);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.bb-default-choices {
-  flex-shrink: 0;
-  padding: 0.9rem 1rem max(1rem, env(safe-area-inset-bottom, 1rem));
-  border-top: 1px solid var(--bb-ui-border);
-  background: var(--bb-ui-surface);
-}
-
-.bb-default-choices__shell,
-.bb-default-game-screen__narrative-stack,
-.bb-default-resolution {
-  width: min(100%, 46rem);
-  margin-inline: auto;
-}
-
-.bb-default-choices__list,
-.bb-default-resolution {
-  display: grid;
-  gap: 0.55rem;
-}
-
-.bb-default-choice,
-.bb-default-inventory__slot,
+.bb-default-main-menu > button,
 .bb-default-inventory__detail button {
-  display: flex;
-  gap: 0.75rem;
-  width: 100%;
-  padding: 0.75rem 0.9rem;
+  padding: 0.5rem 0.85rem;
   border: 1px solid var(--bb-ui-border);
-  background: transparent;
+  border-radius: 0.55rem;
+  background: color-mix(in srgb, var(--bb-ui-text) 3%, transparent);
   color: var(--bb-ui-text);
-  font: inherit;
-  text-align: left;
+  font-family: var(--bb-font-display);
+  font-size: 0.8rem;
+  font-weight: 500;
+  line-height: 1.2;
   cursor: pointer;
+  transition:
+    color 0.16s ease,
+    border-color 0.16s ease,
+    background 0.16s ease;
 }
 
-.bb-default-choice:hover:not(:disabled),
-.bb-default-inventory__slot:hover,
+.bb-default-game-screen__panel-actions button:hover,
+.bb-default-system-menu button:hover,
+.bb-default-main-menu > button:hover,
 .bb-default-inventory__detail button:hover:not(:disabled) {
-  border-color: var(--bb-ui-accent);
+  border-color: color-mix(in srgb, var(--bb-ui-accent) 45%, var(--bb-ui-border));
+  background: color-mix(in srgb, var(--bb-ui-accent) 8%, transparent);
 }
 
-.bb-default-choice:disabled,
 .bb-default-inventory__detail button:disabled {
   cursor: not-allowed;
   opacity: 0.45;
 }
 
-.bb-default-choice__number,
-.bb-default-choice__check,
-.bb-default-choice__lock {
-  color: var(--bb-ui-muted);
-  font-family: var(--bb-font-mono);
-  font-size: 0.72em;
+.bb-default-game-screen__narrative {
+  flex: 1;
+  min-height: 0;
+  padding: 2.25rem 1.5rem 1.75rem;
+  overflow-y: auto;
 }
 
-.bb-default-choice__check,
-.bb-default-choice__lock {
-  display: block;
-  margin-top: 0.25rem;
-}
-
-.bb-default-section-rule {
-  margin-bottom: 0.6rem;
-  color: var(--bb-ui-muted);
-  font-family: var(--bb-font-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
+.bb-default-choices__shell,
+.bb-default-game-screen__narrative-stack,
+.bb-default-resolution {
+  width: min(100%, 42rem);
+  margin-inline: auto;
 }
 
 .bb-default-narrative__paragraph,
 .bb-default-narrative__line,
 .bb-default-narrative__stage-direction {
-  margin: 0 0 1rem;
+  margin: 0 0 1.2rem;
   color: var(--bb-ui-text);
-  line-height: 1.75;
+  font-family: var(--bb-font-narrative);
+  font-size: 1.14rem;
+  line-height: 1.85;
+  letter-spacing: 0.003em;
+}
+
+.bb-default-narrative__dialogue,
+.bb-default-narrative__thought {
+  margin-bottom: 1.2rem;
+}
+
+.bb-default-narrative__dialogue--continuation,
+.bb-default-narrative__thought--continuation {
+  margin-top: -0.5rem;
+}
+
+.bb-default-narrative__dialogue .bb-default-narrative__line,
+.bb-default-narrative__thought .bb-default-narrative__line {
+  margin-bottom: 0;
+}
+
+.bb-default-narrative__thought .bb-default-narrative__line {
+  font-style: italic;
 }
 
 .bb-default-narrative__speaker {
-  margin-bottom: 0.25rem;
-  color: var(--bb-ui-accent);
-  font-family: var(--bb-font-mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.1em;
+  margin-bottom: 0.3rem;
+  color: color-mix(in srgb, var(--bb-ui-accent) 72%, var(--bb-ui-text));
+  font-family: var(--bb-font-display);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
+}
+
+.bb-default-narrative__emotion {
+  margin-right: 0.5rem;
+  color: var(--bb-ui-muted);
+  font-family: var(--bb-font-display);
+  font-size: 0.72rem;
+  font-style: normal;
+  letter-spacing: 0.02em;
 }
 
 .bb-default-narrative__stage-direction {
   color: var(--bb-ui-muted);
+  font-size: 1.04rem;
   font-style: italic;
+}
+
+.bb-default-narrative__paragraph--game-over {
+  color: var(--bb-ui-danger);
+}
+
+.bb-default-resolution {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 1.75rem;
 }
 
 .bb-default-roll,
@@ -427,49 +460,221 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.7rem 0.85rem;
-  border-left: 2px solid var(--bb-ui-border);
-  background: color-mix(in srgb, var(--bb-ui-surface) 85%, transparent);
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--bb-ui-border);
+  border-left: 3px solid var(--bb-ui-border);
+  border-radius: 0.55rem;
+  background: color-mix(in srgb, var(--bb-ui-text) 3%, transparent);
+  font-family: var(--bb-font-display);
+  font-size: 0.85rem;
 }
 
 .bb-default-roll--pass {
-  border-color: var(--bb-ui-info);
+  border-left-color: var(--bb-ui-info);
 }
 
 .bb-default-roll--fail,
 .bb-default-notification--damage {
-  border-color: var(--bb-ui-danger);
+  border-left-color: var(--bb-ui-danger);
 }
 
-.bb-default-vitals {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.65rem 1rem;
-  border-bottom: 1px solid var(--bb-ui-border);
+.bb-default-choices {
+  flex-shrink: 0;
+  padding: 1rem 1.5rem max(1.25rem, env(safe-area-inset-bottom, 1rem));
+  border-top: 1px solid var(--bb-ui-border);
+  background: var(--bb-ui-surface);
 }
 
-.bb-default-vitals__stats,
-.bb-default-vitals__controls {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-}
-
-.bb-default-stat {
-  min-width: 3rem;
-}
-
-.bb-default-stat__value {
-  color: var(--bb-ui-text);
-  font-size: 1rem;
-}
-
-.bb-default-stat__key {
+.bb-default-section-rule {
+  margin-bottom: 0.7rem;
   color: var(--bb-ui-muted);
+  font-family: var(--bb-font-display);
   font-size: 0.6rem;
-  letter-spacing: 0.08em;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.bb-default-choices__list {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.bb-default-choices__resolving {
+  padding: 0.85rem 0;
+  color: var(--bb-ui-muted);
+  font-family: var(--bb-font-display);
+  font-size: 0.85rem;
+}
+
+.bb-default-choice {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  width: 100%;
+  padding: 0.8rem 0.95rem;
+  border: 1px solid var(--bb-ui-border);
+  border-radius: 0.7rem;
+  background: color-mix(in srgb, var(--bb-ui-text) 3%, transparent);
+  color: var(--bb-ui-text);
+  font-family: var(--bb-font-display);
+  font-size: 0.95rem;
+  line-height: 1.45;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.16s ease,
+    background 0.16s ease,
+    transform 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.bb-default-choice:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--bb-ui-accent) 55%, var(--bb-ui-border));
+  background: color-mix(in srgb, var(--bb-ui-accent) 9%, transparent);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px var(--bb-ui-shadow);
+}
+
+.bb-default-choice:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--bb-ui-accent) 60%, transparent);
+  outline-offset: 2px;
+}
+
+.bb-default-choice--disabled,
+.bb-default-choice:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.bb-default-choice__number {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--bb-ui-accent) 14%, transparent);
+  color: color-mix(in srgb, var(--bb-ui-accent) 88%, var(--bb-ui-text));
+  font-family: var(--bb-font-display);
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.bb-default-choice__check,
+.bb-default-choice__lock {
+  display: block;
+  margin-top: 0.3rem;
+  font-family: var(--bb-font-display);
+  font-size: 0.72rem;
+  letter-spacing: 0.01em;
+}
+
+.bb-default-choice__check {
+  color: color-mix(in srgb, var(--bb-ui-info) 78%, var(--bb-ui-muted));
+}
+
+.bb-default-choice__lock {
+  color: var(--bb-ui-muted);
+}
+
+.bb-default-main-menu {
+  display: grid;
+  align-content: center;
+  width: min(100% - 3rem, 40rem);
+  min-height: 100%;
+  margin-inline: auto;
+  gap: 1.5rem;
+  padding-block: 3rem;
+}
+
+.bb-default-main-menu header h1 {
+  margin: 0;
+  color: var(--bb-ui-text);
+  font-family: var(--bb-font-display);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.bb-default-main-menu__slots {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 0.75rem;
+}
+
+.bb-default-main-menu__slot {
+  display: grid;
+  border: 1px solid var(--bb-ui-border);
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--bb-ui-text) 3%, transparent);
+  overflow: hidden;
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.bb-default-main-menu__slot--selected {
+  border-color: color-mix(in srgb, var(--bb-ui-accent) 60%, var(--bb-ui-border));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--bb-ui-accent) 35%, transparent);
+}
+
+.bb-default-main-menu__slot button {
+  display: grid;
+  gap: 0.35rem;
+  padding: 1rem 1.1rem;
+  border: 0;
+  background: transparent;
+  color: var(--bb-ui-text);
+  font-family: var(--bb-font-display);
+  text-align: left;
+  cursor: pointer;
+}
+
+.bb-default-main-menu__slot button strong {
+  color: var(--bb-ui-muted);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.bb-default-main-menu__slot button span {
+  color: var(--bb-ui-text);
+  font-size: 0.95rem;
+}
+
+.bb-default-main-menu__slot button + button {
+  padding: 0.5rem 1.1rem;
+  border-top: 1px solid var(--bb-ui-border);
+  color: var(--bb-ui-muted);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.bb-default-main-menu__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.bb-default-main-menu__actions button {
+  padding: 0.7rem 1.2rem;
+  border: 1px solid color-mix(in srgb, var(--bb-ui-accent) 55%, transparent);
+  border-radius: 0.6rem;
+  background: color-mix(in srgb, var(--bb-ui-accent) 16%, transparent);
+  color: color-mix(in srgb, var(--bb-ui-accent) 92%, var(--bb-ui-text));
+  font-family: var(--bb-font-display);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.bb-default-main-menu > button {
+  justify-self: start;
 }
 
 .bb-default-inventory {
@@ -481,29 +686,73 @@
 .bb-default-inventory__grid,
 .bb-default-intel {
   display: grid;
-  gap: 0.6rem;
+  gap: 0.5rem;
+  align-content: start;
 }
 
 .bb-default-inventory__slot {
+  display: flex;
   justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--bb-ui-border);
+  border-radius: 0.6rem;
+  background: color-mix(in srgb, var(--bb-ui-text) 3%, transparent);
+  color: var(--bb-ui-text);
+  font-family: var(--bb-font-display);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.16s ease,
+    background 0.16s ease;
+}
+
+.bb-default-inventory__slot:hover {
+  border-color: color-mix(in srgb, var(--bb-ui-accent) 45%, var(--bb-ui-border));
 }
 
 .bb-default-inventory__slot--selected {
-  border-color: var(--bb-ui-accent);
+  border-color: color-mix(in srgb, var(--bb-ui-accent) 60%, var(--bb-ui-border));
+  background: color-mix(in srgb, var(--bb-ui-accent) 9%, transparent);
+}
+
+.bb-default-inventory__slot span {
+  color: var(--bb-ui-muted);
+  font-size: 0.8rem;
 }
 
 .bb-default-inventory__detail,
 .bb-default-intel__card,
 .bb-default-journal__entry {
-  padding: 1rem;
+  padding: 1.1rem;
   border: 1px solid var(--bb-ui-border);
+  border-radius: 0.7rem;
   background: var(--bb-input-bg);
 }
 
 .bb-default-inventory__detail {
   display: grid;
   align-content: start;
-  gap: 0.75rem;
+  gap: 0.7rem;
+}
+
+.bb-default-inventory__detail h3,
+.bb-default-intel__card h3 {
+  margin: 0;
+  font-family: var(--bb-font-display);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.bb-default-inventory__detail p,
+.bb-default-intel__card p,
+.bb-default-journal__entry p {
+  margin: 0;
+  color: var(--bb-ui-muted);
+  font-family: var(--bb-font-narrative);
+  font-size: 1rem;
+  line-height: 1.7;
 }
 
 .bb-default-intel {
@@ -512,14 +761,22 @@
 
 .bb-default-journal {
   display: grid;
-  gap: 0.75rem;
+  gap: 0.6rem;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+.bb-default-journal__entry strong {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-family: var(--bb-font-display);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
 .bb-default-empty-state {
-  padding: 2rem;
+  padding: 2.5rem;
   color: var(--bb-ui-muted);
   text-align: center;
 }

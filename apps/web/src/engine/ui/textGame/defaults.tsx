@@ -143,9 +143,7 @@ export function DefaultChoices({
                     className={`bb-default-choice ${choiceClass}`}
                     onClick={action.action}
                   >
-                    <span className="bb-default-choice__number">
-                      [{String(index + 1).padStart(2, "0")}]
-                    </span>
+                    <span className="bb-default-choice__number">{index + 1}</span>
                     <span>{action.label}</span>
                   </button>
                 ))
@@ -159,9 +157,7 @@ export function DefaultChoices({
                       dispatchChoice(choice, { onChoose, onRestart, onOpenLoad, onOpenMainMenu })
                     }
                   >
-                    <span className="bb-default-choice__number">
-                      [{String(index + 1).padStart(2, "0")}]
-                    </span>
+                    <span className="bb-default-choice__number">{index + 1}</span>
                     <span>
                       {choice.label}
                       {choice.check && (

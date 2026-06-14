@@ -26,4 +26,5 @@
   --bb-ui-track: rgba(255, 255, 255, 0.12);
   --bb-font-mono: "Courier New", monospace;
   --bb-font-display: var(--bb-font-mono);
+  --bb-font-narrative: Georgia, "Times New Roman", serif;
 }

@@ -11,6 +11,7 @@ import {
   DIST,
   API_PREFIX,
   USER_DATA_ROOT,
+  DEFAULT_PREVIEW_GAME,
 } from "./config.js";
 import { setupLiveReload, staticFileHandler } from "./static.js";
 import { findDefaultDataRoot } from "./editorConfig.js";
@@ -33,6 +34,15 @@ export async function reservePort(preferred = PORT) {
     return await tryPort(preferred);
   } catch {
     return tryPort(0);
+  }
+}
+
+async function previewBundleExists(game) {
+  try {
+    await fs.access(path.join(DIST, "preview", game, "preview.js"));
+    return true;
+  } catch {
+    return false;
   }
 }
 
@@ -74,7 +84,12 @@ export async function createEditorServer(options = {}) {
 
   fastify.get("/preview", async (request, reply) => {
     try {
-      const html = await fs.readFile(path.join(DIST, "preview", "preview.html"));
+      const requested = projectService.previewGameFor(request.query?.project);
+      // Serve the requested game's bundle if it was built into this editor;
+      // otherwise fall back to the generic game so the preview always renders.
+      const game = (await previewBundleExists(requested)) ? requested : DEFAULT_PREVIEW_GAME;
+      const template = await fs.readFile(path.join(DIST, "preview", "preview.html"), "utf8");
+      const html = template.replaceAll("__GAME__", game);
       return reply.header("Cache-Control", "no-store").type("text/html; charset=utf-8").send(html);
     } catch {
       return reply
