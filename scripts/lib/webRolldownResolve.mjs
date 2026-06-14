@@ -1,19 +1,16 @@
 import { createRequire } from "node:module";
+import fs from "node:fs";
 import path from "node:path";
 
-/** npm deps bundled from apps/web when game UI lives outside the web package. */
-const ENGINE_DEPS = [
-  "react",
-  "react-dom",
-  "react/jsx-runtime",
-  "react-i18next",
-  "i18next",
-];
+function frontendDeps(webRoot) {
+  const config = JSON.parse(fs.readFileSync(path.join(webRoot, "tsconfig.game.json"), "utf8"));
+  return Object.keys(config.compilerOptions.paths).filter((specifier) => !specifier.startsWith("@"));
+}
 
 export function resolveEngineDepAliases(webRoot) {
   const require = createRequire(path.join(webRoot, "package.json"));
   const alias = {};
-  for (const dep of ENGINE_DEPS) {
+  for (const dep of frontendDeps(webRoot)) {
     alias[dep] = require.resolve(dep);
   }
   return alias;

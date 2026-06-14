@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { existsSync, mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, rmSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { resolveWebDevAdventure } from "../../../scripts/lib/adventureDev.mjs";
@@ -49,10 +49,10 @@ function parseArgs(argv) {
 }
 
 const options = parseArgs(process.argv.slice(2));
-mkdirSync(out, { recursive: true });
 
 if (!options.scenario) {
   if (options.allowEmpty) {
+    rmSync(out, { recursive: true, force: true });
     console.warn("==> skipping web bundle: no BLACKBOX_ADVENTURE configured");
     process.exit(0);
   }
@@ -62,6 +62,8 @@ if (!options.scenario) {
 if (!existsSync(options.scenario)) {
   throw new Error(`Scenario not found: ${options.scenario}`);
 }
+
+mkdirSync(out, { recursive: true });
 
 console.log(
   `==> building web bundle (scenario=${options.scenario}, platform=${options.platform}, output=${out}, archive=${options.archiveCompress})`,
