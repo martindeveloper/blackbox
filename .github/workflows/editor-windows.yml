@@ -122,6 +122,15 @@ jobs:
             -CertificatePassword $env:CERTIFICATE_PASSWORD `
             -MsixGlob "apps/editor/release/*.msix"
 
+      - name: Package MSIX sideload bundle
+        if: inputs.package_format == 'msix' || inputs.package_format == 'all'
+        shell: pwsh
+        run: |
+          & "${{ github.workspace }}/.github/scripts/package-msix-sideload-bundle.ps1" `
+            -ReleaseDir "apps/editor/release" `
+            -CertificatePath "apps/editor/resources/msix-signing.cer" `
+            -InstallScriptDir "apps/editor/resources/windows"
+
       - name: Upload Windows packages
         uses: actions/upload-artifact@v7
         with:
@@ -129,6 +138,7 @@ jobs:
           path: |
             apps/editor/release/*.zip
             apps/editor/release/*.msix
+            apps/editor/release/*-sideload.zip
           if-no-files-found: error
           compression-level: 0
           retention-days: 14
