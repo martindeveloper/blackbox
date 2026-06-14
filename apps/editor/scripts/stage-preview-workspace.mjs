@@ -76,7 +76,11 @@ const legacyGames = path.join(OUT, "src", "games");
 if (existsSync(legacyGames)) rmSync(legacyGames, { recursive: true, force: true });
 
 cpSync(path.join(WEB_ROOT, "preview.html"), path.join(OUT, "preview.html"));
-cpSync(path.join(WEB_ROOT, "tsconfig.bundler.json"), path.join(OUT, "tsconfig.bundler.json"));
+for (const entry of readdirSync(WEB_ROOT)) {
+  if (entry.startsWith("tsconfig") && entry.endsWith(".json")) {
+    cpSync(path.join(WEB_ROOT, entry), path.join(OUT, entry));
+  }
+}
 mkdirSync(path.join(OUT, "shared"), { recursive: true });
 cpSync(
   path.join(EDITOR_ROOT, "shared", "previewProtocol.ts"),

@@ -65,7 +65,8 @@ async function previewRequireFrom(web) {
 }
 
 async function buildJs(web, gameSrc, outDir) {
-  const require = createRequire(await previewRequireFrom(web));
+  const requireFrom = await previewRequireFrom(web);
+  const require = createRequire(requireFrom);
   const { build } = await import(pathToFileURL(require.resolve("rolldown")).href);
   await build({
     input: path.join(web, "src", "preview", "main.tsx"),
@@ -74,6 +75,7 @@ async function buildJs(web, gameSrc, outDir) {
     cwd: web,
     resolve: createWebRolldownResolve(web, {
       gameSrc,
+      requireFrom,
       aliases: {
         "@content-source": path.join(web, "src", "engine", "lib", "previewSource.ts"),
         "@preview-mode": path.join(web, "src", "engine", "lib", "previewMode.ts"),

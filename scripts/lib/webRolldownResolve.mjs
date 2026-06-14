@@ -7,8 +7,8 @@ function frontendDeps(webRoot) {
   return Object.keys(config.compilerOptions.paths).filter((specifier) => !specifier.startsWith("@"));
 }
 
-export function resolveEngineDepAliases(webRoot) {
-  const require = createRequire(path.join(webRoot, "package.json"));
+export function resolveEngineDepAliases(webRoot, requireFrom = null) {
+  const require = createRequire(requireFrom ?? path.join(webRoot, "package.json"));
   const alias = {};
   for (const dep of frontendDeps(webRoot)) {
     alias[dep] = require.resolve(dep);
@@ -16,11 +16,11 @@ export function resolveEngineDepAliases(webRoot) {
   return alias;
 }
 
-export function createWebRolldownResolve(webRoot, { gameSrc, aliases = {} }) {
+export function createWebRolldownResolve(webRoot, { gameSrc, aliases = {}, requireFrom = null }) {
   return {
     tsconfigFilename: path.join(webRoot, "tsconfig.bundler.json"),
     alias: {
-      ...resolveEngineDepAliases(webRoot),
+      ...resolveEngineDepAliases(webRoot, requireFrom),
       "@engine": path.join(webRoot, "src", "engine"),
       "@game": gameSrc,
       ...aliases,
