@@ -250,9 +250,13 @@ function stageTools(config) {
 
 function packageEditor(platform, config, format) {
   console.log(`==> packaging editor for ${platform}`);
-  const extraArgs = [];
+  const electronArgs = [...config.electronArgs];
   if (platform === "windows" && format) {
-    extraArgs.push("-c", JSON.stringify({ win: { target: windowsPackageFormats[format] } }));
+    const winFlagIndex = electronArgs.indexOf("--win");
+    if (winFlagIndex === -1) {
+      throw new Error("internal error: Windows electron-builder args missing --win");
+    }
+    electronArgs.splice(winFlagIndex + 1, 0, ...windowsPackageFormats[format]);
   }
   runSync(
     "npm",
@@ -264,8 +268,7 @@ function packageEditor(platform, config, format) {
       "electron-builder.yml",
       "--publish",
       "never",
-      ...config.electronArgs,
-      ...extraArgs,
+      ...electronArgs,
     ],
     { cwd: editorRoot },
   );
