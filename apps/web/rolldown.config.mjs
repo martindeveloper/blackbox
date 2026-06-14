@@ -1,7 +1,7 @@
 import { defineConfig } from "rolldown";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { resolveWebPlayerGame } from "../../scripts/lib/adventureDev.mjs";
+import { resolveWebPlayerGame } from "./scripts/lib/adventureDev.mjs";
 import { createWebRolldownResolve } from "../../scripts/lib/webRolldownResolve.mjs";
 
 const WEB_ROOT = path.dirname(fileURLToPath(import.meta.url));

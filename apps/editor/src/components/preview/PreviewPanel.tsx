@@ -18,6 +18,7 @@ import { notifyError, notifySuccess } from "../../lib/notifyApi.js";
 import { Icon } from "../icons/Icon.js";
 import { TabletLandscapeIcon } from "../icons/TabletLandscapeIcon.js";
 import { EmptyState } from "../ui/EmptyState.js";
+import { PreviewInspectorConsole } from "./PreviewInspectorConsole.js";
 
 type PreviewDevice = "desktop" | "tablet" | "mobile";
 
@@ -58,6 +59,8 @@ export function PreviewPanel() {
   const setStorageState = usePreviewStore((state) => state.setStorageState);
   const addProfilerEvent = usePreviewStore((state) => state.addProfilerEvent);
   const setProfilerEvents = usePreviewStore((state) => state.setProfilerEvents);
+  const addConsoleEntry = usePreviewStore((state) => state.addConsoleEntry);
+  const setConsoleEntries = usePreviewStore((state) => state.setConsoleEntries);
   const resetPreviewState = usePreviewStore((state) => state.reset);
   const setCommandSender = usePreviewStore((state) => state.setCommandSender);
 
@@ -110,6 +113,12 @@ export function PreviewPanel() {
         case "profiler-history":
           setProfilerEvents(event.data.events);
           break;
+        case "console-entry":
+          addConsoleEntry(event.data.entry);
+          break;
+        case "console-history":
+          setConsoleEntries(event.data.entries);
+          break;
         case "storage-load-result":
           if (event.data.ok) {
             notifySuccess(event.data.message);
@@ -125,10 +134,12 @@ export function PreviewPanel() {
       resetPreviewState();
     };
   }, [
+    addConsoleEntry,
     addProfilerEvent,
     resetPreviewState,
     sendCommand,
     setConnected,
+    setConsoleEntries,
     setProfilerEvents,
     setRuntimeState,
     setStorageState,
@@ -333,6 +344,7 @@ export function PreviewPanel() {
             </div>
           ) : null}
         </div>
+        <PreviewInspectorConsole />
       </div>
     </div>
   );

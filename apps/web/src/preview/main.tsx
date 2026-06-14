@@ -1,13 +1,17 @@
 import { game } from "@game/game.js";
 import { bootGame, type GameDefinition } from "../engine/boot.js";
 import { postPreviewMessage } from "@preview-mode";
-import { PREVIEW_PROFILER_HISTORY_LIMIT } from "@preview-protocol";
+import { PREVIEW_PROFILER_HISTORY_LIMIT, type PreviewConsoleEntry } from "@preview-protocol";
 import { Profiler, setProfilerSink, type ProfilerEvent } from "../engine/lib/profiler.js";
 import { configurePreviewLoader, configurePreviewSource } from "../engine/lib/previewSource.js";
 import { fetchPreviewDocs, readPreviewParams, subscribePreviewHotReload } from "./previewLoader.js";
+import { installPreviewConsoleBridge } from "./consoleBridge.js";
 import { installPreviewHostCommands, publishPreviewStorage } from "./hostCommands.js";
 
 export function startPreviewPlayer(): void {
+  const consoleHistory: PreviewConsoleEntry[] = [];
+  installPreviewConsoleBridge(consoleHistory);
+
   const { apiBase, projectId } = readPreviewParams();
   const profilerHistory: ProfilerEvent[] = [];
 
@@ -36,7 +40,7 @@ export function startPreviewPlayer(): void {
     },
   };
 
-  installPreviewHostCommands(profilerHistory);
+  installPreviewHostCommands(profilerHistory, consoleHistory);
 
   configurePreviewLoader(async () => {
     Profiler.event("io.load", "preview documents", { projectId });

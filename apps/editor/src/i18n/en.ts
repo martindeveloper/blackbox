@@ -183,6 +183,18 @@ export const en = {
       session: "Session",
       scenario: "Scenario",
     },
+    console: "Console",
+    clearConsole: "Clear console",
+    noConsoleEntries: "No console output yet",
+    consoleFilterPlaceholder: "Filter console…",
+    consoleFilterEmpty: "No console output matches this filter.",
+    consoleStack: "Stack trace",
+    consoleFilter: {
+      all: "All",
+      log: "Logs",
+      warn: "Warnings",
+      error: "Errors",
+    },
     noProject: "Open a project to preview it.",
   },
   dashboard: {

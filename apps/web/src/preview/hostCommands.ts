@@ -1,4 +1,4 @@
-import type { PreviewHostMessage } from "@preview-protocol";
+import type { PreviewConsoleEntry, PreviewHostMessage } from "@preview-protocol";
 import { isPreviewHostMessage as isHostMessage } from "@preview-protocol";
 import { postPreviewMessage, toggleDeveloperConsole } from "@preview-mode";
 import type { ProfilerEvent } from "../engine/lib/profiler.js";
@@ -30,16 +30,23 @@ export function flushPreviewStorage(): void {
   postPreviewMessage({ type: "storage-state", state: readPlayerStorageSnapshot() });
 }
 
-export function installPreviewHostCommands(profilerHistory: ProfilerEvent[]): void {
+export function installPreviewHostCommands(
+  profilerHistory: ProfilerEvent[],
+  consoleHistory: PreviewConsoleEntry[],
+): void {
   globalThis.addEventListener("blackbox:storage-changed", publishPreviewStorage);
   globalThis.addEventListener("message", (event) => {
     if (event.origin !== location.origin || event.source !== globalThis.parent) return;
     if (!isHostMessage(event.data)) return;
-    handlePreviewHostCommand(event.data, profilerHistory);
+    handlePreviewHostCommand(event.data, profilerHistory, consoleHistory);
   });
 }
 
-function handlePreviewHostCommand(message: PreviewHostMessage, profilerHistory: ProfilerEvent[]) {
+function handlePreviewHostCommand(
+  message: PreviewHostMessage,
+  profilerHistory: ProfilerEvent[],
+  consoleHistory: PreviewConsoleEntry[],
+) {
   switch (message.type) {
     case "toggle-console":
       toggleDeveloperConsole();
@@ -66,10 +73,15 @@ function handlePreviewHostCommand(message: PreviewHostMessage, profilerHistory: 
       publishPreviewRuntimeState();
       flushPreviewStorage();
       postPreviewMessage({ type: "profiler-history", events: profilerHistory });
+      postPreviewMessage({ type: "console-history", entries: consoleHistory });
       break;
     case "clear-profiler":
       profilerHistory.length = 0;
       postPreviewMessage({ type: "profiler-history", events: profilerHistory });
+      break;
+    case "clear-console":
+      consoleHistory.length = 0;
+      postPreviewMessage({ type: "console-history", entries: consoleHistory });
       break;
     case "clear-saves":
       clearPlayerSaveSlots();

@@ -3,7 +3,7 @@
 import { existsSync, mkdirSync, rmSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { resolveWebDevAdventure } from "../../../scripts/lib/adventureDev.mjs";
+import { resolveWebDevAdventure } from "./lib/adventureDev.mjs";
 import { runSync } from "../../../scripts/lib/spawn.mjs";
 
 const clientRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));

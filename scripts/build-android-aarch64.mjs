@@ -2,7 +2,7 @@
 // Build blackbox as a shared library for Android arm64-v8a.
 
 import path from "node:path";
-import { androidLinker, findNdk } from "./lib/android-ndk.mjs";
+import { androidLinker, findNdk } from "./android-ndk.mjs";
 import { buildCrate, ensureRust, ensureTarget } from "./lib/cargo.mjs";
 import { createBuildContext } from "./lib/build-context.mjs";
 import { copyIfExists, writeBuildInfo } from "./lib/fs-utils.mjs";

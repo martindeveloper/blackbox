@@ -22,7 +22,12 @@ import type {
   StoredAnalyticsMeta,
   ToolResult,
 } from "../../lib/toolsApi.js";
-import { DEFAULT_SIM_OPTIONS, LINT_CATEGORIES, saveHeatmap } from "../../lib/toolsApi.js";
+import {
+  DEFAULT_SIM_OPTIONS,
+  isCompleteSimulatorOutput,
+  LINT_CATEGORIES,
+  saveHeatmap,
+} from "../../lib/toolsApi.js";
 import { toolDiscoveryInfo, useToolRunnerStore } from "../../store/useToolRunnerStore.js";
 import { useAnalyticsStore } from "../../store/useAnalyticsStore.js";
 import { useScenarioStore } from "../../store/useScenarioStore.js";
@@ -217,7 +222,7 @@ export function ToolRunnerView({ toolId, title, icon, commandLabel }: ToolRunner
       return;
     }
     const parsed = result?.parsed;
-    if (parsed?.kind !== "simulator" || !parsed.analytics) return;
+    if (!parsed || !isCompleteSimulatorOutput(parsed) || !parsed.analytics) return;
     const projectId = useScenarioStore.getState().projectId;
     if (!projectId) return;
 

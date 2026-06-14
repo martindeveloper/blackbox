@@ -7,7 +7,7 @@ import {
   repoGameDataRoot,
   resolveGameSrcDir,
   shellSrcDir,
-} from "./gamePaths.mjs";
+} from "../../../../scripts/lib/gamePaths.mjs";
 
 /**
  * Resolve local web-player dev target from env:

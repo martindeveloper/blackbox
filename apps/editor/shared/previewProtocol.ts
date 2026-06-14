@@ -9,6 +9,17 @@ export interface PreviewProfilerEvent {
   data?: Record<string, unknown>;
 }
 
+export type PreviewConsoleLevel = "log" | "info" | "warn" | "error" | "debug";
+
+export interface PreviewConsoleEntry {
+  id: number;
+  at: number;
+  level: PreviewConsoleLevel;
+  text: string;
+  /** Stack trace for errors / uncaught rejections, when available. */
+  stack?: string;
+}
+
 export type PreviewSessionPhase = "loading" | "selecting_slot" | "ready" | "error";
 
 export interface PreviewEngineSnapshot {
@@ -48,11 +59,13 @@ export type PreviewRuntimeState =
 export type PreviewStorageState = Record<string, unknown>;
 
 export const PREVIEW_PROFILER_HISTORY_LIMIT = 200;
+export const PREVIEW_CONSOLE_HISTORY_LIMIT = 300;
 
 export type PreviewHostCommand =
   | { type: "toggle-console" }
   | { type: "request-state" }
   | { type: "clear-profiler" }
+  | { type: "clear-console" }
   | { type: "clear-saves" }
   | { type: "clear-all" }
   | { type: "load-storage"; state: Record<string, unknown> };
@@ -64,7 +77,9 @@ export type PreviewPlayerNotification =
   | { type: "storage-cleared"; scope: "saves" | "all" }
   | { type: "storage-load-result"; ok: boolean; message: string }
   | { type: "profiler-event"; event: PreviewProfilerEvent }
-  | { type: "profiler-history"; events: PreviewProfilerEvent[] };
+  | { type: "profiler-history"; events: PreviewProfilerEvent[] }
+  | { type: "console-entry"; entry: PreviewConsoleEntry }
+  | { type: "console-history"; entries: PreviewConsoleEntry[] };
 
 export function postPreviewHostMessage(
   target: Window,
@@ -92,6 +107,7 @@ export type PreviewHostMessage =
   | { source: typeof EDITOR_MESSAGE_SOURCE; type: "toggle-console" }
   | { source: typeof EDITOR_MESSAGE_SOURCE; type: "request-state" }
   | { source: typeof EDITOR_MESSAGE_SOURCE; type: "clear-profiler" }
+  | { source: typeof EDITOR_MESSAGE_SOURCE; type: "clear-console" }
   | { source: typeof EDITOR_MESSAGE_SOURCE; type: "clear-saves" }
   | { source: typeof EDITOR_MESSAGE_SOURCE; type: "clear-all" }
   | {
@@ -124,6 +140,16 @@ export type PreviewPlayerMessage =
       source: typeof PREVIEW_MESSAGE_SOURCE;
       type: "profiler-history";
       events: PreviewProfilerEvent[];
+    }
+  | {
+      source: typeof PREVIEW_MESSAGE_SOURCE;
+      type: "console-entry";
+      entry: PreviewConsoleEntry;
+    }
+  | {
+      source: typeof PREVIEW_MESSAGE_SOURCE;
+      type: "console-history";
+      entries: PreviewConsoleEntry[];
     };
 
 function hasPreviewSource(
@@ -146,6 +172,7 @@ export function isPreviewHostMessage(data: unknown): data is PreviewHostMessage 
     case "toggle-console":
     case "request-state":
     case "clear-profiler":
+    case "clear-console":
     case "clear-saves":
     case "clear-all":
       return true;
@@ -189,6 +216,10 @@ export function isPreviewPlayerMessage(data: unknown): data is PreviewPlayerMess
       return typeof data.event === "object" && data.event !== null;
     case "profiler-history":
       return Array.isArray(data.events);
+    case "console-entry":
+      return typeof data.entry === "object" && data.entry !== null;
+    case "console-history":
+      return Array.isArray(data.entries);
     default:
       return false;
   }

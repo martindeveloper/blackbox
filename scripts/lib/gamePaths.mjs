@@ -1,3 +1,6 @@
+// STAGED: shared with the web build and run at runtime by the packaged editor's
+// preview compiler, so this file is copied into apps/editor for packaging.
+// See scripts/lib/README.md and apps/editor/server/sharedLib.mjs.
 import { existsSync } from "node:fs";
 import path from "node:path";
 
