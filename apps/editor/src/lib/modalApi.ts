@@ -6,6 +6,8 @@ export interface ConfirmModalOptions {
   confirmLabel?: string;
   cancelLabel?: string;
   variant?: ModalVariant;
+  /** When true, closing via X, Escape, or backdrop dismisses without choosing cancel. */
+  closeAborts?: boolean;
 }
 
 export interface AlertModalOptions {
@@ -15,7 +17,7 @@ export interface AlertModalOptions {
 }
 
 export interface ModalApi {
-  confirm: (options: ConfirmModalOptions) => Promise<boolean>;
+  confirm: (options: ConfirmModalOptions) => Promise<boolean | null>;
   alert: (options: AlertModalOptions) => Promise<void>;
 }
 
@@ -25,7 +27,7 @@ export function registerModalApi(api: ModalApi | null): void {
   modalApi = api;
 }
 
-export async function confirmModal(options: ConfirmModalOptions): Promise<boolean> {
+export async function confirmModal(options: ConfirmModalOptions): Promise<boolean | null> {
   if (modalApi) return modalApi.confirm(options);
   return window.confirm(options.message);
 }

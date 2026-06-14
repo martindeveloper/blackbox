@@ -87,7 +87,6 @@ body {
   outline-offset: 3px;
 }
 
-/* Header */
 .preview-header {
   position: relative;
   z-index: 2;
@@ -203,7 +202,6 @@ body {
   stroke-width: 1.5;
 }
 
-/* In-game composition */
 .editor-preview .bb-default-game-screen {
   display: grid;
   grid-template:
@@ -382,7 +380,6 @@ body {
   font-size: 0.7rem;
 }
 
-/* Menus and supporting panels */
 .editor-preview .bb-default-main-menu {
   width: min(100% - 2rem, 46rem);
   gap: 1rem;
@@ -426,7 +423,6 @@ body {
   border-radius: 0.25rem;
 }
 
-/* Modal chrome */
 .modal-backdrop {
   backdrop-filter: blur(8px);
 }

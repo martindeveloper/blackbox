@@ -10,6 +10,8 @@ export interface ProjectSummary {
   path: string;
   revision: number;
   lastOpened: string | null;
+  codeTrusted: boolean | null;
+  hasCustomCode: boolean;
 }
 
 export interface RootFileEntry {
@@ -109,10 +111,15 @@ export function openProject(projectId: string): Promise<ProjectSnapshot> {
   return postJson(projectUrl(projectId, "/open"), {});
 }
 
-export async function setProjectUiTrust(projectId: string, trusted: boolean): Promise<void> {
-  await postJson<{ trusted: boolean }>(projectUrl(projectId, "/trust-ui"), {
+export async function setProjectCodeTrust(projectId: string, trusted: boolean): Promise<void> {
+  await postJson<{ trusted: boolean }>(projectUrl(projectId, "/trust-code"), {
     trusted,
   });
+}
+
+export async function revokeAllProjectCodeTrust(): Promise<number> {
+  const result = await postJson<{ revoked: number }>(`${Api.Projects}/revoke-code-trust`, {});
+  return result.revoked;
 }
 
 export async function saveDocuments(

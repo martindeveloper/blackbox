@@ -18,7 +18,7 @@ import {
 } from "../lib/modalApi.js";
 
 interface ModalContextValue {
-  confirm: (options: ConfirmModalOptions) => Promise<boolean>;
+  confirm: (options: ConfirmModalOptions) => Promise<boolean | null>;
   alert: (options: AlertModalOptions) => Promise<void>;
 }
 
@@ -29,7 +29,7 @@ type QueuedModal =
       kind: "confirm";
       id: string;
       options: ConfirmModalOptions;
-      resolve: (value: boolean) => void;
+      resolve: (value: boolean | null) => void;
     }
   | {
       kind: "alert";
@@ -46,7 +46,7 @@ export function ModalProvider({ children }: { children: ReactNode }) {
 
   const confirm = useCallback(
     (options: ConfirmModalOptions) =>
-      new Promise<boolean>((resolve) => {
+      new Promise<boolean | null>((resolve) => {
         setQueue((prev) => [
           ...prev,
           { kind: "confirm", id: crypto.randomUUID(), options, resolve },
@@ -72,11 +72,16 @@ export function ModalProvider({ children }: { children: ReactNode }) {
 
   const current = queue[0] ?? null;
 
-  const dismissCurrent = (result: boolean) => {
+  const dismissCurrent = (result: boolean | null) => {
     if (!current) return;
     if (current.kind === "confirm") current.resolve(result);
     else current.resolve();
     setQueue((prev) => prev.slice(1));
+  };
+
+  const dismissConfirmClose = () => {
+    if (current?.kind !== "confirm") return;
+    dismissCurrent(current.options.closeAborts ? null : false);
   };
 
   return (
@@ -85,7 +90,7 @@ export function ModalProvider({ children }: { children: ReactNode }) {
       {current?.kind === "confirm" ? (
         <ModalShell
           title={current.options.title}
-          onClose={() => dismissCurrent(false)}
+          onClose={dismissConfirmClose}
           footer={
             <>
               <Button variant="ghost" onClick={() => dismissCurrent(false)}>

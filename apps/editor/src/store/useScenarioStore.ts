@@ -7,7 +7,7 @@ import {
   openProject as openProjectApi,
   restoreTrash,
   saveDocuments,
-  setProjectUiTrust,
+  setProjectCodeTrust,
   subscribeProject,
   trashMedia,
   uploadMedia,
@@ -51,6 +51,8 @@ interface ScenarioState {
   projectName: string | null;
   projectPath: string | null;
   projectId: string | null;
+  projectCodeTrusted: boolean | null;
+  projectHasCustomCode: boolean;
   revision: number | null;
   rootFiles: RootFileEntry[];
   mediaFiles: MediaFileEntry[];
@@ -142,6 +144,8 @@ export const useScenarioStore = create<ScenarioState>((set, get) => ({
   projectName: null,
   projectPath: null,
   projectId: null,
+  projectCodeTrusted: null,
+  projectHasCustomCode: false,
   revision: null,
   rootFiles: [],
   mediaFiles: [],
@@ -165,8 +169,10 @@ export const useScenarioStore = create<ScenarioState>((set, get) => ({
           message: translate("welcome.trustProjectMessage"),
           confirmLabel: translate("welcome.trustProjectAction"),
           cancelLabel: translate("welcome.openProjectSafely"),
+          closeAborts: true,
         });
-        await setProjectUiTrust(projectId, trusted);
+        if (trusted === null) return false;
+        await setProjectCodeTrust(projectId, trusted);
         snapshot = await openProjectApi(projectId);
       }
       unsubscribeProject?.();
@@ -174,6 +180,8 @@ export const useScenarioStore = create<ScenarioState>((set, get) => ({
         projectId: snapshot.project.id,
         projectName: snapshot.project.name,
         projectPath: snapshot.project.path,
+        projectCodeTrusted: snapshot.project.codeTrusted,
+        projectHasCustomCode: snapshot.project.hasCustomCode,
         revision: snapshot.project.revision,
         bundle: snapshot.bundle,
         rootFiles: snapshot.rootFiles,
@@ -899,6 +907,8 @@ export const useScenarioStore = create<ScenarioState>((set, get) => ({
       projectName: null,
       projectPath: null,
       projectId: null,
+      projectCodeTrusted: null,
+      projectHasCustomCode: false,
       revision: null,
       rootFiles: [],
       mediaFiles: [],

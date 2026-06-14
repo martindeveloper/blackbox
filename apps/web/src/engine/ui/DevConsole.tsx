@@ -22,9 +22,7 @@ export function DevConsole({ enabled, onExecute }: DevConsoleProps) {
   const [pending, setPending] = useState(false);
   const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
-  const [lines, setLines] = useState<ConsoleLine[]>([
-    { id: 0, kind: "info", text: "Blackbox runtime console ready. Type help for commands." },
-  ]);
+  const [lines, setLines] = useState<ConsoleLine[]>([]);
   const nextId = useRef(1);
   const inputRef = useRef<HTMLInputElement>(null);
   const logRef = useRef<HTMLDivElement>(null);
@@ -95,12 +93,10 @@ export function DevConsole({ enabled, onExecute }: DevConsoleProps) {
 
   return (
     <section className="dev-console" role="dialog" aria-label="Developer console">
-      <div className="dev-console__scan" aria-hidden />
       <header className="dev-console__header">
-        <span>BLACKBOX.RUNTIME</span>
-        <span className="dev-console__mode">DEVELOPMENT AUTHORITY</span>
+        <span>Console</span>
         <button type="button" onClick={() => setOpen(false)} aria-label="Close developer console">
-          [~]
+          Close
         </button>
       </header>
       <div ref={logRef} className="dev-console__log" aria-live="polite">
@@ -118,7 +114,6 @@ export function DevConsole({ enabled, onExecute }: DevConsoleProps) {
           void submit();
         }}
       >
-        <span>Cmd:</span>
         <input
           ref={inputRef}
           value={input}
@@ -145,12 +140,9 @@ export function DevConsole({ enabled, onExecute }: DevConsoleProps) {
             }
           }}
           aria-label="Developer console command"
+          placeholder="Command"
         />
-        <span
-          className={pending ? "dev-console__busy dev-console__busy--active" : "dev-console__busy"}
-        >
-          EXEC
-        </span>
+        {pending ? <span className="dev-console__busy">Running</span> : null}
       </form>
     </section>
   );

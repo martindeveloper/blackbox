@@ -9,7 +9,7 @@ import {
   DEFAULT_PREVIEW_GAME,
   buildGameCss,
   createWebRolldownResolve,
-  projectHasLocalUi,
+  projectHasCustomCode,
   resolvePreviewGameSrc,
 } from "./sharedLib.mjs";
 
@@ -133,9 +133,9 @@ async function buildGame(web, uiKey, gameSrc, force) {
  */
 export async function ensurePreviewBuilt(project, { force = false } = {}) {
   const web = PREVIEW_WEB_ROOT;
-  const useLocalUi = project?.uiTrusted === true && projectHasLocalUi(project.path);
-  const uiKey = useLocalUi ? project.id : DEFAULT_PREVIEW_GAME;
-  const projectPath = useLocalUi ? project.path : null;
+  const useCustomCode = project?.codeTrusted === true && projectHasCustomCode(project.path);
+  const uiKey = useCustomCode ? project.id : DEFAULT_PREVIEW_GAME;
+  const projectPath = useCustomCode ? project.path : null;
   const gameSrc = resolvePreviewGameSrc(projectPath, web);
 
   const key = force ? `${uiKey}:force:${Date.now()}` : uiKey;

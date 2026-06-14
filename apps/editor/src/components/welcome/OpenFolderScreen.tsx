@@ -1,8 +1,13 @@
-import { ArrowRight, FolderOpen, Plus, Trash2 } from "lucide-react";
+import { ArrowRight, FolderOpen, Plus, ShieldOff, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "@tanstack/react-router";
-import { listProjects, registerProject, type ProjectSummary } from "../../lib/projectApi.js";
+import {
+  listProjects,
+  registerProject,
+  revokeAllProjectCodeTrust,
+  type ProjectSummary,
+} from "../../lib/projectApi.js";
 import { pickProjectFolder } from "../../lib/pickProjectFolder.js";
 import { Icon } from "../icons/Icon.js";
 import { ThemeSelector } from "../layout/ThemeSelector.js";
@@ -11,7 +16,7 @@ import { transitionToEditor } from "../../lib/projectTransition.js";
 import { Page } from "../../lib/pages.js";
 import { editorNavigate } from "../../lib/projectRoute.js";
 import { translate } from "../../lib/i18n.js";
-import { notifyFromError } from "../../lib/notifyApi.js";
+import { notifyFromError, notifySuccess } from "../../lib/notifyApi.js";
 import { NewProjectWizard } from "./NewProjectWizard.js";
 import { DeleteProjectDialog } from "./DeleteProjectDialog.js";
 
@@ -38,6 +43,7 @@ export function OpenFolderScreen() {
   const [projects, setProjects] = useState<ProjectSummary[]>([]);
   const [openingId, setOpeningId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [revokingTrust, setRevokingTrust] = useState(false);
   const [showNewProject, setShowNewProject] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<ProjectSummary | null>(null);
   const isElectron = typeof window !== "undefined" && !!window.electronAPI;
@@ -87,10 +93,22 @@ export function OpenFolderScreen() {
     }
   };
 
+  const handleRevokeAllTrust = async () => {
+    setRevokingTrust(true);
+    try {
+      const revoked = await revokeAllProjectCodeTrust();
+      notifySuccess(t("welcome.revokeAllTrustSuccess", { count: revoked }));
+    } catch (error) {
+      notifyFromError(error);
+    } finally {
+      setRevokingTrust(false);
+    }
+  };
+
   const requested = requestedId ? projects.find((project) => project.id === requestedId) : null;
   const visibleProjects = requested ? [requested] : projects;
   const picking = openingId === "picker";
-  const busy = openingId !== null || deleteTarget !== null;
+  const busy = openingId !== null || deleteTarget !== null || revokingTrust;
 
   if (showNewProject) {
     return <NewProjectWizard onBack={() => setShowNewProject(false)} />;
@@ -124,36 +142,24 @@ export function OpenFolderScreen() {
             <div className="splash-wordmark-sub">{t("welcome.editor")}</div>
           </div>
 
-          <p className="splash-subtitle">{t("welcome.subtitle")}</p>
-
-          <div className="splash-actions splash-actions--primary">
-            {isElectron && (
-              <button
-                type="button"
-                className="splash-cta"
-                style={{ marginBottom: "8px" }}
-                disabled={loading || busy}
-                onClick={() => setShowNewProject(true)}
-              >
-                <Icon icon={Plus} size={13} />
-                {t("welcome.newProject")}
-              </button>
-            )}
-            <button
-              type="button"
-              className="splash-cta"
-              disabled={loading || busy}
-              onClick={() => void handlePickFolder()}
-            >
-              <Icon icon={FolderOpen} size={13} />
-              {picking ? t("welcome.openingProject") : t("welcome.openProjectFolder")}
-            </button>
-          </div>
-
           <div className="splash-rule" aria-hidden />
           <div className="splash-recents">
-            <div className="splash-recents-label">
-              {requested ? t("welcome.resumeEyebrow") : t("welcome.recent")}
+            <div className="splash-recents-header">
+              <div className="splash-recents-label">
+                {requested ? t("welcome.resumeEyebrow") : t("welcome.recent")}
+              </div>
+              {!requested ? (
+                <button
+                  type="button"
+                  className="splash-revoke-trust"
+                  disabled={busy || projects.length === 0}
+                  title={t("welcome.revokeAllTrustHint")}
+                  onClick={() => void handleRevokeAllTrust()}
+                >
+                  <Icon icon={ShieldOff} size={10} />
+                  {revokingTrust ? t("welcome.revokingTrust") : t("welcome.revokeAllTrust")}
+                </button>
+              ) : null}
             </div>
             <div className="splash-recents-list">
               {visibleProjects.map((project) => (
@@ -198,6 +204,30 @@ export function OpenFolderScreen() {
                 <p className="splash-resume-hint">{t("welcome.noProjects")}</p>
               ) : null}
             </div>
+          </div>
+
+          <div className="splash-actions splash-actions--primary">
+            {isElectron && (
+              <button
+                type="button"
+                className="splash-cta"
+                style={{ marginBottom: "8px" }}
+                disabled={loading || busy}
+                onClick={() => setShowNewProject(true)}
+              >
+                <Icon icon={Plus} size={13} />
+                {t("welcome.newProject")}
+              </button>
+            )}
+            <button
+              type="button"
+              className="splash-cta"
+              disabled={loading || busy}
+              onClick={() => void handlePickFolder()}
+            >
+              <Icon icon={FolderOpen} size={13} />
+              {picking ? t("welcome.openingProject") : t("welcome.openProjectFolder")}
+            </button>
           </div>
         </div>
 

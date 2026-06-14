@@ -133,9 +133,9 @@ export function defaultFontsCssDoc() {
 
 export async function ensureGameFontsCss(projectPath) {
   const srcDir = path.join(projectPath, "src");
-  const hasLocalUi =
+  const hasCustomCode =
     existsSync(path.join(srcDir, "game.ts")) || existsSync(path.join(srcDir, "app.css"));
-  if (!hasLocalUi && !existsSync(path.join(srcDir, "fonts.css"))) {
+  if (!hasCustomCode && !existsSync(path.join(srcDir, "fonts.css"))) {
     return false;
   }
   return writeTextIfMissing(path.join(srcDir, "fonts.css"), defaultFontsCssDoc());
@@ -155,7 +155,6 @@ async function ensureDir(dirPath) {
   await fs.mkdir(dirPath, { recursive: true });
 }
 
-/** Create the standard textures/music/sfx folder tree when absent. */
 export async function ensureProjectMediaDirs(projectPath) {
   await Promise.all(
     PROJECT_MEDIA_DIRS.map((relative) => ensureDir(path.join(projectPath, relative))),
@@ -177,7 +176,6 @@ async function ensureScenarioRefs(projectPath, scenario) {
   return next;
 }
 
-/** Write default sidecars, cook rules, and media folders when a project is missing them. */
 export async function ensureProjectSidecars(projectPath, scenario = null) {
   if (!scenario) {
     const text = await fs.readFile(path.join(projectPath, "scenario.json"), "utf8");
@@ -208,7 +206,6 @@ export async function ensureProjectSidecars(projectPath, scenario = null) {
   return scenario;
 }
 
-/** Scaffold a brand-new project folder with scenario, chapter, sidecars, and media dirs. */
 export async function writeNewProject(projectPath, { title, firstChapterId, firstChapterTitle }) {
   const chapterRef = `chapter_${firstChapterId}.json`;
   const startNodeId = `${firstChapterId}_start`;

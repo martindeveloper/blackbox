@@ -1290,9 +1290,7 @@ export function ParsedOutput({ result, rawText }: ParsedOutputProps) {
     if (isCompleteSimulatorOutput(parsed)) {
       return <SimulatorView parsed={parsed} rawText={rawText} exitCode={result.exitCode} />;
     }
-    return (
-      <SimulatorFailureView parsed={parsed} rawText={rawText} exitCode={result.exitCode} />
-    );
+    return <SimulatorFailureView parsed={parsed} rawText={rawText} exitCode={result.exitCode} />;
   }
 
   return (

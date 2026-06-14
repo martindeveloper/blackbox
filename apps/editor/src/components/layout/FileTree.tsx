@@ -28,6 +28,8 @@ export function FileTree() {
   const search = useEditorSearch();
 
   const bundle = useScenarioStore((s) => s.bundle);
+  const projectCodeTrusted = useScenarioStore((s) => s.projectCodeTrusted);
+  const projectHasCustomCode = useScenarioStore((s) => s.projectHasCustomCode);
   const updateAssets = useScenarioStore((s) => s.updateAssets);
   const addChapter = useScenarioStore((s) => s.addChapter);
 
@@ -274,6 +276,11 @@ export function FileTree() {
         <p className="file-tree-path" title={bundle.filePaths.scenario}>
           {bundle.filePaths.scenario}
         </p>
+        {projectCodeTrusted === false && projectHasCustomCode ? (
+          <p className="file-tree-trust-pill" title={t("fileTree.untrustedCustomCodeHint")}>
+            {t("fileTree.untrustedCustomCodePill")}
+          </p>
+        ) : null}
         <div className="file-tree-stats">
           <p>{t("fileTree.chaptersCount", { count: bundle.scenario.chapters.length })}</p>
           <p>{t("fileTree.itemsCount", { count: Object.keys(bundle.items.items).length })}</p>

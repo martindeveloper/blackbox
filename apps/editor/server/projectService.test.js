@@ -106,6 +106,7 @@ test("discovers, opens, and revision-saves a project", async () => {
   try {
     const [project] = env.service.listProjects();
     assert.ok(project);
+    env.service.setProjectCodeTrust(project.id, false);
     const snapshot = await env.service.openProject(project.id);
     assert.equal(snapshot.bundle.scenario.title, "Test Project");
 
@@ -245,12 +246,9 @@ test("standalone mode registers projects outside configured roots", async () => 
   }
 });
 
-test("requires and persists a trust decision before opening custom UI", async () => {
+test("requires and persists a trust decision before opening any project", async () => {
   const env = await fixture();
   let reopened = null;
-  const src = path.join(env.projectPath, "src");
-  await fs.mkdir(src, { recursive: true });
-  await fs.writeFile(path.join(src, "game.ts"), "export const game = {};\n");
 
   try {
     const [project] = env.service.listProjects();
@@ -259,7 +257,7 @@ test("requires and persists a trust decision before opening custom UI", async ()
       (error) => error instanceof ProjectError && error.code === "project_trust_required",
     );
 
-    env.service.setProjectUiTrust(project.id, false);
+    env.service.setProjectCodeTrust(project.id, false);
     await env.service.openProject(project.id);
 
     reopened = new ProjectService({
@@ -272,6 +270,64 @@ test("requires and persists a trust decision before opening custom UI", async ()
     await reopened.openProject(persisted.id);
   } finally {
     await reopened?.close();
+    await env.close();
+  }
+});
+
+test("revokes all UI trust without removing recent projects", async () => {
+  const env = await fixture();
+
+  try {
+    const [project] = env.service.listProjects();
+    env.service.setProjectCodeTrust(project.id, true);
+    await env.service.openProject(project.id);
+    const before = env.service.listProjects();
+
+    assert.deepEqual(env.service.revokeAllProjectCodeTrust(), { revoked: 1 });
+    assert.deepEqual(env.service.revokeAllProjectCodeTrust(), { revoked: 0 });
+    const after = env.service.listProjects();
+    assert.equal(after.length, before.length);
+    assert.equal(after[0].id, before[0].id);
+    assert.equal(after[0].codeTrusted, null);
+    await assert.rejects(
+      env.service.openProject(project.id),
+      (error) => error instanceof ProjectError && error.code === "project_trust_required",
+    );
+  } finally {
+    await env.close();
+  }
+});
+
+test("revokes UI trust through the projects API before reopening a recent project", async () => {
+  const env = await fixture();
+  const app = Fastify();
+
+  try {
+    const [project] = env.service.listProjects();
+    env.service.setProjectCodeTrust(project.id, true);
+    await env.service.openProject(project.id);
+    await app.register(async (routes) => registerRoutes(routes, env.service), {
+      prefix: "/api/v1",
+    });
+
+    const revoke = await app.inject({
+      method: "POST",
+      url: "/api/v1/projects/revoke-code-trust",
+      payload: {},
+    });
+    assert.equal(revoke.statusCode, 200);
+    assert.deepEqual(revoke.json(), { revoked: 1 });
+
+    const reopen = await app.inject({
+      method: "POST",
+      url: `/api/v1/projects/${project.id}/open`,
+      payload: {},
+    });
+    assert.equal(reopen.statusCode, 400);
+    assert.equal(reopen.json().code, "project_trust_required");
+    assert.equal(env.service.listProjects().length, 1);
+  } finally {
+    await app.close();
     await env.close();
   }
 });

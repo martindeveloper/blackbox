@@ -16,7 +16,6 @@ export interface PreviewConsoleEntry {
   at: number;
   level: PreviewConsoleLevel;
   text: string;
-  /** Stack trace for errors / uncaught rejections, when available. */
   stack?: string;
 }
 

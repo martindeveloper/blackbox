@@ -1,11 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import {
-  BUNDLE_CACHE,
-  WORK_DIR,
-  bundledToolsEnabled,
-  toolBinPath,
-} from "./config.js";
+import { BUNDLE_CACHE, WORK_DIR, bundledToolsEnabled, toolBinPath } from "./config.js";
 import { getCargoTargetDir, runProcess, runCargo, platformBin, discoverOneTool } from "./cargo.js";
 import { nullTools } from "./editorConfig.js";
 import { commandResult, appendOutput, parseLint, parseBundle, parseSimulator } from "./parsers.js";
@@ -134,11 +129,13 @@ export async function registerRoutes(app, service) {
   );
 
   app.post(
-    "/projects/:id/trust-ui",
+    "/projects/:id/trust-code",
     projectRequest(service, (project, request) =>
-      service.setProjectUiTrust(project.id, request.body?.trusted),
+      service.setProjectCodeTrust(project.id, request.body?.trusted),
     ),
   );
+
+  app.post("/projects/revoke-code-trust", () => service.revokeAllProjectCodeTrust());
 
   app.post(
     "/projects/:id/delete",
@@ -223,8 +220,6 @@ export async function registerRoutes(app, service) {
     projectRequest(service, (project) => service.readPreviewDocs(project.id)),
   );
 
-  // Compile (or reuse) the preview bundle for this project's game. The editor
-  // panel calls this to show a build loader and to force-rebuild after edits.
   app.get(
     "/projects/:id/preview-build",
     projectRequest(service, (project, request) =>

@@ -11,10 +11,7 @@ const APPX_DIR = path.join(ROOT, "resources", "appx");
 const TILE_BACKGROUND = { r: 0, g: 0, b: 0, alpha: 1 };
 
 async function writeSquareLogo(name, size) {
-  await sharp(SOURCE)
-    .resize(size, size, { fit: "cover" })
-    .png()
-    .toFile(path.join(APPX_DIR, name));
+  await sharp(SOURCE).resize(size, size, { fit: "cover" }).png().toFile(path.join(APPX_DIR, name));
 }
 
 async function writeWideLogo() {

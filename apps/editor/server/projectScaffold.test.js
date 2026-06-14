@@ -136,6 +136,7 @@ test("create route produces an openable project", async () => {
     assert.equal(created.statusCode, 200);
     const { project } = created.json();
     assert.ok(project.id);
+    service.setProjectCodeTrust(project.id, false);
 
     const opened = await app.inject({
       method: "POST",

@@ -61,6 +61,11 @@ export const en = {
     openAnotherProject: "Open another project",
     or: "or",
     recent: "Recent",
+    revokeAllTrust: "Revoke all trust",
+    revokingTrust: "Revoking…",
+    revokeAllTrustHint: "Ask for trust again when opening any project",
+    revokeAllTrustSuccess_one: "Revoked trust for {{count}} project.",
+    revokeAllTrustSuccess_other: "Revoked trust for {{count}} projects.",
     removeFromRecent: "Remove from recent",
     deleteProject: "Move project to Trash",
     deleteProjectTitle: "Move project to Trash",
@@ -76,7 +81,7 @@ export const en = {
     deletingProject: "Moving…",
     trustProjectTitle: "Do you trust this project?",
     trustProjectMessage:
-      "This project contains custom code. Trusting it allows that code to run inside the editor. Only trust projects from sources you know.",
+      "Projects may contain custom code. Trusting this project allows its code to run inside the editor. Only trust projects from sources you know. You can also open it safely without running custom code.",
     trustProjectAction: "Trust and open",
     openProjectSafely: "Open without running code",
     editor: "Editor",
@@ -665,6 +670,9 @@ export const en = {
     snippetRefs: "{{count}} snippet ref(s)",
     global: "Global",
     globalDeath: "global_death",
+    untrustedCustomCodePill: "Custom code blocked",
+    untrustedCustomCodeHint:
+      "This project has custom code, but it is not trusted — preview runs the generic shell instead.",
   },
   mainCanvas: {
     openProject: "Open a project to edit {{label}}.",

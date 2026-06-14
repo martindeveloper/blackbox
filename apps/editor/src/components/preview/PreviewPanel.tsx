@@ -147,8 +147,6 @@ export function PreviewPanel() {
 
   const previewReady = preparedProject === projectId;
 
-  // Compile the project's game UI on demand. `force` rebuilds even if sources
-  // are unchanged (the Rebuild button) and reloads the iframe with fresh assets.
   const runBuild = useCallback(
     async (force: boolean) => {
       if (!projectId) return;

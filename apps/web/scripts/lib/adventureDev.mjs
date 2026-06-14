@@ -3,7 +3,7 @@ import path from "node:path";
 import {
   DEFAULT_WEB_PLAYER_GAME,
   localProjectSrcDir,
-  projectHasLocalUi,
+  projectHasCustomCode,
   repoGameDataRoot,
   resolveGameSrcDir,
   shellSrcDir,
@@ -45,7 +45,6 @@ export function resolveWebDevAdventure(env = process.env) {
   };
 }
 
-/** `@game` sources for apps/web rolldown + tailwind in dev/build. */
 export function resolveWebPlayerGame(env = process.env, webRoot, repoRoot) {
   const adventure = resolveWebDevAdventure(env);
 
@@ -58,7 +57,7 @@ export function resolveWebPlayerGame(env = process.env, webRoot, repoRoot) {
   }
 
   if (adventure) {
-    const gameSrc = projectHasLocalUi(adventure.adventureRoot)
+    const gameSrc = projectHasCustomCode(adventure.adventureRoot)
       ? localProjectSrcDir(adventure.adventureRoot)
       : shellSrcDir(webRoot, DEFAULT_WEB_PLAYER_GAME);
     return { gameId: adventure.gameId, gameSrc, adventure };

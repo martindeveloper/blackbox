@@ -22,13 +22,13 @@ const gamePaths = await load("gamePaths.mjs");
 const buildCss = await load("buildGameCss.mjs");
 const rolldownResolve = await load("webRolldownResolve.mjs");
 
-/** Absolute path to the buildGameCss source — a fingerprint input for the cache. */
+/** Fingerprint input for preview bundle cache invalidation. */
 export const BUILD_GAME_CSS_PATH = path.join(SHARED_LIB_ROOT, "buildGameCss.mjs");
 
 export const {
   DEFAULT_PREVIEW_GAME,
   PREVIEW_KEY_PATTERN,
-  projectHasLocalUi,
+  projectHasCustomCode,
   resolvePreviewGameSrc,
 } = gamePaths;
 export const { buildGameCss } = buildCss;

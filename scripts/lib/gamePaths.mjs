@@ -24,13 +24,13 @@ export function localProjectSrcDir(projectRoot) {
   return path.join(projectRoot, "src");
 }
 
-export function projectHasLocalUi(projectRoot) {
+export function projectHasCustomCode(projectRoot) {
   return existsSync(path.join(localProjectSrcDir(projectRoot), "game.ts"));
 }
 
 /** Resolve preview UI sources for a project (local `src/` or generic shell). */
 export function resolvePreviewGameSrc(projectRoot, webRoot) {
-  if (projectRoot && projectHasLocalUi(projectRoot)) {
+  if (projectRoot && projectHasCustomCode(projectRoot)) {
     return localProjectSrcDir(projectRoot);
   }
   return shellSrcDir(webRoot, DEFAULT_PREVIEW_GAME);

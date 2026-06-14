@@ -65,6 +65,22 @@
   overflow-wrap: anywhere;
 }
 
+.file-tree-trust-pill {
+  display: inline-block;
+  margin: 8px 0 0;
+  padding: 2px 7px;
+  border: 1px solid color-mix(in srgb, var(--editor-warning) 28%, var(--editor-border-2));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--editor-warning) 12%, var(--editor-surface-2));
+  color: var(--editor-warning);
+  cursor: help;
+  font-size: 9px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
 .file-tree-stats {
   margin-top: 14px;
   display: flex;

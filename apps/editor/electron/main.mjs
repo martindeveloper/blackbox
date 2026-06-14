@@ -127,38 +127,41 @@ async function shutdown() {
   }
 }
 
-app.whenReady().then(async () => {
-  nativeTheme.themeSource = "system";
-  await configureRuntimePaths();
+app
+  .whenReady()
+  .then(async () => {
+    nativeTheme.themeSource = "system";
+    await configureRuntimePaths();
 
-  setupMacApplicationMenu(APP_NAME, CLIENT_ROOT);
+    setupMacApplicationMenu(APP_NAME, CLIENT_ROOT);
 
-  const icon = loadAppIcon(CLIENT_ROOT);
-  if (icon && process.platform === "darwin") {
-    app.dock.setIcon(icon);
-  }
-  ipcMain.handle("editor:pick-project-folder", async () => {
-    const result = await dialog.showOpenDialog(mainWindow, {
-      properties: ["openDirectory"],
-      title: "Open Blackbox project folder",
+    const icon = loadAppIcon(CLIENT_ROOT);
+    if (icon && process.platform === "darwin") {
+      app.dock.setIcon(icon);
+    }
+    ipcMain.handle("editor:pick-project-folder", async () => {
+      const result = await dialog.showOpenDialog(mainWindow, {
+        properties: ["openDirectory"],
+        title: "Open Blackbox project folder",
+      });
+      if (result.canceled || result.filePaths.length === 0) return null;
+      return result.filePaths[0];
     });
-    if (result.canceled || result.filePaths.length === 0) return null;
-    return result.filePaths[0];
-  });
 
-  await createWindow();
+    await createWindow();
 
-  app.on("activate", async () => {
-    if (BrowserWindow.getAllWindows().length === 0) await createWindow();
+    app.on("activate", async () => {
+      if (BrowserWindow.getAllWindows().length === 0) await createWindow();
+    });
+  })
+  .catch((error) => {
+    console.error("Editor startup failed:", error);
+    dialog.showErrorBox(
+      "Blackbox Editor failed to start",
+      error instanceof Error ? error.message : String(error),
+    );
+    app.quit();
   });
-}).catch((error) => {
-  console.error("Editor startup failed:", error);
-  dialog.showErrorBox(
-    "Blackbox Editor failed to start",
-    error instanceof Error ? error.message : String(error),
-  );
-  app.quit();
-});
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();

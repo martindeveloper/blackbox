@@ -286,24 +286,33 @@
 }
 
 .splash-wordmark {
-  display: flex;
-  flex-direction: column;
-  line-height: 0.85;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+  line-height: 1;
   font-size: 44px;
   font-weight: 800;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.025em;
   text-transform: uppercase;
   user-select: none;
+  white-space: nowrap;
+}
+
+.splash-wordmark-black,
+.splash-wordmark-box {
+  display: block;
+  font-size: 1em;
+  font-weight: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
 }
 
 .splash-wordmark-black {
   color: var(--editor-text);
-  display: block;
 }
 
 .splash-wordmark-box {
   color: var(--editor-primary);
-  display: block;
   text-shadow: 0 0 32px color-mix(in srgb, var(--editor-primary) 50%, transparent);
 }
 
@@ -315,13 +324,6 @@
   text-transform: uppercase;
   color: var(--editor-text-subtle);
   font-family: var(--font-mono);
-}
-
-.splash-subtitle {
-  margin: 18px 0 0;
-  font-size: 12px;
-  line-height: 1.5;
-  color: var(--editor-text-muted);
 }
 
 .splash-rule {
@@ -340,7 +342,15 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  margin-bottom: 14px;
+}
+
+.splash-recents-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-shrink: 0;
 }
 
 .splash-recents-label {
@@ -349,37 +359,67 @@
   text-transform: uppercase;
   letter-spacing: 0.14em;
   color: var(--editor-text-subtle);
-  margin-bottom: 5px;
-  flex-shrink: 0;
   font-family: var(--font-mono);
+}
+
+.splash-revoke-trust {
+  display: inline-flex;
+  height: 18px;
+  align-items: center;
+  gap: 4px;
+  padding: 0 5px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--editor-text-subtle);
+  cursor: pointer;
+  font-size: 8px;
+  font-weight: 600;
+}
+
+.splash-revoke-trust:hover:not(:disabled) {
+  background: var(--editor-selection);
+  color: var(--editor-text-muted);
+}
+
+.splash-revoke-trust:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
 }
 
 .splash-recents-list {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 4px;
+  margin: 0 -8px;
+  padding: 0 8px;
   overflow-y: auto;
   flex: 1;
   min-height: 0;
 }
 
 .splash-recent-item {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 20px;
   align-items: center;
   gap: 4px;
   width: 100%;
-  padding: 5px 4px 5px 6px;
-  border-radius: 3px;
+  min-height: 52px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: 4px;
   background: transparent;
   color: var(--editor-text-muted);
   transition:
-    background 0.1s,
-    color 0.1s;
+    background 120ms,
+    border-color 120ms,
+    color 120ms;
   flex-shrink: 0;
 }
 
 .splash-recent-item:hover {
-  background: var(--editor-selection);
+  border-color: color-mix(in srgb, var(--editor-primary) 14%, transparent);
+  background: color-mix(in srgb, var(--editor-primary) 7%, transparent);
   color: var(--editor-text);
 }
 
@@ -389,11 +429,13 @@
 }
 
 .splash-recent-open {
-  flex: 1;
+  width: 100%;
   min-width: 0;
-  display: flex;
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) 64px 20px;
   align-items: center;
   gap: 8px;
+  align-self: stretch;
   padding: 0;
   margin: 0;
   border: none;
@@ -411,12 +453,11 @@
 }
 
 .splash-recent-icon {
-  flex-shrink: 0;
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 18px;
-  color: color-mix(in srgb, var(--editor-primary) 55%, transparent);
+  justify-content: flex-start;
+  width: 24px;
+  color: color-mix(in srgb, var(--editor-primary) 68%, transparent);
 }
 
 .splash-recent-info {
@@ -429,7 +470,7 @@
 
 .splash-recent-title {
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -446,18 +487,27 @@
 }
 
 .splash-recent-meta {
-  flex-shrink: 0;
-  align-self: center;
-  padding-left: 8px;
   font-size: 9px;
   color: var(--editor-text-subtle);
+  text-align: right;
   white-space: nowrap;
 }
 
+.splash-recent-open > svg {
+  color: var(--editor-text-subtle);
+  transition:
+    color 120ms,
+    transform 120ms;
+}
+
+.splash-recent-item:hover .splash-recent-open > svg {
+  color: var(--editor-primary);
+  transform: translateX(1px);
+}
+
 .splash-recent-remove {
-  flex-shrink: 0;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -467,7 +517,7 @@
   background: transparent;
   border-radius: 3px;
   color: var(--editor-text-subtle);
-  opacity: 0;
+  opacity: 0.28;
   transition:
     opacity 0.1s,
     background 0.1s,
@@ -476,12 +526,13 @@
 }
 
 .splash-recent-item:hover .splash-recent-remove {
-  opacity: 1;
+  opacity: 0.72;
 }
 
 .splash-recent-remove:hover {
   background: color-mix(in srgb, var(--editor-danger) 15%, transparent);
   color: var(--editor-danger);
+  opacity: 1;
 }
 
 .splash-actions {
@@ -490,7 +541,7 @@
 }
 
 .splash-actions--primary {
-  margin-top: 20px;
+  margin-top: 14px;
 }
 
 .splash-actions--resume {
@@ -1095,7 +1146,6 @@
   margin-bottom: 2px;
 }
 
-/* Delete project */
 .delete-project-overlay {
   position: fixed;
   inset: 0;

@@ -107,7 +107,7 @@ async function previewAssets(fastify, projectId) {
 async function trustProject(fastify, projectId) {
   const response = await fastify.inject({
     method: "POST",
-    url: `/api/v1/projects/${projectId}/trust-ui`,
+    url: `/api/v1/projects/${projectId}/trust-code`,
     payload: { trusted: true },
   });
   assert.equal(response.statusCode, 200);
