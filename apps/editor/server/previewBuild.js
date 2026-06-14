@@ -8,6 +8,7 @@ import {
   previewUiKey,
   resolvePreviewGameSrc,
 } from "../../../scripts/lib/gamePaths.mjs";
+import { createWebRolldownResolve } from "../../../scripts/lib/webRolldownResolve.mjs";
 import { PREVIEW_CACHE, PREVIEW_WEB_ROOT } from "./config.js";
 
 // Engine + built-in shell sources whose mtimes invalidate a cached preview bundle.
@@ -63,18 +64,15 @@ async function buildJs(web, gameSrc, outDir) {
     platform: "browser",
     external: ["/pkg/blackbox_wasm.js"],
     cwd: web,
-    root: web,
-    resolve: {
-      tsconfigFilename: path.join(web, "tsconfig.bundler.json"),
-      alias: {
-        "@engine": path.join(web, "src", "engine"),
-        "@game": gameSrc,
+    resolve: createWebRolldownResolve(web, {
+      gameSrc,
+      aliases: {
         "@content-source": path.join(web, "src", "engine", "lib", "previewSource.ts"),
         "@preview-mode": path.join(web, "src", "engine", "lib", "previewMode.ts"),
         "@preview-protocol": await resolvePreviewProtocol(web),
         "@preview-reporter": path.join(web, "src", "preview", "PreviewReporter.tsx"),
       },
-    },
+    }),
     transform: { jsx: "react-jsx" },
     output: { file: path.join(outDir, "preview.js"), format: "esm" },
     write: true,
