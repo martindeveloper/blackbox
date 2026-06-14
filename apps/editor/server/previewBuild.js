@@ -1,7 +1,7 @@
 import { createRequire } from "node:module";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { buildGameCss } from "../../../scripts/lib/buildGameCss.mjs";
 import {
   DEFAULT_PREVIEW_GAME,
@@ -13,6 +13,8 @@ import { PREVIEW_CACHE, PREVIEW_WEB_ROOT } from "./config.js";
 
 // Engine + built-in shell sources whose mtimes invalidate a cached preview bundle.
 const SHARED_SRC = ["src/engine", "src/preview", "src/shells"];
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
+const BUILD_CSS = path.join(REPO_ROOT, "scripts", "lib", "buildGameCss.mjs");
 
 // Coalesce concurrent builds of the same UI key into one in-flight promise.
 const inFlight = new Map();
@@ -83,7 +85,11 @@ async function buildJs(web, gameSrc, outDir) {
 async function buildGame(web, uiKey, projectPath, gameSrc, force) {
   const outDir = path.join(PREVIEW_CACHE, uiKey);
   const fingerprintFile = path.join(outDir, ".fingerprint");
-  const fingerprintRoots = [...SHARED_SRC.map((rel) => path.join(web, rel)), gameSrc];
+  const fingerprintRoots = [
+    ...SHARED_SRC.map((rel) => path.join(web, rel)),
+    BUILD_CSS,
+    gameSrc,
+  ];
   const fingerprint = String(await maxMtimeMs(fingerprintRoots));
 
   if (!force) {

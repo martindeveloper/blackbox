@@ -10,7 +10,7 @@
     "build:bundler:dev": "node ./scripts/build-bundle.mjs --verbose --ignore-missing",
     "build:css": "node ./scripts/build-game-css.mjs",
     "build:favicon": "node ./scripts/build-favicon.mjs",
-    "build:js": "rolldown -c rolldown.config.ts",
+    "build:js": "rolldown -c rolldown.config.mjs",
     "build:wasm": "node ./scripts/build-wasm.mjs --profile release",
     "build:wasm:dev": "node ./scripts/build-wasm.mjs --profile dev",
     "check": "npm run lint && npm run fmt:check",
@@ -25,7 +25,7 @@
     "test:wasm": "node ./scripts/test-wasm-abi.mjs",
     "watch:assets": "node ./scripts/sync-dist.mjs --watch",
     "watch:css": "node ./scripts/build-game-css.mjs --watch",
-    "watch:js": "rolldown -c rolldown.config.ts --watch"
+    "watch:js": "rolldown -c rolldown.config.mjs --watch"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",

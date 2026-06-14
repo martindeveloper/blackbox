@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import { existsSync } from "node:fs";
 import path from "node:path";
 
 export const DEFAULT_LIBRARY_REF = "library.json";
@@ -115,6 +116,31 @@ async function writeJson(filePath, value) {
   await fs.writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`);
 }
 
+async function writeTextIfMissing(filePath, contents) {
+  try {
+    await fs.access(filePath);
+    return false;
+  } catch {
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    await fs.writeFile(filePath, contents);
+    return true;
+  }
+}
+
+export function defaultFontsCssDoc() {
+  return "/* Web fonts: apps/web/README.md#web-fonts */\n";
+}
+
+export async function ensureGameFontsCss(projectPath) {
+  const srcDir = path.join(projectPath, "src");
+  const hasLocalUi =
+    existsSync(path.join(srcDir, "game.ts")) || existsSync(path.join(srcDir, "app.css"));
+  if (!hasLocalUi && !existsSync(path.join(srcDir, "fonts.css"))) {
+    return false;
+  }
+  return writeTextIfMissing(path.join(srcDir, "fonts.css"), defaultFontsCssDoc());
+}
+
 async function writeIfMissing(filePath, value) {
   try {
     await fs.access(filePath);
@@ -176,6 +202,7 @@ export async function ensureProjectSidecars(projectPath, scenario = null) {
       defaultBundleCookDoc(),
     ),
     ensureProjectMediaDirs(projectPath),
+    ensureGameFontsCss(projectPath),
   ]);
 
   return scenario;
@@ -202,5 +229,6 @@ export async function writeNewProject(projectPath, { title, firstChapterId, firs
     writeJson(path.join(projectPath, DEFAULT_LIBRARY_REF), emptyLibraryDoc()),
     writeJson(path.join(projectPath, DEFAULT_COOK_REF), defaultBundleCookDoc()),
     ensureProjectMediaDirs(projectPath),
+    writeTextIfMissing(path.join(projectPath, "src", "fonts.css"), defaultFontsCssDoc()),
   ]);
 }

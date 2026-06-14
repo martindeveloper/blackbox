@@ -186,6 +186,56 @@ test("regenerates a copied project ID", async () => {
   }
 });
 
+test("standalone mode registers projects outside configured roots", async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "blackbox-standalone-"));
+  const projectsRoot = path.join(root, "data");
+  const outsideRoot = path.join(root, "outside");
+  await fs.mkdir(outsideRoot, { recursive: true });
+  await fs.writeFile(
+    path.join(outsideRoot, "scenario.json"),
+    `${JSON.stringify({
+      spec: "com.blackbox.scenario",
+      formatVersion: 1,
+      title: "Outside Project",
+      itemsRef: "items.json",
+      charactersRef: "characters.json",
+      assetsRef: "assets.json",
+      chapters: [{ id: "one", title: "One", ref: "chapter.json" }],
+    })}\n`,
+  );
+
+  const restricted = new ProjectService({
+    roots: [projectsRoot],
+    dbPath: path.join(root, "restricted.db"),
+  });
+  const standalone = new ProjectService({
+    roots: [projectsRoot],
+    dbPath: path.join(root, "standalone.db"),
+    standalone: true,
+  });
+
+  try {
+    await restricted.start();
+    await standalone.start();
+
+    await assert.rejects(
+      restricted.registerProject(outsideRoot),
+      (error) =>
+        error instanceof ProjectError &&
+        error.code === "invalid_project" &&
+        error.message === "Project is outside configured roots",
+    );
+
+    const project = await standalone.registerProject(outsideRoot);
+    assert.equal(await fs.realpath(project.path), await fs.realpath(outsideRoot));
+    assert.ok(standalone.roots.includes(await fs.realpath(outsideRoot)));
+  } finally {
+    await restricted.close();
+    await standalone.close();
+    await fs.rm(root, { recursive: true, force: true });
+  }
+});
+
 test("serves image bytes and audio ranges through the API", async () => {
   const env = await fixture();
   const app = Fastify();

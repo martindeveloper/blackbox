@@ -45,6 +45,7 @@ async function configureRuntimePaths() {
   const usePackagedResources = app.isPackaged && !process.defaultApp;
 
   process.env.BLACKBOX_PACKAGED = usePackagedResources ? "1" : "0";
+  process.env.BLACKBOX_STANDALONE = "1";
   process.env.BLACKBOX_CLIENT_ROOT = CLIENT_ROOT;
   process.env.BLACKBOX_USER_DATA = app.getPath("userData");
   await fs.mkdir(process.env.BLACKBOX_USER_DATA, { recursive: true });

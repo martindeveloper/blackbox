@@ -92,6 +92,14 @@ BLACKBOX_ADVENTURE=../../data/silent_archive_game npm run dev
 Projects with a local `src/game.ts` bundle that UI; otherwise the generic shell is used. Override
 only when needed with `BLACKBOX_WEB_PLAYER_GAME=<game-id>`.
 
+### Web fonts
+
+Custom UI shells declare web fonts in `src/fonts.css` (`@import url(...)` or `@font-face`). The
+CSS build prepends that file so `@import` rules stay valid in the compiled bundle — do not import
+it from `app.css`. New editor projects scaffold `src/fonts.css` when created or when a custom UI
+shell is added. `index.html` and `preview.html` preconnect to Google Fonts; families load from
+compiled `style.css`.
+
 ## Bundle layout
 
 `blackbox-bundler` writes `dist/www/bundle/project.box.meta`, a shared bundle, and one bundle per

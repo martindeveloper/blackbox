@@ -10,6 +10,7 @@ import {
   DEFAULT_COOK_REF,
   DEFAULT_LIBRARY_REF,
   PROJECT_MEDIA_DIRS,
+  ensureGameFontsCss,
   ensureProjectSidecars,
   writeNewProject,
 } from "./projectScaffold.js";
@@ -53,6 +54,25 @@ test("writeNewProject scaffolds sidecars, library, cook rules, and media dirs", 
     const cook = JSON.parse(await fs.readFile(path.join(projectPath, "bundle.cook.json"), "utf8"));
     assert.equal(cook.spec, "com.blackbox.bundle.cook");
     assert.ok(cook.patterns.length >= 3);
+
+    const fontsCss = await fs.readFile(path.join(projectPath, "src", "fonts.css"), "utf8");
+    assert.match(fontsCss, /README\.md#web-fonts/);
+  } finally {
+    await fs.rm(root, { recursive: true, force: true });
+  }
+});
+
+test("ensureGameFontsCss adds src/fonts.css when a custom UI shell exists", async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "blackbox-scaffold-fonts-"));
+  const projectPath = path.join(root, "custom-ui");
+  try {
+    await fs.mkdir(path.join(projectPath, "src"), { recursive: true });
+    await fs.writeFile(path.join(projectPath, "src", "game.ts"), "export const game = {};\n");
+
+    assert.equal(await ensureGameFontsCss(projectPath), true);
+    const fontsCss = await fs.readFile(path.join(projectPath, "src", "fonts.css"), "utf8");
+    assert.match(fontsCss, /README\.md#web-fonts/);
+    assert.equal(await ensureGameFontsCss(projectPath), false);
   } finally {
     await fs.rm(root, { recursive: true, force: true });
   }

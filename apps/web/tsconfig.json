@@ -9,7 +9,6 @@
     "../../.cache/wasm/clients-web/**/*.d.ts",
     "../editor/shared/**/*.ts",
     "../../data/*/src/**/*.ts",
-    "../../data/*/src/**/*.tsx",
-    "rolldown.config.ts"
+    "../../data/*/src/**/*.tsx"
   ]
 }

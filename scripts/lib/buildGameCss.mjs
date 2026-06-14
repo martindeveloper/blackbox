@@ -8,12 +8,17 @@ function toUrl(filePath) {
   return filePath.replaceAll("\\", "/");
 }
 
-/**
- * Compile a game UI Tailwind bundle: engine shell CSS + the UI's `app.css`
- * (`data/<game>/src/app.css` or `apps/web/src/shells/<id>/app.css`).
- * Writes a ephemeral wrapper so paths work in dev (apps/web engine) and packaged
- * preview-workspace layouts alike.
- */
+async function fontsCssImport(gameSrc) {
+  const fontsCss = path.join(gameSrc, "fonts.css");
+  try {
+    await fs.access(fontsCss);
+    return `@import "${toUrl(fontsCss)}";`;
+  } catch {
+    return null;
+  }
+}
+
+/** Compile game UI CSS (engine shell + app.css). Prepends src/fonts.css when present. */
 export async function buildGameCss({
   webRoot,
   gameSrc,
@@ -39,6 +44,8 @@ export async function buildGameCss({
     `@import "${toUrl(path.join(engineUi, "base.css"))}";`,
     `@import "${toUrl(gameApp)}";`,
   ];
+  const fontImport = await fontsCssImport(gameSrc);
+  if (fontImport) lines.unshift(fontImport);
   await fs.mkdir(wrapperDir, { recursive: true });
   await fs.mkdir(path.dirname(outFile), { recursive: true });
   await fs.writeFile(wrapper, `${lines.join("\n")}\n`);

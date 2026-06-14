@@ -28,10 +28,12 @@ silent_archive_game/     ← project root (open this folder)
   sfx/
   saves/                     ← optional runtime save files
   .blackbox/                 ← editor sidecars (layout, trash, editor.json)
+  src/                       ← optional custom UI (game.ts, app.css, fonts.css)
 ```
 
 - **Media files** live under `textures/`, `music/`, and `sfx/` in the project folder
 - Asset `src` paths in `assets.json` are relative to the project root (e.g. `music/RainOnMonochrome.mp3`)
+- **Web fonts** for custom UI shells: `src/fonts.css` (see [apps/web/README.md](../web/README.md#web-fonts))
 
 ## Features
 

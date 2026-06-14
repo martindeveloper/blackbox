@@ -68,6 +68,8 @@ translation overrides. Supplying a component replaces only that presentation slo
 the engine session, save, command, and modal behavior. A game can therefore begin with no component
 overrides, replace individual panels, or replace the entire playable screen.
 
+Web fonts: [apps/web/README.md](../../README.md#web-fonts).
+
 `TextGamePlayerApp` is the matching application shell. It owns the standard session, audio, save,
 restart, support-bundle, keyboard, and phase-routing behavior. A game passes small presentation and
 audio adapters, then may override its header, boot screen, chapter transition, confirmation content,

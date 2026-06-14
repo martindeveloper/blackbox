@@ -20,6 +20,7 @@ export const USER_DATA_ROOT = process.env.BLACKBOX_USER_DATA
   : REPO_ROOT;
 
 export const PACKAGED = process.env.BLACKBOX_PACKAGED === "1";
+export const STANDALONE = process.env.BLACKBOX_STANDALONE === "1";
 
 export const DIST = path.join(CLIENT_ROOT, "dist");
 export const BUNDLE_CACHE = path.join(USER_DATA_ROOT, ".cache", "bundle");

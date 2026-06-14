@@ -9,6 +9,7 @@ import { projectHasLocalUi } from "../../../scripts/lib/gamePaths.mjs";
 import {
   PACKAGED,
   REPO_ROOT,
+  STANDALONE,
   USER_DATA_ROOT,
 } from "./config.js";
 import { ensureProjectEditorConfig, regenerateProjectEditorId } from "./editorConfig.js";
@@ -222,6 +223,7 @@ function trashName(originalPath, id) {
 export class ProjectService {
   constructor(options = {}) {
     this.roots = options.roots ?? projectRoots();
+    this.standalone = options.standalone ?? STANDALONE;
     this.dbPath =
       options.dbPath ?? path.join(USER_DATA_ROOT, EDITOR_SIDECAR_DIR, EDITOR_DB_BASENAME);
     this.projects = new Map();
@@ -368,7 +370,7 @@ export class ProjectService {
   async registerProject(projectPath) {
     const canonical = await fs.realpath(projectPath);
     if (!this.roots.some((root) => isInside(canonical, root))) {
-      if (PACKAGED) this.addRoot(canonical);
+      if (PACKAGED || this.standalone) this.addRoot(canonical);
       else throw new ProjectError("invalid_project", "Project is outside configured roots");
     }
 

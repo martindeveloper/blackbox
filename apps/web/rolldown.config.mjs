@@ -4,8 +4,6 @@ import { fileURLToPath } from "node:url";
 import { resolveWebPlayerGame } from "../../scripts/lib/adventureDev.mjs";
 import { createWebRolldownResolve } from "../../scripts/lib/webRolldownResolve.mjs";
 
-declare const process: { env: Record<string, string | undefined> };
-
 const WEB_ROOT = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(WEB_ROOT, "../..");
 
