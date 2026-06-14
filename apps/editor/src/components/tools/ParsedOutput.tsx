@@ -7,24 +7,24 @@ import { lintIssueLocationLabel, lintIssueNavigateTarget } from "../../lib/lintI
 import { editorNavigate } from "../../lib/routeHelpers.js";
 import { useScenarioStore } from "../../store/useScenarioStore.js";
 import { BundleDependencyGraph } from "./BundleDependencyGraph.js";
-import type {
-  BundleToolResult,
-  CodecTotal,
-  InspectEntry,
-  LintIssue,
-  LintResultStatus,
-  ParsedBundleOutput,
-  ParsedLintOutput,
-  ParsedSimulatorOutput,
-  ParsedSimulatorPayload,
+import {
   isCompleteSimulatorOutput,
-  ProjectInspectBundle,
-  SimAnalytics,
-  SimAnalyticsRow,
-  SimGoalResult,
-  SimHotNode,
-  SimPerEnding,
-  ToolResult,
+  type BundleToolResult,
+  type CodecTotal,
+  type InspectEntry,
+  type LintIssue,
+  type LintResultStatus,
+  type ParsedBundleOutput,
+  type ParsedLintOutput,
+  type ParsedSimulatorOutput,
+  type ParsedSimulatorPayload,
+  type ProjectInspectBundle,
+  type SimAnalytics,
+  type SimAnalyticsRow,
+  type SimGoalResult,
+  type SimHotNode,
+  type SimPerEnding,
+  type ToolResult,
 } from "../../lib/toolsApi.js";
 import { Icon } from "../icons/Icon.js";
 
