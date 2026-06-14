@@ -1,5 +1,6 @@
 import { createRequire } from "node:module";
 import fs from "node:fs/promises";
+import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { buildGameCss } from "../shared/lib/buildGameCss.mjs";
@@ -57,8 +58,14 @@ async function maxMtimeMs(roots) {
   return newest;
 }
 
+async function previewRequireFrom(web) {
+  const nested = path.join(web, "pkg", "package.json");
+  if (existsSync(nested)) return nested;
+  return path.join(web, "package.json");
+}
+
 async function buildJs(web, gameSrc, outDir) {
-  const require = createRequire(path.join(web, "package.json"));
+  const require = createRequire(await previewRequireFrom(web));
   const { build } = await import(pathToFileURL(require.resolve("rolldown")).href);
   await build({
     input: path.join(web, "src", "preview", "main.tsx"),
@@ -105,6 +112,7 @@ async function buildGame(web, uiKey, gameSrc, force) {
     webRoot: web,
     gameSrc,
     outFile: path.join(outDir, "style.css"),
+    requireFrom: await previewRequireFrom(web),
   });
   await fs.writeFile(fingerprintFile, fingerprint);
   return { game: uiKey, cached: false, durationMs: Date.now() - started };

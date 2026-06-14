@@ -17,7 +17,9 @@ const REPO_ROOT = path.resolve(EDITOR_ROOT, "../..");
 const WEB_ROOT = path.join(REPO_ROOT, "apps", "web");
 const SRC_NM = path.join(WEB_ROOT, "node_modules");
 const OUT = path.join(EDITOR_ROOT, "resources", "preview-workspace");
-const OUT_NM = path.join(OUT, "node_modules");
+// electron-builder strips top-level node_modules from extraResources; nest under pkg/.
+const OUT_PKG = path.join(OUT, "pkg");
+const OUT_NM = path.join(OUT_PKG, "node_modules");
 
 const ROOTS = [
   "rolldown",
@@ -83,6 +85,11 @@ cpSync(
 writeFileSync(
   path.join(OUT, "package.json"),
   `${JSON.stringify({ name: "blackbox-preview-workspace", private: true, type: "module" }, null, 2)}\n`,
+);
+mkdirSync(OUT_PKG, { recursive: true });
+writeFileSync(
+  path.join(OUT_PKG, "package.json"),
+  `${JSON.stringify({ name: "blackbox-preview-workspace-deps", private: true, type: "module" }, null, 2)}\n`,
 );
 
 console.log("==> preview workspace: resolving dependency closure…");

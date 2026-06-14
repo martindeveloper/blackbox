@@ -25,6 +25,7 @@ export async function buildGameCss({
   outFile,
   execPath = process.execPath,
   watch = false,
+  requireFrom = null,
 }) {
   const engineRoot = path.join(webRoot, "src", "engine");
   const engineUi = path.join(engineRoot, "ui");
@@ -50,7 +51,7 @@ export async function buildGameCss({
   await fs.mkdir(path.dirname(outFile), { recursive: true });
   await fs.writeFile(wrapper, `${lines.join("\n")}\n`);
 
-  const require = createRequire(path.join(webRoot, "package.json"));
+  const require = createRequire(requireFrom ?? path.join(webRoot, "package.json"));
   const cliPkg = require.resolve("@tailwindcss/cli/package.json");
   const bin = require(cliPkg).bin;
   const cli = path.join(path.dirname(cliPkg), typeof bin === "string" ? bin : bin.tailwindcss);
