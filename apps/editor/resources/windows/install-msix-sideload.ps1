@@ -32,10 +32,14 @@ if (-not $msix) {
     throw "No .msix file found in $Root"
 }
 
-Write-Host "Installing signing certificate to Local Machine > Trusted People..."
+Write-Host "Installing signing certificate to Local Machine > Trusted People and Trusted Root..."
 Import-Certificate `
     -FilePath $cerPath `
     -CertStoreLocation Cert:\LocalMachine\TrustedPeople `
+    | Out-Null
+Import-Certificate `
+    -FilePath $cerPath `
+    -CertStoreLocation Cert:\LocalMachine\Root `
     | Out-Null
 
 Write-Host "Installing $($msix.Name)..."

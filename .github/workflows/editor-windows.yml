@@ -136,9 +136,9 @@ jobs:
         with:
           name: blackbox-editor-windows-${{ inputs.architecture }}
           path: |
-            apps/editor/release/*.zip
-            apps/editor/release/*.msix
             apps/editor/release/*-sideload.zip
+            apps/editor/release/*.zip
+            !apps/editor/release/*-sideload.zip
           if-no-files-found: error
           compression-level: 0
           retention-days: 14
