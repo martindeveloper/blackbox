@@ -4,13 +4,15 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "lint": "oxlint .",
+    "check": "npm run lint && npm run fmt:check",
+    "deploy": "vercel deploy --prod",
+    "dev": "next dev",
     "fmt": "oxfmt .",
-    "check": "npm run lint",
-    "deploy": "vercel deploy --prod"
+    "fmt:check": "oxfmt --check .",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint --fix .",
+    "start": "next start"
   },
   "dependencies": {
     "i18next": "^26.3.1",

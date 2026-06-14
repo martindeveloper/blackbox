@@ -17,7 +17,7 @@ const PREVIEW_DIST = path.join(DIST, "preview");
 const PKG_DIST = path.join(DIST, "pkg");
 
 console.log("==> preview: building WASM engine…");
-runSync("npm", ["run", "build:wasm:preview"], { cwd: WEB_ROOT });
+runSync("node", ["./scripts/build-wasm.mjs", "--profile", "dev", "--preview"], { cwd: WEB_ROOT });
 
 mkdirSync(PREVIEW_DIST, { recursive: true });
 mkdirSync(PKG_DIST, { recursive: true });

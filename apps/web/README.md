@@ -90,7 +90,7 @@ BLACKBOX_ADVENTURE=../../data/silent_archive_game npm run dev
 ```
 
 Projects with a local `src/game.ts` bundle that UI; otherwise the generic shell is used. Override
-only when needed with `BLACKBOX_WEB_PLAYER_GAME=<game-id>`. Legacy alias: `BLACKBOX_SCENARIO`.
+only when needed with `BLACKBOX_WEB_PLAYER_GAME=<game-id>`.
 
 ## Bundle layout
 
