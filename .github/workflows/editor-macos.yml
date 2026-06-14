@@ -35,6 +35,9 @@ jobs:
       CSC_IDENTITY_AUTO_DISCOVERY: "false"
       ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+      XDG_CACHE_HOME: ${{ github.workspace }}/.cache
+      ELECTRON_CACHE: ${{ github.workspace }}/.cache/electron
+      ELECTRON_BUILDER_CACHE: ${{ github.workspace }}/.cache/electron-builder
 
     steps:
       - name: Check out repository
@@ -49,11 +52,24 @@ jobs:
             apps/editor/package-lock.json
             apps/web/package-lock.json
 
+      - name: Restore Electron caches
+        uses: actions/cache@v4
+        with:
+          path: |
+            .cache/electron
+            .cache/electron-builder
+            .cache/wasm
+          key: editor-macos-${{ inputs.architecture }}-${{ hashFiles('apps/editor/package-lock.json', 'apps/web/package-lock.json', 'apps/editor/electron-builder.yml', 'Cargo.lock', 'engine/wasm/Cargo.toml') }}
+          restore-keys: |
+            editor-macos-${{ inputs.architecture }}-
+
       - name: Restore Rust cache
         uses: Swatinem/rust-cache@v2
         with:
+          shared-key: editor-macos
           key: ${{ inputs.architecture }}
           workspaces: . -> .cache/target
+          cache-binaries: true
 
       - name: Install wasm-pack
         run: cargo install --locked wasm-pack --version 0.15.0
