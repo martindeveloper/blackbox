@@ -58,11 +58,15 @@ async function configureRuntimePaths() {
     : path.join(CLIENT_ROOT, "resources", "bin");
   process.env.BLACKBOX_TOOLS_DIR = toolsDir;
 
-  // Web workspace the preview player is compiled from on demand. Packaged: the
-  // staged self-contained workspace; dev: the in-repo apps/web.
+  // Shared web engine workspace for on-demand preview builds.
   process.env.BLACKBOX_PREVIEW_WEB_ROOT = usePackagedResources
     ? path.join(process.resourcesPath, "preview-workspace")
     : path.join(CLIENT_ROOT, "..", "web");
+
+  // Shipped game UI packages live under data/<game-id>/src (staged into resources).
+  process.env.BLACKBOX_GAME_DATA_ROOT = usePackagedResources
+    ? path.join(process.resourcesPath, "data")
+    : path.join(CLIENT_ROOT, "..", "..", "data");
 }
 
 async function startServer() {

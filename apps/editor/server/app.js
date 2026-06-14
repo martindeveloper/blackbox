@@ -91,10 +91,16 @@ export async function createEditorServer(options = {}) {
 
   fastify.get("/preview", async (request, reply) => {
     try {
-      const requested = projectService.previewGameFor(request.query?.project);
-      // Compile the requested game's UI on demand (cached); ensurePreviewBuilt
-      // falls back to the generic game if the requested one has no sources.
-      const { game } = await ensurePreviewBuilt(requested);
+      const projectId = request.query?.project;
+      let projectPath = null;
+      if (projectId) {
+        try {
+          projectPath = projectService.requireProject(projectId).path;
+        } catch {
+          projectPath = null;
+        }
+      }
+      const { game } = await ensurePreviewBuilt(projectPath);
       const template = await fs.readFile(path.join(DIST, "preview", "preview.html"), "utf8");
       const html = template.replaceAll("__GAME__", game);
       return reply.header("Cache-Control", "no-store").type("text/html; charset=utf-8").send(html);

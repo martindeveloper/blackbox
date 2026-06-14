@@ -1,4 +1,4 @@
-import type { GameDefinition } from "../../engine/boot.js";
+import type { GameDefinition } from "@engine/boot.js";
 import { App } from "./App.js";
 
 export const game: GameDefinition = {

@@ -43,9 +43,13 @@ tmp/
 temp/
 .cache/
 
-data/
+# Local authoring projects; shipped game packages are tracked explicitly
+data/*
+
 .temp/
 
 skills-lock.json
 .agents/
 .claude/
+
+.DS_Store

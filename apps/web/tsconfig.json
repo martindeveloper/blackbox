@@ -1,30 +1,15 @@
 {
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "target": "ES2022",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "jsx": "react-jsx",
-    "strict": true,
-    "noEmit": true,
-    "skipLibCheck": true,
-    "isolatedModules": true,
-    "verbatimModuleSyntax": true,
-    "noUncheckedIndexedAccess": true,
-    "resolveJsonModule": true,
-    "paths": {
-      "@game/*": ["./src/games/silent-archive/*"],
-      "@content-source": ["./src/engine/lib/bundleSource.ts"],
-      "@preview-mode": ["./src/engine/lib/previewMode.stub.ts"],
-      "@preview-reporter": ["./src/preview/PreviewReporter.stub.tsx"],
-      "@preview-protocol": ["../editor/shared/previewProtocol.ts"]
-    }
+    "composite": true
   },
   "include": [
     "src/**/*.ts",
     "src/**/*.tsx",
     "../../.cache/wasm/clients-web/**/*.d.ts",
     "../editor/shared/**/*.ts",
+    "../../data/*/src/**/*.ts",
+    "../../data/*/src/**/*.tsx",
     "rolldown.config.ts"
   ]
 }

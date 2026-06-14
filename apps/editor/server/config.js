@@ -1,5 +1,9 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  DEFAULT_PREVIEW_GAME,
+  PREVIEW_GAME_PATTERN,
+} from "../../../scripts/lib/gamePaths.mjs";
 
 const SERVER_DIR = path.dirname(fileURLToPath(import.meta.url));
 
@@ -23,13 +27,26 @@ export const BUNDLE_CACHE = path.join(USER_DATA_ROOT, ".cache", "bundle");
 export const PREVIEW_CACHE = path.join(USER_DATA_ROOT, ".cache", "preview");
 export const WORK_DIR = USER_DATA_ROOT;
 
-// Web workspace the preview player is built FROM (engine + game sources + the
-// rolldown/tailwind toolchain). Dev: the in-repo apps/web. Packaged: the
-// self-contained workspace staged into the app's resources (set via
-// BLACKBOX_PREVIEW_WEB_ROOT by electron/main.mjs).
+// Web workspace the preview player engine is built FROM (shared runtime + preview
+// entry + rolldown/tailwind toolchain). Dev: apps/web. Packaged: preview-workspace.
 export const PREVIEW_WEB_ROOT = process.env.BLACKBOX_PREVIEW_WEB_ROOT
   ? path.resolve(process.env.BLACKBOX_PREVIEW_WEB_ROOT)
   : path.join(REPO_ROOT, "apps", "web");
+
+/** Roots scanned for `data/<game-id>/src` game UI packages. */
+export function gameDataRoots() {
+  const roots = [];
+  if (process.env.BLACKBOX_GAME_DATA_ROOT) {
+    roots.push(path.resolve(process.env.BLACKBOX_GAME_DATA_ROOT));
+  }
+  if (process.env.BLACKBOX_GAME_DATA_ROOTS) {
+    roots.push(...process.env.BLACKBOX_GAME_DATA_ROOTS.split(path.delimiter).filter(Boolean));
+  }
+  if (!PACKAGED) {
+    roots.push(path.join(REPO_ROOT, "data"));
+  }
+  return [...new Set(roots.map((root) => path.resolve(root)))];
+}
 
 export function getToolsDir() {
   return process.env.BLACKBOX_TOOLS_DIR ? path.resolve(process.env.BLACKBOX_TOOLS_DIR) : null;
@@ -44,12 +61,7 @@ export const DEV_MODE = process.argv.includes("--dev");
 export const API_VERSION = "v1";
 export const API_PREFIX = `/api/${API_VERSION}`;
 
-// The preview player ships one prebuilt bundle per game under dist/preview/<game>/.
-// Projects that don't declare a `game` in scenario.json preview with the
-// generic, game-agnostic UI.
-export const DEFAULT_PREVIEW_GAME = "editor-preview";
-// Folder-name shape for games; guards the value before it touches the filesystem.
-export const PREVIEW_GAME_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
+export { DEFAULT_PREVIEW_GAME, PREVIEW_GAME_PATTERN };
 
 export const PORT = Number(process.env.PORT || 8081);
 export const LIVERELOAD_PORT = Number(process.env.LIVERELOAD_PORT || 35730);

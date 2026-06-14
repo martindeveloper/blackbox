@@ -1,25 +1,28 @@
 import { defineConfig } from "rolldown";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { resolveWebPlayerGame } from "../../scripts/lib/adventureDev.mjs";
 
-// The config runs under Node, but the project tsconfig has no Node types.
 declare const process: { env: Record<string, string | undefined> };
 
-const GAME = process.env.BLACKBOX_WEB_PLAYER_GAME ?? "silent-archive";
+const WEB_ROOT = path.dirname(fileURLToPath(import.meta.url));
+const REPO_ROOT = path.resolve(WEB_ROOT, "../..");
+
+const { gameSrc } = resolveWebPlayerGame(process.env, WEB_ROOT, REPO_ROOT);
 
 export default defineConfig({
+  root: WEB_ROOT,
   input: "./src/main.tsx",
   platform: "browser",
   external: ["/pkg/blackbox_wasm.js"],
   resolve: {
-    // tsconfig.json's paths mapping (for the editor/typecheck) pins @game to
-    // the default game and would override the alias below; use a paths-less
-    // tsconfig for bundling so the env var stays in control.
     tsconfigFilename: "tsconfig.bundler.json",
     alias: {
-      "@game": new URL(`src/games/${GAME}`, import.meta.url).pathname,
-      "@content-source": new URL("src/engine/lib/bundleSource.ts", import.meta.url).pathname,
-      "@preview-mode": new URL("src/engine/lib/previewMode.stub.ts", import.meta.url).pathname,
-      "@preview-reporter": new URL("src/preview/PreviewReporter.stub.tsx", import.meta.url)
-        .pathname,
+      "@engine": path.join(WEB_ROOT, "src", "engine"),
+      "@game": gameSrc,
+      "@content-source": path.join(WEB_ROOT, "src", "engine", "lib", "bundleSource.ts"),
+      "@preview-mode": path.join(WEB_ROOT, "src", "engine", "lib", "previewMode.stub.ts"),
+      "@preview-reporter": path.join(WEB_ROOT, "src", "preview", "PreviewReporter.stub.tsx"),
     },
   },
   transform: {

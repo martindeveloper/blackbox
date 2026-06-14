@@ -10,7 +10,7 @@ async function fixture() {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "blackbox-preview-"));
   const projectsRoot = path.join(root, "data");
 
-  const writeProject = async (folder, scenarioExtra) => {
+  const writeProject = async (folder, { localUi = false } = {}) => {
     const projectPath = path.join(projectsRoot, folder);
     await fs.mkdir(projectPath, { recursive: true });
     const write = (name, value) =>
@@ -24,7 +24,6 @@ async function fixture() {
         charactersRef: "characters.json",
         assetsRef: "assets.json",
         chapters: [{ id: "one", title: "One", ref: "chapter.json" }],
-        ...scenarioExtra,
       }),
       write("items.json", { spec: "com.blackbox.items", formatVersion: 1, items: {} }),
       write("characters.json", {
@@ -48,11 +47,30 @@ async function fixture() {
         nodes: { start: { id: "start", title: "Start", text: [], choices: [] } },
       }),
     ]);
+    if (localUi) {
+      const src = path.join(projectPath, "src");
+      await fs.mkdir(src, { recursive: true });
+      await fs.writeFile(
+        path.join(src, "game.ts"),
+        `import type { GameDefinition } from "@engine/boot.js";
+import { App } from "./App.js";
+export const game: GameDefinition = { id: "${folder}", App, i18nResources: {}, player: {} };
+`,
+      );
+      await fs.writeFile(
+        path.join(src, "App.tsx"),
+        `import { TextGamePlayerApp } from "@engine/ui/textGame/TextGamePlayerApp.js";
+export function App() {
+  return <TextGamePlayerApp config={{}} />;
+}
+`,
+      );
+      await fs.writeFile(path.join(src, "app.css"), "/* local ui */\n");
+    }
   };
 
-  await writeProject("declares_game", { game: "silent-archive" });
-  await writeProject("no_game", {});
-  await writeProject("ghost_game", { game: "not-built" });
+  await writeProject("has_local_ui", { localUi: true });
+  await writeProject("no_local_ui");
 
   const service = new ProjectService({
     roots: [projectsRoot],
@@ -86,34 +104,25 @@ async function previewAssets(fastify, projectId) {
   return match[1];
 }
 
-test("preview serves the project's declared game bundle", async () => {
+test("preview serves the project's local src/ UI when present", async () => {
   const env = await fixture();
   try {
-    assert.equal(await previewAssets(env.fastify, env.idOf("declares_game")), "silent-archive");
+    assert.equal(await previewAssets(env.fastify, env.idOf("has_local_ui")), "has_local_ui");
   } finally {
     await env.close();
   }
 });
 
-test("preview falls back to the generic game when none is declared", async () => {
+test("preview falls back to the generic shell when src/ is absent", async () => {
   const env = await fixture();
   try {
-    assert.equal(await previewAssets(env.fastify, env.idOf("no_game")), "editor-preview");
+    assert.equal(await previewAssets(env.fastify, env.idOf("no_local_ui")), "editor-preview");
   } finally {
     await env.close();
   }
 });
 
-test("preview falls back when the declared game bundle is not built", async () => {
-  const env = await fixture();
-  try {
-    assert.equal(await previewAssets(env.fastify, env.idOf("ghost_game")), "editor-preview");
-  } finally {
-    await env.close();
-  }
-});
-
-test("preview falls back to the generic game for an unknown project", async () => {
+test("preview falls back to the generic shell for an unknown project", async () => {
   const env = await fixture();
   try {
     assert.equal(await previewAssets(env.fastify, "does-not-exist"), "editor-preview");
@@ -122,35 +131,32 @@ test("preview falls back to the generic game for an unknown project", async () =
   }
 });
 
-test("on-demand build compiles and serves the game's real bundle, then caches", async () => {
+test("on-demand build compiles and serves the project's local UI, then caches", async () => {
   const env = await fixture();
   try {
-    const id = env.idOf("declares_game");
+    const id = env.idOf("has_local_ui");
     const first = await env.fastify.inject({
       method: "GET",
       url: `/api/v1/projects/${id}/preview-build`,
     });
     assert.equal(first.statusCode, 200);
     const firstBody = first.json();
-    assert.equal(firstBody.game, "silent-archive");
+    assert.equal(firstBody.game, "has_local_ui");
 
-    // The compiled asset is served from cache and contains the game's code.
     const asset = await env.fastify.inject({
       method: "GET",
-      url: "/preview/silent-archive/preview.js",
+      url: "/preview/has_local_ui/preview.js",
     });
     assert.equal(asset.statusCode, 200);
     assert.ok(asset.body.length > 1000, "bundle is non-trivial");
-    assert.ok(asset.body.includes("silent-archive"), "bundle contains the game");
+    assert.ok(asset.body.includes("has_local_ui"), "bundle contains the game id");
 
-    // Second build reuses the cache (no recompile).
     const second = await env.fastify.inject({
       method: "GET",
       url: `/api/v1/projects/${id}/preview-build`,
     });
     assert.equal(second.json().cached, true);
 
-    // force=1 recompiles.
     const forced = await env.fastify.inject({
       method: "GET",
       url: `/api/v1/projects/${id}/preview-build?force=1`,
@@ -164,8 +170,6 @@ test("on-demand build compiles and serves the game's real bundle, then caches", 
 test("preview asset route rejects invalid game segments and missing bundles", async () => {
   const env = await fixture();
   try {
-    // `Bad_Name`/`UPPER` violate PREVIEW_GAME_PATTERN; `unbuilt-game` is valid
-    // but has no cached file — all must 404 (never read outside PREVIEW_CACHE).
     for (const game of ["Bad_Name", "UPPER", "unbuilt-game"]) {
       const res = await env.fastify.inject({
         method: "GET",

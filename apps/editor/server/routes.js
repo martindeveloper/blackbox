@@ -207,7 +207,7 @@ export async function registerRoutes(app, service) {
   app.get(
     "/projects/:id/preview-build",
     projectRequest(service, (project, request) =>
-      ensurePreviewBuilt(service.previewGameFor(project.id), {
+      ensurePreviewBuilt(project.path, {
         force: request.query?.force === "1" || request.query?.force === "true",
       }),
     ),

@@ -1,5 +1,5 @@
-import { collectStateNotifications } from "../../engine/lib/notifications.js";
-import { TextGamePlayerApp } from "../../engine/ui/textGame/TextGamePlayerApp.js";
+import { collectStateNotifications } from "@engine/lib/notifications.js";
+import { TextGamePlayerApp } from "@engine/ui/textGame/TextGamePlayerApp.js";
 
 const PREVIEW_PRESENTATION = {
   collectStateNotifications,

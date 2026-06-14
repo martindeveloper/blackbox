@@ -5,10 +5,9 @@ import os from "node:os";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import chokidar from "chokidar";
+import { projectHasLocalUi } from "../../../scripts/lib/gamePaths.mjs";
 import {
-  DEFAULT_PREVIEW_GAME,
   PACKAGED,
-  PREVIEW_GAME_PATTERN,
   REPO_ROOT,
   USER_DATA_ROOT,
 } from "./config.js";
@@ -395,10 +394,7 @@ export class ProjectService {
       path: canonical,
       name: path.basename(canonical),
       title: typeof scenario.title === "string" ? scenario.title : null,
-      game:
-        typeof scenario.game === "string" && PREVIEW_GAME_PATTERN.test(scenario.game)
-          ? scenario.game
-          : DEFAULT_PREVIEW_GAME,
+      hasLocalUi: projectHasLocalUi(canonical),
       revision: Number(existing?.revision ?? 1),
       lastOpened: existing?.last_opened ?? null,
       tools: config.tools,
@@ -446,14 +442,6 @@ export class ProjectService {
     const project = this.projects.get(id);
     if (!project) throw new ProjectError("invalid_project", `Unknown project: ${id}`);
     return project;
-  }
-
-  /**
-   * The preview-player game whose UI should render this project. Falls back to
-   * the generic game for unknown projects so the route never throws.
-   */
-  previewGameFor(id) {
-    return this.projects.get(id)?.game ?? DEFAULT_PREVIEW_GAME;
   }
 
   resolvePath(project, relativePath) {

@@ -1,31 +1,35 @@
 #!/usr/bin/env node
 
-import { mkdirSync } from "node:fs";
+import { existsSync, mkdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { resolveWebDevAdventure } from "../../../scripts/lib/adventureDev.mjs";
 import { runSync } from "../../../scripts/lib/spawn.mjs";
 
 const clientRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.resolve(clientRoot, "../..");
 const out = path.join(clientRoot, "dist/www/bundle");
-const scenario = path.join(repoRoot, "data/silent_archive_game/scenario.json");
 
 function envFlag(name) {
   return process.env[name] === "1";
 }
 
 function parseArgs(argv) {
+  const adventure = resolveWebDevAdventure();
   const options = {
     platform: process.env.BUNDLE_PLATFORM ?? "web",
     skipTranscode: envFlag("BUNDLE_SKIP_TRANSCODE"),
     ignoreMissing: envFlag("BUNDLE_IGNORE_MISSING"),
     verbose: envFlag("BUNDLE_VERBOSE"),
     archiveCompress: process.env.BUNDLE_ARCHIVE_COMPRESS ?? "none",
+    scenario: adventure?.scenarioPath ?? null,
   };
 
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
-    if (arg === "--platform" && argv[i + 1]) {
+    if (arg === "--scenario" && argv[i + 1]) {
+      options.scenario = path.resolve(argv[++i]);
+    } else if (arg === "--platform" && argv[i + 1]) {
       options.platform = argv[++i];
     } else if (arg === "--skip-transcode") {
       options.skipTranscode = true;
@@ -44,12 +48,23 @@ function parseArgs(argv) {
 const options = parseArgs(process.argv.slice(2));
 mkdirSync(out, { recursive: true });
 
+if (!options.scenario) {
+  console.warn(
+    "==> skipping web bundle: set BLACKBOX_ADVENTURE to a project root (engine ships without game content)",
+  );
+  process.exit(0);
+}
+
+if (!existsSync(options.scenario)) {
+  throw new Error(`Scenario not found: ${options.scenario}`);
+}
+
 console.log(
-  `==> building web bundle (platform=${options.platform}, output=${out}, archive=${options.archiveCompress})`,
+  `==> building web bundle (scenario=${options.scenario}, platform=${options.platform}, output=${out}, archive=${options.archiveCompress})`,
 );
 
 const args = [
-  scenario,
+  options.scenario,
   "--platform",
   options.platform,
   "-o",

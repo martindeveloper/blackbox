@@ -96,5 +96,5 @@ export function App() {
 Replacing `GameScreen` gives a game complete control over its playable UI. Replacing smaller slots
 retains the default shell and swaps only the relevant capability.
 
-This directory must not import from `src/games/`. Game-specific presentation behavior is supplied
+This directory must not import from game UI packages under `data/<game-id>/src/`. Game-specific presentation behavior is supplied
 to reusable hooks through adapters such as `SessionPresentationAdapter`.
