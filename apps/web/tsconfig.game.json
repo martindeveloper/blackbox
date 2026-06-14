@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "paths": {
+      "react": ["./node_modules/@types/react/index.d.ts"],
+      "react/jsx-runtime": ["./node_modules/@types/react/jsx-runtime.d.ts"],
+      "react-i18next": ["./node_modules/react-i18next/index.d.mts"],
+      "i18next": ["./node_modules/i18next/index.d.mts"],
+      "@engine/*": ["./src/engine/*"],
+      "@content-source": ["./src/engine/lib/bundleSource.ts"],
+      "@preview-mode": ["./src/engine/lib/previewMode.stub.ts"],
+      "@preview-reporter": ["./src/preview/PreviewReporter.stub.tsx"],
+      "@preview-protocol": ["../editor/shared/previewProtocol.ts"]
+    }
+  }
+}

@@ -15,8 +15,8 @@
   --bb-font-narrative:
     "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, Cambria,
     "Times New Roman", serif;
-  --bb-font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono",
-    monospace;
+  --bb-font-mono:
+    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 
   color-scheme: dark;
   --bb-ui-accent: #84a9d0;

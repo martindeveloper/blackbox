@@ -14,7 +14,7 @@ export interface MusicFade {
 }
 
 export interface AudioPlaybackConfig<FadeKind extends string> {
-  defaultSfx: string;
+  defaultSfx?: string;
   musicLoopDelayMs: number;
   resolveMusicFade: (fadeKind: FadeKind | undefined, hadTrack: boolean) => MusicFade;
 }
@@ -28,7 +28,7 @@ let sharedEngine: AudioEngine | null = null;
 let sharedMusicKey: string | null = null;
 let preloadedDefaultSfx: string | null = null;
 
-function getSharedEngine(defaultSfx: string): AudioEngine {
+function getSharedEngine(defaultSfx?: string): AudioEngine {
   if (!sharedEngine) {
     const engine = new AudioEngine();
     sharedEngine = engine;
@@ -42,7 +42,7 @@ function getSharedEngine(defaultSfx: string): AudioEngine {
       defaultSfx,
     });
   }
-  if (preloadedDefaultSfx !== defaultSfx) {
+  if (defaultSfx && preloadedDefaultSfx !== defaultSfx) {
     sharedEngine.preloadSfx([defaultSfx]);
     preloadedDefaultSfx = defaultSfx;
   }

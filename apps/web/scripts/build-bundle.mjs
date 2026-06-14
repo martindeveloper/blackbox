@@ -23,6 +23,7 @@ function parseArgs(argv) {
     verbose: envFlag("BUNDLE_VERBOSE"),
     archiveCompress: process.env.BUNDLE_ARCHIVE_COMPRESS ?? "none",
     scenario: adventure?.scenarioPath ?? null,
+    allowEmpty: false,
   };
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -39,6 +40,8 @@ function parseArgs(argv) {
       options.verbose = true;
     } else if (arg === "--archive-compress" && argv[i + 1]) {
       options.archiveCompress = argv[++i];
+    } else if (arg === "--allow-empty") {
+      options.allowEmpty = true;
     }
   }
 
@@ -49,10 +52,11 @@ const options = parseArgs(process.argv.slice(2));
 mkdirSync(out, { recursive: true });
 
 if (!options.scenario) {
-  console.warn(
-    "==> skipping web bundle: set BLACKBOX_ADVENTURE to a project root (engine ships without game content)",
-  );
-  process.exit(0);
+  if (options.allowEmpty) {
+    console.warn("==> skipping web bundle: no BLACKBOX_ADVENTURE configured");
+    process.exit(0);
+  }
+  throw new Error("BLACKBOX_ADVENTURE is required for a production web build");
 }
 
 if (!existsSync(options.scenario)) {

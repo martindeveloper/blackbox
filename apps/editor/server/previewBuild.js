@@ -5,7 +5,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { buildGameCss } from "../../../scripts/lib/buildGameCss.mjs";
 import {
   DEFAULT_PREVIEW_GAME,
-  previewUiKey,
+  projectHasLocalUi,
   resolvePreviewGameSrc,
 } from "../../../scripts/lib/gamePaths.mjs";
 import { createWebRolldownResolve } from "../../../scripts/lib/webRolldownResolve.mjs";
@@ -82,14 +82,10 @@ async function buildJs(web, gameSrc, outDir) {
   });
 }
 
-async function buildGame(web, uiKey, projectPath, gameSrc, force) {
+async function buildGame(web, uiKey, gameSrc, force) {
   const outDir = path.join(PREVIEW_CACHE, uiKey);
   const fingerprintFile = path.join(outDir, ".fingerprint");
-  const fingerprintRoots = [
-    ...SHARED_SRC.map((rel) => path.join(web, rel)),
-    BUILD_CSS,
-    gameSrc,
-  ];
+  const fingerprintRoots = [...SHARED_SRC.map((rel) => path.join(web, rel)), BUILD_CSS, gameSrc];
   const fingerprint = String(await maxMtimeMs(fingerprintRoots));
 
   if (!force) {
@@ -116,13 +112,14 @@ async function buildGame(web, uiKey, projectPath, gameSrc, force) {
 }
 
 /**
- * Compile preview UI for `projectPath` into PREVIEW_CACHE/<uiKey>.
- * Local `<project>/src/` when present; otherwise the generic editor-preview shell.
- * Pass null for unknown projects (generic shell only).
+ * Compile trusted project UI into PREVIEW_CACHE/<project-id>.
+ * Untrusted and UI-less projects share the generic editor-preview shell.
  */
-export async function ensurePreviewBuilt(projectPath, { force = false } = {}) {
+export async function ensurePreviewBuilt(project, { force = false } = {}) {
   const web = PREVIEW_WEB_ROOT;
-  const uiKey = projectPath ? previewUiKey(projectPath) : DEFAULT_PREVIEW_GAME;
+  const useLocalUi = project?.uiTrusted === true && projectHasLocalUi(project.path);
+  const uiKey = useLocalUi ? project.id : DEFAULT_PREVIEW_GAME;
+  const projectPath = useLocalUi ? project.path : null;
   const gameSrc = resolvePreviewGameSrc(projectPath, web);
 
   const key = force ? `${uiKey}:force:${Date.now()}` : uiKey;
@@ -130,9 +127,7 @@ export async function ensurePreviewBuilt(projectPath, { force = false } = {}) {
     const existing = inFlight.get(key);
     if (existing) return existing;
   }
-  const promise = buildGame(web, uiKey, projectPath, gameSrc, force).finally(() =>
-    inFlight.delete(key),
-  );
+  const promise = buildGame(web, uiKey, gameSrc, force).finally(() => inFlight.delete(key));
   inFlight.set(key, promise);
   return promise;
 }

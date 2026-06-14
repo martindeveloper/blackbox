@@ -43,7 +43,7 @@ tmp/
 temp/
 .cache/
 
-# Local authoring projects; shipped game packages are tracked explicitly
+# Local authoring projects are separate repositories.
 data/*
 
 .temp/

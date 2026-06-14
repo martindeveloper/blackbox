@@ -3,7 +3,6 @@ import path from "node:path";
 import {
   DEFAULT_WEB_PLAYER_GAME,
   localProjectSrcDir,
-  previewUiKey,
   projectHasLocalUi,
   repoGameDataRoot,
   resolveGameSrcDir,
@@ -42,7 +41,7 @@ export function resolveWebDevAdventure(env = process.env) {
   return {
     adventureRoot,
     scenarioPath,
-    gameId: previewUiKey(adventureRoot),
+    gameId: path.basename(adventureRoot),
   };
 }
 

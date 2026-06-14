@@ -12,7 +12,7 @@ import {
   API_PREFIX,
   USER_DATA_ROOT,
   PREVIEW_CACHE,
-  PREVIEW_GAME_PATTERN,
+  PREVIEW_KEY_PATTERN,
 } from "./config.js";
 import { setupLiveReload, staticFileHandler } from "./static.js";
 import { findDefaultDataRoot } from "./editorConfig.js";
@@ -42,7 +42,7 @@ export async function reservePort(preferred = PORT) {
 // Serve a cached preview asset (preview.js / style.css) for a game, guarding the
 // game segment against traversal before it touches the filesystem.
 async function sendPreviewAsset(reply, game, fileName, contentType) {
-  if (!PREVIEW_GAME_PATTERN.test(game)) {
+  if (!PREVIEW_KEY_PATTERN.test(game)) {
     return reply.code(404).type("text/plain; charset=utf-8").send("Not found");
   }
   try {
@@ -92,15 +92,15 @@ export async function createEditorServer(options = {}) {
   fastify.get("/preview", async (request, reply) => {
     try {
       const projectId = request.query?.project;
-      let projectPath = null;
+      let project = null;
       if (projectId) {
         try {
-          projectPath = projectService.requireProject(projectId).path;
+          project = projectService.requireProject(projectId);
         } catch {
-          projectPath = null;
+          project = null;
         }
       }
-      const { game } = await ensurePreviewBuilt(projectPath);
+      const { game } = await ensurePreviewBuilt(project);
       const template = await fs.readFile(path.join(DIST, "preview", "preview.html"), "utf8");
       const html = template.replaceAll("__GAME__", game);
       return reply.header("Cache-Control", "no-store").type("text/html; charset=utf-8").send(html);

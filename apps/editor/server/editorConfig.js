@@ -9,6 +9,7 @@ import { EDITOR_CONFIG_BASENAME, EDITOR_SIDECAR_DIR } from "../shared/blackboxPa
 export { EDITOR_SIDECAR_DIR } from "../shared/blackboxPaths.js";
 const EDITOR_ID_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 const EDITOR_ID_LENGTH = 11;
+const EDITOR_ID_PATTERN = /^[A-Za-z0-9_-]{11}$/;
 
 function generateEditorId() {
   const bytes = randomBytes(EDITOR_ID_LENGTH);
@@ -133,7 +134,8 @@ async function readEditorConfigFile(configPath, projectDir = null) {
 
     const tools = resolveToolsFromDoc(doc, pathVars);
 
-    const id = typeof doc.id === "string" && doc.id.trim() ? doc.id.trim() : null;
+    const id =
+      typeof doc.id === "string" && EDITOR_ID_PATTERN.test(doc.id.trim()) ? doc.id.trim() : null;
     return { ok: true, projectPath, tools, id, doc };
   } catch (error) {
     if (error?.code === "ENOENT") return { ok: false, missing: true };

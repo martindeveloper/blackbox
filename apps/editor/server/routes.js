@@ -120,6 +120,13 @@ export async function registerRoutes(app, service) {
   );
 
   app.post(
+    "/projects/:id/trust-ui",
+    projectRequest(service, (project, request) =>
+      service.setProjectUiTrust(project.id, request.body?.trusted),
+    ),
+  );
+
+  app.post(
     "/projects/:id/delete",
     projectRequest(service, async (project, request) => {
       const confirmName =
@@ -207,7 +214,7 @@ export async function registerRoutes(app, service) {
   app.get(
     "/projects/:id/preview-build",
     projectRequest(service, (project, request) =>
-      ensurePreviewBuilt(project.path, {
+      ensurePreviewBuilt(project, {
         force: request.query?.force === "1" || request.query?.force === "true",
       }),
     ),

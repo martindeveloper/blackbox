@@ -7,8 +7,6 @@
     "src/**/*.ts",
     "src/**/*.tsx",
     "../../.cache/wasm/clients-web/**/*.d.ts",
-    "../editor/shared/**/*.ts",
-    "../../data/*/src/**/*.ts",
-    "../../data/*/src/**/*.tsx"
+    "../editor/shared/**/*.ts"
   ]
 }

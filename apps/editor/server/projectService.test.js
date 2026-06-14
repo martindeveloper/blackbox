@@ -236,6 +236,37 @@ test("standalone mode registers projects outside configured roots", async () => 
   }
 });
 
+test("requires and persists a trust decision before opening custom UI", async () => {
+  const env = await fixture();
+  let reopened = null;
+  const src = path.join(env.projectPath, "src");
+  await fs.mkdir(src, { recursive: true });
+  await fs.writeFile(path.join(src, "game.ts"), "export const game = {};\n");
+
+  try {
+    const [project] = env.service.listProjects();
+    await assert.rejects(
+      env.service.openProject(project.id),
+      (error) => error instanceof ProjectError && error.code === "project_trust_required",
+    );
+
+    env.service.setProjectUiTrust(project.id, false);
+    await env.service.openProject(project.id);
+
+    reopened = new ProjectService({
+      roots: [path.dirname(env.projectPath)],
+      dbPath: path.join(env.root, "editor.db"),
+    });
+    await reopened.start();
+
+    const [persisted] = reopened.listProjects();
+    await reopened.openProject(persisted.id);
+  } finally {
+    await reopened?.close();
+    await env.close();
+  }
+});
+
 test("serves image bytes and audio ranges through the API", async () => {
   const env = await fixture();
   const app = Fastify();
@@ -344,12 +375,12 @@ test("re-registers a recreated project folder after the old path row is orphaned
     await fs.mkdir(path.join(env.projectPath, EDITOR_SIDECAR_DIR), { recursive: true });
     await fs.writeFile(
       path.join(env.projectPath, EDITOR_SIDECAR_DIR, EDITOR_CONFIG_BASENAME),
-      `${JSON.stringify({ id: "new-editor-id", path: env.projectPath })}\n`,
+      `${JSON.stringify({ id: "newEditor01", path: env.projectPath })}\n`,
     );
 
     const recreated = await env.service.registerProject(env.projectPath);
     assert.equal(await fs.realpath(recreated.path), await fs.realpath(env.projectPath));
-    assert.equal(recreated.id, "new-editor-id");
+    assert.equal(recreated.id, "newEditor01");
     assert.notEqual(recreated.id, staleId);
     assert.equal(env.service.listProjects().length, 1);
     assert.equal(

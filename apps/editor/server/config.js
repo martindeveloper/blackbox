@@ -1,9 +1,6 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import {
-  DEFAULT_PREVIEW_GAME,
-  PREVIEW_GAME_PATTERN,
-} from "../../../scripts/lib/gamePaths.mjs";
+import { DEFAULT_PREVIEW_GAME, PREVIEW_KEY_PATTERN } from "../../../scripts/lib/gamePaths.mjs";
 
 const SERVER_DIR = path.dirname(fileURLToPath(import.meta.url));
 
@@ -34,21 +31,6 @@ export const PREVIEW_WEB_ROOT = process.env.BLACKBOX_PREVIEW_WEB_ROOT
   ? path.resolve(process.env.BLACKBOX_PREVIEW_WEB_ROOT)
   : path.join(REPO_ROOT, "apps", "web");
 
-/** Roots scanned for `data/<game-id>/src` game UI packages. */
-export function gameDataRoots() {
-  const roots = [];
-  if (process.env.BLACKBOX_GAME_DATA_ROOT) {
-    roots.push(path.resolve(process.env.BLACKBOX_GAME_DATA_ROOT));
-  }
-  if (process.env.BLACKBOX_GAME_DATA_ROOTS) {
-    roots.push(...process.env.BLACKBOX_GAME_DATA_ROOTS.split(path.delimiter).filter(Boolean));
-  }
-  if (!PACKAGED) {
-    roots.push(path.join(REPO_ROOT, "data"));
-  }
-  return [...new Set(roots.map((root) => path.resolve(root)))];
-}
-
 export function getToolsDir() {
   return process.env.BLACKBOX_TOOLS_DIR ? path.resolve(process.env.BLACKBOX_TOOLS_DIR) : null;
 }
@@ -62,7 +44,7 @@ export const DEV_MODE = process.argv.includes("--dev");
 export const API_VERSION = "v1";
 export const API_PREFIX = `/api/${API_VERSION}`;
 
-export { DEFAULT_PREVIEW_GAME, PREVIEW_GAME_PATTERN };
+export { DEFAULT_PREVIEW_GAME, PREVIEW_KEY_PATTERN };
 
 export const PORT = Number(process.env.PORT || 8081);
 export const LIVERELOAD_PORT = Number(process.env.LIVERELOAD_PORT || 35730);

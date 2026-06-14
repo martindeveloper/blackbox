@@ -9,18 +9,14 @@ import {
 } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { gameSrcDir, listGameIds } from "../../../scripts/lib/gamePaths.mjs";
 
 // Stage a self-contained workspace the packaged editor builds previews FROM:
-// web engine sources + rolldown/tailwind toolchain + a curated node_modules. Game
-// UI lives under resources/data/<game-id>/src (see stageGamePackages below).
+// web engine sources + rolldown/tailwind toolchain + a curated node_modules.
 const EDITOR_ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const REPO_ROOT = path.resolve(EDITOR_ROOT, "../..");
 const WEB_ROOT = path.join(REPO_ROOT, "apps", "web");
-const REPO_DATA = path.join(REPO_ROOT, "data");
 const SRC_NM = path.join(WEB_ROOT, "node_modules");
 const OUT = path.join(EDITOR_ROOT, "resources", "preview-workspace");
-const OUT_DATA = path.join(EDITOR_ROOT, "resources", "data");
 const OUT_NM = path.join(OUT, "node_modules");
 
 const ROOTS = [
@@ -69,18 +65,6 @@ function copyPackage(name) {
   cpSync(from, to, { recursive: true, dereference: true });
 }
 
-function stageGamePackages() {
-  rmSync(OUT_DATA, { recursive: true, force: true });
-  mkdirSync(OUT_DATA, { recursive: true });
-  for (const gameId of listGameIds(REPO_DATA)) {
-    const from = gameSrcDir(REPO_DATA, gameId);
-    const to = gameSrcDir(OUT_DATA, gameId);
-    mkdirSync(path.dirname(to), { recursive: true });
-    cpSync(from, to, { recursive: true });
-    console.log(`==> game package: staged ${gameId} → resources/data/${gameId}/src`);
-  }
-}
-
 console.log("==> preview workspace: staging engine sources…");
 rmSync(OUT, { recursive: true, force: true });
 mkdirSync(OUT, { recursive: true });
@@ -100,8 +84,6 @@ writeFileSync(
   path.join(OUT, "package.json"),
   `${JSON.stringify({ name: "blackbox-preview-workspace", private: true, type: "module" }, null, 2)}\n`,
 );
-
-stageGamePackages();
 
 console.log("==> preview workspace: resolving dependency closure…");
 const seen = new Set();

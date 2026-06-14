@@ -6,12 +6,7 @@ import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import chokidar from "chokidar";
 import { projectHasLocalUi } from "../../../scripts/lib/gamePaths.mjs";
-import {
-  PACKAGED,
-  REPO_ROOT,
-  STANDALONE,
-  USER_DATA_ROOT,
-} from "./config.js";
+import { PACKAGED, REPO_ROOT, STANDALONE, USER_DATA_ROOT } from "./config.js";
 import { ensureProjectEditorConfig, regenerateProjectEditorId } from "./editorConfig.js";
 import { ensureProjectSidecars } from "./projectScaffold.js";
 import {
@@ -256,7 +251,8 @@ export class ProjectService {
         name TEXT NOT NULL,
         title TEXT,
         revision INTEGER NOT NULL DEFAULT 1,
-        last_opened TEXT
+        last_opened TEXT,
+        ui_trusted INTEGER
       );
       CREATE TABLE IF NOT EXISTS files (
         project_id TEXT NOT NULL,
@@ -266,6 +262,10 @@ export class ProjectService {
         PRIMARY KEY (project_id, path)
       );
     `);
+    const projectColumns = this.db.prepare("PRAGMA table_info(projects)").all();
+    if (!projectColumns.some((column) => column.name === "ui_trusted")) {
+      this.db.exec("ALTER TABLE projects ADD COLUMN ui_trusted INTEGER");
+    }
     await this.loadPersistedProjects();
     if (!PACKAGED) await this.discover();
   }
@@ -389,14 +389,18 @@ export class ProjectService {
     }
     const scenario = await readJson(path.join(canonical, "scenario.json"));
     const existing = this.db
-      .prepare("SELECT revision, last_opened FROM projects WHERE id = ?")
+      .prepare("SELECT revision, last_opened, ui_trusted FROM projects WHERE id = ?")
       .get(config.id);
+    const uiTrusted =
+      existing?.ui_trusted === null || existing?.ui_trusted === undefined
+        ? null
+        : existing.ui_trusted === 1;
     const project = {
       id: config.id,
       path: canonical,
       name: path.basename(canonical),
       title: typeof scenario.title === "string" ? scenario.title : null,
-      hasLocalUi: projectHasLocalUi(canonical),
+      uiTrusted,
       revision: Number(existing?.revision ?? 1),
       lastOpened: existing?.last_opened ?? null,
       tools: config.tools,
@@ -405,8 +409,8 @@ export class ProjectService {
     this.projects.set(project.id, project);
     this.db
       .prepare(`
-        INSERT INTO projects (id, path, name, title, revision, last_opened)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO projects (id, path, name, title, revision, last_opened, ui_trusted)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(id) DO UPDATE SET path=excluded.path, name=excluded.name, title=excluded.title
       `)
       .run(
@@ -416,6 +420,7 @@ export class ProjectService {
         project.title,
         project.revision,
         project.lastOpened,
+        project.uiTrusted === null ? null : Number(project.uiTrusted),
       );
     await this.indexProject(project);
     await this.watchProject(project);
@@ -424,14 +429,7 @@ export class ProjectService {
 
   listProjects() {
     return [...this.projects.values()]
-      .map((project) => ({
-        id: project.id,
-        path: project.path,
-        name: project.name,
-        title: project.title,
-        revision: project.revision,
-        lastOpened: project.lastOpened,
-      }))
+      .map((project) => this.projectSummary(project))
       .sort((a, b) => {
         if (a.lastOpened && b.lastOpened) return b.lastOpened.localeCompare(a.lastOpened);
         if (a.lastOpened) return -1;
@@ -472,10 +470,37 @@ export class ProjectService {
 
   async openProject(id) {
     const project = this.requireProject(id);
+    if (projectHasLocalUi(project.path) && project.uiTrusted === null) {
+      throw new ProjectError(
+        "project_trust_required",
+        "This project contains executable UI code and needs a trust decision",
+      );
+    }
     const now = new Date().toISOString();
     project.lastOpened = now;
     this.db.prepare("UPDATE projects SET last_opened = ? WHERE id = ?").run(now, id);
     return this.snapshot(project);
+  }
+
+  setProjectUiTrust(id, trusted) {
+    if (typeof trusted !== "boolean") {
+      throw new ProjectError("invalid_request", "trusted must be a boolean");
+    }
+    const project = this.requireProject(id);
+    project.uiTrusted = trusted;
+    this.db.prepare("UPDATE projects SET ui_trusted = ? WHERE id = ?").run(Number(trusted), id);
+    return { trusted };
+  }
+
+  projectSummary(project) {
+    return {
+      id: project.id,
+      path: project.path,
+      name: project.name,
+      title: project.title,
+      revision: project.revision,
+      lastOpened: project.lastOpened,
+    };
   }
 
   async snapshot(project) {
@@ -512,13 +537,7 @@ export class ProjectService {
     const rootFiles = await this.scanRootJson(project);
 
     return {
-      project: {
-        id: project.id,
-        name: project.name,
-        title: project.title,
-        path: project.path,
-        revision: project.revision,
-      },
+      project: this.projectSummary(project),
       bundle: {
         scenarioName: project.name,
         scenarioDir: project.path,

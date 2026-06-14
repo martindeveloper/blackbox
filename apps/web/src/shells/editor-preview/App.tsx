@@ -8,7 +8,6 @@ const PREVIEW_PRESENTATION = {
 };
 
 const PREVIEW_AUDIO = {
-  defaultSfx: undefined,
   musicLoopDelayMs: 0,
   resolveMusicFade: () => ({ fadeIn: 0.15, fadeOut: 0.15 }),
 };

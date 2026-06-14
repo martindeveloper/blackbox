@@ -109,6 +109,12 @@ export function openProject(projectId: string): Promise<ProjectSnapshot> {
   return postJson(projectUrl(projectId, "/open"), {});
 }
 
+export async function setProjectUiTrust(projectId: string, trusted: boolean): Promise<void> {
+  await postJson<{ trusted: boolean }>(projectUrl(projectId, "/trust-ui"), {
+    trusted,
+  });
+}
+
 export async function saveDocuments(
   projectId: string,
   baseRevision: number,

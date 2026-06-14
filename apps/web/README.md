@@ -14,7 +14,7 @@ Full documentation (features, scenario authoring, engine API) lives in the [repo
 
 ```bash
 # Production build (WASM + cooked bundle + JS/CSS)
-npm run build
+BLACKBOX_ADVENTURE=../../data/my_game npm run build
 
 # Dev server with watch + live reload
 npm run dev
@@ -47,7 +47,7 @@ apps/web/
 
 | Command                     | Purpose                                                          |
 | --------------------------- | ---------------------------------------------------------------- |
-| `npm run build`             | Full release dist                                                |
+| `npm run build`             | Full release dist; requires `BLACKBOX_ADVENTURE`                 |
 | `npm run dev`               | Watch + live reload (cooks assets, no zst archive)               |
 | `npm run build:wasm`        | Rebuild wasm-bindgen pkg only                                    |
 | `npm run build:bundler`     | Cook scenario bundle (release: zstd archive)                     |
@@ -79,8 +79,8 @@ Put game-owned React components, translations, styles, icons, labels, stat prese
 under `data/<game-id>/src/`. The game passes its notification and timing behavior to
 `useBlackboxSession` through `SessionPresentationAdapter`.
 
-Each game package includes a `tsconfig.json` extending `apps/web/tsconfig.base.json` so `@engine/*`
-and `@game/*` resolve when editing game code in the IDE.
+Each game package includes a `tsconfig.json` extending `apps/web/tsconfig.game.json` so engine and
+shared frontend dependencies resolve when editing game code in the IDE.
 
 The engine defaults to the built-in `editor-preview` shell (`apps/web/src/shells/editor-preview/`).
 It does not ship with any game's scenario content. To dev-test a project locally, set its root:

@@ -7,7 +7,7 @@
     "build": "node ./scripts/build.mjs",
     "build:bundle": "npm run build:bundler && npm run build:js && npm run build:css && npm run build:favicon && node ./scripts/sync-dist.mjs",
     "build:bundler": "node ./scripts/build-bundle.mjs --ignore-missing --archive-compress zstd",
-    "build:bundler:dev": "node ./scripts/build-bundle.mjs --verbose --ignore-missing",
+    "build:bundler:dev": "node ./scripts/build-bundle.mjs --verbose --ignore-missing --allow-empty",
     "build:css": "node ./scripts/build-game-css.mjs",
     "build:favicon": "node ./scripts/build-favicon.mjs",
     "build:js": "rolldown -c rolldown.config.mjs",

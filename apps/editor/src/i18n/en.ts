@@ -74,6 +74,11 @@ export const en = {
     deleteProjectConfirmPlaceholder: "Folder name",
     deleteProjectAction: "Delete project",
     deletingProject: "Deleting…",
+    trustProjectTitle: "Do you trust this project?",
+    trustProjectMessage:
+      "This project contains custom UI code. Trusting it allows that code to run inside the editor. Only trust projects from sources you know.",
+    trustProjectAction: "Trust and open",
+    openProjectSafely: "Open without custom UI",
     editor: "Editor",
     newProject: "New project",
     relative: {

@@ -7,6 +7,7 @@ import {
   openProject as openProjectApi,
   restoreTrash,
   saveDocuments,
+  setProjectUiTrust,
   subscribeProject,
   trashMedia,
   uploadMedia,
@@ -154,7 +155,20 @@ export const useScenarioStore = create<ScenarioState>((set, get) => ({
 
   openProject: async (projectId) => {
     try {
-      const snapshot = await openProjectApi(projectId);
+      let snapshot;
+      try {
+        snapshot = await openProjectApi(projectId);
+      } catch (error) {
+        if (!(error instanceof ApiError) || error.code !== "project_trust_required") throw error;
+        const trusted = await confirmModal({
+          title: translate("welcome.trustProjectTitle"),
+          message: translate("welcome.trustProjectMessage"),
+          confirmLabel: translate("welcome.trustProjectAction"),
+          cancelLabel: translate("welcome.openProjectSafely"),
+        });
+        await setProjectUiTrust(projectId, trusted);
+        snapshot = await openProjectApi(projectId);
+      }
       unsubscribeProject?.();
       set({
         projectId: snapshot.project.id,

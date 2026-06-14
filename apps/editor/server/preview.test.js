@@ -104,10 +104,31 @@ async function previewAssets(fastify, projectId) {
   return match[1];
 }
 
+async function trustProject(fastify, projectId) {
+  const response = await fastify.inject({
+    method: "POST",
+    url: `/api/v1/projects/${projectId}/trust-ui`,
+    payload: { trusted: true },
+  });
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.json().trusted, true);
+}
+
 test("preview serves the project's local src/ UI when present", async () => {
   const env = await fixture();
   try {
-    assert.equal(await previewAssets(env.fastify, env.idOf("has_local_ui")), "has_local_ui");
+    const id = env.idOf("has_local_ui");
+    await trustProject(env.fastify, id);
+    assert.equal(await previewAssets(env.fastify, id), id);
+  } finally {
+    await env.close();
+  }
+});
+
+test("preview uses the generic shell until local UI is trusted", async () => {
+  const env = await fixture();
+  try {
+    assert.equal(await previewAssets(env.fastify, env.idOf("has_local_ui")), "editor-preview");
   } finally {
     await env.close();
   }
@@ -135,17 +156,18 @@ test("on-demand build compiles and serves the project's local UI, then caches", 
   const env = await fixture();
   try {
     const id = env.idOf("has_local_ui");
+    await trustProject(env.fastify, id);
     const first = await env.fastify.inject({
       method: "GET",
       url: `/api/v1/projects/${id}/preview-build`,
     });
     assert.equal(first.statusCode, 200);
     const firstBody = first.json();
-    assert.equal(firstBody.game, "has_local_ui");
+    assert.equal(firstBody.game, id);
 
     const asset = await env.fastify.inject({
       method: "GET",
-      url: "/preview/has_local_ui/preview.js",
+      url: `/preview/${id}/preview.js`,
     });
     assert.equal(asset.statusCode, 200);
     assert.ok(asset.body.length > 1000, "bundle is non-trivial");

@@ -63,11 +63,6 @@ async function configureRuntimePaths() {
   process.env.BLACKBOX_PREVIEW_WEB_ROOT = usePackagedResources
     ? path.join(process.resourcesPath, "preview-workspace")
     : path.join(CLIENT_ROOT, "..", "web");
-
-  // Shipped game UI packages live under data/<game-id>/src (staged into resources).
-  process.env.BLACKBOX_GAME_DATA_ROOT = usePackagedResources
-    ? path.join(process.resourcesPath, "data")
-    : path.join(CLIENT_ROOT, "..", "..", "data");
 }
 
 async function startServer() {
