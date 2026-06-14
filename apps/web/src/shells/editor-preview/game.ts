@@ -1,10 +1,11 @@
 import type { GameDefinition } from "@engine/boot.js";
 import { App } from "./App.js";
+import { en } from "./en.js";
 
 export const game: GameDefinition = {
   id: "editor-preview",
   App,
-  i18nResources: {},
+  i18nResources: { en },
   player: {
     mobile: {
       requirePortrait: false,

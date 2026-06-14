@@ -1,56 +1,50 @@
-/* Generic editor-preview theme.
- *
- * The UI shown for any project that hasn't shipped its own components/CSS yet
- * (e.g. a game freshly created from scratch). It must read as clean and
- * genre-neutral — no sci-fi/fantasy lean — so it's a calm editorial reader:
- * serif narrative, quiet sans chrome, a single restrained accent.
- *
- * Tokens are set on :root (not the .editor-preview wrapper) because the modal
- * stack renders outside that wrapper (boot.tsx mounts ModalProvider around the
- * app root), so :root is the only place both the game screen and its modals
- * inherit the same palette. Theme switching toggles html[data-theme]. */
 :root {
-  --bb-font-display:
-    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --bb-font-narrative:
-    "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, Cambria,
-    "Times New Roman", serif;
-  --bb-font-mono:
-    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
-
   color-scheme: dark;
-  --bb-ui-accent: #84a9d0;
-  --bb-ui-info: #74b3a2;
-  --bb-ui-danger: #d98c84;
-  --bb-ui-text: #e9ebef;
-  --bb-ui-muted: #9a9ea9;
-  --bb-input-bg: color-mix(in srgb, #ffffff 4%, transparent);
-  --bb-input-border: rgba(255, 255, 255, 0.12);
-  --bb-input-border-focus: color-mix(in srgb, var(--bb-ui-accent) 55%, transparent);
-  --bb-ui-surface: #1d1f24;
-  --bb-ui-border: rgba(255, 255, 255, 0.1);
-  --bb-ui-overlay: rgba(10, 11, 14, 0.62);
-  --bb-ui-shadow: rgba(0, 0, 0, 0.38);
-  --bb-ui-track: rgba(255, 255, 255, 0.1);
-  --bb-app-bg: #15161a;
+  --bb-font-display: "IBM Plex Sans", "Segoe UI Variable", "Segoe UI", Helvetica, Arial, sans-serif;
+  --bb-font-narrative: Charter, "Bitstream Charter", "Sitka Text", Georgia, serif;
+  --bb-font-mono: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+  --bb-ui-accent: #df6c00;
+  --bb-ui-info: #6fcf97;
+  --bb-ui-danger: #f07070;
+  --bb-ui-text: #eceae6;
+  --bb-ui-muted: #969088;
+  --bb-input-bg: #0c0b0a;
+  --bb-input-border: #302c28;
+  --bb-input-border-focus: #df6c00;
+  --bb-ui-surface: #12100e;
+  --bb-ui-border: #38342e;
+  --bb-ui-overlay: rgba(6, 5, 4, 0.72);
+  --bb-ui-shadow: rgba(0, 0, 0, 0.48);
+  --bb-ui-track: #302c28;
+  --bb-app-bg: #0a0908;
+  --preview-panel: #12100e;
+  --preview-panel-raised: #181614;
+  --preview-soft: rgba(223, 108, 0, 0.1);
+  --preview-subtle-border: #141210;
+  --preview-text-subtle: #5e5850;
 }
 
 :root[data-theme="light"] {
   color-scheme: light;
-  --bb-ui-accent: #3c6396;
-  --bb-ui-info: #2f8472;
-  --bb-ui-danger: #bd544a;
-  --bb-ui-text: #232631;
-  --bb-ui-muted: #6c707b;
+  --bb-ui-accent: #df6c00;
+  --bb-ui-info: #239b56;
+  --bb-ui-danger: #dc4545;
+  --bb-ui-text: #0c0c0b;
+  --bb-ui-muted: #52524e;
   --bb-input-bg: #ffffff;
-  --bb-input-border: rgba(24, 28, 38, 0.14);
-  --bb-input-border-focus: color-mix(in srgb, var(--bb-ui-accent) 55%, transparent);
-  --bb-ui-surface: #fbfaf8;
-  --bb-ui-border: rgba(24, 28, 38, 0.11);
-  --bb-ui-overlay: rgba(40, 43, 52, 0.3);
-  --bb-ui-shadow: rgba(36, 40, 52, 0.14);
-  --bb-ui-track: rgba(24, 28, 38, 0.12);
-  --bb-app-bg: #efeee9;
+  --bb-input-border: rgba(12, 12, 11, 0.1);
+  --bb-input-border-focus: #df6c00;
+  --bb-ui-surface: #fdfdfc;
+  --bb-ui-border: rgba(12, 12, 11, 0.11);
+  --bb-ui-overlay: rgba(12, 12, 11, 0.28);
+  --bb-ui-shadow: rgba(35, 34, 31, 0.14);
+  --bb-ui-track: rgba(12, 12, 11, 0.1);
+  --bb-app-bg: #e2e1de;
+  --preview-panel: #fdfdfc;
+  --preview-panel-raised: #f8f8f7;
+  --preview-soft: rgba(223, 108, 0, 0.07);
+  --preview-subtle-border: rgba(12, 12, 11, 0.04);
+  --preview-text-subtle: #94948f;
 }
 
 html,
@@ -71,75 +65,379 @@ body {
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--bb-ui-accent) 30%, transparent);
+  background: color-mix(in srgb, var(--bb-ui-accent) 28%, transparent);
 }
 
 .editor-preview {
-  background: var(--bb-app-bg);
+  background:
+    linear-gradient(var(--preview-subtle-border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--preview-subtle-border) 1px, transparent 1px), var(--bb-app-bg);
+  background-size: 2rem 2rem;
 }
 
-/* thin, theme-aware scrollbars */
 .editor-preview *,
 .modal-body {
   scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--bb-ui-text) 22%, transparent) transparent;
+  scrollbar-color: color-mix(in srgb, var(--bb-ui-text) 18%, transparent) transparent;
 }
 
 .editor-preview button:focus-visible,
 .modal-panel button:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--bb-ui-accent) 60%, transparent);
-  outline-offset: 2px;
+  outline: 2px solid color-mix(in srgb, var(--bb-ui-accent) 65%, transparent);
+  outline-offset: 3px;
 }
 
-/* ----- App header ----- */
-.editor-preview .text-game-player-header {
-  gap: 0.75rem;
-  padding: 0.7rem 1.5rem;
-  background: var(--bb-ui-surface);
+/* Header */
+.preview-header {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 3rem;
+  padding: 0.4rem clamp(0.75rem, 2vw, 1.25rem);
+  border-bottom: 1px solid var(--preview-subtle-border);
+  background: var(--preview-panel);
 }
 
-.editor-preview .text-game-player-header h1 {
+.preview-header__brand,
+.preview-header__actions,
+.preview-status,
+.preview-audio {
+  display: flex;
+  align-items: center;
+}
+
+.preview-header__brand {
+  min-width: 0;
+  gap: 0.65rem;
+}
+
+.preview-header__mark {
+  width: 0.65rem;
+  height: 0.65rem;
+  border: 1px solid var(--bb-ui-accent);
+  border-radius: 0.15rem;
+  background: color-mix(in srgb, var(--bb-ui-accent) 18%, transparent);
+  box-shadow: inset 0 0 0 2px var(--preview-panel);
+}
+
+.preview-header__context {
+  display: block;
+  margin-bottom: 0.05rem;
+  color: var(--preview-text-subtle);
+  font-size: 0.56rem;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.preview-header h1 {
+  max-width: min(52vw, 36rem);
+  margin: 0;
+  overflow: hidden;
   color: var(--bb-ui-text);
-  font-family: var(--bb-font-display);
-  font-size: 0.95rem;
-  font-weight: 600;
-  letter-spacing: 0.01em;
+  font-size: 0.82rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.editor-preview .text-game-player-header span {
-  color: var(--bb-ui-muted);
-  font-size: 0.72rem;
+.preview-header__actions {
+  gap: 0.55rem;
 }
 
-.editor-preview .text-game-player-header button {
-  border: 1px solid var(--bb-ui-border);
-  border-radius: 0.5rem;
-  background: color-mix(in srgb, var(--bb-ui-text) 3%, transparent);
+.preview-status {
+  gap: 0.45rem;
   color: var(--bb-ui-muted);
-  font-size: 0.72rem;
-  font-weight: 500;
+  font-family: var(--bb-font-mono);
+  font-size: 0.62rem;
+}
+
+.preview-status > span {
+  width: 0.35rem;
+  height: 0.35rem;
+  border-radius: 50%;
+  background: var(--bb-ui-muted);
+}
+
+.preview-status--ready > span {
+  background: var(--bb-ui-info);
+}
+
+.preview-status--error > span {
+  background: var(--bb-ui-danger);
+}
+
+.preview-audio {
+  gap: 0.45rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--bb-input-border);
+  border-radius: 0.25rem;
+  background: transparent;
+  color: var(--bb-ui-muted);
+  font: inherit;
+  font-size: 0.65rem;
+  cursor: pointer;
   transition:
-    color 0.16s ease,
-    border-color 0.16s ease,
-    background 0.16s ease;
+    color 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
 }
 
-.editor-preview .text-game-player-header button:hover {
+.preview-audio:hover {
+  border-color: color-mix(in srgb, var(--bb-ui-accent) 55%, var(--bb-input-border));
+  background: var(--preview-soft);
   color: var(--bb-ui-text);
-  border-color: color-mix(in srgb, var(--bb-ui-accent) 45%, var(--bb-ui-border));
 }
 
-/* ----- Modal chrome (generic build only) -----
- * Drops the sci-fi corner brackets and softens the panel into a clean,
- * rounded dialog so engine-rendered modals match the reader's calm look. */
+.preview-audio svg {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+}
+
+/* In-game composition */
+.editor-preview .bb-default-game-screen {
+  display: grid;
+  grid-template:
+    "rail location" auto
+    "rail story" minmax(0, 1fr)
+    "rail choices" auto
+    / clamp(12rem, 18vw, 15rem) minmax(0, 1fr);
+  background: transparent;
+}
+
+.editor-preview .bb-default-game-screen__location {
+  grid-area: location;
+  padding: clamp(1rem, 2vw, 1.5rem) clamp(1.25rem, 3vw, 3rem) 0.8rem;
+  border-bottom: 1px solid var(--preview-subtle-border);
+  background: color-mix(in srgb, var(--bb-app-bg) 94%, transparent);
+}
+
+.editor-preview .bb-default-game-screen__location h2 {
+  font-size: clamp(1.25rem, 2vw, 1.75rem);
+  font-weight: 620;
+  letter-spacing: -0.035em;
+}
+
+.editor-preview .bb-default-game-screen__location span {
+  margin-bottom: 0.3rem;
+  color: var(--preview-text-subtle);
+  font-family: var(--bb-font-mono);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: none;
+}
+
+.editor-preview .bb-default-vitals {
+  grid-area: rail;
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-start;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 1rem;
+  min-width: 0;
+  padding: 1rem 0.75rem;
+  overflow-y: auto;
+  border: 0;
+  border-right: 1px solid var(--preview-subtle-border);
+  background: var(--preview-panel);
+}
+
+.editor-preview .bb-default-vitals__stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+
+.editor-preview .bb-default-stat {
+  min-width: 0;
+  padding: 0.55rem 0.6rem;
+  border: 1px solid var(--preview-subtle-border);
+  border-radius: 0.25rem;
+  background: var(--preview-panel-raised);
+}
+
+.editor-preview .bb-default-stat__value {
+  color: var(--bb-ui-accent);
+  font-family: var(--bb-font-mono);
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.editor-preview .bb-default-stat__key {
+  overflow: hidden;
+  color: var(--preview-text-subtle);
+  font-size: 0.52rem;
+  letter-spacing: 0.04em;
+  text-overflow: ellipsis;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.editor-preview .bb-default-vitals__controls,
+.editor-preview .bb-default-game-screen__panel-actions {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.editor-preview .bb-default-game-screen__panel-actions button {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.55rem 0.6rem;
+  border: 1px solid transparent;
+  border-radius: 0.2rem;
+  background: transparent;
+  color: var(--bb-ui-muted);
+  font-size: 0.7rem;
+  text-align: left;
+}
+
+.editor-preview .bb-default-game-screen__panel-actions button:hover {
+  background: var(--preview-soft);
+  color: var(--bb-ui-text);
+  border-color: color-mix(in srgb, var(--bb-ui-accent) 28%, transparent);
+}
+
+.editor-preview .bb-default-game-screen__narrative {
+  grid-area: story;
+  padding: 1.2rem clamp(1.25rem, 3vw, 3rem) 1.75rem;
+}
+
+.editor-preview .bb-default-game-screen__narrative-stack,
+.editor-preview .bb-default-resolution {
+  width: min(100%, 48rem);
+  margin-inline: 0 auto;
+}
+
+.editor-preview .bb-default-narrative__paragraph,
+.editor-preview .bb-default-narrative__line,
+.editor-preview .bb-default-narrative__stage-direction {
+  margin-bottom: 1.25rem;
+  font-size: clamp(1.05rem, 1.25vw, 1.18rem);
+  line-height: 1.78;
+}
+
+.editor-preview .bb-default-narrative__speaker {
+  margin-bottom: 0.35rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: none;
+}
+
+.editor-preview .bb-default-choices {
+  grid-area: choices;
+  padding: 0 clamp(1.25rem, 3vw, 3rem) 1.25rem;
+  border: 0;
+  background: linear-gradient(180deg, transparent, var(--bb-app-bg) 35%);
+}
+
+.editor-preview .bb-default-choices__shell {
+  width: min(100%, 48rem);
+  margin-inline: 0 auto;
+}
+
+.editor-preview .bb-default-section-rule {
+  margin-bottom: 0.55rem;
+  font-size: 0.65rem;
+  letter-spacing: 0.04em;
+  text-transform: none;
+}
+
+.editor-preview .bb-default-choices__list {
+  gap: 0.4rem;
+}
+
+.editor-preview .bb-default-choice {
+  gap: 0.75rem;
+  padding: 0.78rem 0.9rem;
+  border-color: var(--bb-ui-border);
+  border-radius: 0.25rem;
+  background: var(--preview-panel-raised);
+  font-size: 0.88rem;
+  box-shadow: none;
+}
+
+.editor-preview .bb-default-choice:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--bb-ui-accent) 42%, var(--bb-ui-border));
+  background: var(--preview-soft);
+  box-shadow: none;
+  transform: translateX(1px);
+}
+
+.editor-preview .bb-default-choice__number {
+  width: 1.55rem;
+  height: 1.55rem;
+  border-radius: 0.15rem;
+  font-size: 0.7rem;
+}
+
+/* Menus and supporting panels */
+.editor-preview .bb-default-main-menu {
+  width: min(100% - 2rem, 46rem);
+  gap: 1rem;
+}
+
+.editor-preview .bb-default-main-menu header h1 {
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  letter-spacing: -0.04em;
+}
+
+.editor-preview .bb-default-main-menu__slot,
+.editor-preview .bb-default-inventory__slot,
+.editor-preview .bb-default-inventory__detail,
+.editor-preview .bb-default-intel__card,
+.editor-preview .bb-default-journal__entry {
+  border-radius: 0.3rem;
+  background: var(--preview-panel-raised);
+}
+
+.editor-preview .bb-default-main-menu__slot button strong,
+.editor-preview .bb-default-main-menu__slot button + button {
+  letter-spacing: 0.05em;
+  text-transform: none;
+}
+
+.editor-preview .bb-default-main-menu__actions button {
+  border: 0;
+  border: 1px solid color-mix(in srgb, var(--bb-ui-accent) 70%, #000);
+  border-radius: 0.25rem;
+  background: #9a4800;
+  color: #fff;
+}
+
+.editor-preview .bb-default-system-menu {
+  display: grid;
+}
+
+.editor-preview .bb-default-system-menu button,
+.editor-preview .bb-default-main-menu > button,
+.editor-preview .bb-default-inventory__detail button {
+  border-radius: 0.25rem;
+}
+
+/* Modal chrome */
 .modal-backdrop {
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(8px);
 }
 
 .modal-panel {
   border: 1px solid var(--bb-ui-border);
-  border-radius: 0.9rem;
-  box-shadow: 0 24px 60px var(--bb-ui-shadow);
+  border-radius: 0.35rem;
+  background: var(--preview-panel-raised);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.025),
+    0 1.5rem 4rem var(--bb-ui-shadow);
 }
 
 .modal-panel .bracket {
@@ -147,27 +445,112 @@ body {
 }
 
 .modal-header {
-  border-bottom: 1px solid var(--bb-ui-border);
+  padding: 1rem 1.2rem;
+  border-bottom-color: var(--bb-ui-border);
 }
 
 .modal-title {
-  font-family: var(--bb-font-display);
-  font-size: 0.95rem;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  text-transform: none;
   color: var(--bb-ui-text);
+  font-size: 1rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  text-transform: none;
 }
 
-.modal-eyebrow {
-  font-family: var(--bb-font-display);
-  letter-spacing: 0.18em;
-  color: var(--bb-ui-muted);
+.modal-eyebrow,
+.save-panel__section-title,
+.save-summary__label {
+  letter-spacing: 0.05em;
+  text-transform: none;
 }
 
 .sys-btn {
-  border-radius: 0.5rem;
-  font-family: var(--bb-font-display);
-  letter-spacing: 0.04em;
+  border-radius: 0.25rem;
+  letter-spacing: 0;
   text-transform: none;
+}
+
+.text-game-chapter-transition {
+  background: color-mix(in srgb, var(--bb-app-bg) 88%, transparent);
+  backdrop-filter: blur(18px);
+  color: var(--bb-ui-text);
+  font-size: 1.25rem;
+}
+
+@media (max-width: 760px) {
+  .preview-header {
+    min-height: 3.75rem;
+  }
+
+  .preview-header__context,
+  .preview-status {
+    display: none;
+  }
+
+  .preview-audio span {
+    display: none;
+  }
+
+  .preview-audio {
+    padding: 0.5rem;
+  }
+
+  .editor-preview .bb-default-game-screen {
+    display: flex;
+  }
+
+  .editor-preview .bb-default-game-screen__location {
+    padding: 1rem 1.1rem 0.65rem;
+  }
+
+  .editor-preview .bb-default-game-screen__location h2 {
+    font-size: 1.35rem;
+  }
+
+  .editor-preview .bb-default-vitals {
+    align-items: center;
+    flex-direction: row;
+    gap: 0.65rem;
+    padding: 0.6rem 1rem;
+    overflow-x: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--bb-ui-border);
+  }
+
+  .editor-preview .bb-default-vitals__stats {
+    display: flex;
+    flex-wrap: nowrap;
+  }
+
+  .editor-preview .bb-default-stat {
+    min-width: 4.5rem;
+  }
+
+  .editor-preview .bb-default-vitals__controls,
+  .editor-preview .bb-default-game-screen__panel-actions {
+    display: flex;
+    flex-wrap: nowrap;
+  }
+
+  .editor-preview .bb-default-game-screen__panel-actions button {
+    width: auto;
+    white-space: nowrap;
+  }
+
+  .editor-preview .bb-default-game-screen__narrative {
+    padding: 1.2rem 1.1rem 1.5rem;
+  }
+
+  .editor-preview .bb-default-choices {
+    padding: 0 1rem max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .editor-preview *,
+  .modal-panel {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
 }
