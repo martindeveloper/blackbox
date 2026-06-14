@@ -1095,7 +1095,7 @@
   margin-bottom: 2px;
 }
 
-/* Delete project — compact modal over the welcome selector */
+/* Delete project */
 .delete-project-overlay {
   position: fixed;
   inset: 0;
@@ -1112,8 +1112,7 @@
 .delete-project-card {
   display: flex;
   flex-direction: column;
-  width: min(420px, 94vw);
-  max-height: min(88vh, 560px);
+  width: min(440px, 94vw);
   overflow: hidden;
   border: 1px solid var(--editor-border-subtle);
   border-radius: 6px;
@@ -1125,8 +1124,22 @@
 }
 
 .delete-project-header {
-  padding: 24px 28px 0;
-  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 12px;
+  padding: 22px 24px 18px;
+  border-bottom: 1px solid var(--editor-border-subtle);
+}
+
+.delete-project-warning-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--editor-danger) 12%, transparent);
+  color: var(--editor-danger);
 }
 
 .delete-project-eyebrow {
@@ -1136,102 +1149,92 @@
   font-weight: 700;
   letter-spacing: 0.13em;
   text-transform: uppercase;
-  margin-bottom: 8px;
+  margin: 1px 0 5px;
 }
 
-.delete-project-rule {
-  margin: 16px 0 0;
+.delete-project-header h2 {
+  margin: 0 0 5px;
+  color: var(--editor-text);
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.delete-project-header p {
+  margin: 0;
+  color: var(--editor-text-muted);
+  font-size: 10.5px;
+  line-height: 1.5;
 }
 
 .delete-project-body {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  padding: 16px 28px 8px;
+  display: grid;
+  gap: 18px;
+  padding: 18px 24px 20px;
 }
 
 .delete-project-target {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 16px;
-  padding: 10px 12px;
+  display: grid;
+  gap: 4px;
+  padding: 11px 12px;
   border: 1px solid var(--editor-border-subtle);
   border-radius: 3px;
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--editor-danger) 5%, var(--editor-surface-2)),
-    var(--editor-surface-2) 72%
-  );
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.025) inset;
+  background: var(--editor-surface-2);
 }
 
-.delete-project-target-icon {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 3px;
-  background: color-mix(in srgb, var(--editor-danger) 10%, transparent);
-  color: color-mix(in srgb, var(--editor-danger) 78%, var(--editor-text-muted));
-}
-
-.delete-project-target-copy {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.delete-project-target-title {
+.delete-project-target strong {
   overflow: hidden;
   color: var(--editor-text);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
-  line-height: 1.3;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.delete-project-target-name {
+.delete-project-target span {
   overflow: hidden;
   color: var(--editor-text-subtle);
   font-family: var(--font-mono);
-  font-size: 8px;
+  font-size: 8.5px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.delete-project-confirm {
+  display: grid;
+  gap: 8px;
+}
+
+.delete-project-confirm label {
+  color: var(--editor-text-muted);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.delete-project-confirm code {
+  margin: 0 0.25em;
+  color: var(--editor-text);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 650;
+}
+
 .delete-project-input {
-  width: 100%;
+  height: 30px;
 }
 
 .delete-project-input[aria-invalid="true"] {
-  border-color: color-mix(in srgb, var(--editor-danger) 45%, var(--editor-input-border));
-}
-
-.delete-project-name-token {
-  margin: 0 0.2em;
-  padding: 0 5px;
-  border: 1px solid color-mix(in srgb, var(--editor-primary) 35%, var(--editor-border-subtle));
-  border-radius: 2px;
-  background: color-mix(in srgb, var(--editor-primary) 8%, var(--editor-surface-2));
-  color: var(--editor-primary);
-  font-family: var(--font-mono);
-  font-size: 8.5px;
-  font-weight: 600;
+  border-color: color-mix(in srgb, var(--editor-danger) 55%, var(--editor-input-border));
 }
 
 .delete-project-footer {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 8px;
-  flex-shrink: 0;
-  padding: 14px 28px 22px;
+  gap: 6px;
+  padding: 12px 24px 16px;
   border-top: 1px solid var(--editor-border-subtle);
+  background: color-mix(in srgb, var(--editor-surface-2) 55%, transparent);
 }
 
 @keyframes delete-project-in {
@@ -1250,47 +1253,4 @@
   .delete-project-card {
     animation: none;
   }
-}
-
-.delete-project-danger-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  height: 30px;
-  padding: 0 14px;
-  border: 1px solid color-mix(in srgb, var(--editor-danger) 72%, #000);
-  border-radius: 3px;
-  background: color-mix(in srgb, var(--editor-danger) 88%, #000);
-  color: #fff;
-  font-size: 10px;
-  font-weight: 650;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  cursor: pointer;
-  font-family: var(--font-sans);
-  transition:
-    background 0.1s,
-    border-color 0.1s,
-    transform 0.1s,
-    box-shadow 0.1s;
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.08) inset,
-    0 3px 12px color-mix(in srgb, var(--editor-danger) 18%, transparent);
-}
-
-.delete-project-danger-btn:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--editor-danger) 96%, #fff);
-  border-color: color-mix(in srgb, var(--editor-danger) 82%, #fff);
-  transform: translateY(-1px);
-}
-
-.delete-project-danger-btn:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-.delete-project-danger-btn:disabled {
-  opacity: 0.34;
-  cursor: not-allowed;
-  box-shadow: none;
 }
