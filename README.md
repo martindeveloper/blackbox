@@ -1,239 +1,108 @@
 # Blackbox
 
-Blackbox is a narrative engine for text-based RPG and decision games. It loads JSON scenario content, tracks game state, applies effects, and returns read-only views for host applications to render.
+**Build branching story games visually, then ship them anywhere.**
 
-The engine is a **pure logic layer** — it does not perform I/O, render UI, or play audio. Hosts (browser, terminal, iOS, Android) load content, submit player commands, handle presentation, and drive their own audio layers.
+Blackbox is an open-source engine and desktop editor for narrative RPGs and decision games. Create
+chapters as node graphs, add choices, characters, inventory, stats, skill checks, music, and
+multiple endings, then playtest and validate the whole story from one project.
 
-## What you can build
+Your game content stays in portable JSON files. The same story can power web, terminal, iOS, and
+Android experiences without rewriting its rules.
 
-- Branching story games with inventory, stats, flags, and skill checks
-- Multi-chapter adventures with lazy-loaded content and persistent state across chapters
-- Cross-platform titles from one scenario folder — web, mobile, and CLI share the same engine rules
+## What's included
 
-The included sample scenario **silent_archive** (`data/silent_archive_game/`) is a branching cyberpunk incident with music cues, conditional gates, skill checks, and multiple endings.
-
-## Features
-
-- **Scenario model** — manifest + chapter graphs, item/character/asset catalogs, optional story catalog and library
-- **Game loop** — load content, read `GameView` snapshots, submit `choose` / `continue` commands
-- **Effects** — HP, flags, inventory, node transitions, chapter changes, game over
-- **Text** — interpolation (`{stat.hp}`, `{item.id}`, `{flag.name}`), conditional lines, dialogue/thought/stage-direction kinds with speaker metadata
-- **Gating** — conditional choices with `requires`, `when`, `unless`; enabled/disabled reasons in views
-- **Skill checks** — d20 + stat, advantage/disadvantage, attempt limits, outcome branches
-- **Expressions & RNG** — deterministic rolls in effects and conditions; all rolls returned in `CommandResult.rolls`
-- **Relationships** — per-character metrics usable in gates, effects, expressions, and views
-- **Library** — reusable text snippets (`@snippet_id`) and node templates (`$extends`) via optional `library.json`
-- **Saves** — serialize and restore game state including RNG seed/counter
-- **Validation** — content checked at load time; extended lint rules for authoring and CI
-- **Bundling** — cook and pack scenarios for web, iOS, and Android (MessagePack, platform media formats, optional zstd archives)
-
-Authoring reference for scenario JSON: [FEATURES.md](FEATURES.md).
-
-## Architecture
-
-```text
-┌─────────────────────────────────────────────────────────────┐
-│  Hosts (presentation + I/O)                                 │
-│  apps/web   apps/editor   apps/ios   apps/android   cli     │
-└───────────────────────────┬─────────────────────────────────┘
-                            │ commands / views (JSON)
-                            │ content (msgpack bundles)
-┌───────────────────────────▼─────────────────────────────────┐
-│  Engine (pure logic)                                        │
-│  engine/core — state, effects, validation, views            │
-│  engine/format — JSON / MessagePack codecs                  │
-└───────────────────────────┬─────────────────────────────────┘
-                            │
-┌───────────────────────────▼─────────────────────────────────┐
-│  Build & QA tools                                           │
-│  engine/bundler   engine/lint   engine/simulator            │
-└─────────────────────────────────────────────────────────────┘
-```
-
-**Bindings**
-
-| Platform | Crate / path | Host docs |
-|----------|--------------|-----------|
-| Rust library | `engine/core` (`blackbox`) | this README, [FEATURES.md](FEATURES.md) |
-| Web (WASM) | `engine/wasm` | [apps/web/README.md](apps/web/README.md) |
-| iOS / Android (C ABI) | `engine/ffi` | [engine/ffi/README.md](engine/ffi/README.md), [apps/ios/README.md](apps/ios/README.md), [apps/android/README.md](apps/android/README.md) |
-
-All hosts use JSON for commands, views, and saves. Web returns owned strings from wasm-bindgen; native mobile uses the stable `bb_*` C exports with caller-allocated buffers.
-
-## Repository layout
-
-```text
-blackbox/
-  engine/
-    core/           Rust engine library (blackbox)
-    format/         Wire codecs — JSON / MessagePack (blackbox-format)
-    output/         Shared human / JSON CLI output helpers (blackbox-output)
-    bundler-cook/   bundle.cook.json parser (blackbox-bundler-cook)
-    bundler/        Scenario bundler CLI + library (blackbox-bundler)
-    lint/           Scenario linter (blackbox-lint)
-    simulator/      State-space simulator and goal search (blackbox-simulator)
-    ffi/            Stable C ABI (bb_*) for iOS / Android
-    wasm/           Browser WASM (wasm-bindgen)
-  apps/
-    cli/            Terminal harness and interactive playground
-    editor/         Browser / Electron scenario editor
-    homepage/       Next.js project homepage
-    web/            Browser game client
-    ios/            Swift host scaffold (links libblackbox_ffi.a)
-    android/        Kotlin + JNI host scaffold (libblackbox_ffi.so)
-  data/
-    <scenario>/     Per-scenario bundles (JSON, textures, music, sfx, saves/)
-  scripts/          Cross-platform engine build scripts (Node .mjs)
-  .cache/           Build cache (cargo target, wasm-pack, bundler cook; gitignored)
-```
-
-## Parts of the project
-
-| Part | Role | Documentation |
-|------|------|---------------|
-| **Engine** (`engine/core`) | Game rules, state machine, validation | [FEATURES.md](FEATURES.md) |
-| **Web client** (`apps/web`) | React browser host, WASM engine, cooked bundles | [apps/web/README.md](apps/web/README.md) |
-| **Editor** (`apps/editor`) | Author scenarios, run lint/simulator/bundler | [apps/editor/README.md](apps/editor/README.md) |
-| **Homepage** (`apps/homepage`) | Public project site (Next.js) | — |
-| **CLI** (`apps/cli`) | Script branches, interactive terminal play | below |
-| **Bundler** (`engine/bundler`) | Validate, encode, cook media, pack boxes | [engine/bundler/README.md](engine/bundler/README.md) |
-| **Cook rules** (`engine/bundler-cook`) | `bundle.cook.json` schema and resolution | [engine/bundler-cook/README.md](engine/bundler-cook/README.md) |
-| **Linter** (`engine/lint`) | Authoring checks, reachability, CI | [engine/lint/README.md](engine/lint/README.md) |
-| **Simulator** (`engine/simulator`) | Explore state space, search for endings | `cargo run -p blackbox-simulator -- --help` |
-| **FFI** (`engine/ffi`) | C ABI for native mobile hosts | [engine/ffi/README.md](engine/ffi/README.md) |
-| **iOS / Android scaffolds** | Swift / Kotlin wrappers to copy into your app | [apps/ios/README.md](apps/ios/README.md), [apps/android/README.md](apps/android/README.md) |
+| Part | What it does |
+|------|--------------|
+| **Desktop editor** | Visually creates chapters, choices, characters, items, media, and game rules |
+| **Engine** | Runs the story, tracks state, applies effects, performs skill checks, and handles saves |
+| **Web player** | Plays a Blackbox game in the browser |
+| **CLI** | Plays and tests stories from the terminal |
+| **Linter** | Finds broken references, unreachable content, and authoring mistakes |
+| **Simulator** | Explores story paths and searches for endings |
+| **Bundler** | Prepares content and media for web, iOS, and Android |
 
 ## Quick start
 
-Get from clone to writing and playtesting a scenario in a few minutes. The sample adventure **silent_archive** lives in `data/silent_archive_game/` if you want something to open right away.
-
 ### Requirements
 
-| Tool | Required for | Install |
-|------|--------------|---------|
-| [Rust](https://rustup.rs) (2024 edition) | Editor tools (lint, bundler, simulator), engine, CLI | `rustup` |
-| [Node.js](https://nodejs.org) + npm | Web client and editor | LTS recommended |
-| [ffmpeg](https://ffmpeg.org) | Cooking audio and textures when playtesting or bundling | `brew install ffmpeg` / system package manager |
-| [wasm-pack](https://rustwasm.github.io/wasm-pack/) | Web client dev builds | `cargo install wasm-pack` |
-| cwebp | Optional — preferred WebP encoder when ffmpeg lacks `libwebp` | `brew install webp` |
+- [Node.js](https://nodejs.org) LTS with npm
+- [Rust](https://rustup.rs)
+- [ffmpeg](https://ffmpeg.org) for processing game audio and images
 
-Mobile builds (iOS / Android) need Xcode or the Android NDK; see the platform READMEs when you ship native apps. On Windows, Android NDK is available via Android Studio (`%LOCALAPPDATA%\\Android\\Sdk`).
+On macOS:
 
-### 1. Install app dependencies
+```bash
+brew install node rustup ffmpeg
+rustup-init
+```
+
+On Windows:
+
+```powershell
+winget install OpenJS.NodeJS.LTS Rustlang.Rustup Gyan.FFmpeg
+```
+
+On Linux, use your distribution's package manager.
+
+### Open the desktop editor
 
 From the repository root:
 
 ```bash
 npm install --prefix apps/editor
-npm install --prefix apps/web
-```
-
-The first editor or web dev run also compiles Rust engine tools and WASM — allow a few minutes on a cold start.
-
-### 2. Author a scenario
-
-**Desktop editor (recommended)** — open or create a project anywhere on disk (not limited to `data/`):
-
-```bash
 npm run electron:dev --prefix apps/editor
 ```
 
-**Browser editor** — hot reload; discovers projects under `data/` and paths in `BLACKBOX_DATA_ROOT`:
+The first launch builds the editor and its Rust tools, so it can take a few minutes.
 
-```bash
-npm run dev --prefix apps/editor
+### Create your first project
+
+1. Click **New project**.
+2. Enter the game title and folder name.
+3. Name the opening chapter.
+4. Choose where the project folder should be created.
+5. Click **Create project** and start building the chapter graph.
+
+Prefer to explore first? Click **Open project folder** and select
+`data/silent_archive_game`, the included cyberpunk sample adventure.
+
+## How projects work
+
+Each game is a self-contained folder:
+
+```text
+my_game/
+  scenario.json       game manifest
+  chapter_*.json      story chapters and node graphs
+  items.json          inventory definitions
+  characters.json     character definitions
+  assets.json         images, music, and sound effects
+  textures/
+  music/
+  sfx/
 ```
 
-Open [http://localhost:8081](http://localhost:8081). A project is any folder containing `scenario.json` — see [apps/editor/README.md](apps/editor/README.md) for layout, graph editing, and validation.
+Blackbox keeps the engine separate from presentation. Your host app renders the interface and plays
+audio; the engine provides the current scene, available choices, and updated game state.
 
-### 3. Playtest in the browser
+## More documentation
+
+- [Editor guide](apps/editor/README.md) — editor features, browser mode, and desktop packaging
+- [Authoring reference](FEATURES.md) — choices, effects, conditions, skill checks, and saves
+- [Web player](apps/web/README.md) — browser playtesting and production builds
+- [Bundler](engine/bundler/README.md) — content validation and platform bundles
+- [iOS](apps/ios/README.md) and [Android](apps/android/README.md) — native host integration
+
+## Developer commands
 
 ```bash
 npm run dev --prefix apps/web
+cargo test
+cargo run -p blackbox-cli -- play data/silent_archive_game/scenario.json
+cargo run -p blackbox-lint -- data/silent_archive_game/scenario.json
 ```
 
-Open [http://localhost:8080](http://localhost:8080) to run the cooked scenario with the WASM engine. See [apps/web/README.md](apps/web/README.md) for production builds and deploy.
-
-### Engine and CLI (optional)
-
-```bash
-cargo test                                                          # engine tests
-cargo run -p blackbox-cli -- play data/silent_archive_game/scenario.json  # terminal playthrough
-cargo run -p blackbox-lint -- data/silent_archive_game/scenario.json        # validate content
-```
-
-## Engine API (Rust)
-
-```rust
-use blackbox::{Engine, PlayerCommand};
-use blackbox_format::decode_scenario_bundle_json;
-
-let content = decode_scenario_bundle_json(
-    scenario,
-    items,
-    characters,
-    assets,
-    None::<&[u8]>, // optional catalog
-    None::<&[u8]>, // optional library
-    chapters,
-)?;
-let mut engine = Engine::new_game(content)?;
-
-let view = engine.get_current_view()?;
-let result = engine.submit_command(PlayerCommand::Choose {
-    choice_id: "ask_what_it_prays_to".into(),
-});
-```
-
-Hosts receive `GameView` snapshots and optional `MusicCue` / `SfxCue` metadata. WASM and FFI surfaces mirror the same revision-checked view/command protocol — see the web and mobile READMEs for host-specific APIs.
-
-## Scenario content
-
-Scenarios live under `data/<name>/` as self-contained folders:
-
-```text
-data/my_scenario/
-  scenario.json       manifest (chapters, refs, cookRef, …)
-  items.json
-  characters.json
-  assets.json
-  library.json        optional snippets and node templates
-  chapter_*.json
-  textures/  music/  sfx/
-  bundle.cook.json    optional per-platform cook rules
-  saves/              optional runtime saves (host-specific)
-```
-
-Authoring assets (PNG, WAV, MP3) stay as lossless sources in the scenario folder. The bundler cooks them to platform formats at build time. Saves use the same JSON format via `serialize_state` / `restore_state` on any host binding.
-
-Full scripting reference: [FEATURES.md](FEATURES.md).
-
-## Cross-platform builds
-
-Build scripts are Node modules (`.mjs`) and run the same on macOS, Linux, and Windows. You still need Rust and platform-specific toolchains where noted (Xcode for iOS, Android NDK for arm64). `build-all.mjs` skips targets that cannot be built on the current host (for example iOS on Windows).
-
-Build engine libraries for all supported targets on this machine:
-
-```bash
-node scripts/build-all.mjs
-```
-
-| Script | Output |
-|--------|--------|
-| `scripts/build-macos-aarch64.mjs` | macOS static library |
-| `scripts/build-ios-aarch64.mjs` | `dist/ios-aarch64/libblackbox_ffi.a` |
-| `scripts/build-android-aarch64.mjs` | `dist/android-aarch64/libblackbox_ffi.so` |
-| `scripts/build-web-wasm.mjs` | Standalone Wasm library in `dist/web-wasm/` |
-
-Platform bundles for mobile:
-
-```bash
-cargo run -p blackbox-bundler --release -- \
-  data/silent_archive_game/scenario.json \
-  --platform ios -o dist/bundle-ios
-```
-
-See [engine/bundler/README.md](engine/bundler/README.md) for cook rules, inspect, and web integration.
+The web player runs at [http://localhost:8080](http://localhost:8080).
 
 ## License
 
