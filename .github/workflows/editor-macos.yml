@@ -32,6 +32,11 @@ jobs:
             apps/editor/package-lock.json
             apps/web/package-lock.json
 
+      - name: Restore Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: . -> .cache/target
+
       - name: Install wasm-pack
         run: cargo install --locked wasm-pack --version 0.15.0
 

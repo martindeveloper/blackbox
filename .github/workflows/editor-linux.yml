@@ -36,6 +36,11 @@ jobs:
         with:
           version: 0.16.0
 
+      - name: Restore Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: . -> .cache/target
+
       - name: Install wasm-pack
         run: cargo install --locked wasm-pack --version 0.15.0
 
