@@ -1,4 +1,4 @@
-import { analytics } from "../../lib/vercelAnalytics.js";
+import { analytics } from "@analytics";
 import type { submitCommand } from "../../lib/engine.js";
 import type { GameView, RollRecord } from "../../types/game.js";
 

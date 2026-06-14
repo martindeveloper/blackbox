@@ -20,6 +20,7 @@ export default defineConfig({
       "@content-source": path.join(WEB_ROOT, "src", "engine", "lib", "bundleSource.ts"),
       "@preview-mode": path.join(WEB_ROOT, "src", "engine", "lib", "previewMode.stub.ts"),
       "@preview-reporter": path.join(WEB_ROOT, "src", "preview", "PreviewReporter.stub.tsx"),
+      "@analytics": path.join(WEB_ROOT, "src", "engine", "lib", "vercelAnalytics.ts"),
     },
   }),
   transform: {

@@ -31,3 +31,33 @@ test("buildGameCss prepends src/fonts.css before bundled rules", async () => {
     await fs.rm(root, { recursive: true, force: true });
   }
 });
+
+// The editor preview build passes an explicit requireFrom (deps root) and cacheDir
+// (out-of-tree wrapper scratch). Exercise that shape so the two call sites can't
+// silently diverge.
+test("buildGameCss honors explicit requireFrom and cacheDir", async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "blackbox-build-css-"));
+  const gameSrc = path.join(root, "game", "src");
+  const outFile = path.join(root, "out", "style.css");
+  const cacheDir = path.join(root, "scratch", "tailwind");
+
+  await fs.mkdir(gameSrc, { recursive: true });
+  await fs.writeFile(path.join(gameSrc, "app.css"), ".game-marker { color: #0f0; }\n");
+
+  try {
+    await buildGameCss({
+      webRoot: WEB_ROOT,
+      gameSrc,
+      outFile,
+      requireFrom: path.join(WEB_ROOT, "package.json"),
+      cacheDir,
+    });
+    const css = await fs.readFile(outFile, "utf8");
+    assert.ok(css.includes(".game-marker"), "expected app.css rule in output");
+    // Non-watch builds clean up the ephemeral wrapper they wrote into cacheDir.
+    const leftovers = await fs.readdir(cacheDir).catch(() => []);
+    assert.deepEqual(leftovers, [], "expected wrapper to be removed after build");
+  } finally {
+    await fs.rm(root, { recursive: true, force: true });
+  }
+});

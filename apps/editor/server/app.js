@@ -12,8 +12,8 @@ import {
   API_PREFIX,
   USER_DATA_ROOT,
   PREVIEW_CACHE,
-  PREVIEW_KEY_PATTERN,
 } from "./config.js";
+import { PREVIEW_KEY_PATTERN } from "./sharedLib.mjs";
 import { setupLiveReload, staticFileHandler } from "./static.js";
 import { findDefaultDataRoot } from "./editorConfig.js";
 import { registerRoutes } from "./routes.js";

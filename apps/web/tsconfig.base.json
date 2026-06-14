@@ -15,6 +15,7 @@
     "paths": {
       "@engine/*": ["./src/engine/*"],
       "@game/*": ["./src/shells/editor-preview/*"],
+      "@analytics": ["./src/engine/lib/vercelAnalytics.ts"],
       "@content-source": ["./src/engine/lib/bundleSource.ts"],
       "@preview-mode": ["./src/engine/lib/previewMode.stub.ts"],
       "@preview-reporter": ["./src/preview/PreviewReporter.stub.tsx"],

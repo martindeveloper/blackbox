@@ -1,5 +1,5 @@
 import { useCallback, useRef } from "react";
-import { analytics } from "../../lib/vercelAnalytics.js";
+import { analytics } from "@analytics";
 import type { GameView } from "../../types/game.js";
 
 export function useGameAnalytics(currentTotalPlaytimeMs: () => number) {

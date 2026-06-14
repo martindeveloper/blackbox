@@ -1,6 +1,5 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { DEFAULT_PREVIEW_GAME, PREVIEW_KEY_PATTERN } from "../shared/lib/gamePaths.mjs";
 
 const SERVER_DIR = path.dirname(fileURLToPath(import.meta.url));
 
@@ -45,8 +44,6 @@ export const DEV_MODE = process.argv.includes("--dev");
 
 export const API_VERSION = "v1";
 export const API_PREFIX = `/api/${API_VERSION}`;
-
-export { DEFAULT_PREVIEW_GAME, PREVIEW_KEY_PATTERN };
 
 export const PORT = Number(process.env.PORT || 8081);
 export const LIVERELOAD_PORT = Number(process.env.LIVERELOAD_PORT || 35730);

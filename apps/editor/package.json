@@ -9,7 +9,7 @@
   "type": "module",
   "main": "electron/main.mjs",
   "scripts": {
-    "build": "npm run build:icon && npm run build:js && npm run build:css && node ./scripts/sync-dist.mjs && node ./scripts/sync-preview.mjs && node ./scripts/stage-shared-lib.mjs",
+    "build": "npm run build:icon && npm run build:js && npm run build:css && node ./scripts/sync-dist.mjs && node ./scripts/sync-preview.mjs",
     "build:css": "tailwindcss -i ./src/app.css -o ./dist/style.css",
     "build:icon": "node ./scripts/build-icon.mjs && node ./scripts/build-appx-assets.mjs",
     "build:js": "rolldown -c rolldown.config.ts",

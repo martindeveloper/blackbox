@@ -2,19 +2,19 @@ import { createRequire } from "node:module";
 import fs from "node:fs/promises";
 import { existsSync } from "node:fs";
 import path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
-import { buildGameCss } from "../shared/lib/buildGameCss.mjs";
+import { pathToFileURL } from "node:url";
+import { PREVIEW_BUILD_CACHE, PREVIEW_CACHE, PREVIEW_WEB_ROOT } from "./config.js";
 import {
+  BUILD_GAME_CSS_PATH,
   DEFAULT_PREVIEW_GAME,
+  buildGameCss,
+  createWebRolldownResolve,
   projectHasLocalUi,
   resolvePreviewGameSrc,
-} from "../shared/lib/gamePaths.mjs";
-import { createWebRolldownResolve } from "../shared/lib/webRolldownResolve.mjs";
-import { PREVIEW_BUILD_CACHE, PREVIEW_CACHE, PREVIEW_WEB_ROOT } from "./config.js";
+} from "./sharedLib.mjs";
 
 // Engine + built-in shell sources whose mtimes invalidate a cached preview bundle.
 const SHARED_SRC = ["src/engine", "src/preview", "src/shells"];
-const BUILD_CSS = path.join(path.dirname(fileURLToPath(import.meta.url)), "../shared/lib/buildGameCss.mjs");
 
 // Coalesce concurrent builds of the same UI key into one in-flight promise.
 const inFlight = new Map();
@@ -81,6 +81,8 @@ async function buildJs(web, gameSrc, outDir) {
         "@preview-mode": path.join(web, "src", "engine", "lib", "previewMode.ts"),
         "@preview-protocol": await resolvePreviewProtocol(web),
         "@preview-reporter": path.join(web, "src", "preview", "PreviewReporter.tsx"),
+        // Local preview must not load a telemetry vendor; use the no-op impl.
+        "@analytics": path.join(web, "src", "engine", "lib", "analytics.noop.ts"),
       },
     }),
     transform: { jsx: "react-jsx" },
@@ -93,7 +95,11 @@ async function buildJs(web, gameSrc, outDir) {
 async function buildGame(web, uiKey, gameSrc, force) {
   const outDir = path.join(PREVIEW_CACHE, uiKey);
   const fingerprintFile = path.join(outDir, ".fingerprint");
-  const fingerprintRoots = [...SHARED_SRC.map((rel) => path.join(web, rel)), BUILD_CSS, gameSrc];
+  const fingerprintRoots = [
+    ...SHARED_SRC.map((rel) => path.join(web, rel)),
+    BUILD_GAME_CSS_PATH,
+    gameSrc,
+  ];
   const fingerprint = String(await maxMtimeMs(fingerprintRoots));
 
   if (!force) {

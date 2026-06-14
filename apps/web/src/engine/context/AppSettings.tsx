@@ -1,5 +1,5 @@
 import { createContext, useContext, useLayoutEffect, useState } from "react";
-import { analytics } from "../lib/vercelAnalytics.js";
+import { analytics } from "@analytics";
 import { clampVolume } from "../lib/math.js";
 import { getLogLevel, setLogLevel, type LogLevel } from "../lib/logger.js";
 import {

@@ -31,7 +31,6 @@ const ROOTS = [
   "i18next",
   "react-i18next",
   "fzstd",
-  "@vercel/analytics",
 ];
 
 const NATIVE_GLOBS = [

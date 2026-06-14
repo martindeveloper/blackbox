@@ -2,7 +2,6 @@ import { spawn } from "node:child_process";
 import fs from "node:fs/promises";
 import { createRequire } from "node:module";
 import path from "node:path";
-import { repoGameDataRoot } from "./gamePaths.mjs";
 
 function toUrl(filePath) {
   return filePath.replaceAll("\\", "/");
@@ -86,9 +85,4 @@ export async function buildGameCss({
   });
 
   if (!watch) await fs.rm(wrapper, { force: true });
-}
-
-/** Default game CSS entry for the web player dev/build scripts. */
-export function webGameCssPath(repoRoot, gameId) {
-  return path.join(repoGameDataRoot(repoRoot), gameId, "src", "app.css");
 }
