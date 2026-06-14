@@ -34,5 +34,6 @@ if (skipTools) {
 // preview builds work in the packaged app (electron-builder copies it via
 // extraResources).
 await run("node", ["./scripts/stage-preview-workspace.mjs"]);
+await run("node", ["./scripts/stage-shared-lib.mjs"]);
 
 console.log("Electron build inputs are ready. Run: npm run electron:dist");

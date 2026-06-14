@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import chokidar from "chokidar";
-import { projectHasLocalUi } from "../../../scripts/lib/gamePaths.mjs";
+import { projectHasLocalUi } from "../shared/lib/gamePaths.mjs";
 import { PACKAGED, REPO_ROOT, STANDALONE, USER_DATA_ROOT } from "./config.js";
 import { ensureProjectEditorConfig, regenerateProjectEditorId } from "./editorConfig.js";
 import { moveToOsTrash } from "./osTrash.js";

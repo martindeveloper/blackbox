@@ -150,6 +150,13 @@ app.whenReady().then(async () => {
   app.on("activate", async () => {
     if (BrowserWindow.getAllWindows().length === 0) await createWindow();
   });
+}).catch((error) => {
+  console.error("Editor startup failed:", error);
+  dialog.showErrorBox(
+    "Blackbox Editor failed to start",
+    error instanceof Error ? error.message : String(error),
+  );
+  app.quit();
 });
 
 app.on("window-all-closed", () => {

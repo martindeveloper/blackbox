@@ -1,6 +1,6 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { DEFAULT_PREVIEW_GAME, PREVIEW_KEY_PATTERN } from "../../../scripts/lib/gamePaths.mjs";
+import { DEFAULT_PREVIEW_GAME, PREVIEW_KEY_PATTERN } from "../shared/lib/gamePaths.mjs";
 
 const SERVER_DIR = path.dirname(fileURLToPath(import.meta.url));
 

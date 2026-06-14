@@ -2,19 +2,18 @@ import { createRequire } from "node:module";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { buildGameCss } from "../../../scripts/lib/buildGameCss.mjs";
+import { buildGameCss } from "../shared/lib/buildGameCss.mjs";
 import {
   DEFAULT_PREVIEW_GAME,
   projectHasLocalUi,
   resolvePreviewGameSrc,
-} from "../../../scripts/lib/gamePaths.mjs";
-import { createWebRolldownResolve } from "../../../scripts/lib/webRolldownResolve.mjs";
+} from "../shared/lib/gamePaths.mjs";
+import { createWebRolldownResolve } from "../shared/lib/webRolldownResolve.mjs";
 import { PREVIEW_CACHE, PREVIEW_WEB_ROOT } from "./config.js";
 
 // Engine + built-in shell sources whose mtimes invalidate a cached preview bundle.
 const SHARED_SRC = ["src/engine", "src/preview", "src/shells"];
-const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
-const BUILD_CSS = path.join(REPO_ROOT, "scripts", "lib", "buildGameCss.mjs");
+const BUILD_CSS = path.join(path.dirname(fileURLToPath(import.meta.url)), "../shared/lib/buildGameCss.mjs");
 
 // Coalesce concurrent builds of the same UI key into one in-flight promise.
 const inFlight = new Map();
