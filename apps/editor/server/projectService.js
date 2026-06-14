@@ -13,6 +13,7 @@ import {
   USER_DATA_ROOT,
 } from "./config.js";
 import { ensureProjectEditorConfig, regenerateProjectEditorId } from "./editorConfig.js";
+import { ensureProjectSidecars } from "./projectScaffold.js";
 import {
   EDITOR_DB_BASENAME,
   EDITOR_SIDECAR_DIR,
@@ -274,6 +275,9 @@ export class ProjectService {
       try {
         await this.registerProject(row.path);
       } catch (error) {
+        if (error?.code === "ENOENT") {
+          this.db.prepare("DELETE FROM projects WHERE path = ?").run(row.path);
+        }
         console.warn(`Skipping persisted project at ${row.path}: ${error?.message ?? error}`);
       }
     }
@@ -320,6 +324,48 @@ export class ProjectService {
     if (!this.roots.includes(resolved)) this.roots.push(resolved);
   }
 
+  removeProjectRow(id) {
+    this.projects.delete(id);
+    const watcher = this.watchers.get(id);
+    if (watcher) {
+      void watcher.close();
+      this.watchers.delete(id);
+    }
+    this.db.prepare("DELETE FROM files WHERE project_id = ?").run(id);
+    this.db.prepare("DELETE FROM projects WHERE id = ?").run(id);
+  }
+
+  reconcileStaleProjectRows(id, projectPath) {
+    const staleByPath = this.db
+      .prepare("SELECT id FROM projects WHERE path = ? AND id != ?")
+      .all(projectPath, id);
+    for (const row of staleByPath) this.removeProjectRow(row.id);
+  }
+
+  async deleteProject(id, confirmName) {
+    const project = this.requireProject(id);
+    const expected = project.name.trim();
+    const provided = typeof confirmName === "string" ? confirmName.trim() : "";
+    if (!expected || provided !== expected) {
+      throw new ProjectError(
+        "invalid_request",
+        "Confirmation name does not match the project folder name",
+      );
+    }
+    for (const root of this.roots) {
+      if (project.path === path.resolve(root)) {
+        throw new ProjectError("invalid_request", "Cannot delete a project root directory");
+      }
+    }
+
+    this.removeProjectRow(id);
+    try {
+      await fs.rm(project.path, { recursive: true, force: true });
+    } catch (error) {
+      if (error?.code !== "ENOENT") throw error;
+    }
+  }
+
   async registerProject(projectPath) {
     const canonical = await fs.realpath(projectPath);
     if (!this.roots.some((root) => isInside(canonical, root))) {
@@ -357,6 +403,7 @@ export class ProjectService {
       lastOpened: existing?.last_opened ?? null,
       tools: config.tools,
     };
+    this.reconcileStaleProjectRows(project.id, project.path);
     this.projects.set(project.id, project);
     this.db
       .prepare(`
@@ -444,6 +491,7 @@ export class ProjectService {
   async snapshot(project) {
     const scenarioPath = "scenario.json";
     const scenario = await readJson(path.join(project.path, scenarioPath));
+    await ensureProjectSidecars(project.path, scenario);
     const itemsPath = scenario.itemsRef ?? "items.json";
     const charactersPath = scenario.charactersRef ?? "characters.json";
     const assetsPath = scenario.assetsRef ?? "assets.json";

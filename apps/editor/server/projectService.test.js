@@ -5,6 +5,8 @@ import path from "node:path";
 import test from "node:test";
 import Fastify from "fastify";
 import {
+  EDITOR_CONFIG_BASENAME,
+  EDITOR_SIDECAR_DIR,
   HEATMAP_PATH,
   LAYOUT_PATH,
   TOOL_RUNS_DIR,
@@ -256,6 +258,82 @@ test("ignores malformed persisted heatmaps", async () => {
 
     const loaded = await env.service.readHeatmap(project.id);
     assert.equal(loaded.stored, null);
+  } finally {
+    await env.close();
+  }
+});
+
+test("re-registers a recreated project folder after the old path row is orphaned", async () => {
+  const env = await fixture();
+  try {
+    const [first] = env.service.listProjects();
+    const staleId = first.id;
+
+    await fs.rm(env.projectPath, { recursive: true, force: true });
+    await fs.mkdir(env.projectPath, { recursive: true });
+    await fs.writeFile(
+      path.join(env.projectPath, "scenario.json"),
+      `${JSON.stringify({
+        spec: "com.blackbox.scenario",
+        formatVersion: 1,
+        title: "Recreated",
+        chapters: [{ id: "one", title: "One", ref: "chapter.json" }],
+      })}\n`,
+    );
+    await fs.writeFile(
+      path.join(env.projectPath, "chapter.json"),
+      `${JSON.stringify({
+        spec: "com.blackbox.chapter",
+        formatVersion: 1,
+        id: "one",
+        title: "One",
+        startNodeId: "start",
+        nodes: { start: { id: "start", title: "Start", text: [], choices: [] } },
+      })}\n`,
+    );
+    await fs.mkdir(path.join(env.projectPath, EDITOR_SIDECAR_DIR), { recursive: true });
+    await fs.writeFile(
+      path.join(env.projectPath, EDITOR_SIDECAR_DIR, EDITOR_CONFIG_BASENAME),
+      `${JSON.stringify({ id: "new-editor-id", path: env.projectPath })}\n`,
+    );
+
+    const recreated = await env.service.registerProject(env.projectPath);
+    assert.equal(await fs.realpath(recreated.path), await fs.realpath(env.projectPath));
+    assert.equal(recreated.id, "new-editor-id");
+    assert.notEqual(recreated.id, staleId);
+    assert.equal(env.service.listProjects().length, 1);
+    assert.equal(
+      env.service.db
+        .prepare("SELECT COUNT(*) AS count FROM projects WHERE path = ?")
+        .get(recreated.path).count,
+      1,
+    );
+  } finally {
+    await env.close();
+  }
+});
+
+test("deleteProject removes registry entry and project folder", async () => {
+  const env = await fixture();
+  try {
+    const [project] = env.service.listProjects();
+    await env.service.deleteProject(project.id, project.name);
+    assert.equal(env.service.listProjects().length, 0);
+    await assert.rejects(fs.access(env.projectPath), (error) => error?.code === "ENOENT");
+  } finally {
+    await env.close();
+  }
+});
+
+test("deleteProject requires matching folder name", async () => {
+  const env = await fixture();
+  try {
+    const [project] = env.service.listProjects();
+    await assert.rejects(
+      env.service.deleteProject(project.id, "wrong-name"),
+      (error) => error instanceof ProjectError && error.code === "invalid_request",
+    );
+    assert.equal(env.service.listProjects().length, 1);
   } finally {
     await env.close();
   }

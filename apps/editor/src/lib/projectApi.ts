@@ -101,6 +101,10 @@ export async function createProject(options: CreateProjectOptions): Promise<Proj
   return result.project;
 }
 
+export async function deleteProject(projectId: string, confirmName: string): Promise<void> {
+  await postJson(projectUrl(projectId, "/delete"), { confirmName });
+}
+
 export function openProject(projectId: string): Promise<ProjectSnapshot> {
   return postJson(projectUrl(projectId, "/open"), {});
 }

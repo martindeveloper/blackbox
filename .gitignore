@@ -43,8 +43,7 @@ tmp/
 temp/
 .cache/
 
-data/silent_archive_game/
-data/**/*.zip
+data/
 .temp/
 
 skills-lock.json

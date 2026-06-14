@@ -1,0 +1,104 @@
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+// Stage a self-contained workspace the packaged editor builds previews FROM:
+// web sources + the rolldown/tailwind toolchain + a curated node_modules. The
+// runtime points BLACKBOX_PREVIEW_WEB_ROOT here (see electron/main.mjs).
+const EDITOR_ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+const REPO_ROOT = path.resolve(EDITOR_ROOT, "../..");
+const WEB_ROOT = path.join(REPO_ROOT, "apps", "web");
+const SRC_NM = path.join(WEB_ROOT, "node_modules");
+const OUT = path.join(EDITOR_ROOT, "resources", "preview-workspace");
+const OUT_NM = path.join(OUT, "node_modules");
+
+// Top-level packages the preview build needs: the toolchain + the libs the
+// bundle imports. Transitive `dependencies` are pulled in automatically.
+const ROOTS = [
+  "rolldown",
+  "@tailwindcss/cli",
+  "@tailwindcss/node",
+  "@tailwindcss/oxide",
+  "react",
+  "react-dom",
+  "i18next",
+  "react-i18next",
+  "fzstd",
+  "@vercel/analytics",
+];
+
+// Native, per-platform binaries are optionalDependencies (not in `dependencies`),
+// so include every binding present for whatever platform we're building on.
+const NATIVE_GLOBS = [
+  ["@rolldown", /^binding-/],
+  ["@tailwindcss", /^oxide-/],
+];
+
+function pkgDir(name) {
+  const dir = path.join(SRC_NM, name);
+  return existsSync(path.join(dir, "package.json")) ? dir : null;
+}
+
+function collect(name, seen) {
+  if (seen.has(name)) return;
+  const dir = pkgDir(name);
+  if (!dir) return; // hoisted-away or absent; runtime surfaces a clear error
+  seen.add(name);
+  let manifest = {};
+  try {
+    manifest = JSON.parse(readFileSync(path.join(dir, "package.json"), "utf8"));
+  } catch {
+    manifest = {};
+  }
+  for (const dep of Object.keys({ ...manifest.dependencies, ...manifest.optionalDependencies })) {
+    collect(dep, seen);
+  }
+}
+
+function copyPackage(name) {
+  const from = path.join(SRC_NM, name);
+  const to = path.join(OUT_NM, name);
+  mkdirSync(path.dirname(to), { recursive: true });
+  cpSync(from, to, { recursive: true, dereference: true });
+}
+
+console.log("==> preview workspace: staging sources…");
+rmSync(OUT, { recursive: true, force: true });
+mkdirSync(OUT, { recursive: true });
+
+cpSync(path.join(WEB_ROOT, "src"), path.join(OUT, "src"), { recursive: true });
+cpSync(path.join(WEB_ROOT, "preview.html"), path.join(OUT, "preview.html"));
+cpSync(path.join(WEB_ROOT, "tsconfig.bundler.json"), path.join(OUT, "tsconfig.bundler.json"));
+mkdirSync(path.join(OUT, "shared"), { recursive: true });
+cpSync(
+  path.join(EDITOR_ROOT, "shared", "previewProtocol.ts"),
+  path.join(OUT, "shared", "previewProtocol.ts"),
+);
+writeFileSync(
+  path.join(OUT, "package.json"),
+  `${JSON.stringify({ name: "blackbox-preview-workspace", private: true, type: "module" }, null, 2)}\n`,
+);
+
+console.log("==> preview workspace: resolving dependency closure…");
+const seen = new Set();
+for (const root of ROOTS) collect(root, seen);
+for (const [scope, pattern] of NATIVE_GLOBS) {
+  const scopeDir = path.join(SRC_NM, scope);
+  if (!existsSync(scopeDir)) continue;
+  for (const entry of readdirSync(scopeDir)) {
+    if (pattern.test(entry)) seen.add(`${scope}/${entry}`);
+  }
+}
+
+console.log(`==> preview workspace: copying ${seen.size} packages…`);
+for (const name of seen) copyPackage(name);
+
+console.log(`==> preview workspace: staged to ${OUT}`);

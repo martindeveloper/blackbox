@@ -7,6 +7,8 @@ import { commandResult, appendOutput, parseLint, parseBundle, parseSimulator } f
 import { readUserPrefs, writeUserPrefs, sanitizePrefs } from "./prefs.js";
 import { ProjectError } from "./projectService.js";
 import { ToolRunRegistry } from "./toolRuns.js";
+import { ensurePreviewBuilt } from "./previewBuild.js";
+import { ensureProjectSidecars, writeNewProject } from "./projectScaffold.js";
 
 function sendError(reply, error) {
   if (!(error instanceof ProjectError)) throw error;
@@ -85,60 +87,29 @@ export async function registerRoutes(app, service) {
       await fs.access(scenarioPath);
       scenarioExists = true;
     } catch {}
+
+    // Folder already on disk (e.g. a retried create) — repair sidecars, then register.
     if (scenarioExists) {
-      return reply
-        .code(409)
-        .send({ code: "file_exists", message: "A project already exists at this location" });
+      try {
+        await ensureProjectSidecars(projectPath);
+        const project = await service.registerProject(projectPath);
+        return { project };
+      } catch (error) {
+        return sendError(reply, error);
+      }
     }
 
+    let created = false;
     try {
-      await fs.mkdir(projectPath, { recursive: true });
-
-      const chapterRef = `chapter_${firstChapterId}.json`;
-      const startNodeId = `${firstChapterId}_start`;
-
-      await fs.writeFile(
-        scenarioPath,
-        JSON.stringify(
-          {
-            spec: "com.blackbox.scenario",
-            formatVersion: 1,
-            title,
-            revision: "1.0",
-            randomSeed: Math.floor(Math.random() * 65536),
-            chapters: [{ id: firstChapterId, title: firstChapterTitle, ref: chapterRef }],
-          },
-          null,
-          2,
-        ) + "\n",
-      );
-
-      await fs.writeFile(
-        path.join(projectPath, chapterRef),
-        JSON.stringify(
-          {
-            spec: "com.blackbox.chapter",
-            formatVersion: 1,
-            id: firstChapterId,
-            title: firstChapterTitle,
-            startNodeId,
-            nodes: {
-              [startNodeId]: {
-                id: startNodeId,
-                title: firstChapterTitle,
-                text: [{ kind: "paragraph", text: "Your story begins here." }],
-                choices: [],
-              },
-            },
-          },
-          null,
-          2,
-        ) + "\n",
-      );
+      await writeNewProject(projectPath, { title, firstChapterId, firstChapterTitle });
+      created = true;
 
       const project = await service.registerProject(projectPath);
       return { project };
     } catch (error) {
+      if (created) {
+        await fs.rm(projectPath, { recursive: true, force: true }).catch(() => {});
+      }
       return sendError(reply, error);
     }
   });
@@ -146,6 +117,16 @@ export async function registerRoutes(app, service) {
   app.post(
     "/projects/:id/open",
     projectRequest(service, (project) => service.openProject(project.id)),
+  );
+
+  app.post(
+    "/projects/:id/delete",
+    projectRequest(service, async (project, request) => {
+      const confirmName =
+        typeof request.body?.confirmName === "string" ? request.body.confirmName : "";
+      await service.deleteProject(project.id, confirmName);
+      return { ok: true };
+    }),
   );
 
   app.get(
@@ -219,6 +200,17 @@ export async function registerRoutes(app, service) {
   app.get(
     "/projects/:id/preview-docs",
     projectRequest(service, (project) => service.readPreviewDocs(project.id)),
+  );
+
+  // Compile (or reuse) the preview bundle for this project's game. The editor
+  // panel calls this to show a build loader and to force-rebuild after edits.
+  app.get(
+    "/projects/:id/preview-build",
+    projectRequest(service, (project, request) =>
+      ensurePreviewBuilt(service.previewGameFor(project.id), {
+        force: request.query?.force === "1" || request.query?.force === "true",
+      }),
+    ),
   );
 
   app.post(

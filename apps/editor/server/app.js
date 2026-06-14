@@ -11,12 +11,14 @@ import {
   DIST,
   API_PREFIX,
   USER_DATA_ROOT,
-  DEFAULT_PREVIEW_GAME,
+  PREVIEW_CACHE,
+  PREVIEW_GAME_PATTERN,
 } from "./config.js";
 import { setupLiveReload, staticFileHandler } from "./static.js";
 import { findDefaultDataRoot } from "./editorConfig.js";
 import { registerRoutes } from "./routes.js";
 import { ProjectService } from "./projectService.js";
+import { ensurePreviewBuilt } from "./previewBuild.js";
 
 export async function reservePort(preferred = PORT) {
   const tryPort = (port) =>
@@ -37,12 +39,17 @@ export async function reservePort(preferred = PORT) {
   }
 }
 
-async function previewBundleExists(game) {
+// Serve a cached preview asset (preview.js / style.css) for a game, guarding the
+// game segment against traversal before it touches the filesystem.
+async function sendPreviewAsset(reply, game, fileName, contentType) {
+  if (!PREVIEW_GAME_PATTERN.test(game)) {
+    return reply.code(404).type("text/plain; charset=utf-8").send("Not found");
+  }
   try {
-    await fs.access(path.join(DIST, "preview", game, "preview.js"));
-    return true;
+    const data = await fs.readFile(path.join(PREVIEW_CACHE, game, fileName));
+    return reply.header("Cache-Control", "no-store").type(contentType).send(data);
   } catch {
-    return false;
+    return reply.code(404).type("text/plain; charset=utf-8").send("Not found");
   }
 }
 
@@ -85,19 +92,27 @@ export async function createEditorServer(options = {}) {
   fastify.get("/preview", async (request, reply) => {
     try {
       const requested = projectService.previewGameFor(request.query?.project);
-      // Serve the requested game's bundle if it was built into this editor;
-      // otherwise fall back to the generic game so the preview always renders.
-      const game = (await previewBundleExists(requested)) ? requested : DEFAULT_PREVIEW_GAME;
+      // Compile the requested game's UI on demand (cached); ensurePreviewBuilt
+      // falls back to the generic game if the requested one has no sources.
+      const { game } = await ensurePreviewBuilt(requested);
       const template = await fs.readFile(path.join(DIST, "preview", "preview.html"), "utf8");
       const html = template.replaceAll("__GAME__", game);
       return reply.header("Cache-Control", "no-store").type("text/html; charset=utf-8").send(html);
-    } catch {
+    } catch (error) {
+      request.log?.error?.(error);
       return reply
-        .code(404)
+        .code(500)
         .type("text/plain; charset=utf-8")
-        .send("Preview not built; run the editor build to generate dist/preview.");
+        .send(`Preview build failed: ${error?.message ?? error}`);
     }
   });
+
+  fastify.get("/preview/:game/preview.js", (request, reply) =>
+    sendPreviewAsset(reply, request.params.game, "preview.js", "text/javascript; charset=utf-8"),
+  );
+  fastify.get("/preview/:game/style.css", (request, reply) =>
+    sendPreviewAsset(reply, request.params.game, "style.css", "text/css; charset=utf-8"),
+  );
 
   fastify.get("/*", staticFileHandler);
 

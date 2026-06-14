@@ -31,6 +31,12 @@ extraResources:
     to: bin
     filter:
       - "**/*"
+  # Self-contained web workspace the editor builds previews from at runtime
+  # (sources + rolldown/tailwind toolchain). Staged by stage-preview-workspace.mjs.
+  - from: resources/preview-workspace
+    to: preview-workspace
+    filter:
+      - "**/*"
 
 mac:
   category: public.app-category.developer-tools

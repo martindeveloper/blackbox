@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Database,
   ExternalLink,
+  Hammer,
   Monitor,
   RotateCw,
   Smartphone,
@@ -47,6 +48,7 @@ export function PreviewPanel() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const [building, setBuilding] = useState(false);
   const [device, setDevice] = useState<PreviewDevice>("desktop");
   const [stageSize, setStageSize] = useState({ width: 0, height: 0 });
   const [preparedProject, setPreparedProject] = useState<string | null>(null);
@@ -133,6 +135,29 @@ export function PreviewPanel() {
   ]);
 
   const previewReady = preparedProject === projectId;
+
+  // Compile the project's game UI on demand. `force` rebuilds even if sources
+  // are unchanged (the Rebuild button) and reloads the iframe with fresh assets.
+  const runBuild = useCallback(
+    async (force: boolean) => {
+      if (!projectId) return;
+      setBuilding(true);
+      try {
+        const query = force ? "?force=1" : "";
+        await fetch(`/api/v1/projects/${encodeURIComponent(projectId)}/preview-build${query}`);
+      } catch {
+        // The iframe's own /preview request still surfaces build errors.
+      } finally {
+        setBuilding(false);
+        if (force) setReloadKey((key) => key + 1);
+      }
+    },
+    [projectId],
+  );
+
+  useEffect(() => {
+    if (previewReady) void runBuild(false);
+  }, [previewReady, runBuild]);
 
   useEffect(() => {
     if (!previewReady) {
@@ -238,6 +263,15 @@ export function PreviewPanel() {
             <Icon icon={RotateCw} size={14} />
             <span>{t("preview.reload")}</span>
           </button>
+          <button
+            type="button"
+            className="preview-control"
+            disabled={building}
+            onClick={() => void runBuild(true)}
+          >
+            <Icon icon={Hammer} size={14} />
+            <span>{t("preview.rebuild")}</span>
+          </button>
           {!window.electronAPI && (
             <button
               type="button"
@@ -289,6 +323,13 @@ export function PreviewPanel() {
             <div className="preview-device-dimensions">
               {preset.width} × {preset.height}
               {scale < 1 ? ` · ${Math.round(scale * 100)}%` : ""}
+            </div>
+          ) : null}
+          {building ? (
+            <div className="preview-building" role="status" aria-live="polite">
+              <div className="preview-building__spinner" aria-hidden="true" />
+              <div className="preview-building__label">{t("preview.building")}</div>
+              <div className="preview-building__bar" aria-hidden="true" />
             </div>
           ) : null}
         </div>

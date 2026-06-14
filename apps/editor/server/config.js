@@ -19,7 +19,17 @@ export const PACKAGED = process.env.BLACKBOX_PACKAGED === "1";
 
 export const DIST = path.join(CLIENT_ROOT, "dist");
 export const BUNDLE_CACHE = path.join(USER_DATA_ROOT, ".cache", "bundle");
+// On-demand preview bundles (preview.js + style.css) are compiled here per game.
+export const PREVIEW_CACHE = path.join(USER_DATA_ROOT, ".cache", "preview");
 export const WORK_DIR = USER_DATA_ROOT;
+
+// Web workspace the preview player is built FROM (engine + game sources + the
+// rolldown/tailwind toolchain). Dev: the in-repo apps/web. Packaged: the
+// self-contained workspace staged into the app's resources (set via
+// BLACKBOX_PREVIEW_WEB_ROOT by electron/main.mjs).
+export const PREVIEW_WEB_ROOT = process.env.BLACKBOX_PREVIEW_WEB_ROOT
+  ? path.resolve(process.env.BLACKBOX_PREVIEW_WEB_ROOT)
+  : path.join(REPO_ROOT, "apps", "web");
 
 export function getToolsDir() {
   return process.env.BLACKBOX_TOOLS_DIR ? path.resolve(process.env.BLACKBOX_TOOLS_DIR) : null;

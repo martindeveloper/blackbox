@@ -40,7 +40,11 @@ let editorServer = null;
 let editorSocketPath = null;
 
 async function configureRuntimePaths() {
-  process.env.BLACKBOX_PACKAGED = "1";
+  // Renamed macOS dev bundles (see ensure-electron.mjs) still report
+  // isPackaged; `electron .` sets process.defaultApp so we can tell dev apart.
+  const usePackagedResources = app.isPackaged && !process.defaultApp;
+
+  process.env.BLACKBOX_PACKAGED = usePackagedResources ? "1" : "0";
   process.env.BLACKBOX_CLIENT_ROOT = CLIENT_ROOT;
   process.env.BLACKBOX_USER_DATA = app.getPath("userData");
   await fs.mkdir(process.env.BLACKBOX_USER_DATA, { recursive: true });
@@ -49,10 +53,16 @@ async function configureRuntimePaths() {
     path.delimiter,
   );
 
-  const toolsDir = app.isPackaged
+  const toolsDir = usePackagedResources
     ? path.join(process.resourcesPath, "bin")
     : path.join(CLIENT_ROOT, "resources", "bin");
   process.env.BLACKBOX_TOOLS_DIR = toolsDir;
+
+  // Web workspace the preview player is compiled from on demand. Packaged: the
+  // staged self-contained workspace; dev: the in-repo apps/web.
+  process.env.BLACKBOX_PREVIEW_WEB_ROOT = usePackagedResources
+    ? path.join(process.resourcesPath, "preview-workspace")
+    : path.join(CLIENT_ROOT, "..", "web");
 }
 
 async function startServer() {

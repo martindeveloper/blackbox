@@ -121,3 +121,59 @@ test("preview falls back to the generic game for an unknown project", async () =
     await env.close();
   }
 });
+
+test("on-demand build compiles and serves the game's real bundle, then caches", async () => {
+  const env = await fixture();
+  try {
+    const id = env.idOf("declares_game");
+    const first = await env.fastify.inject({
+      method: "GET",
+      url: `/api/v1/projects/${id}/preview-build`,
+    });
+    assert.equal(first.statusCode, 200);
+    const firstBody = first.json();
+    assert.equal(firstBody.game, "silent-archive");
+
+    // The compiled asset is served from cache and contains the game's code.
+    const asset = await env.fastify.inject({
+      method: "GET",
+      url: "/preview/silent-archive/preview.js",
+    });
+    assert.equal(asset.statusCode, 200);
+    assert.ok(asset.body.length > 1000, "bundle is non-trivial");
+    assert.ok(asset.body.includes("silent-archive"), "bundle contains the game");
+
+    // Second build reuses the cache (no recompile).
+    const second = await env.fastify.inject({
+      method: "GET",
+      url: `/api/v1/projects/${id}/preview-build`,
+    });
+    assert.equal(second.json().cached, true);
+
+    // force=1 recompiles.
+    const forced = await env.fastify.inject({
+      method: "GET",
+      url: `/api/v1/projects/${id}/preview-build?force=1`,
+    });
+    assert.equal(forced.json().cached, false);
+  } finally {
+    await env.close();
+  }
+});
+
+test("preview asset route rejects invalid game segments and missing bundles", async () => {
+  const env = await fixture();
+  try {
+    // `Bad_Name`/`UPPER` violate PREVIEW_GAME_PATTERN; `unbuilt-game` is valid
+    // but has no cached file — all must 404 (never read outside PREVIEW_CACHE).
+    for (const game of ["Bad_Name", "UPPER", "unbuilt-game"]) {
+      const res = await env.fastify.inject({
+        method: "GET",
+        url: `/preview/${game}/style.css`,
+      });
+      assert.equal(res.statusCode, 404, `expected 404 for "${game}"`);
+    }
+  } finally {
+    await env.close();
+  }
+});

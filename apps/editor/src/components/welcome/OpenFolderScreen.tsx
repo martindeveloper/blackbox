@@ -1,4 +1,4 @@
-import { ArrowRight, FolderOpen, Plus } from "lucide-react";
+import { ArrowRight, FolderOpen, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "@tanstack/react-router";
@@ -13,6 +13,7 @@ import { editorNavigate } from "../../lib/projectRoute.js";
 import { translate } from "../../lib/i18n.js";
 import { notifyFromError } from "../../lib/notifyApi.js";
 import { NewProjectWizard } from "./NewProjectWizard.js";
+import { DeleteProjectDialog } from "./DeleteProjectDialog.js";
 
 function formatRelativeDate(iso: string | null): string {
   if (!iso) return "";
@@ -38,6 +39,7 @@ export function OpenFolderScreen() {
   const [openingId, setOpeningId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [showNewProject, setShowNewProject] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<ProjectSummary | null>(null);
   const isElectron = typeof window !== "undefined" && !!window.electronAPI;
 
   const refresh = async () => {
@@ -88,6 +90,7 @@ export function OpenFolderScreen() {
   const requested = requestedId ? projects.find((project) => project.id === requestedId) : null;
   const visibleProjects = requested ? [requested] : projects;
   const picking = openingId === "picker";
+  const busy = openingId !== null || deleteTarget !== null;
 
   if (showNewProject) {
     return <NewProjectWizard onBack={() => setShowNewProject(false)} />;
@@ -95,6 +98,19 @@ export function OpenFolderScreen() {
 
   return (
     <div className="editor-welcome">
+      {deleteTarget ? (
+        <DeleteProjectDialog
+          project={deleteTarget}
+          onClose={() => setDeleteTarget(null)}
+          onDeleted={(projectId) => {
+            setDeleteTarget(null);
+            setProjects((current) => current.filter((entry) => entry.id !== projectId));
+            if (requestedId === projectId) {
+              void editorNavigate(navigate, { to: Page.Home, search: {} });
+            }
+          }}
+        />
+      ) : null}
       <div className="editor-welcome-theme">
         <ThemeSelector />
       </div>
@@ -116,7 +132,7 @@ export function OpenFolderScreen() {
                 type="button"
                 className="splash-cta"
                 style={{ marginBottom: "8px" }}
-                disabled={loading || openingId !== null}
+                disabled={loading || busy}
                 onClick={() => setShowNewProject(true)}
               >
                 <Icon icon={Plus} size={13} />
@@ -126,7 +142,7 @@ export function OpenFolderScreen() {
             <button
               type="button"
               className="splash-cta"
-              disabled={loading || openingId !== null}
+              disabled={loading || busy}
               onClick={() => void handlePickFolder()}
             >
               <Icon icon={FolderOpen} size={13} />
@@ -141,25 +157,42 @@ export function OpenFolderScreen() {
             </div>
             <div className="splash-recents-list">
               {visibleProjects.map((project) => (
-                <button
+                <div
                   key={project.id}
-                  type="button"
-                  className={`splash-recent-open${openingId === project.id ? " splash-recent-item--loading" : ""}`}
-                  disabled={openingId !== null}
-                  onClick={() => void handleOpen(project.id)}
+                  className={`splash-recent-item${openingId === project.id ? " splash-recent-item--loading" : ""}`}
                 >
-                  <div className="splash-recent-icon">
-                    <Icon icon={FolderOpen} size={11} />
-                  </div>
-                  <div className="splash-recent-info">
-                    <span className="splash-recent-title">{project.title ?? project.name}</span>
-                    <span className="splash-recent-path">{project.name}</span>
-                  </div>
-                  <span className="splash-recent-meta">
-                    {formatRelativeDate(project.lastOpened)}
-                  </span>
-                  <Icon icon={ArrowRight} size={12} />
-                </button>
+                  <button
+                    type="button"
+                    className="splash-recent-open"
+                    disabled={busy}
+                    onClick={() => void handleOpen(project.id)}
+                  >
+                    <div className="splash-recent-icon">
+                      <Icon icon={FolderOpen} size={11} />
+                    </div>
+                    <div className="splash-recent-info">
+                      <span className="splash-recent-title">{project.title ?? project.name}</span>
+                      <span className="splash-recent-path">{project.name}</span>
+                    </div>
+                    <span className="splash-recent-meta">
+                      {formatRelativeDate(project.lastOpened)}
+                    </span>
+                    <Icon icon={ArrowRight} size={12} />
+                  </button>
+                  <button
+                    type="button"
+                    className="splash-recent-remove"
+                    disabled={busy}
+                    title={t("welcome.deleteProject")}
+                    aria-label={t("welcome.deleteProject")}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setDeleteTarget(project);
+                    }}
+                  >
+                    <Icon icon={Trash2} size={11} />
+                  </button>
+                </div>
               ))}
               {!loading && visibleProjects.length === 0 ? (
                 <p className="splash-resume-hint">{t("welcome.noProjects")}</p>
