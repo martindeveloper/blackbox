@@ -34,10 +34,19 @@ jobs:
     env:
       ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+      XDG_CACHE_HOME: ${{ github.workspace }}/.cache
+      XWIN_ARCH: ${{ inputs.architecture == 'arm64' && 'aarch64' || 'x86_64' }}
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
+
+      - name: Restore MSVC CRT cache
+        id: cache-xwin
+        uses: actions/cache@v4
+        with:
+          path: .cache/cargo-xwin
+          key: xwin-v0.22.0-${{ inputs.architecture }}-${{ runner.os }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
@@ -65,6 +74,10 @@ jobs:
         run: |
           cargo install --locked wasm-pack --version 0.15.0
           cargo install --locked cargo-xwin --version 0.22.0
+
+      - name: Pre-download MSVC CRT
+        if: steps.cache-xwin.outputs.cache-hit != 'true'
+        run: cargo xwin cache xwin
 
       - name: Install web dependencies
         run: npm ci --prefix apps/web
