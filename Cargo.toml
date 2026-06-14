@@ -14,7 +14,9 @@ members = [
 resolver = "2"
 
 [workspace.package]
+description = "Build branching story games visually, then ship them anywhere."
 license = "MIT"
+repository = "https://github.com/martindeveloper/blackbox"
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
