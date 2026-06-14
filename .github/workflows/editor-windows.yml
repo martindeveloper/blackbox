@@ -49,9 +49,10 @@ jobs:
       - name: Install LLVM tools
         run: |
           sudo apt-get update
-          sudo apt-get install --yes --no-install-recommends llvm-18
-          echo "/usr/lib/llvm-18/bin" >> "$GITHUB_PATH"
-          /usr/lib/llvm-18/bin/llvm-lib --version
+          sudo apt-get install --yes --no-install-recommends clang-19 lld-19 llvm-19
+          echo "/usr/lib/llvm-19/bin" >> "$GITHUB_PATH"
+          /usr/lib/llvm-19/bin/clang-cl --version
+          /usr/lib/llvm-19/bin/llvm-lib --version
 
       - name: Install Rust build tools
         run: |
