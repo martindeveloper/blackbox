@@ -93,6 +93,7 @@ async function createWindow() {
     minWidth: 960,
     minHeight: 640,
     show: false,
+    autoHideMenuBar: true,
     title: "Blackbox Editor",
     ...(icon ? { icon } : {}),
     webPreferences: {
