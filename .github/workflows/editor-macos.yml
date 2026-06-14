@@ -2,6 +2,15 @@ name: Editor macOS
 
 on:
   workflow_dispatch:
+    inputs:
+      architecture:
+        description: Target architecture
+        required: true
+        default: arm64
+        type: choice
+        options:
+          - arm64
+          - x64
 
 permissions:
   contents: read
@@ -12,7 +21,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build macOS ARM64
+    name: Build macOS ${{ inputs.architecture }}
     runs-on: macos-15
     timeout-minutes: 60
     env:
@@ -35,6 +44,7 @@ jobs:
       - name: Restore Rust cache
         uses: Swatinem/rust-cache@v2
         with:
+          key: ${{ inputs.architecture }}
           workspaces: . -> .cache/target
 
       - name: Install wasm-pack
@@ -47,15 +57,15 @@ jobs:
         run: npm ci --prefix apps/editor
 
       - name: Build macOS editor
-        run: npm run electron:release --prefix apps/editor -- --platform macos
+        run: npm run electron:release --prefix apps/editor -- --platform macos --arch ${{ inputs.architecture }}
 
       - name: Upload macOS packages
         uses: actions/upload-artifact@v7
         with:
-          name: blackbox-editor-macos-arm64
+          name: blackbox-editor-macos-${{ inputs.architecture }}
           path: |
-            apps/editor/release/*arm64.dmg
-            apps/editor/release/*arm64-mac.zip
+            apps/editor/release/*.dmg
+            apps/editor/release/*-mac.zip
           if-no-files-found: error
           compression-level: 0
           retention-days: 14

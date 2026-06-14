@@ -13,20 +13,49 @@ const resourcesBinDir = path.join(editorRoot, "resources", "bin");
 const cargoTargetDir = resolveCargoTargetDir(repoRoot);
 const tools = ["blackbox-lint", "blackbox-bundler", "blackbox-simulator"];
 
-const platforms = {
+const platformArchitectures = {
   macos: {
-    rustTarget: process.arch === "arm64" ? "aarch64-apple-darwin" : "x86_64-apple-darwin",
-    electronArgs: ["--mac", process.arch === "arm64" ? "--arm64" : "--x64"],
+    defaultArch: "arm64",
+    architectures: {
+      x64: {
+        rustTarget: "x86_64-apple-darwin",
+        electronArgs: ["--mac", "--x64"],
+      },
+      arm64: {
+        rustTarget: "aarch64-apple-darwin",
+        electronArgs: ["--mac", "--arm64"],
+      },
+    },
   },
   linux: {
-    rustTarget: "x86_64-unknown-linux-gnu",
-    zigTarget: "x86_64-linux-gnu",
-    electronArgs: ["--linux", "--x64"],
+    defaultArch: "x64",
+    architectures: {
+      x64: {
+        rustTarget: "x86_64-unknown-linux-gnu",
+        zigTarget: "x86_64-linux-gnu",
+        electronArgs: ["--linux", "--x64"],
+      },
+      arm64: {
+        rustTarget: "aarch64-unknown-linux-gnu",
+        zigTarget: "aarch64-linux-gnu",
+        electronArgs: ["--linux", "--arm64"],
+      },
+    },
   },
   windows: {
-    rustTarget: "x86_64-pc-windows-msvc",
-    cargoSubcommand: "xwin",
-    electronArgs: ["--win", "--x64"],
+    defaultArch: "x64",
+    architectures: {
+      x64: {
+        rustTarget: "x86_64-pc-windows-msvc",
+        cargoSubcommand: "xwin",
+        electronArgs: ["--win", "--x64"],
+      },
+      arm64: {
+        rustTarget: "aarch64-pc-windows-msvc",
+        cargoSubcommand: "xwin",
+        electronArgs: ["--win", "--arm64"],
+      },
+    },
   },
 };
 
@@ -34,17 +63,18 @@ function usage() {
   console.log(`Build release editor packages with matching Rust engine tools.
 
 Usage:
-  node ./scripts/build-release.mjs [--platform <all|macos|linux|windows>]
+  node ./scripts/build-release.mjs [--platform <all|macos|linux|windows>] [--arch <x64|arm64>]
 
 Examples:
   npm run electron:release
   npm run electron:release -- --platform linux
-  npm run electron:release -- --platform=windows
+  npm run electron:release -- --platform windows --arch arm64
 `);
 }
 
-function parsePlatform(args) {
-  let selected = "all";
+function parseOptions(args) {
+  let platform = "all";
+  let arch = null;
 
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
@@ -53,23 +83,37 @@ function parsePlatform(args) {
       process.exit(0);
     }
     if (arg === "--platform" || arg === "-p") {
-      selected = args[index + 1] ?? "";
+      platform = args[index + 1] ?? "";
       index += 1;
       continue;
     }
     if (arg.startsWith("--platform=")) {
-      selected = arg.slice("--platform=".length);
+      platform = arg.slice("--platform=".length);
+      continue;
+    }
+    if (arg === "--arch" || arg === "-a") {
+      arch = args[index + 1] ?? "";
+      index += 1;
+      continue;
+    }
+    if (arg.startsWith("--arch=")) {
+      arch = arg.slice("--arch=".length);
       continue;
     }
     throw new Error(`unknown argument: ${arg}`);
   }
 
-  const aliases = { mac: "macos", darwin: "macos", win: "windows", win32: "windows" };
-  selected = aliases[selected] ?? selected;
-  if (selected !== "all" && !(selected in platforms)) {
-    throw new Error(`unsupported platform "${selected}"`);
+  const platformAliases = { mac: "macos", darwin: "macos", win: "windows", win32: "windows" };
+  const archAliases = { amd64: "x64", x86_64: "x64", aarch64: "arm64" };
+  platform = platformAliases[platform] ?? platform;
+  arch = archAliases[arch] ?? arch;
+  if (platform !== "all" && !(platform in platformArchitectures)) {
+    throw new Error(`unsupported platform "${platform}"`);
   }
-  return selected;
+  if (arch !== null && arch !== "x64" && arch !== "arm64") {
+    throw new Error(`unsupported architecture "${arch}"`);
+  }
+  return { platform, arch };
 }
 
 function createZigWrapper(zigTarget, compiler) {
@@ -179,16 +223,16 @@ function packageEditor(platform, config) {
   );
 }
 
-let selectedPlatform;
+let options;
 try {
-  selectedPlatform = parsePlatform(process.argv.slice(2));
+  options = parseOptions(process.argv.slice(2));
 } catch (error) {
   console.error(`error: ${error.message}`);
   usage();
   process.exit(1);
 }
 
-if (process.platform !== "darwin" && (selectedPlatform === "all" || selectedPlatform === "macos")) {
+if (process.platform !== "darwin" && (options.platform === "all" || options.platform === "macos")) {
   console.error("error: macOS packages require a macOS host with Xcode Command Line Tools");
   process.exit(1);
 }
@@ -202,12 +246,15 @@ if (!commandExists("rustup")) {
 console.log(`==> building editor web assets on ${os.platform()}/${os.arch()}`);
 runSync("npm", ["run", "build"], { cwd: editorRoot });
 
-const selected =
-  selectedPlatform === "all"
-    ? Object.entries(platforms)
-    : [[selectedPlatform, platforms[selectedPlatform]]];
+const selectedPlatforms =
+  options.platform === "all"
+    ? Object.entries(platformArchitectures)
+    : [[options.platform, platformArchitectures[options.platform]]];
 
-for (const [platform, config] of selected) {
+for (const [platform, platformConfig] of selectedPlatforms) {
+  const arch = options.arch ?? platformConfig.defaultArch;
+  const config = platformConfig.architectures[arch];
+  console.log(`\n==> selected ${platform}/${arch}`);
   buildTools(platform, config);
   stageTools(config);
   packageEditor(platform, config);

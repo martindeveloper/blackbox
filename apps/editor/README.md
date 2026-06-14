@@ -104,6 +104,9 @@ npm run electron:release
 
 # Build one platform only
 npm run electron:release -- --platform windows
+
+# Select x64 or ARM64
+npm run electron:release -- --platform windows --arch arm64
 ```
 
 Installers and unpacked builds are written to `apps/editor/release/`.
@@ -118,7 +121,7 @@ Installers and unpacked builds are written to `apps/editor/release/`.
 | `npm run electron:release`     | Build all three desktop platforms, or one selected with `--platform`               |
 
 The cross-platform release command must run on macOS because Apple packages require the macOS
-SDK. It builds for the host Mac architecture and for x64 Linux and Windows. Install
+SDK. It supports x64 and ARM64 targets for macOS, Linux, and Windows. Install
 [Zig](https://ziglang.org/download/) for the Linux linker. Windows uses the MSVC target through
 [`cargo-xwin`](https://github.com/rust-cross/cargo-xwin), installed with
 `cargo install --locked cargo-xwin`. A full LLVM install (`brew install llvm`) is recommended if
@@ -128,10 +131,10 @@ on the first run. Accepted platform values are `all`, `macos`, `linux`, and `win
 
 ## GitHub Actions releases
 
-The repository has separate manually triggered Actions workflows for macOS ARM64, Linux x64, and
-Windows x64. In the GitHub **Actions** tab, select the desired **Editor macOS**, **Editor Linux**,
-or **Editor Windows** workflow and choose **Run workflow**. Each run uploads its installers as a
-workflow artifact retained for 14 days. Linux and Windows use an Ubuntu runner; only the macOS
-workflow consumes a macOS runner.
+The repository has separate manually triggered Actions workflows for macOS, Linux, and Windows. In
+the GitHub **Actions** tab, select the desired workflow, choose **Run workflow**, and select `x64`
+or `arm64`. The defaults are macOS ARM64, Linux x64, and Windows x64. Each run uploads its
+installers as a workflow artifact retained for 14 days. Linux and Windows use an Ubuntu runner;
+only the macOS workflow consumes a macOS runner.
 
 In the desktop app, use **Open project** on the welcome screen to pick any folder that contains `scenario.json`. Project registry, preferences, and bundle cache live in the app user-data folder instead of the repository `.blackbox/` directory.

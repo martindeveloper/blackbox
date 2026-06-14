@@ -2,6 +2,15 @@ name: Editor Linux
 
 on:
   workflow_dispatch:
+    inputs:
+      architecture:
+        description: Target architecture
+        required: true
+        default: x64
+        type: choice
+        options:
+          - x64
+          - arm64
 
 permissions:
   contents: read
@@ -12,7 +21,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build Linux x64
+    name: Build Linux ${{ inputs.architecture }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     env:
@@ -39,6 +48,7 @@ jobs:
       - name: Restore Rust cache
         uses: Swatinem/rust-cache@v2
         with:
+          key: ${{ inputs.architecture }}
           workspaces: . -> .cache/target
 
       - name: Install wasm-pack
@@ -51,12 +61,12 @@ jobs:
         run: npm ci --prefix apps/editor
 
       - name: Build Linux editor
-        run: npm run electron:release --prefix apps/editor -- --platform linux
+        run: npm run electron:release --prefix apps/editor -- --platform linux --arch ${{ inputs.architecture }}
 
       - name: Upload Linux packages
         uses: actions/upload-artifact@v7
         with:
-          name: blackbox-editor-linux-x64
+          name: blackbox-editor-linux-${{ inputs.architecture }}
           path: |
             apps/editor/release/*.AppImage
             apps/editor/release/*.deb

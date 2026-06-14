@@ -2,6 +2,15 @@ name: Editor Windows
 
 on:
   workflow_dispatch:
+    inputs:
+      architecture:
+        description: Target architecture
+        required: true
+        default: x64
+        type: choice
+        options:
+          - x64
+          - arm64
 
 permissions:
   contents: read
@@ -12,7 +21,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build Windows x64
+    name: Build Windows ${{ inputs.architecture }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     env:
@@ -34,7 +43,15 @@ jobs:
       - name: Restore Rust cache
         uses: Swatinem/rust-cache@v2
         with:
+          key: ${{ inputs.architecture }}
           workspaces: . -> .cache/target
+
+      - name: Install LLVM tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends llvm-18
+          echo "/usr/lib/llvm-18/bin" >> "$GITHUB_PATH"
+          /usr/lib/llvm-18/bin/llvm-lib --version
 
       - name: Install Rust build tools
         run: |
@@ -48,12 +65,12 @@ jobs:
         run: npm ci --prefix apps/editor
 
       - name: Build Windows editor
-        run: npm run electron:release --prefix apps/editor -- --platform windows
+        run: npm run electron:release --prefix apps/editor -- --platform windows --arch ${{ inputs.architecture }}
 
       - name: Upload Windows installer
         uses: actions/upload-artifact@v7
         with:
-          name: blackbox-editor-windows-x64
+          name: blackbox-editor-windows-${{ inputs.architecture }}
           path: apps/editor/release/*Setup*.exe
           if-no-files-found: error
           compression-level: 0
