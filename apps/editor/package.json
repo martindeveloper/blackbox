@@ -34,32 +34,32 @@
     "check": "npm run lint && npm run fmt:check"
   },
   "dependencies": {
-    "@dagrejs/dagre": "^3.0.0",
     "@fastify/multipart": "^10.0.0",
-    "@tanstack/react-router": "^1.170.15",
-    "@xyflow/react": "^12.11.0",
     "chokidar": "^5.0.0",
     "fastify": "^5.8.5",
-    "i18next": "^26.3.1",
-    "lucide-react": "^1.18.0",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7",
-    "react-i18next": "^17.0.8",
-    "zustand": "^5.0.14"
+    "livereload": "^0.10.3"
   },
   "devDependencies": {
+    "@dagrejs/dagre": "^3.0.0",
     "@tailwindcss/cli": "^4.3.1",
+    "@tanstack/react-router": "^1.170.15",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
+    "@xyflow/react": "^12.11.0",
     "concurrently": "^10.0.3",
     "electron": "^42.4.0",
     "electron-builder": "^26.15.3",
-    "livereload": "^0.10.3",
+    "i18next": "^26.3.1",
+    "lucide-react": "^1.18.0",
     "oxfmt": "^0.54.0",
     "oxlint": "^1.69.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "react-i18next": "^17.0.8",
     "rolldown": "^1.1.1",
     "tailwindcss": "^4.3.1",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "zustand": "^5.0.14"
   },
   "productName": "Blackbox Editor"
 }
