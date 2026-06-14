@@ -69,7 +69,7 @@ jobs:
           shared-key: editor-macos
           key: ${{ inputs.architecture }}
           workspaces: . -> .cache/target
-          cache-binaries: true
+          cache-bin: true
 
       - name: Install wasm-pack
         run: cargo install --locked wasm-pack --version 0.15.0

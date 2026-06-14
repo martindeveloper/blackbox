@@ -82,7 +82,7 @@ jobs:
           shared-key: editor-windows
           key: ${{ inputs.architecture }}
           workspaces: . -> .cache/target
-          cache-binaries: true
+          cache-bin: true
 
       - name: Add Rust Windows target
         if: inputs.architecture == 'arm64'
