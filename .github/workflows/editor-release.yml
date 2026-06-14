@@ -82,9 +82,11 @@ jobs:
     permissions:
       actions: read
       contents: write
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
     steps:
       - name: Download editor packages
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           pattern: blackbox-editor-*
           path: downloaded-artifacts
@@ -103,6 +105,11 @@ jobs:
             sha256sum blackbox-editor-* > SHA256SUMS
           )
           ls -lh release-assets
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Create release
         env:
