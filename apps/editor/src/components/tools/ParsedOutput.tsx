@@ -16,6 +16,8 @@ import type {
   ParsedBundleOutput,
   ParsedLintOutput,
   ParsedSimulatorOutput,
+  ParsedSimulatorPayload,
+  isCompleteSimulatorOutput,
   ProjectInspectBundle,
   SimAnalytics,
   SimAnalyticsRow,
@@ -1037,6 +1039,59 @@ function FinishabilityPanel({
   );
 }
 
+function SimulatorFailureView({
+  parsed,
+  rawText,
+  exitCode,
+}: {
+  parsed: ParsedSimulatorPayload;
+  rawText: string;
+  exitCode: number;
+}) {
+  const { t } = useTranslation();
+  const logs = parsed.logs ?? [];
+
+  return (
+    <div className="parsed-output parsed-output--sim">
+      <div className="parsed-output-body">
+        <div className="parsed-sim-header">
+          <div className="parsed-sim-title-block">
+            <span className="parsed-sim-title">{t("tools.simulator.command")}</span>
+          </div>
+          <span className="parsed-result-tag parsed-result-tag--error">
+            {t("tools.status.failed")}
+          </span>
+        </div>
+        {logs.length > 0 && (
+          <div className="parsed-sim-issues-block">
+            <div className="parsed-sim-issues-head">
+              <span className="parsed-sim-issues-title">{t("tools.output")}</span>
+            </div>
+            <div className="parsed-issues">
+              {logs.map((entry, i) => (
+                <div
+                  key={i}
+                  className={`parsed-issue parsed-issue--${entry.level === "error" ? "error" : entry.level === "warn" ? "warn" : "info"}`}
+                >
+                  <span
+                    className={`parsed-issue-sev parsed-issue-sev--${entry.level === "error" ? "error" : entry.level === "warn" ? "warn" : "info"}`}
+                  >
+                    {entry.level === "error" ? "E" : entry.level === "warn" ? "W" : "I"}
+                  </span>
+                  <span className="parsed-issue-body">
+                    <span className="parsed-issue-message">{entry.message}</span>
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+      <RawSection rawText={rawText} exitCode={exitCode} />
+    </div>
+  );
+}
+
 function SimulatorView({
   parsed,
   rawText,
@@ -1047,7 +1102,10 @@ function SimulatorView({
   exitCode: number;
 }) {
   const { t } = useTranslation();
-  const { result, issueSummary, goals, coverage, analytics } = parsed;
+  const { result, coverage, analytics } = parsed;
+  const goals = parsed.goals ?? [];
+  const issueSummary = parsed.issueSummary ?? { errors: 0, warnings: 0, info: 0 };
+  const issues = parsed.issues ?? [];
   const issueCount = issueSummary.errors + issueSummary.warnings + issueSummary.info;
   const goalsReached = parsed.goalsReached ?? goals.filter((g) => g.reached).length;
   const goalsTotal = parsed.goalsTotal ?? goals.length;
@@ -1169,7 +1227,7 @@ function SimulatorView({
           </div>
         )}
 
-        {parsed.issues.length > 0 && (
+        {issues.length > 0 && (
           <div className="parsed-sim-issues-block">
             <div className="parsed-sim-issues-head">
               <span className="parsed-sim-issues-title">
@@ -1192,7 +1250,7 @@ function SimulatorView({
               </div>
             </div>
             <div className="parsed-issues">
-              {parsed.issues.map((issue, i) => (
+              {issues.map((issue, i) => (
                 <div key={i} className={`parsed-issue parsed-issue--${issue.severity}`}>
                   <span className={`parsed-issue-sev parsed-issue-sev--${issue.severity}`}>
                     {issue.severity === "error" ? "E" : issue.severity === "warn" ? "W" : "I"}
@@ -1229,7 +1287,12 @@ export function ParsedOutput({ result, rawText }: ParsedOutputProps) {
   }
 
   if (parsed?.kind === "simulator") {
-    return <SimulatorView parsed={parsed} rawText={rawText} exitCode={result.exitCode} />;
+    if (isCompleteSimulatorOutput(parsed)) {
+      return <SimulatorView parsed={parsed} rawText={rawText} exitCode={result.exitCode} />;
+    }
+    return (
+      <SimulatorFailureView parsed={parsed} rawText={rawText} exitCode={result.exitCode} />
+    );
   }
 
   return (

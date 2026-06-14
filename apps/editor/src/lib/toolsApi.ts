@@ -116,6 +116,18 @@ export interface SimCoverageSlice {
   pct: number;
 }
 
+export interface SimLogEntry {
+  level: string;
+  message: string;
+}
+
+/** Minimal JSON emitted when the simulator exits before building a full report. */
+export interface ParsedSimulatorFailureOutput {
+  kind: "simulator";
+  ok?: false;
+  logs?: SimLogEntry[];
+}
+
 export interface ParsedSimulatorOutput {
   kind: "simulator";
   title: string;
@@ -134,6 +146,15 @@ export interface ParsedSimulatorOutput {
   issueSummary: LintSummary;
   result: LintResultStatus;
   analytics: SimAnalytics | null;
+  logs?: SimLogEntry[];
+}
+
+export type ParsedSimulatorPayload = ParsedSimulatorOutput | ParsedSimulatorFailureOutput;
+
+export function isCompleteSimulatorOutput(
+  parsed: ParsedSimulatorPayload,
+): parsed is ParsedSimulatorOutput {
+  return "title" in parsed && "result" in parsed;
 }
 
 export interface SimOptions {
@@ -270,7 +291,7 @@ export interface ToolResult {
   ok: boolean;
   exitCode: number;
   raw: RawOutput;
-  parsed: ParsedLintOutput | ParsedBundleOutput | ParsedSimulatorOutput | null;
+  parsed: ParsedLintOutput | ParsedBundleOutput | ParsedSimulatorPayload | null;
   error?: string;
 }
 
