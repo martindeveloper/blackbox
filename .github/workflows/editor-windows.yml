@@ -100,6 +100,28 @@ jobs:
       - name: Build Windows editor
         run: npm run electron:release --prefix apps/editor -- --platform windows --arch ${{ inputs.architecture }} --format ${{ inputs.package_format }}
 
+      - name: Import signing certificate
+        if: inputs.package_format == 'msix' || inputs.package_format == 'all'
+        shell: pwsh
+        env:
+          CERTIFICATE_BASE64: ${{ secrets.BBX_WINDOWS_SIGNING_CERTIFICATE }}
+          CERTIFICATE_PASSWORD: ${{ secrets.BBX_WINDOWS_SIGNING_PASSWORD }}
+        run: |
+          & "${{ github.workspace }}/.github/scripts/import-msix-signing-certificate.ps1" `
+            -CertificateBase64 $env:CERTIFICATE_BASE64 `
+            -CertificatePassword $env:CERTIFICATE_PASSWORD
+
+      - name: Sign MSIX
+        if: inputs.package_format == 'msix' || inputs.package_format == 'all'
+        shell: pwsh
+        env:
+          CERTIFICATE_PASSWORD: ${{ secrets.BBX_WINDOWS_SIGNING_PASSWORD }}
+        run: |
+          & "${{ github.workspace }}/.github/scripts/sign-msix.ps1" `
+            -CertificatePath (Join-Path $env:RUNNER_TEMP "msix-signing.pfx") `
+            -CertificatePassword $env:CERTIFICATE_PASSWORD `
+            -MsixGlob "apps/editor/release/*.msix"
+
       - name: Upload Windows packages
         uses: actions/upload-artifact@v7
         with:

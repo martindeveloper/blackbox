@@ -22,6 +22,8 @@ build/
 # Environment and secrets
 .env
 .env.*
+*.pfx
+msix-signing-base64.txt
 
 # OS
 .DS_Store
