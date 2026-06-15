@@ -1,9 +1,17 @@
-export const API_VERSION = "v1" as const;
-
-export const API_BASE = `/api/${API_VERSION}`;
-
-export const enum Api {
-  Projects = "/api/v1/projects",
-  Prefs = "/api/v1/prefs",
-  Players = "/api/v1/players",
-}
+export {
+  API_VERSION,
+  API_PREFIX,
+  API_PREFIX as API_BASE,
+  Api,
+  GlobalRoutes,
+  ProjectRoutes,
+  globalApiUrl,
+  projectApiUrl,
+  projectMediaUrl,
+  projectToolsRunUrl,
+  projectBuildRunCancelUrl,
+  serverProjectRoute,
+  serverProjectMediaRoute,
+  serverToolsRunRoute,
+  serverBuildRunCancelRoute,
+} from "../../shared/apiPaths.js";

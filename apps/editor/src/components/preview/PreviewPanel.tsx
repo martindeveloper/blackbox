@@ -14,6 +14,7 @@ import { useTranslation } from "react-i18next";
 import { isPreviewPlayerMessage, postPreviewHostMessage } from "../../../players/web/protocol.js";
 import { useScenarioStore } from "../../store/useScenarioStore.js";
 import { usePreviewStore, type PreviewCommandSender } from "../../store/usePreviewStore.js";
+import { API_PREFIX, ProjectRoutes, projectApiUrl } from "../../../shared/apiPaths.js";
 import { notifyError, notifySuccess } from "../../lib/notifyApi.js";
 import { Icon } from "../icons/Icon.js";
 import { TabletLandscapeIcon } from "../icons/TabletLandscapeIcon.js";
@@ -153,7 +154,7 @@ export function PreviewPanel() {
       setBuilding(true);
       try {
         const query = force ? "?force=1" : "";
-        await fetch(`/api/v1/projects/${encodeURIComponent(projectId)}/preview-build${query}`);
+        await fetch(`${projectApiUrl(projectId, ProjectRoutes.PreviewBuild)}${query}`);
       } catch {
       } finally {
         setBuilding(false);
@@ -201,7 +202,7 @@ export function PreviewPanel() {
     );
   }
 
-  const src = `/preview?project=${encodeURIComponent(projectId)}&api=/api/v1`;
+  const src = `/preview?project=${encodeURIComponent(projectId)}&api=${API_PREFIX}`;
   const preset = DEVICE_PRESETS.find((candidate) => candidate.id === device)!;
   const scale =
     preset.width && preset.height && stageSize.width > 0 && stageSize.height > 0

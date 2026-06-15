@@ -22,7 +22,7 @@ export async function listPlayers(): Promise<PlayerManifest[]> {
 export function pickBundlePlayer(players: PlayerManifest[]): PlayerManifest {
   const player = players.find((entry) => entry.capabilities.bundle);
   if (!player) {
-    throw new Error("No bundle-capable player is registered (see GET /api/v1/players)");
+    throw new Error(`No bundle-capable player is registered (see GET ${Api.Players})`);
   }
   return player;
 }

@@ -1,4 +1,4 @@
-import { projectApiUrl } from "./projectApi.js";
+import { ProjectRoutes, projectApiUrl, projectBuildRunCancelUrl } from "../../shared/apiPaths.js";
 import {
   BUILD_CONFIGURATIONS,
   BUILD_PLATFORMS,
@@ -113,7 +113,7 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
 }
 
 export async function getBuildCapabilities(projectId: string): Promise<BuildCapabilities> {
-  const res = await fetch(projectApiUrl(projectId, "/build/capabilities"));
+  const res = await fetch(projectApiUrl(projectId, ProjectRoutes.BuildCapabilities));
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json() as Promise<BuildCapabilities>;
 }
@@ -128,12 +128,12 @@ export async function startBuild(
   projectId: string,
   request: { platform: BuildPlatform; configuration: BuildConfiguration; stages: BuildStage[] },
 ): Promise<StartBuildResult> {
-  return postJson<StartBuildResult>(projectApiUrl(projectId, "/build/runs"), request);
+  return postJson<StartBuildResult>(projectApiUrl(projectId, ProjectRoutes.BuildRuns), request);
 }
 
 export async function cancelBuild(projectId: string, runId: string): Promise<boolean> {
   const data = await postJson<{ canceled: boolean }>(
-    projectApiUrl(projectId, `/build/runs/${encodeURIComponent(runId)}/cancel`),
+    projectBuildRunCancelUrl(projectId, runId),
     {},
   );
   return data.canceled;
@@ -148,14 +148,14 @@ async function deleteJson(url: string): Promise<void> {
 }
 
 export async function clearBuildResult(projectId: string): Promise<void> {
-  await deleteJson(projectApiUrl(projectId, "/build/runs/current"));
+  await deleteJson(projectApiUrl(projectId, ProjectRoutes.BuildRunsCurrent));
 }
 
 export function subscribeBuild(
   projectId: string,
   onEvent: (event: BuildEvent) => void,
 ): () => void {
-  const events = new EventSource(projectApiUrl(projectId, "/build/runs/stream"));
+  const events = new EventSource(projectApiUrl(projectId, ProjectRoutes.BuildRunsStream));
   events.onmessage = (message) => {
     try {
       onEvent(JSON.parse(message.data) as BuildEvent);

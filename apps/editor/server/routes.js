@@ -9,6 +9,14 @@ import { ProjectError } from "./projectService.js";
 import { ToolRunRegistry } from "./toolRuns.js";
 import { BuildRunRegistry } from "./pipeline/buildRuns.js";
 import { stagesForPlatform } from "../shared/buildStages.js";
+import {
+  GlobalRoutes,
+  ProjectRoutes,
+  serverBuildRunCancelRoute,
+  serverProjectMediaRoute,
+  serverProjectRoute,
+  serverToolsRunRoute,
+} from "../shared/apiPaths.js";
 import { isValidConfiguration, isValidPlatform, isStageAllowed } from "./pipeline/cli.js";
 import { detectBuildCapabilities } from "./pipeline/preflight/index.js";
 import { getPlayer, listPlayers, playersWith } from "../players/registry.mjs";
@@ -51,8 +59,8 @@ export async function registerRoutes(app, service) {
   const toolRuns = new ToolRunRegistry();
   const buildRuns = new BuildRunRegistry();
 
-  app.get("/prefs", () => readUserPrefs());
-  app.put("/prefs", async (request, reply) => {
+  app.get(GlobalRoutes.Prefs, () => readUserPrefs());
+  app.put(GlobalRoutes.Prefs, async (request, reply) => {
     if (!request.body || typeof request.body !== "object" || Array.isArray(request.body)) {
       return reply.code(400).send({ code: "invalid_request", message: "body must be an object" });
     }
@@ -61,11 +69,11 @@ export async function registerRoutes(app, service) {
     return merged;
   });
 
-  app.get("/players", () => ({ players: listPlayers() }));
+  app.get(GlobalRoutes.Players, () => ({ players: listPlayers() }));
 
-  app.get("/projects", async () => ({ projects: service.listProjects() }));
+  app.get(GlobalRoutes.Projects, async () => ({ projects: service.listProjects() }));
 
-  app.post("/projects/register", async (request, reply) => {
+  app.post(GlobalRoutes.ProjectsRegister, async (request, reply) => {
     const projectPath = typeof request.body?.path === "string" ? request.body.path.trim() : "";
     if (!projectPath) {
       return reply.code(400).send({ code: "invalid_request", message: "path is required" });
@@ -78,7 +86,7 @@ export async function registerRoutes(app, service) {
     }
   });
 
-  app.post("/projects/create", async (request, reply) => {
+  app.post(GlobalRoutes.ProjectsCreate, async (request, reply) => {
     const body = request.body ?? {};
     const parentPath = typeof body.parentPath === "string" ? body.parentPath.trim() : "";
     const folderName = typeof body.folderName === "string" ? body.folderName.trim() : "";
@@ -144,28 +152,28 @@ export async function registerRoutes(app, service) {
   });
 
   app.post(
-    "/projects/:id/open",
+    serverProjectRoute(ProjectRoutes.Open),
     projectRequest(service, (project, request) =>
       service.openProject(project.id, request.body?.acceptEditorVersion === true),
     ),
   );
 
   app.post(
-    "/projects/:id/trust-code",
+    serverProjectRoute(ProjectRoutes.TrustCode),
     projectRequest(service, (project, request) =>
       service.setProjectCodeTrust(project.id, request.body?.trusted),
     ),
   );
 
   app.post(
-    "/projects/:id/bootstrap-code",
+    serverProjectRoute(ProjectRoutes.BootstrapCode),
     projectRequest(service, (project) => service.bootstrapProjectCode(project.id)),
   );
 
-  app.post("/projects/revoke-code-trust", () => service.revokeAllProjectCodeTrust());
+  app.post(GlobalRoutes.ProjectsRevokeCodeTrust, () => service.revokeAllProjectCodeTrust());
 
   app.post(
-    "/projects/:id/delete",
+    serverProjectRoute(ProjectRoutes.Delete),
     projectRequest(service, async (project, request) => {
       const confirmName =
         typeof request.body?.confirmName === "string" ? request.body.confirmName : "";
@@ -175,7 +183,7 @@ export async function registerRoutes(app, service) {
   );
 
   app.get(
-    "/projects/:id/events",
+    serverProjectRoute(ProjectRoutes.Events),
     projectRequest(service, (project, request, reply) => {
       reply.hijack();
       reply.raw.writeHead(200, {
@@ -194,29 +202,29 @@ export async function registerRoutes(app, service) {
   );
 
   app.get(
-    "/projects/:id/heatmap",
+    serverProjectRoute(ProjectRoutes.Heatmap),
     projectRequest(service, (project) => service.readHeatmap(project.id)),
   );
   app.put(
-    "/projects/:id/heatmap",
+    serverProjectRoute(ProjectRoutes.Heatmap),
     projectRequest(service, (project, request) =>
       service.writeHeatmap(project.id, request.body ?? {}),
     ),
   );
   app.delete(
-    "/projects/:id/heatmap",
+    serverProjectRoute(ProjectRoutes.Heatmap),
     projectRequest(service, (project) => service.deleteHeatmap(project.id)),
   );
 
   app.put(
-    "/projects/:id/documents",
+    serverProjectRoute(ProjectRoutes.Documents),
     projectRequest(service, (project, request) =>
       service.saveDocuments(project.id, request.body ?? {}),
     ),
   );
 
   app.get(
-    "/projects/:id/media/*",
+    serverProjectMediaRoute(),
     projectRequest(service, async (project, request, reply) => {
       const relativePath = request.params["*"];
       const media = await service.readMedia(project.id, relativePath);
@@ -243,12 +251,12 @@ export async function registerRoutes(app, service) {
   );
 
   app.get(
-    "/projects/:id/preview-docs",
+    serverProjectRoute(ProjectRoutes.PreviewDocs),
     projectRequest(service, (project) => service.readPreviewDocs(project.id)),
   );
 
   app.get(
-    "/projects/:id/preview-build",
+    serverProjectRoute(ProjectRoutes.PreviewBuild),
     projectRequest(service, (project, request, reply) => {
       if (!previewPlayer) {
         return reply.code(503).send({
@@ -263,7 +271,7 @@ export async function registerRoutes(app, service) {
   );
 
   app.post(
-    "/projects/:id/media",
+    serverProjectRoute(ProjectRoutes.Media),
     projectRequest(service, async (project, request, reply) => {
       const part = await request.file({ limits: { fileSize: 100 * 1024 * 1024, files: 1 } });
       if (!part) {
@@ -284,32 +292,32 @@ export async function registerRoutes(app, service) {
   );
 
   app.post(
-    "/projects/:id/media/trash",
+    serverProjectRoute(ProjectRoutes.MediaTrash),
     projectRequest(service, (project, request) =>
       service.moveMediaToTrash(project.id, request.body ?? {}),
     ),
   );
   app.post(
-    "/projects/:id/trash/restore",
+    serverProjectRoute(ProjectRoutes.TrashRestore),
     projectRequest(service, (project, request) =>
       service.restoreTrash(project.id, request.body ?? {}),
     ),
   );
   app.post(
-    "/projects/:id/trash/delete",
+    serverProjectRoute(ProjectRoutes.TrashDelete),
     projectRequest(service, (project, request) =>
       service.deleteTrash(project.id, request.body ?? {}),
     ),
   );
   app.post(
-    "/projects/:id/trash/empty",
+    serverProjectRoute(ProjectRoutes.TrashEmpty),
     projectRequest(service, (project, request) =>
       service.emptyTrash(project.id, request.body ?? {}),
     ),
   );
 
   app.get(
-    "/projects/:id/tools/discover",
+    serverProjectRoute(ProjectRoutes.ToolsDiscover),
     projectRequest(service, async (project) => {
       const tools = project.tools ?? nullTools();
       const [linter, bundler, simulator] = await Promise.all([
@@ -340,7 +348,7 @@ export async function registerRoutes(app, service) {
   );
 
   app.post(
-    "/projects/:id/tools/build",
+    serverProjectRoute(ProjectRoutes.ToolsBuild),
     projectRequest(service, async (project, request, reply) => {
       if (bundledToolsEnabled()) {
         return reply.code(400).send({
@@ -377,7 +385,7 @@ export async function registerRoutes(app, service) {
   );
 
   app.get(
-    "/projects/:id/tools/runs/:tool",
+    serverToolsRunRoute(),
     projectRequest(service, async (project, request, reply) => {
       const tool = parseTool(request.params.tool);
       if (!tool) {
@@ -388,7 +396,7 @@ export async function registerRoutes(app, service) {
   );
 
   app.post(
-    "/projects/:id/tools/runs/:tool",
+    serverToolsRunRoute(),
     projectRequest(service, async (project, request, reply) => {
       const tool = parseTool(request.params.tool);
       if (!tool) {
@@ -403,19 +411,12 @@ export async function registerRoutes(app, service) {
   );
 
   app.get(
-    "/projects/:id/build/capabilities",
+    serverProjectRoute(ProjectRoutes.BuildCapabilities),
     projectRequest(service, async (project) => detectBuildCapabilities(project.path)),
   );
 
-  app.get(
-    "/projects/:id/build/runs/current",
-    projectRequest(service, async (project) => ({
-      current: await buildRuns.getCurrent(project.path),
-    })),
-  );
-
   app.post(
-    "/projects/:id/build/runs",
+    serverProjectRoute(ProjectRoutes.BuildRuns),
     projectRequest(service, async (project, request, reply) => {
       const body = request.body ?? {};
       const platform = typeof body.platform === "string" ? body.platform : "";
@@ -457,14 +458,14 @@ export async function registerRoutes(app, service) {
   );
 
   app.post(
-    "/projects/:id/build/runs/:runId/cancel",
+    serverBuildRunCancelRoute(),
     projectRequest(service, async (project, request) => ({
       canceled: await buildRuns.cancel(project.path, request.params.runId),
     })),
   );
 
   app.delete(
-    "/projects/:id/build/runs/current",
+    serverProjectRoute(ProjectRoutes.BuildRunsCurrent),
     projectRequest(service, async (project, request, reply) => {
       const cleared = await buildRuns.clear(project.path);
       if (!cleared) {
@@ -477,7 +478,7 @@ export async function registerRoutes(app, service) {
   );
 
   app.get(
-    "/projects/:id/build/runs/stream",
+    serverProjectRoute(ProjectRoutes.BuildRunsStream),
     projectRequest(service, async (project, request, reply) => {
       const current = await buildRuns.getCurrent(project.path);
       reply.hijack();

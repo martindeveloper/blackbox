@@ -1,4 +1,4 @@
-import { projectApiUrl } from "./projectApi.js";
+import { ProjectRoutes, projectApiUrl, projectToolsRunUrl } from "../../shared/apiPaths.js";
 
 export type LintSeverity = "error" | "warn" | "info";
 
@@ -251,7 +251,7 @@ export interface HeatmapResponse {
 }
 
 export async function loadHeatmap(projectId: string): Promise<HeatmapResponse> {
-  const res = await fetch(projectApiUrl(projectId, "/heatmap"));
+  const res = await fetch(projectApiUrl(projectId, ProjectRoutes.Heatmap));
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json() as Promise<HeatmapResponse>;
 }
@@ -267,7 +267,7 @@ export async function saveHeatmap(
     runId: string;
   },
 ): Promise<HeatmapResponse> {
-  const res = await fetch(projectApiUrl(projectId, "/heatmap"), {
+  const res = await fetch(projectApiUrl(projectId, ProjectRoutes.Heatmap), {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -277,7 +277,7 @@ export async function saveHeatmap(
 }
 
 export async function deleteHeatmap(projectId: string): Promise<void> {
-  const res = await fetch(projectApiUrl(projectId, "/heatmap"), { method: "DELETE" });
+  const res = await fetch(projectApiUrl(projectId, ProjectRoutes.Heatmap), { method: "DELETE" });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
 }
 
@@ -425,7 +425,7 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
 }
 
 export async function discoverTools(projectId: string): Promise<ToolDiscovery> {
-  const res = await fetch(projectApiUrl(projectId, "/tools/discover"));
+  const res = await fetch(projectApiUrl(projectId, ProjectRoutes.ToolsDiscover));
   return res.json() as Promise<ToolDiscovery>;
 }
 
@@ -434,19 +434,16 @@ export async function runLinter(
   expectedRevision: number,
   options: LintOptions = { only: [], ignore: [] },
 ): Promise<ToolRun> {
-  const response = await postJson<{ run: ToolRun }>(
-    projectApiUrl(projectId, "/tools/runs/linter"),
-    {
-      expectedRevision,
-      only: options.only,
-      ignore: options.ignore,
-    },
-  );
+  const response = await postJson<{ run: ToolRun }>(projectToolsRunUrl(projectId, "linter"), {
+    expectedRevision,
+    only: options.only,
+    ignore: options.ignore,
+  });
   return response.run;
 }
 
 export async function getToolRun(projectId: string, tool: ToolRunName): Promise<ToolRun | null> {
-  const response = await fetch(projectApiUrl(projectId, `/tools/runs/${tool}`));
+  const response = await fetch(projectToolsRunUrl(projectId, tool));
   const data = (await response.json()) as { run: ToolRun | null; message?: string };
   if (!response.ok) throw new Error(data.message ?? `HTTP ${response.status}`);
   return data.run;
@@ -458,14 +455,11 @@ export async function runBundlerInspect(
   platform: string,
   ignoreMissing = false,
 ): Promise<ToolRun> {
-  const response = await postJson<{ run: ToolRun }>(
-    projectApiUrl(projectId, "/tools/runs/bundle"),
-    {
-      expectedRevision,
-      platform,
-      ignoreMissing,
-    },
-  );
+  const response = await postJson<{ run: ToolRun }>(projectToolsRunUrl(projectId, "bundle"), {
+    expectedRevision,
+    platform,
+    ignoreMissing,
+  });
   return response.run;
 }
 
@@ -474,25 +468,22 @@ export async function runSimulator(
   expectedRevision: number,
   options: SimOptions,
 ): Promise<ToolRun> {
-  const response = await postJson<{ run: ToolRun }>(
-    projectApiUrl(projectId, "/tools/runs/simulator"),
-    {
-      expectedRevision,
-      mode: options.mode,
-      goals: options.goals,
-      goalBudget: options.goalBudget,
-      maxStates: options.maxStates,
-      threads: options.threads,
-      heuristic: options.heuristic,
-      check: options.check,
-      verbose: options.verbose,
-      analytics: options.analytics,
-      storeAnalytics: options.storeAnalytics,
-    },
-  );
+  const response = await postJson<{ run: ToolRun }>(projectToolsRunUrl(projectId, "simulator"), {
+    expectedRevision,
+    mode: options.mode,
+    goals: options.goals,
+    goalBudget: options.goalBudget,
+    maxStates: options.maxStates,
+    threads: options.threads,
+    heuristic: options.heuristic,
+    check: options.check,
+    verbose: options.verbose,
+    analytics: options.analytics,
+    storeAnalytics: options.storeAnalytics,
+  });
   return response.run;
 }
 
 export async function buildTool(projectId: string, tool: BuildToolName): Promise<ToolBuildResult> {
-  return postJson<ToolBuildResult>(projectApiUrl(projectId, "/tools/build"), { tool });
+  return postJson<ToolBuildResult>(projectApiUrl(projectId, ProjectRoutes.ToolsBuild), { tool });
 }

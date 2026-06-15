@@ -41,8 +41,9 @@ export function bundledToolsEnabled() {
 
 export const DEV_MODE = process.argv.includes("--dev");
 
-export const API_VERSION = "v1";
-export const API_PREFIX = `/api/${API_VERSION}`;
+import { API_VERSION, API_PREFIX } from "../shared/apiPaths.js";
+
+export { API_VERSION, API_PREFIX };
 
 export const PORT = Number(process.env.PORT || 8081);
 export const LIVERELOAD_PORT = Number(process.env.LIVERELOAD_PORT || 35730);

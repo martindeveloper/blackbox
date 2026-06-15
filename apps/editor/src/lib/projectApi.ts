@@ -1,4 +1,4 @@
-import { Api } from "./api.js";
+import { Api, ProjectRoutes, projectApiUrl, projectMediaUrl } from "../../shared/apiPaths.js";
 import type { MediaFileEntry } from "./mediaLibrary.js";
 import type { LoadedBundle } from "./scenarioLoader.js";
 import type { TrashEntry } from "./trash.js";
@@ -61,7 +61,7 @@ export class ApiError extends Error {
 }
 
 function projectUrl(projectId: string, suffix = ""): string {
-  return `${Api.Projects}/${encodeURIComponent(projectId)}${suffix}`;
+  return projectApiUrl(projectId, suffix);
 }
 
 async function responseJson<T>(response: Response): Promise<T> {
@@ -98,7 +98,7 @@ export async function listProjects(): Promise<ProjectSummary[]> {
 }
 
 export async function registerProject(projectPath: string): Promise<ProjectSummary> {
-  const result = await postJson<{ project: ProjectSummary }>(`${Api.Projects}/register`, {
+  const result = await postJson<{ project: ProjectSummary }>(Api.ProjectsRegister, {
     path: projectPath,
   });
   return result.project;
@@ -115,37 +115,37 @@ export interface CreateProjectOptions {
 }
 
 export async function createProject(options: CreateProjectOptions): Promise<ProjectSummary> {
-  const result = await postJson<{ project: ProjectSummary }>(`${Api.Projects}/create`, options);
+  const result = await postJson<{ project: ProjectSummary }>(Api.ProjectsCreate, options);
   return result.project;
 }
 
 export async function deleteProject(projectId: string, confirmName: string): Promise<void> {
-  await postJson(projectUrl(projectId, "/delete"), { confirmName });
+  await postJson(projectUrl(projectId, ProjectRoutes.Delete), { confirmName });
 }
 
 export function openProject(
   projectId: string,
   acceptEditorVersion = false,
 ): Promise<ProjectSnapshot> {
-  return postJson(projectUrl(projectId, "/open"), { acceptEditorVersion });
+  return postJson(projectUrl(projectId, ProjectRoutes.Open), { acceptEditorVersion });
 }
 
 export async function setProjectCodeTrust(projectId: string, trusted: boolean): Promise<void> {
-  await postJson<{ trusted: boolean }>(projectUrl(projectId, "/trust-code"), {
+  await postJson<{ trusted: boolean }>(projectUrl(projectId, ProjectRoutes.TrustCode), {
     trusted,
   });
 }
 
 export async function bootstrapProjectCode(projectId: string): Promise<string[]> {
   const result = await postJson<{ created: string[] }>(
-    projectUrl(projectId, "/bootstrap-code"),
+    projectUrl(projectId, ProjectRoutes.BootstrapCode),
     {},
   );
   return result.created;
 }
 
 export async function revokeAllProjectCodeTrust(): Promise<number> {
-  const result = await postJson<{ revoked: number }>(`${Api.Projects}/revoke-code-trust`, {});
+  const result = await postJson<{ revoked: number }>(Api.ProjectsRevokeCodeTrust, {});
   return result.revoked;
 }
 
@@ -156,7 +156,7 @@ export async function saveDocuments(
   force = false,
 ): Promise<number> {
   const result = await responseJson<{ revision: number }>(
-    await fetch(projectUrl(projectId, "/documents"), {
+    await fetch(projectUrl(projectId, ProjectRoutes.Documents), {
       method: "PUT",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ baseRevision, documents, force, clientId: CLIENT_ID }),
@@ -176,12 +176,13 @@ export async function uploadMedia(
   form.set("targetDir", targetDir);
   form.set("clientId", CLIENT_ID);
   form.set("file", file);
-  return responseJson(await fetch(projectUrl(projectId, "/media"), { method: "POST", body: form }));
+  return responseJson(
+    await fetch(projectUrl(projectId, ProjectRoutes.Media), { method: "POST", body: form }),
+  );
 }
 
 export function mediaUrl(projectId: string, relativePath: string, revision: number): string {
-  const encoded = relativePath.split("/").map(encodeURIComponent).join("/");
-  return `${projectUrl(projectId, `/media/${encoded}`)}?revision=${revision}`;
+  return projectMediaUrl(projectId, relativePath, revision);
 }
 
 export function trashMedia(
@@ -189,7 +190,7 @@ export function trashMedia(
   baseRevision: number,
   relativePath: string,
 ): Promise<{ revision: number; mediaFiles: MediaFileEntry[]; trashItems: TrashEntry[] }> {
-  return postJson(projectUrl(projectId, "/media/trash"), {
+  return postJson(projectUrl(projectId, ProjectRoutes.MediaTrash), {
     baseRevision,
     relativePath,
     clientId: CLIENT_ID,
@@ -202,7 +203,7 @@ export function restoreTrash(
   entryId: string,
   overwrite: boolean,
 ): Promise<{ revision: number; mediaFiles: MediaFileEntry[]; trashItems: TrashEntry[] }> {
-  return postJson(projectUrl(projectId, "/trash/restore"), {
+  return postJson(projectUrl(projectId, ProjectRoutes.TrashRestore), {
     baseRevision,
     entryId,
     overwrite,
@@ -215,7 +216,7 @@ export function deleteTrash(
   baseRevision: number,
   entryId: string,
 ): Promise<{ revision: number; trashItems: TrashEntry[] }> {
-  return postJson(projectUrl(projectId, "/trash/delete"), {
+  return postJson(projectUrl(projectId, ProjectRoutes.TrashDelete), {
     baseRevision,
     entryId,
     clientId: CLIENT_ID,
@@ -226,7 +227,10 @@ export function emptyTrash(
   projectId: string,
   baseRevision: number,
 ): Promise<{ revision: number; trashItems: TrashEntry[] }> {
-  return postJson(projectUrl(projectId, "/trash/empty"), { baseRevision, clientId: CLIENT_ID });
+  return postJson(projectUrl(projectId, ProjectRoutes.TrashEmpty), {
+    baseRevision,
+    clientId: CLIENT_ID,
+  });
 }
 
 export function subscribeProject(
@@ -234,7 +238,7 @@ export function subscribeProject(
   onEvent: (event: ProjectEvent) => void,
   { includeOwnClient = false }: { includeOwnClient?: boolean } = {},
 ): () => void {
-  const events = new EventSource(projectUrl(projectId, "/events"));
+  const events = new EventSource(projectUrl(projectId, ProjectRoutes.Events));
   events.onmessage = (message) => {
     const event = JSON.parse(message.data) as ProjectEvent;
     if (includeOwnClient || event.clientId !== CLIENT_ID) onEvent(event);
@@ -242,4 +246,4 @@ export function subscribeProject(
   return () => events.close();
 }
 
-export const projectApiUrl = projectUrl;
+export { projectApiUrl } from "../../shared/apiPaths.js";
