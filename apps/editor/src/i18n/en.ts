@@ -430,7 +430,6 @@ export const en = {
       bundle: "bundle",
     },
     cargoSource: "cargo",
-    bundleSource: "bundle",
     optionsLabel: "Options",
     startedAt: "Started {{datetime}}",
     lastRunAt: "Last run {{datetime}}",

@@ -111,11 +111,6 @@ export function ToolsSidebar() {
                     {info?.source === "cargo" && (
                       <span className="tools-sidebar-source-tag">{t("tools.cargoSource")}</span>
                     )}
-                    {info?.source === "bundle" && (
-                      <span className="tools-sidebar-source-tag tools-sidebar-source-tag--bundle">
-                        {t("tools.bundleSource")}
-                      </span>
-                    )}
                   </span>
                   {unavailable ? (
                     <span className="tools-sidebar-desc tools-sidebar-desc--error">

@@ -54,7 +54,7 @@ function ToolBadge({ info, label, toolName, projectId, buildEnabled, onBuilt }: 
           <span className="tools-inspector-tool-error">{info.error ?? t("tools.unavailable")}</span>
         )}
         {info?.version && <span className="tools-inspector-tool-version">{info.version}</span>}
-        {info?.source && (
+        {info?.source && info.source !== "bundle" && (
           <span
             className={`tools-inspector-tool-source tools-inspector-tool-source--${info.source}`}
           >
