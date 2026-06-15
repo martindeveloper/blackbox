@@ -7,7 +7,7 @@ import { commandResult, appendOutput, parseLint, parseBundle, parseSimulator } f
 import { readUserPrefs, writeUserPrefs, sanitizePrefs } from "./prefs.js";
 import { ProjectError } from "./projectService.js";
 import { ToolRunRegistry } from "./toolRuns.js";
-import { ensurePreviewBuilt } from "./previewBuild.js";
+import { ensurePreviewBuilt } from "../players/web/previewBuild.mjs";
 import { ensureProjectSidecars, writeNewProject } from "./projectScaffold.js";
 
 function toolDiscoverySource(defaultBinName, binPath) {

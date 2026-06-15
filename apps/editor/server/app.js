@@ -18,7 +18,7 @@ import { setupLiveReload, staticFileHandler } from "./static.js";
 import { findDefaultDataRoot } from "./editorConfig.js";
 import { registerRoutes } from "./routes.js";
 import { ProjectService } from "./projectService.js";
-import { ensurePreviewBuilt } from "./previewBuild.js";
+import { ensurePreviewBuilt } from "../players/web/previewBuild.mjs";
 
 export async function reservePort(preferred = PORT) {
   const tryPort = (port) =>

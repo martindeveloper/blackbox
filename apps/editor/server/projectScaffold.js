@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import { existsSync } from "node:fs";
 import path from "node:path";
-import { PREVIEW_WEB_ROOT } from "./config.js";
+import { WEB_PLAYER_WORKSPACE } from "./config.js";
 import { collectIdeGitignoreEntries, ensureIdeProjectSettings } from "./idePlugins/index.js";
 import {
   exampleCharactersDoc,
@@ -210,10 +210,10 @@ async function ensureDevGitignore(projectPath) {
 
 /**
  * Generate machine-local IDE files that point at the engine SDK shipped with
- * the editor. `PREVIEW_WEB_ROOT` is apps/web in development and the bundled
- * preview-workspace in packaged builds, including Windows MSIX installs.
+ * the editor. `WEB_PLAYER_WORKSPACE` is apps/web in development and the bundled
+ * players/web/workspace in packaged builds, including Windows MSIX installs.
  */
-export async function ensureProjectIdeSetup(projectPath, sdkRoot = PREVIEW_WEB_ROOT) {
+export async function ensureProjectIdeSetup(projectPath, sdkRoot = WEB_PLAYER_WORKSPACE) {
   try {
     const sdkTsconfig = path.join(sdkRoot, "tsconfig.game.json");
     if (!existsSync(sdkTsconfig)) return false;

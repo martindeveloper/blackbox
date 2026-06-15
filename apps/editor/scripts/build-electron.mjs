@@ -30,10 +30,9 @@ if (skipTools) {
   await run("node", ["./scripts/ensure-tools.mjs", "--force"]);
 }
 
-// Stage the self-contained preview workspace into resources/ so on-demand
-// preview builds work in the packaged app (electron-builder copies it via
-// extraResources).
-await run("node", ["./scripts/stage-preview-workspace.mjs"]);
+// Stage the web player workspace into resources/ so on-demand preview builds work
+// in the packaged app (electron-builder copies it via extraResources).
+await run("node", ["./players/web/stage.mjs"]);
 await run("node", ["./scripts/stage-shared-lib.mjs"]);
 
 console.log("Electron build inputs are ready. Run: npm run electron:dist");

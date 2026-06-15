@@ -8,15 +8,19 @@ import {
   writeFileSync,
 } from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import {
+  devEngineRoot,
+  EDITOR_ROOT,
+  PROTOCOL_PATH,
+  REPO_ROOT,
+  STAGED_WORKSPACE_DIR,
+} from "./manifest.mjs";
 
 // Stage a self-contained workspace the packaged editor builds previews FROM:
 // web engine sources + rolldown/tailwind toolchain + a curated node_modules.
-const EDITOR_ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const REPO_ROOT = path.resolve(EDITOR_ROOT, "../..");
-const WEB_ROOT = path.join(REPO_ROOT, "apps", "web");
+const WEB_ROOT = devEngineRoot();
 const SRC_NM = path.join(WEB_ROOT, "node_modules");
-const OUT = path.join(EDITOR_ROOT, "resources", "preview-workspace");
+const OUT = STAGED_WORKSPACE_DIR;
 // electron-builder strips top-level node_modules from extraResources; nest under pkg/.
 const OUT_PKG = path.join(OUT, "pkg");
 const OUT_NM = path.join(OUT_PKG, "node_modules");
@@ -71,7 +75,7 @@ function copyPackage(name) {
   cpSync(from, to, { recursive: true, dereference: true });
 }
 
-console.log("==> preview workspace: staging engine sources…");
+console.log("==> web player: staging engine workspace…");
 rmSync(OUT, { recursive: true, force: true });
 mkdirSync(OUT, { recursive: true });
 
@@ -101,25 +105,22 @@ gamePaths["@wasm-module"] = ["./shared/blackbox_wasm.d.ts"];
 writeFileSync(path.join(OUT, "tsconfig.game.json"), `${JSON.stringify(gameTsconfig, null, 2)}\n`);
 
 mkdirSync(path.join(OUT, "shared"), { recursive: true });
-cpSync(
-  path.join(EDITOR_ROOT, "shared", "previewProtocol.ts"),
-  path.join(OUT, "shared", "previewProtocol.ts"),
-);
+cpSync(PROTOCOL_PATH, path.join(OUT, "shared", "previewProtocol.ts"));
 cpSync(
   path.join(REPO_ROOT, ".cache", "wasm", "editor-preview", "blackbox_wasm.d.ts"),
   path.join(OUT, "shared", "blackbox_wasm.d.ts"),
 );
 writeFileSync(
   path.join(OUT, "package.json"),
-  `${JSON.stringify({ name: "blackbox-preview-workspace", private: true, type: "module" }, null, 2)}\n`,
+  `${JSON.stringify({ name: "blackbox-web-player-workspace", private: true, type: "module" }, null, 2)}\n`,
 );
 mkdirSync(OUT_PKG, { recursive: true });
 writeFileSync(
   path.join(OUT_PKG, "package.json"),
-  `${JSON.stringify({ name: "blackbox-preview-workspace-deps", private: true, type: "module" }, null, 2)}\n`,
+  `${JSON.stringify({ name: "blackbox-web-player-workspace-deps", private: true, type: "module" }, null, 2)}\n`,
 );
 
-console.log("==> preview workspace: resolving dependency closure…");
+console.log("==> web player: resolving dependency closure…");
 const seen = new Set();
 for (const root of ROOTS) collect(root, seen);
 for (const [scope, pattern] of NATIVE_GLOBS) {
@@ -130,7 +131,7 @@ for (const [scope, pattern] of NATIVE_GLOBS) {
   }
 }
 
-console.log(`==> preview workspace: copying ${seen.size} packages…`);
+console.log(`==> web player: copying ${seen.size} packages…`);
 for (const name of seen) copyPackage(name);
 
-console.log(`==> preview workspace: staged to ${OUT}`);
+console.log(`==> web player: staged workspace to ${OUT}`);

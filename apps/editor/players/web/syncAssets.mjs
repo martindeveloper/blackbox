@@ -1,22 +1,20 @@
 import { copyFileSync, mkdirSync } from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
-import { runSync } from "../../../scripts/lib/spawn.mjs";
+import { runSync } from "../../../../scripts/lib/spawn.mjs";
+import { devEngineRoot, EDITOR_ROOT, REPO_ROOT } from "./manifest.mjs";
 
-// Preview JS/CSS are compiled on demand at runtime (server/previewBuild.js), per
+// Preview JS/CSS are compiled on demand at runtime (players/web/previewBuild.mjs), per
 // the opened project's game. This step only ships the game-agnostic pieces: the
 // prebuilt WASM engine and the HTML template (its __GAME__ asset paths are
 // filled in per request by the /preview route).
-const EDITOR_ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const REPO_ROOT = path.resolve(EDITOR_ROOT, "../..");
-const WEB_ROOT = path.join(REPO_ROOT, "apps", "web");
+const WEB_ROOT = devEngineRoot();
 const WASM_PKG = path.join(REPO_ROOT, ".cache", "wasm", "editor-preview");
 
 const DIST = path.join(EDITOR_ROOT, "dist");
 const PREVIEW_DIST = path.join(DIST, "preview");
 const PKG_DIST = path.join(DIST, "pkg");
 
-console.log("==> preview: building WASM engine…");
+console.log("==> web player: building WASM engine…");
 runSync("node", ["./scripts/build-wasm.mjs", "--profile", "dev", "--preview"], { cwd: WEB_ROOT });
 
 mkdirSync(PREVIEW_DIST, { recursive: true });
@@ -27,4 +25,4 @@ for (const name of ["blackbox_wasm.js", "blackbox_wasm_bg.wasm"]) {
   copyFileSync(path.join(WASM_PKG, name), path.join(PKG_DIST, name));
 }
 
-console.log(`==> preview: synced WASM + template to ${PREVIEW_DIST}`);
+console.log(`==> web player: synced WASM + template to ${PREVIEW_DIST}`);

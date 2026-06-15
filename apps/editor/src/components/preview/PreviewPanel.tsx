@@ -11,7 +11,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { isPreviewPlayerMessage, postPreviewHostMessage } from "../../../shared/previewProtocol.js";
+import { isPreviewPlayerMessage, postPreviewHostMessage } from "../../../players/web/protocol.js";
 import { useScenarioStore } from "../../store/useScenarioStore.js";
 import { usePreviewStore, type PreviewCommandSender } from "../../store/usePreviewStore.js";
 import { notifyError, notifySuccess } from "../../lib/notifyApi.js";

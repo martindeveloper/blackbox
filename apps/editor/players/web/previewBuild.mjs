@@ -3,7 +3,7 @@ import fs from "node:fs/promises";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { PREVIEW_BUILD_CACHE, PREVIEW_CACHE, PREVIEW_WEB_ROOT } from "./config.js";
+import { PREVIEW_BUILD_CACHE, PREVIEW_CACHE, WEB_PLAYER_WORKSPACE } from "../../server/config.js";
 import {
   BUILD_GAME_CSS_PATH,
   DEFAULT_PREVIEW_GAME,
@@ -11,7 +11,8 @@ import {
   createWebRolldownResolve,
   projectHasCustomCode,
   resolvePreviewGameSrc,
-} from "./sharedLib.mjs";
+} from "../../server/sharedLib.mjs";
+import { PROTOCOL_PATH } from "./manifest.mjs";
 
 // Engine + built-in shell sources whose mtimes invalidate a cached preview bundle.
 const SHARED_SRC = ["src/engine", "src/preview", "src/shells"];
@@ -31,7 +32,7 @@ async function pathExists(target) {
 async function resolvePreviewProtocol(web) {
   const staged = path.join(web, "shared", "previewProtocol.ts");
   if (await pathExists(staged)) return staged;
-  return path.join(web, "..", "editor", "shared", "previewProtocol.ts");
+  return PROTOCOL_PATH;
 }
 
 async function maxMtimeMs(roots) {
@@ -132,7 +133,7 @@ async function buildGame(web, uiKey, gameSrc, force) {
  * Untrusted and UI-less projects share the generic editor-preview shell.
  */
 export async function ensurePreviewBuilt(project, { force = false } = {}) {
-  const web = PREVIEW_WEB_ROOT;
+  const web = WEB_PLAYER_WORKSPACE;
   const useCustomCode = project?.codeTrusted === true && projectHasCustomCode(project.path);
   const uiKey = useCustomCode ? project.id : DEFAULT_PREVIEW_GAME;
   const projectPath = useCustomCode ? project.path : null;

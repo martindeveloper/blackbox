@@ -7,7 +7,7 @@ import {
   type PreviewProfilerEvent,
   type PreviewRuntimeState,
   type PreviewStorageState,
-} from "../../shared/previewProtocol.js";
+} from "../../players/web/protocol.js";
 
 export type PreviewCommandSender = (command: PreviewHostCommand) => void;
 

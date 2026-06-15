@@ -35,7 +35,7 @@ test("ensureProjectIdeSetup generates IDE files against the editor SDK", async (
     assert.equal(await ensureProjectIdeSetup(game, path.join(root, "missing-sdk")), false);
     await assert.rejects(fs.access(path.join(game, "tsconfig.json")));
 
-    // SDK present (apps/web in dev, bundled preview-workspace when packaged).
+    // SDK present (apps/web in dev, bundled players/web/workspace when packaged).
     const sdkRoot = path.join(root, "sdk");
     const sdkTsconfig = path.join(sdkRoot, "tsconfig.game.json");
     const typescriptLib = path.join(sdkRoot, "pkg", "node_modules", "typescript", "lib");

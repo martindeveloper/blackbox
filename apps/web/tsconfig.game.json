@@ -13,7 +13,7 @@
       "@content-source": ["./src/engine/lib/bundleSource.ts"],
       "@preview-mode": ["./src/engine/lib/previewMode.stub.ts"],
       "@preview-reporter": ["./src/preview/PreviewReporter.stub.tsx"],
-      "@preview-protocol": ["../editor/shared/previewProtocol.ts"]
+      "@preview-protocol": ["../editor/players/web/protocol.ts"]
     }
   }
 }

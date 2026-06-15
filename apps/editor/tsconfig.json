@@ -19,6 +19,7 @@
     "src/**/*.d.ts",
     "shared/**/*.ts",
     "shared/**/*.d.ts",
+    "players/**/*.ts",
     "rolldown.config.ts"
   ]
 }

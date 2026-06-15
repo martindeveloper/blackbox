@@ -3,6 +3,7 @@ dist/
 release/
 resources/bin/
 resources/preview-workspace/
+resources/players/*/workspace/
 resources/icon.png
 resources/appx/
 shared/lib/
