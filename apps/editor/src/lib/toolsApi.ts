@@ -121,7 +121,6 @@ export interface SimLogEntry {
   message: string;
 }
 
-/** Minimal JSON emitted when the simulator exits before building a full report. */
 export interface ParsedSimulatorFailureOutput {
   kind: "simulator";
   ok?: false;

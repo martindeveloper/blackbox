@@ -21,10 +21,6 @@ async function ensureDevGitignore(projectPath) {
   return true;
 }
 
-/**
- * Generate machine-local IDE files that point at the web engine SDK shipped with
- * the editor. `sdkRootOverride` supports tests; production uses the active workspace.
- */
 export async function ensureWebProjectIdeSetup(projectPath, sdkRootOverride) {
   try {
     const sdkRoot = sdkRootOverride ?? resolveWorkspaceRoot(process.env, CLIENT_ROOT);

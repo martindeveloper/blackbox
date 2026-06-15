@@ -339,7 +339,11 @@ export function applyDagreLayout(
     if (!nodeIds.has(edge.target)) continue;
     const sourceDepth = depthByNode.get(edge.source);
     const targetDepth = depthByNode.get(edge.target);
-    if (sourceDepth !== undefined && targetDepth !== undefined && sourceDepth >= targetDepth) {
+    // Drop only strict back-edges (loops to a shallower ancestor) so we don't
+    // create rank cycles. Keep forward same-depth edges (e.g. a node feeding its
+    // row-neighbour) so dagre's longest-path ranking pushes the target down a
+    // rank instead of leaving them side-by-side with the edge looping sideways.
+    if (sourceDepth !== undefined && targetDepth !== undefined && sourceDepth > targetDepth) {
       continue;
     }
     g.setEdge(edge.source, edge.target);
@@ -371,7 +375,6 @@ export function applyDagreLayout(
     const slots = row.map((id) => positions[id]!.x).sort((a, b) => a - b);
     const sortKey = (id: string): [number, number] => {
       const info = parentByNode.get(id);
-      // Parent sits in an earlier (higher) row already re-slotted above.
       const parentX = info ? (positions[info.parent]?.x ?? positions[id]!.x) : positions[id]!.x;
       return [parentX, info?.port ?? 0];
     };

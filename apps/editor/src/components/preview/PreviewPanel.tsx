@@ -155,7 +155,6 @@ export function PreviewPanel() {
         const query = force ? "?force=1" : "";
         await fetch(`/api/v1/projects/${encodeURIComponent(projectId)}/preview-build${query}`);
       } catch {
-        // The iframe's own /preview request still surfaces build errors.
       } finally {
         setBuilding(false);
         if (force) setReloadKey((key) => key + 1);

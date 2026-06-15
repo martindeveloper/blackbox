@@ -296,11 +296,12 @@ test("create route produces an openable project", async () => {
     assert.equal(created.statusCode, 200);
     const { project } = created.json();
     assert.ok(project.id);
+    assert.equal(project.codeTrusted, false);
     assert.deepEqual(
       JSON.parse(await fs.readFile(path.join(projectsRoot, "fresh", PROJECT_CONFIG_PATH), "utf8")),
       { id: project.id, editorVersion: EDITOR_VERSION },
     );
-    service.setProjectCodeTrust(project.id, false);
+    assert.equal(project.codeTrusted, false);
 
     const opened = await app.inject({
       method: "POST",
@@ -344,7 +345,7 @@ test("create route with withExample scaffolds an openable two-chapter tour", asy
     });
     assert.equal(created.statusCode, 200);
     const { project } = created.json();
-    service.setProjectCodeTrust(project.id, false);
+    assert.equal(project.codeTrusted, false);
 
     const opened = await app.inject({
       method: "POST",
@@ -391,6 +392,7 @@ test("create route with withCode scaffolds starter code and trusts it", async ()
     });
     assert.equal(created.statusCode, 200);
     const { project } = created.json();
+    assert.equal(project.codeTrusted, true);
 
     // Starter src/ exists on disk...
     await fs.access(path.join(projectsRoot, "coded", "src", "game.ts"));

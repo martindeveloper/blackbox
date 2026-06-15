@@ -1,15 +1,3 @@
-/* Engine UI token contract.
- *
- * Engine components (engine/ui/*, engine/boot.tsx) never use literal colors —
- * only these --bb-* variables. The values below are neutral, unthemed
- * fallbacks so engine UI stays legible without a game theme.
- *
- * Each game customizes engine UI in two ways:
- *  1. Override these tokens in its theme (e.g. `--bb-ui-accent: var(--color-accent)`).
- *  2. Style the structural classes engine components render (modal-*, mm-*,
- *     choice-item, sys-btn, dev-console*) in its own stylesheets — each build
- *     bundles exactly one game's CSS.
- */
 :root {
   --bb-ui-accent: #8a8a8a;
   --bb-ui-info: #7f9aa6;

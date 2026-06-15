@@ -102,8 +102,6 @@ export interface TextBlock {
   speaker?: string;
   emotion?: string;
   side?: DialogueSide;
-  /** Character ID of the actor whose presence gates this block. Compiles to `actorPresent { characterId }`.
-   *  Must reference a character defined in `characters.json`. */
   actor?: string;
 }
 

@@ -38,15 +38,9 @@ export interface CharacterView {
   portrait?: TextureCue;
   voiceRef?: string;
   color?: string;
-  /**
-   * Every relationship metric the character declares, with its current value,
-   * ordered by key. Includes the cold/clinical metrics (submission, suspicion,
-   * mercy, guilt, ...), not just affinity/trust.
-   */
   metrics: RelationshipMetricView[];
 }
 
-/** Characters with live relationship scores who are not speaking on this node. */
 export interface RelationshipCharacterView {
   ref_id: string;
   name: string;
@@ -227,7 +221,6 @@ export interface CommandResult {
   error?: EngineError;
   selected_sfx?: SfxCue;
   triggered_sfx?: SfxCue;
-  /** Absent from JSON when empty (Rust skips serializing empty vecs). */
   rolls?: RollRecord[];
   examine?: ItemExamineView;
   chapter_changed?: boolean;

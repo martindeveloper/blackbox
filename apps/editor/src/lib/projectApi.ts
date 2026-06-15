@@ -110,9 +110,7 @@ export interface CreateProjectOptions {
   title: string;
   firstChapterId: string;
   firstChapterTitle: string;
-  /** Scaffold a custom-code starter into src/ and trust it (developer projects). */
   withCode?: boolean;
-  /** Scaffold a two-chapter guided example that demonstrates the data model. */
   withExample?: boolean;
 }
 

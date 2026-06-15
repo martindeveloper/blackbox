@@ -10,8 +10,6 @@ import {
 import path from "node:path";
 import { devEngineRoot, PROTOCOL_PATH, REPO_ROOT, STAGED_WORKSPACE_DIR } from "./manifest.mjs";
 
-// Stage a self-contained workspace the packaged editor builds previews FROM:
-// web engine sources + rolldown/tailwind toolchain + a curated node_modules.
 const ROOTS = [
   "rolldown",
   "@tailwindcss/cli",
@@ -23,8 +21,6 @@ const ROOTS = [
   "react-i18next",
   "fzstd",
   "typescript",
-  // Type-only deps: not needed to build a preview, but they let a developer's IDE
-  // resolve React types against the bundled SDK without a monorepo or npm install.
   "@types/react",
   "@types/react-dom",
 ];

@@ -6,7 +6,6 @@ export interface ConfirmModalOptions {
   confirmLabel?: string;
   cancelLabel?: string;
   variant?: ModalVariant;
-  /** When true, closing via X, Escape, or backdrop dismisses without choosing cancel. */
   closeAborts?: boolean;
 }
 

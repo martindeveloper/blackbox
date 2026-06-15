@@ -573,7 +573,6 @@ export function serializeEngineState(engine: BlackboxEngine): string {
   return withEngine(engine, "serializeState", () => engine.serialize_state());
 }
 
-/** Parsed engine save snapshot for inspection (not for restore). */
 export function snapshotEngineState(engine: BlackboxEngine): PreviewEngineSnapshot {
   return JSON.parse(serializeEngineState(engine)) as PreviewEngineSnapshot;
 }
@@ -593,7 +592,6 @@ export function isValidAutosaveJson(json: string): boolean {
   }
 }
 
-/** Fresh engine instance + autosave restore (use after WASM/runtime failure). */
 export async function rebuildEngineFromAutosave(
   bundle: ScenarioBundle,
   autosaveJson: string,
@@ -618,7 +616,6 @@ export function isWasmRuntimeFailure(error: unknown): boolean {
   return /memory access out of bounds|unreachable|panicked|crashed/i.test(msg);
 }
 
-/** UI offered this choice but the engine rejected it (stale view or desync). */
 export function isOfferedChoiceRejected(
   view: GameView,
   command: PlayerCommand,

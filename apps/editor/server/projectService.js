@@ -544,6 +544,21 @@ export class ProjectService {
     return { created };
   }
 
+  /**
+   * New projects created in the wizard are authored locally. Skip the trust
+   * prompt on first open: trust scaffolded custom code, otherwise mark safe.
+   */
+  async finalizeAuthorCreatedProjectTrust(id, { withCode = false } = {}) {
+    if (withCode) {
+      await this.bootstrapProjectCode(id);
+      return;
+    }
+    const project = this.requireProject(id);
+    if (project.codeTrusted === null) {
+      await this.setProjectCodeTrust(id, false);
+    }
+  }
+
   revokeAllProjectCodeTrust() {
     for (const project of this.projects.values()) project.codeTrusted = null;
     const result = this.db

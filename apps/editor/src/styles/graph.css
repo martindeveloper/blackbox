@@ -89,7 +89,6 @@
   border: 1px solid color-mix(in srgb, var(--editor-danger) 28%, transparent);
 }
 
-/* Graph analytics overlay — `--insight` (0–1) is set per node by the active lens. */
 .graph-node--analytics {
   --insight: 0;
   --insight-color: #ff5a3c;

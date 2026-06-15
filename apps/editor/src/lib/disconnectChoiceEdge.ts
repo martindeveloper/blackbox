@@ -60,7 +60,6 @@ function disconnectItemActionEdge(items: ItemCatalog, actionId: string): boolean
   return false;
 }
 
-/** Remove the graph edge's backing choice route from chapter/item data. */
 export function disconnectChoiceEdgeInBundle(
   chapter: Chapter,
   items: ItemCatalog,

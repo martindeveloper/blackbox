@@ -1,12 +1,5 @@
 import type { LoadedBundle } from "./scenarioLoader.js";
 
-/**
- * Compares two bundle snapshots and returns the set of dirty document keys that
- * differ between them. The key format matches {@link collectDirtyDocuments}, so
- * the result can be fed straight into the store's `dirty` set: after an undo or
- * redo swaps the bundle, every document whose content actually changed gets
- * re-marked for saving — even if it had already been flushed to disk.
- */
 export function diffDirtyKeys(a: LoadedBundle, b: LoadedBundle): string[] {
   const keys: string[] = [];
   const differs = (left: unknown, right: unknown) => JSON.stringify(left) !== JSON.stringify(right);

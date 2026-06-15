@@ -1,9 +1,5 @@
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-/**
- * Editor ↔ player integration registry. Server-side source of truth for registered
- * players and capabilities. Client UI discovers players via `src/lib/playersApi.ts`.
- */
 import { manifest as webManifest, PLAYER_ID as WEB_PLAYER_ID } from "./web/manifest.mjs";
 import { configureWebRuntime } from "./web/runtime.mjs";
 import { ensurePreviewBuilt } from "./web/previewBuild.mjs";

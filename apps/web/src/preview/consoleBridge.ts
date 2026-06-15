@@ -37,10 +37,6 @@ function serializeArg(value: unknown): string {
 
 const FORMAT_SPECIFIER = /%[acdfioOjs%]/;
 
-// Apply printf-style console substitutions like the browser does: `%c` consumes a
-// CSS style arg and emits nothing (styling is dropped — the editor styles by
-// level), `%s/%d/%i/%f/%o/%O/%j` consume and stringify an arg, `%%` is a literal.
-// Args not consumed by a specifier are appended, space-separated.
 function applyFormat(fmt: string, args: unknown[]): string {
   const regex = /%([acdfioOjs%])/g;
   let out = "";
@@ -54,9 +50,9 @@ function applyFormat(fmt: string, args: unknown[]): string {
     if (spec === "%") {
       out += "%";
     } else if (spec === "c") {
-      next += 1; // consume the style arg, emit nothing
+      next += 1;
     } else if (next >= args.length) {
-      out += match[0]; // no arg to fill — leave the specifier literal
+      out += match[0];
     } else {
       const arg = args[next++];
       if (spec === "s") {
@@ -68,7 +64,7 @@ function applyFormat(fmt: string, args: unknown[]): string {
         const num = Number(arg);
         out += Number.isNaN(num) ? "NaN" : String(num);
       } else {
-        out += serializeArg(arg); // %o %O %j
+        out += serializeArg(arg);
       }
     }
   }
@@ -94,11 +90,6 @@ function firstStack(args: unknown[]): string | undefined {
   return undefined;
 }
 
-/**
- * Mirror the preview iframe's console and uncaught errors to the editor host.
- * Keeps a ring buffer so a late-connecting host can replay history via
- * `request-state`. The original console output is preserved.
- */
 export function installPreviewConsoleBridge(history: PreviewConsoleEntry[]): void {
   const record = (level: PreviewConsoleLevel, text: string, stack?: string) => {
     const entry: PreviewConsoleEntry = { id: nextId++, at: Date.now(), level, text, stack };
@@ -115,9 +106,7 @@ export function installPreviewConsoleBridge(history: PreviewConsoleEntry[]): voi
       original?.(...args);
       try {
         record(level, formatArgs(args), firstStack(args));
-      } catch {
-        // Never let mirroring break the game.
-      }
+      } catch {}
     };
   }
 

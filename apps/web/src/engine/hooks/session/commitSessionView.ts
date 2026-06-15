@@ -12,9 +12,7 @@ export interface CommitSessionViewParams {
   setResolutionEpoch: Dispatch<SetStateAction<number>>;
   setSession: Dispatch<SetStateAction<SessionPhase>>;
   setNotifications: Dispatch<SetStateAction<UiNotification[]>>;
-  /** Dev console always animates; command results only when rolls or notifications exist. */
   alwaysAnimatePresentation: boolean;
-  /** Command results merge prior notifications unless the node changed; dev console replaces. */
   mergeNotifications: boolean;
   rolls?: RollRecord[];
 }

@@ -14,10 +14,8 @@ import {
 } from "../../server/sharedLib.mjs";
 import { PROTOCOL_PATH, resolveWorkspaceRoot } from "./manifest.mjs";
 
-// Engine + built-in shell sources whose mtimes invalidate a cached preview bundle.
 const SHARED_SRC = ["src/engine", "src/preview", "src/shells"];
 
-// Coalesce concurrent builds of the same UI key into one in-flight promise.
 const inFlight = new Map();
 
 async function pathExists(target) {
@@ -128,10 +126,6 @@ async function buildGame(web, uiKey, gameSrc, force) {
   return { game: uiKey, cached: false, durationMs: Date.now() - started };
 }
 
-/**
- * Compile trusted project UI into PREVIEW_CACHE/<project-id>.
- * Untrusted and UI-less projects share the generic editor-preview shell.
- */
 export async function ensurePreviewBuilt(project, { force = false } = {}) {
   const web = resolveWorkspaceRoot(process.env, CLIENT_ROOT);
   const useCustomCode = project?.codeTrusted === true && projectHasCustomCode(project.path);

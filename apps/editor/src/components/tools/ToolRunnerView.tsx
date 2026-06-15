@@ -261,7 +261,6 @@ export function ToolRunnerView({ toolId, title, icon, commandLabel }: ToolRunner
         }
       })
       .catch(() => {
-        // Persisting failed (e.g. read-only project) — keep the heat map usable in-memory.
         if (!cancelled) {
           setSnapshot(
             projectId,

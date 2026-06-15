@@ -1,42 +1,3 @@
-/**
- * Web Audio graph:
- *   destination ← masterGain ← [channel gains] ← [track gains] ← BufferSources (music)
- *                             ← sfxBus          ← [sfx gains]   ← BufferSources (sfx)
- *
- * iOS Safari survival rules baked into this engine — do not "simplify" these away:
- *
- * 1. Everything plays through AudioBufferSourceNode. HTMLAudioElement routed via
- *    createMediaElementSource() goes PERMANENTLY silent after an iOS audio-session
- *    interruption (WebKit #260412) and can never be re-attached to a new context,
- *    which forced a full page reload to recover.
- *
- * 2. The AudioContext is disposable. iOS can wedge a context in the "interrupted"
- *    state where resume() resolves but the state never changes (WebAudio #2585).
- *    The only reliable recovery is closing it and rebuilding the whole graph inside
- *    a user gesture — possible because AudioBuffers are context-independent and all
- *    playback intent lives in plain JS state (see Track/Channel), so `_syncPlayback`
- *    can re-render the desired audio state onto any fresh context.
- *
- * 3. On hide we stop sources and ctx.suspend() ourselves. A self-suspended context
- *    resumes far more reliably than one iOS force-interrupts, and stopping sources
- *    before the session teardown prevents the looping-buffer glitch (the loud "beep"
- *    heard when minimizing mid-playback).
- *
- * 4. A statechange watchdog catches out-of-band interruptions (phone call, Siri,
- *    alarm, the iOS 18.x spontaneous re-lock): it freezes playback positions and
- *    notifies the UI so the next tap can recover via the gesture path.
- *
- * 5. The reported context state is never trusted as a health signal. After a
- *    background cycle iOS can report "running" while the output session is dead
- *    (confirmed in field logs). Health = currentTime actually advancing, and on
- *    iOS the first gesture after any suspect period (`_recoveryPending`) rebuilds
- *    the context unconditionally.
- *
- * 6. audioSession.type is "playback", not "ambient" — ambient re-subjects Web
- *    Audio to the ring/silent switch and undoes the silent-WAV session upgrade,
- *    making the game mute on most real devices after an interruption.
- */
-
 import { fetchAudioBytes } from "@content-source";
 import { logger } from "./logger.js";
 import { clampVolume } from "./math.js";
@@ -93,7 +54,6 @@ const MUSIC_CACHE_MAX = 3;
 const SILENT_WAV =
   "data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQIAAAAAAA==";
 
-// Equal-power fade curves eliminate the -3 dB loudness dip of linear crossfades.
 function _fadeOutCurve(fromGain: number): Float32Array {
   const c = new Float32Array(FADE_CURVE_STEPS);
   for (let i = 0; i < FADE_CURVE_STEPS; i++) {
@@ -256,11 +216,6 @@ export class AudioEngine {
     }
   }
 
-  /**
-   * The reported state can claim "running" while the render clock is stalled.
-   * Treat the context as healthy only when currentTime actually advances.
-   * Gives a pending resume() a settle window before probing.
-   */
   private async _verifyProgress(): Promise<boolean> {
     const ctx = this._ctx;
     if (!ctx) return false;
@@ -292,8 +247,6 @@ export class AudioEngine {
       if (!this._isRunning()) {
         this._ctx?.resume().catch(() => {});
       }
-      // Start sources optimistically so music resumes with no audible gap, then
-      // verify the clock actually moves.
       this._syncPlayback();
       if (await this._verifyProgress()) {
         this._recoveryPending = false;
@@ -419,7 +372,6 @@ export class AudioEngine {
         if (this._isRunning()) {
           this._startTrack(ch, track);
         }
-        // Otherwise _syncPlayback starts it once the context is running again.
       })
       .catch(() => {
         if (ch.active === track) ch.active = null;
@@ -505,7 +457,6 @@ export class AudioEngine {
     track.startOffset = offset;
 
     source.onended = () => {
-      // Stale if the track was halted/stopped (source swapped or nulled first).
       if (track.source !== source) return;
       track.source = null;
       track.startCtxTime = null;
@@ -570,9 +521,6 @@ export class AudioEngine {
 
   private _syncPlayback(): void {
     if (!this._isRunning()) return;
-    // Undo the background gain-zero (see suspendForBackground). Reapplying the honest
-    // master target here means every resume path restores audibility uniformly, while
-    // a rebuild gets the correct value from a fresh masterGain in _getCtx.
     if (this._masterGain && this._ctx) {
       const target = this._masterMuted ? 0 : this._masterVol;
       this._masterGain.gain.cancelScheduledValues(this._ctx.currentTime);
@@ -607,16 +555,6 @@ export class AudioEngine {
     }
   }
 
-  /**
-   * Re-arm playback after returning to the foreground. Returns true when a user
-   * gesture is still required before audio will be audible (the context could not
-   * be revived outside a gesture — common on iOS).
-   *
-   * Note: on iOS `_recoveryPending` deliberately stays set even when this
-   * succeeds — the clock can advance while the output session is still dead, so
-   * the next user gesture performs a full rebuild regardless (seamless for the
-   * user: music restarts at the captured offset).
-   */
   async resumeFromBackground(): Promise<boolean> {
     if (!this._ctx || this._destroyed) return false;
     logger.debug("audio", "Resuming from background", { state: this._state() });
@@ -765,10 +703,6 @@ export class AudioEngine {
     return removed;
   }
 
-  /**
-   * Decode bundle bytes into a context-independent AudioBuffer. Retries once with
-   * the current context — the original may have been rebuilt mid-decode.
-   */
   private async _decode(src: string, kind: "music" | "sfx"): Promise<AudioBuffer> {
     const bytes = await fetchAudioBytes(src);
     if (!bytes) {
@@ -802,8 +736,6 @@ export class AudioEngine {
     const promise = this._decode(src, "music")
       .then((decoded) => {
         this._musicCache.set(src, decoded);
-        // Evicted buffers stay alive while a Track references them; the cache
-        // only bounds how much decoded PCM we keep for instant replays.
         while (this._musicCache.size > MUSIC_CACHE_MAX) {
           const oldest = this._musicCache.keys().next().value;
           if (oldest === undefined) break;

@@ -92,7 +92,7 @@ export function exampleIntroChapterDoc({ id, title, secondChapterId }) {
           {
             id: "take",
             label: "Take the keycard.",
-            effects: [{ type: "addItem", itemId: "keycard" }],
+            effects: [{ type: "addItem", itemId: "keycard", count: 1 }],
             goto: n("door"),
           },
           { id: "leave", label: "Leave it and go to the door.", goto: n("door") },

@@ -35,7 +35,6 @@ const indexRoute = createRoute({
   beforeLoad: () => {
     const state = useScenarioStore.getState();
     if (state.bundle && state.projectId) {
-      // params/search typed as `never` due to same-file router circular inference; correct at runtime
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       throw redirect({
         to: Page.EditorDashboard,

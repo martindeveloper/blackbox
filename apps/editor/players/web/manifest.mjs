@@ -18,7 +18,6 @@ export const manifest = {
   },
 };
 
-/** Staged workspace copied into the Electron package via extraResources. */
 export const STAGED_WORKSPACE_DIR = path.join(
   EDITOR_ROOT,
   "resources",
@@ -27,7 +26,6 @@ export const STAGED_WORKSPACE_DIR = path.join(
   "workspace",
 );
 
-/** Relative path under `process.resourcesPath` in packaged builds. */
 export const PACKAGED_WORKSPACE_REL = path.join("players", "web", "workspace");
 
 export const PROTOCOL_PATH = path.join(MANIFEST_DIR, "protocol.ts");

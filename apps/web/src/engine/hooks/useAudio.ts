@@ -64,14 +64,11 @@ export function useAudio<FadeKind extends string>(
     getSharedEngine(config.defaultSfx).isBlocked(),
   );
 
-  // Always-current ref so the unlock callback (captured once) can replay whatever is active.
   const musicRef = useRef(music);
   useEffect(() => {
     musicRef.current = music;
   });
 
-  // Holds the live recovery routine so toggleMute's "enable audio" tap can run the
-  // exact same robust path instead of a divergent (and previously buggy) copy.
   const runUnlockRef = useRef<() => void>(() => {});
 
   useEffect(() => {
@@ -81,8 +78,6 @@ export function useAudio<FadeKind extends string>(
 
     const replayMusicIfStopped = () => {
       const m = musicRef.current;
-      // ensureRunning already re-rendered any existing track onto the context; only
-      // (re)create one when the channel has no live playback intent.
       if (!m || engine.hasPlayingTrack(MUSIC_CHANNEL)) return;
       const loopDelayMs = m.loop ? config.musicLoopDelayMs : 0;
       const { fadeIn } = config.resolveMusicFade(undefined, false);
@@ -156,13 +151,7 @@ export function useAudio<FadeKind extends string>(
       resumeInFlight = true;
       engine.resumeFromBackground().then((gestureRequired) => {
         resumeInFlight = false;
-        // Drive the icon from the honest signal only — never force "enable audio"
-        // while audio is actually playing (that was the muted-icon-but-sound desync).
         setAudioBlocked(gestureRequired);
-        // Separately, arm a one-shot recovery gesture. On iOS the "running but silent"
-        // trap means gestureRequired can be a false negative, so re-arm whenever music
-        // is active there too — the next tap then performs the engine's forced
-        // rebuild, which is near-seamless when audio was actually fine.
         if (gestureRequired || (IOS_AUDIO_QUIRKS && musicRef.current != null)) {
           arm();
         }

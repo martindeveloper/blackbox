@@ -93,7 +93,6 @@ function emitAlways(level: LogLevel, category: string, message: string, data?: u
   const args: unknown[] = [tag, STYLES[level], message];
   if (data !== undefined) args.push(data);
 
-  // Use console.log for debug — console.debug is hidden unless DevTools level is Verbose.
   if (level === "debug") console.log(...args);
   else if (level === "info") console.info(...args);
   else if (level === "warn") console.warn(...args);

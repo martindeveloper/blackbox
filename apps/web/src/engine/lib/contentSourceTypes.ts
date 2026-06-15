@@ -2,7 +2,6 @@ import type { CommandResult, ScenarioBundle } from "../types/game.js";
 import type { BundleLoadProgress, ProjectBundleInfo } from "./bundleStore.js";
 import type { BlackboxEngine } from "./wasmHost.js";
 
-/** Contract implemented by bundle and preview content sources (swapped via `@content-source`). */
 export interface ContentSource {
   assetUrl(src: string): string | null;
   hasAsset(src: string): boolean;

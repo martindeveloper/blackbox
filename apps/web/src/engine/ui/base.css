@@ -1,22 +1,3 @@
-/* Engine UI base stylesheet.
- *
- * Structural skeleton for every class the engine's own React components render
- * (ModalShell/ModalContext, SavePanel, DevConsole, menu widgets). It gives a
- * new game a working, legible modal/menu/console out of the box without
- * copying another game's stylesheets.
- *
- * Rules here only use --bb-* tokens (see tokens.css) for color, never literals
- * — except the developer console, which is build-time dev tooling with a fixed
- * terminal identity and is intentionally not themeable.
- *
- * A game layers its own look on top: import order in app.css is
- *   tokens.css -> base.css -> <game styles>
- * so the game's stylesheets win the cascade and may restyle any of these
- * classes (bespoke gradients, glows, per-tone panels, light theme, etc.).
- */
-
-/* Full-viewport shell: TextGamePlayerApp uses height: 100% + flex, so the
- * document root chain must establish a definite block height in every build. */
 html,
 body,
 #root {
@@ -254,14 +235,6 @@ body {
   color: var(--bb-ui-muted);
 }
 
-/* Default (generic) text-game UI.
- *
- * These bb-default-* rules are only rendered by the engine's default
- * components (textGame/defaults.tsx) — the look a game gets before it ships
- * its own components/CSS. The aim is a clean, genre-neutral reading UI:
- * serif narrative, quiet sans chrome, rounded cards. Token-driven only, so a
- * game theme (or the editor preview) can recolor everything via --bb-* vars.
- */
 .bb-default-game-screen {
   display: flex;
   flex-direction: column;

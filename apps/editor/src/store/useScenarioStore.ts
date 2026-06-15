@@ -49,20 +49,12 @@ import type {
   InlineNodeContent,
 } from "../types/wire.js";
 
-/**
- * A single point in the undo/redo timeline. We snapshot the entire bundle
- * (cheap at editor scale, and trivially correct) plus a `label` used to coalesce
- * rapid edits — e.g. consecutive keystrokes in one inspector field collapse into
- * a single history step instead of one step per character.
- */
 interface HistorySnapshot {
   label: string;
   bundle: LoadedBundle;
 }
 
-/** Max history depth. Oldest entries are dropped once exceeded. */
 const HISTORY_LIMIT = 100;
-/** Window (ms) within which same-label edits coalesce into one history step. */
 const HISTORY_COALESCE_MS = 600;
 
 interface ScenarioState {
@@ -85,12 +77,6 @@ interface ScenarioState {
   undoStack: HistorySnapshot[];
   redoStack: HistorySnapshot[];
 
-  /**
-   * Capture the current bundle as a history checkpoint *before* a mutation.
-   * Generic on purpose: any future undoable action can opt in by calling this
-   * right before it replaces the bundle. `coalesce` (default true) merges
-   * consecutive checkpoints sharing the same `label` within a short window.
-   */
   commitHistory: (label: string, coalesce?: boolean) => void;
   undo: () => void;
   redo: () => void;
@@ -163,8 +149,6 @@ function cloneBundle(bundle: LoadedBundle): LoadedBundle {
   return structuredClone(bundle);
 }
 
-// Coalescing trackers for history checkpoints. Module-level (not store state)
-// since they are bookkeeping that should never trigger a re-render.
 let lastCommitLabel: string | null = null;
 let lastCommitAt = 0;
 
@@ -174,12 +158,6 @@ function resetHistory(): { undoStack: HistorySnapshot[]; redoStack: HistorySnaps
   return { undoStack: [], redoStack: [] };
 }
 
-/**
- * Swap the live bundle to a history `entry` and reconcile bookkeeping. Re-marks
- * as dirty every document that actually differs (so a reverted edit is written
- * back even if it had already been saved) and bumps the edit/narrative versions
- * forward so save-conflict detection still sees a monotonic timeline.
- */
 function applyHistorySnapshot(
   get: () => ScenarioState,
   set: (partial: Partial<ScenarioState>) => void,
@@ -238,9 +216,6 @@ export const useScenarioStore = create<ScenarioState>((set, get) => ({
     const { bundle, undoStack } = get();
     if (!bundle) return;
     const now = Date.now();
-    // Coalesce: if the same field is being edited within the window, the
-    // existing (older) checkpoint already captures the pre-edit state — keep it
-    // and just refresh the timer so the whole burst undoes in one step.
     if (
       coalesce &&
       undoStack.length > 0 &&

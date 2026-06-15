@@ -102,19 +102,20 @@ export async function registerRoutes(app, service) {
       scenarioExists = true;
     } catch {}
 
+    const withCode = body.withCode === true;
+    const withExample = body.withExample === true;
+
     // Folder already on disk (e.g. a retried create) — repair sidecars, then register.
     if (scenarioExists) {
       try {
         await ensureProjectSidecars(projectPath);
         const project = await service.registerProject(projectPath);
-        return { project };
+        await service.finalizeAuthorCreatedProjectTrust(project.id, { withCode });
+        return { project: service.projectSummary(service.requireProject(project.id)) };
       } catch (error) {
         return sendError(reply, error);
       }
     }
-
-    const withCode = body.withCode === true;
-    const withExample = body.withExample === true;
 
     let created = false;
     try {
@@ -127,9 +128,8 @@ export async function registerRoutes(app, service) {
       created = true;
 
       const project = await service.registerProject(projectPath);
-      // Scaffold + trust the optional custom-code starter via the canonical path.
-      if (withCode) await service.bootstrapProjectCode(project.id);
-      return { project };
+      await service.finalizeAuthorCreatedProjectTrust(project.id, { withCode });
+      return { project: service.projectSummary(service.requireProject(project.id)) };
     } catch (error) {
       if (created) {
         await fs.rm(projectPath, { recursive: true, force: true }).catch(() => {});

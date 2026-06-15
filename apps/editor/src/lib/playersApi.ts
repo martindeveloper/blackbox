@@ -1,7 +1,3 @@
-/**
- * Client-side entry point for player discovery.
- * Server registry: `players/registry.mjs` — keep these in sync.
- */
 import { Api } from "./api.js";
 
 export interface PlayerCapabilities {

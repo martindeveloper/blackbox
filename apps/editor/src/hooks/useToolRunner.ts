@@ -100,7 +100,6 @@ export function useToolRunner(
         const toolRun = await getToolRun(projectId, toolId);
         if (!cancelled) applyRun(toolRun);
       } catch {
-        // A transient polling failure should not discard a server-owned run.
       }
     };
     const id = window.setInterval(() => void poll(), 500);

@@ -125,9 +125,6 @@ export function EditorShell() {
         e.preventDefault();
         void save();
       }
-      // Undo/redo. Skip while editing a text field so the browser's native
-      // in-field undo keeps working; store-level history still applies once
-      // focus leaves the field.
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "z" && !isTextEntry(e.target)) {
         e.preventDefault();
         if (e.shiftKey) redo();
