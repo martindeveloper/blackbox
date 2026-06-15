@@ -1,6 +1,5 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { configurePlayerRuntimes } from "../players/registry.mjs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { app, BrowserWindow, dialog, ipcMain, nativeTheme, protocol, shell } from "electron";
 import { loadAppIcon } from "./icon.mjs";
@@ -82,6 +81,7 @@ async function configureRuntimePaths() {
     : path.join(CLIENT_ROOT, "resources", "bin");
   process.env.BLACKBOX_TOOLS_DIR = toolsDir;
 
+  const { configurePlayerRuntimes } = await import("../players/registry.mjs");
   configurePlayerRuntimes({
     usePackagedResources,
     clientRoot: CLIENT_ROOT,

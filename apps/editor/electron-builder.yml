@@ -10,6 +10,7 @@ directories:
 files:
   - dist/**
   - electron/**
+  - players/**
   - server/**
   - shared/**
   - server.js

@@ -4,8 +4,16 @@ import { manifest as webManifest, PLAYER_ID as WEB_PLAYER_ID } from "./web/manif
 import { configureWebRuntime } from "./web/runtime.mjs";
 import { ensurePreviewBuilt } from "./web/previewBuild.mjs";
 import { ensureWebProjectIdeSetup } from "./web/scaffold.mjs";
-import { syncBuildAssets } from "./web/syncAssets.mjs";
-import { stageForPackaging } from "./web/stage.mjs";
+
+async function syncWebBuildAssets() {
+  const { syncBuildAssets } = await import("./web/syncAssets.mjs");
+  return syncBuildAssets();
+}
+
+async function stageWebForPackaging() {
+  const { stageForPackaging } = await import("./web/stage.mjs");
+  return stageForPackaging();
+}
 
 export const DEFAULT_CODE_PLAYER_ID = WEB_PLAYER_ID;
 
@@ -14,8 +22,8 @@ const webPlayer = {
   configureRuntime: configureWebRuntime,
   ensurePreviewBuilt,
   ensureProjectIdeSetup: ensureWebProjectIdeSetup,
-  syncBuildAssets,
-  stageForPackaging,
+  syncBuildAssets: syncWebBuildAssets,
+  stageForPackaging: stageWebForPackaging,
 };
 
 const PLAYERS = {
