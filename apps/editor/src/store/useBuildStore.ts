@@ -1,0 +1,99 @@
+import { create } from "zustand";
+import type {
+  BuildCapabilities,
+  BuildConfiguration,
+  BuildEvent,
+  BuildPlatform,
+  BuildRunSnapshot,
+  BuildStage,
+} from "../lib/buildApi.js";
+import { stagesForPlatform } from "../lib/buildApi.js";
+
+const MAX_LOG_LINES = 5000;
+
+interface BuildStore {
+  platform: BuildPlatform;
+  configuration: BuildConfiguration;
+  selectedStages: BuildStage[];
+  run: BuildRunSnapshot | null;
+  log: string[];
+  capabilities: BuildCapabilities | null;
+  setPlatform: (platform: BuildPlatform) => void;
+  setConfiguration: (configuration: BuildConfiguration) => void;
+  toggleStage: (stage: BuildStage) => void;
+  selectAllStages: () => void;
+  setCapabilities: (capabilities: BuildCapabilities) => void;
+  resetSelection: (platform: BuildPlatform) => void;
+  applyEvent: (event: BuildEvent) => void;
+}
+
+function allStages(platform: BuildPlatform): BuildStage[] {
+  return stagesForPlatform(platform);
+}
+
+export const useBuildStore = create<BuildStore>((set, get) => ({
+  platform: "web",
+  configuration: "release",
+  selectedStages: allStages("web"),
+  run: null,
+  log: [],
+  capabilities: null,
+
+  setPlatform: (platform) =>
+    set({
+      platform,
+      // Drop stages that don't exist for the new platform (e.g. package on mobile).
+      selectedStages: get().selectedStages.filter((stage) => allStages(platform).includes(stage)),
+    }),
+
+  setConfiguration: (configuration) => set({ configuration }),
+
+  toggleStage: (stage) => {
+    const current = get().selectedStages;
+    const next = current.includes(stage) ? current.filter((s) => s !== stage) : [...current, stage];
+    // Keep canonical stage order so the pipeline always runs build → bundle → package.
+    const ordered = allStages(get().platform).filter((s) => next.includes(s));
+    set({ selectedStages: ordered });
+  },
+
+  selectAllStages: () => set({ selectedStages: allStages(get().platform) }),
+
+  setCapabilities: (capabilities) => set({ capabilities }),
+
+  resetSelection: (platform) => set({ selectedStages: allStages(platform) }),
+
+  applyEvent: (event) => {
+    if (event.type === "snapshot") {
+      set({ run: event.current?.run ?? null, log: event.current?.log ?? [] });
+      return;
+    }
+    if (event.type === "started") {
+      set({ run: event.run, log: [] });
+      return;
+    }
+    if (event.type === "log") {
+      const log = [...get().log, event.line];
+      if (log.length > MAX_LOG_LINES) log.splice(0, log.length - MAX_LOG_LINES);
+      set({ log });
+      return;
+    }
+    if (event.type === "stage") {
+      const run = get().run;
+      if (!run) return;
+      set({
+        run: {
+          ...run,
+          stages: run.stages.map((s) =>
+            s.stage === event.stage
+              ? { ...s, state: event.state, artifact: event.artifact ?? s.artifact }
+              : s,
+          ),
+        },
+      });
+      return;
+    }
+    if (event.type === "done") {
+      set({ run: event.run });
+    }
+  },
+}));

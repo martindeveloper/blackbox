@@ -15,6 +15,7 @@
 @import "./styles/media.css";
 @import "./styles/inspector.css";
 @import "./styles/tools.css";
+@import "./styles/builder.css";
 @import "./styles/parsed-output.css";
 @import "./styles/dashboard.css";
 @import "./styles/about.css";

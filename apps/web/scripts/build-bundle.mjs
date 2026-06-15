@@ -3,7 +3,10 @@
 import { existsSync, mkdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { resolveBuildConfiguration, resolveBuildPlatform } from "../../../scripts/lib/adventure.mjs";
+import {
+  resolveBuildConfiguration,
+  resolveBuildPlatform,
+} from "../../../scripts/lib/adventure.mjs";
 import { runSync } from "../../../scripts/lib/spawn.mjs";
 import { resolveWebDevAdventure, resolveWebOutDir } from "./lib/adventureDev.mjs";
 
@@ -30,8 +33,7 @@ function parseArgs(argv) {
     ignoreMissing: envFlag("BUNDLE_IGNORE_MISSING"),
     verbose: envFlag("BUNDLE_VERBOSE"),
     archiveCompress:
-      process.env.BUNDLE_ARCHIVE_COMPRESS ??
-      (configuration === "debug" ? "none" : "none"),
+      process.env.BUNDLE_ARCHIVE_COMPRESS ?? (configuration === "debug" ? "none" : "none"),
     scenario: adventure?.scenarioPath ?? null,
     allowEmpty: false,
   };
@@ -86,7 +88,7 @@ const args = [
   "-o",
   bundleOut,
   "--cache-dir",
-  path.join(repoRoot, ".cache/bundle"),
+  path.join(process.env.BLACKBOX_BUILD_CACHE_DIR ?? path.join(repoRoot, ".cache"), "bundle"),
 ];
 if (options.skipTranscode) args.push("--skip-transcode");
 if (options.verbose) args.push("--verbose");
@@ -95,6 +97,12 @@ if (options.archiveCompress !== "none") {
   args.push("--archive-compress", options.archiveCompress);
 }
 
-runSync("cargo", ["run", "-p", "blackbox-bundler", "--release", "--", ...args], {
-  cwd: repoRoot,
-});
+// A self-contained editor forwards its prebuilt bundler so this never needs cargo.
+const bundlerBin = process.env.BLACKBOX_BUNDLER_BIN;
+if (bundlerBin && existsSync(bundlerBin)) {
+  runSync(bundlerBin, args, { cwd: repoRoot });
+} else {
+  runSync("cargo", ["run", "-p", "blackbox-bundler", "--release", "--", ...args], {
+    cwd: repoRoot,
+  });
+}

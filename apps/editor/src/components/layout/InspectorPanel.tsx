@@ -10,6 +10,7 @@ import { SnippetInspector } from "../catalogs/SnippetInspector.js";
 import { TemplateInspector } from "../catalogs/TemplateInspector.js";
 import { ConditionInspector } from "../catalogs/ConditionInspector.js";
 import { ToolsInspector } from "../tools/ToolsInspector.js";
+import { BuildInspector } from "../builder/BuildInspector.js";
 import { ValidationPanel } from "../validation/ValidationPanel.js";
 import { MediaInspector } from "../media/MediaInspector.js";
 import { PreviewInspector } from "../preview/PreviewInspector.js";
@@ -39,6 +40,7 @@ function inspectorTitle(
   t: (k: string) => string,
 ): string {
   if (activity === "tools") return tool ? t(`tools.${tool}.title`) : t("activity.tools");
+  if (activity === "build") return t("activity.build");
   if (activity === "graph" && globalNode === "death") return t("globalDeath.title");
   if (activity === "graph" && node) return node;
   if (activity === "items" && item) return item;
@@ -159,6 +161,9 @@ export function InspectorPanel() {
       break;
     case "tools":
       body = <ToolsInspector />;
+      break;
+    case "build":
+      body = <BuildInspector />;
       break;
     case "preview":
       body = <PreviewInspector />;

@@ -29,6 +29,12 @@ export function getToolsDir() {
   return process.env.BLACKBOX_TOOLS_DIR ? path.resolve(process.env.BLACKBOX_TOOLS_DIR) : null;
 }
 
+// Root that contains the build CLI entry (cli.js). In repo development this is the
+// repository root; a packaged editor sets BLACKBOX_CLI_DIR to the staged CLI copy.
+export function getCliDir() {
+  return process.env.BLACKBOX_CLI_DIR ? path.resolve(process.env.BLACKBOX_CLI_DIR) : REPO_ROOT;
+}
+
 export function bundledToolsEnabled() {
   return Boolean(getToolsDir());
 }

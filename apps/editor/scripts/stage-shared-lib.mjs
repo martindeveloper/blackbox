@@ -7,7 +7,12 @@ const REPO_ROOT = path.resolve(EDITOR_ROOT, "../..");
 const SRC = path.join(REPO_ROOT, "scripts", "lib");
 const OUT = path.join(EDITOR_ROOT, "shared", "lib");
 
-const FILES = ["gamePaths.mjs", "buildGameCss.mjs", "webRolldownResolve.mjs", "webBuildAliases.mjs"];
+const FILES = [
+  "gamePaths.mjs",
+  "buildGameCss.mjs",
+  "webRolldownResolve.mjs",
+  "webBuildAliases.mjs",
+];
 
 if (!existsSync(SRC)) {
   throw new Error(`Missing repo scripts/lib at ${SRC}`);

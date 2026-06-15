@@ -111,7 +111,8 @@ export function EditorShell() {
   const isAbout = activity === "about";
   const isDashboard = activity === "dashboard";
   const isTools = activity === "tools";
-  const hideLeftDock = isMedia || isAbout || isDashboard;
+  const isBuild = activity === "build";
+  const hideLeftDock = isMedia || isAbout || isDashboard || isBuild;
 
   useEffect(() => {
     const isTextEntry = (target: EventTarget | null) => {

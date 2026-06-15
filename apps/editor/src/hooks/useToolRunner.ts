@@ -99,8 +99,7 @@ export function useToolRunner(
       try {
         const toolRun = await getToolRun(projectId, toolId);
         if (!cancelled) applyRun(toolRun);
-      } catch {
-      }
+      } catch {}
     };
     const id = window.setInterval(() => void poll(), 500);
     void poll();

@@ -7,6 +7,14 @@ import { commandResult, parseLint, parseSimulator } from "./parsers.js";
 import { readUserPrefs, writeUserPrefs, sanitizePrefs } from "./prefs.js";
 import { ProjectError } from "./projectService.js";
 import { ToolRunRegistry } from "./toolRuns.js";
+import { BuildRunRegistry } from "./pipeline/buildRuns.js";
+import {
+  isValidConfiguration,
+  isValidPlatform,
+  isStageAllowed,
+  stagesForPlatform,
+} from "./pipeline/cli.js";
+import { detectBuildCapabilities } from "./pipeline/capabilities.js";
 import { getPlayer, listPlayers, playersWith } from "../players/registry.mjs";
 import { runPlayerBundle } from "./tools/bundle.mjs";
 import { ensureProjectSidecars, writeNewProject } from "./projectScaffold.js";
@@ -45,6 +53,7 @@ function projectRequest(service, handler) {
 
 export async function registerRoutes(app, service) {
   const toolRuns = new ToolRunRegistry();
+  const buildRuns = new BuildRunRegistry();
 
   app.get("/prefs", () => readUserPrefs());
   app.put("/prefs", async (request, reply) => {
@@ -415,6 +424,84 @@ export async function registerRoutes(app, service) {
         executeTool(service, project.id, tool, body),
       );
       return reply.code(run.state === "running" ? 202 : 200).send({ run });
+    }),
+  );
+
+  app.get(
+    "/projects/:id/build/capabilities",
+    projectRequest(service, async () => detectBuildCapabilities()),
+  );
+
+  app.get(
+    "/projects/:id/build/runs/current",
+    projectRequest(service, async (project) => ({
+      current: await buildRuns.getCurrent(project.path),
+    })),
+  );
+
+  app.post(
+    "/projects/:id/build/runs",
+    projectRequest(service, async (project, request, reply) => {
+      const body = request.body ?? {};
+      const platform = typeof body.platform === "string" ? body.platform : "";
+      const configuration = typeof body.configuration === "string" ? body.configuration : "";
+      const stages = Array.isArray(body.stages) ? body.stages : [];
+
+      if (!isValidPlatform(platform)) {
+        return reply
+          .code(400)
+          .send({ code: "invalid_request", message: "platform must be web, ios, or android" });
+      }
+      if (!isValidConfiguration(configuration)) {
+        return reply
+          .code(400)
+          .send({ code: "invalid_request", message: "configuration must be debug or release" });
+      }
+      const allowed = stagesForPlatform(platform);
+      const selected = allowed.filter((stage) => stages.includes(stage));
+      if (selected.length === 0) {
+        return reply
+          .code(400)
+          .send({ code: "invalid_request", message: "select at least one valid stage" });
+      }
+      const rejected = stages.filter((stage) => !isStageAllowed(stage, platform));
+      if (rejected.length > 0) {
+        return reply.code(400).send({
+          code: "invalid_request",
+          message: `stage(s) not available for ${platform}: ${rejected.join(", ")}`,
+        });
+      }
+
+      const result = await buildRuns.start(project.path, {
+        platform,
+        configuration,
+        stages: selected,
+      });
+      return reply.code(result.alreadyRunning ? 409 : 202).send(result);
+    }),
+  );
+
+  app.post(
+    "/projects/:id/build/runs/:runId/cancel",
+    projectRequest(service, async (project, request) => ({
+      canceled: await buildRuns.cancel(project.path, request.params.runId),
+    })),
+  );
+
+  app.get(
+    "/projects/:id/build/runs/stream",
+    projectRequest(service, async (project, request, reply) => {
+      const current = await buildRuns.getCurrent(project.path);
+      reply.hijack();
+      reply.raw.writeHead(200, {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      });
+      const send = (event) => reply.raw.write(`data: ${JSON.stringify(event)}\n\n`);
+      send({ type: "snapshot", current });
+      const unsubscribe = buildRuns.subscribe(project.path, send);
+      request.raw.on("close", unsubscribe);
     }),
   );
 }

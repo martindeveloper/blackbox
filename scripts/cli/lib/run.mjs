@@ -1,4 +1,5 @@
 import { execFileSync } from "node:child_process";
+import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { wasmProfileForConfiguration } from "../../lib/adventure.mjs";
@@ -20,8 +21,26 @@ export function fail(scope, msg) {
   process.exit(1);
 }
 
+// A self-contained editor forwards prebuilt engine binaries via env so stages need no cargo.
+function prebuiltBin(name) {
+  const bin = process.env[name];
+  return bin && existsSync(bin) ? bin : null;
+}
+
+// Bundler scratch cache. A packaged editor redirects this to a writable user-data dir
+// because the repo root lives under read-only application resources.
+function bundleCacheDir() {
+  const base = process.env.BLACKBOX_BUILD_CACHE_DIR ?? path.join(REPO_ROOT, ".cache");
+  return path.join(base, "bundle");
+}
+
 export function runLint(project) {
   log("lint", `validating ${path.relative(REPO_ROOT, project.scenarioPath)}`);
+  const lintBin = prebuiltBin("BLACKBOX_LINT_BIN");
+  if (lintBin) {
+    runSync(lintBin, [project.scenarioPath], { cwd: REPO_ROOT });
+    return;
+  }
   runSync("cargo", ["run", "-p", "blackbox-lint", "--release", "--", project.scenarioPath], {
     cwd: REPO_ROOT,
   });
@@ -42,25 +61,27 @@ export function runBundler(
     "bundle",
     `building ${platform} content bundle (${configuration}) -> ${path.relative(REPO_ROOT, outDir)}`,
   );
-  const args = [
-    "run",
-    "-p",
-    "blackbox-bundler",
-    "--release",
-    "--",
+  const bundlerArgs = [
     project.scenarioPath,
     "--platform",
     platform,
     "-o",
     outDir,
     "--cache-dir",
-    path.join(REPO_ROOT, ".cache/bundle"),
+    bundleCacheDir(),
   ];
-  if (ignoreMissing) args.push("--ignore-missing");
+  if (ignoreMissing) bundlerArgs.push("--ignore-missing");
   if (compress && compress !== "none") {
-    args.push("--archive-compress", compress);
+    bundlerArgs.push("--archive-compress", compress);
   }
-  runSync("cargo", args, { cwd: REPO_ROOT });
+  const bundlerBin = prebuiltBin("BLACKBOX_BUNDLER_BIN");
+  if (bundlerBin) {
+    runSync(bundlerBin, bundlerArgs, { cwd: REPO_ROOT });
+  } else {
+    runSync("cargo", ["run", "-p", "blackbox-bundler", "--release", "--", ...bundlerArgs], {
+      cwd: REPO_ROOT,
+    });
+  }
   return outDir;
 }
 

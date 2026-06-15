@@ -18,6 +18,7 @@ import { CatalogOverview } from "./components/catalogs/CatalogOverview.js";
 import { MetaCatalogOverview } from "./components/catalogs/MetaCatalogOverview.js";
 import { LibraryCatalogOverview } from "./components/catalogs/LibraryCatalogOverview.js";
 import { ToolsEditor } from "./components/tools/ToolsEditor.js";
+import { BuildEditor } from "./components/builder/BuildEditor.js";
 import { PreviewPanel } from "./components/preview/PreviewPanel.js";
 import { ProjectDashboard } from "./components/dashboard/ProjectDashboard.js";
 import { AboutScreen } from "./components/about/AboutScreen.js";
@@ -223,6 +224,12 @@ export const toolsRoute = createRoute({
   component: ToolsEditor,
 });
 
+export const buildRoute = createRoute({
+  getParentRoute: () => editorProjectRoute,
+  path: "/build",
+  component: BuildEditor,
+});
+
 export const previewRoute = createRoute({
   getParentRoute: () => editorProjectRoute,
   path: "/preview",
@@ -250,6 +257,7 @@ const routeTree = rootRoute.addChildren([
     metaRoute,
     libraryRoute,
     toolsRoute,
+    buildRoute,
     previewRoute,
     aboutRoute,
   ]),
