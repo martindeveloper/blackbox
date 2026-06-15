@@ -3,6 +3,7 @@ import { contextBridge, ipcRenderer } from "electron";
 contextBridge.exposeInMainWorld("electronAPI", {
   isElectron: true,
   pickProjectFolder: () => ipcRenderer.invoke("editor:pick-project-folder"),
+  openInIde: (projectPath, ideId) => ipcRenderer.invoke("editor:open-in-ide", projectPath, ideId),
   setDirty: (dirty) => ipcRenderer.send("editor:set-dirty", dirty),
   onSaveBeforeClose: (callback) => {
     const listener = () => callback();

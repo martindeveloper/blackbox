@@ -1,4 +1,4 @@
-import { EDITOR_CONFIG_PATH } from "../../shared/blackboxPaths.js";
+import { PROJECT_CONFIG_PATH } from "../../shared/blackboxPaths.js";
 
 export const en = {
   app: {
@@ -83,6 +83,10 @@ export const en = {
     trustProjectMessage:
       "Projects may contain custom code. Trusting this project allows its code to run inside the editor. Only trust projects from sources you know. You can also open it safely without running custom code.",
     trustProjectAction: "Trust and open",
+    editorVersionMismatchTitle: "Editor version differs",
+    editorVersionMismatchMessage:
+      "This project was last opened with Blackbox Editor {{projectVersion}}, but you are using {{editorVersion}}. Opening it may cause compatibility issues. The stored editor version will be updated if you continue.",
+    editorVersionMismatchAction: "Open and update version",
     openProjectSafely: "Open without running code",
     editor: "Editor",
     newProject: "New project",
@@ -119,6 +123,9 @@ export const en = {
     open: "Open",
     save: "Save",
     saving: "Saving…",
+    openIde: "Open in IDE",
+    openingIde: "Opening…",
+    ideNotFound: "Install {{ide}}, then try again.",
     closeProject: "Close project",
     lint: "Lint",
     bundle: "Bundle",
@@ -379,7 +386,7 @@ export const en = {
   tools: {
     projectTarget: "Project",
     projectTargetMissing: "Open a project to run tools",
-    projectTargetPending: `Resolving via <project>/${EDITOR_CONFIG_PATH}…`,
+    projectTargetPending: `Resolving via <project>/${PROJECT_CONFIG_PATH}…`,
     openProject: "Open a project to run tools.",
     editorConfigHint:
       "Projects are discovered by the local API from configured data roots and addressed by stable project ID.",

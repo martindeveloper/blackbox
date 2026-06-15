@@ -9,8 +9,10 @@ import {
   Package,
   Save,
   ShieldCheck,
+  SquareTerminal,
   X,
 } from "lucide-react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { Icon } from "../icons/Icon.js";
@@ -19,7 +21,9 @@ import { useScenarioStore } from "../../store/useScenarioStore.js";
 import { transitionToHome } from "../../lib/projectTransition.js";
 import { editorNavigate, navigateToTool } from "../../lib/routeHelpers.js";
 import { isActiveEditorPage, Page } from "../../lib/pages.js";
+import { DEFAULT_IDE_ID, getIdePluginMeta } from "../../shared/ideRegistry.js";
 import { useToolRunnerStore } from "../../store/useToolRunnerStore.js";
+import { useUserPrefs } from "../../hooks/useUserPrefs.js";
 import { Button } from "../ui/Button.js";
 import { IconButton } from "../ui/IconButton.js";
 import { StatusPill } from "../ui/StatusPill.js";
@@ -31,6 +35,7 @@ export function TopBar() {
 
   const bundle = useScenarioStore((s) => s.bundle);
   const projectName = useScenarioStore((s) => s.projectName);
+  const projectPath = useScenarioStore((s) => s.projectPath);
   const dirty = useScenarioStore((s) => s.dirty);
   const saving = useScenarioStore((s) => s.saving);
   const validationIssues = useScenarioStore((s) => s.validationIssues);
@@ -40,6 +45,8 @@ export function TopBar() {
   const toolRunState = useToolRunnerStore((s) => s.runState);
   const toolsBusy = toolRunState === "running";
   const previewActive = isActiveEditorPage(pathname, Page.EditorPreview);
+  const [openingIde, setOpeningIde] = useState(false);
+  const { prefs } = useUserPrefs();
 
   const errorCount = validationIssues.filter((i) => i.severity === "error").length;
   const warnCount = validationIssues.filter((i) => i.severity === "warning").length;
@@ -62,6 +69,21 @@ export function TopBar() {
   const handleOpenPreview = () => {
     if (!projectName) return;
     void editorNavigate(navigate, { to: Page.EditorPreview });
+  };
+
+  const handleOpenIde = async () => {
+    if (!projectPath || !window.electronAPI || openingIde) return;
+    setOpeningIde(true);
+    try {
+      const ideId = prefs.preferredIde ?? DEFAULT_IDE_ID;
+      const opened = await window.electronAPI.openInIde(projectPath, ideId);
+      if (!opened) {
+        const ide = getIdePluginMeta(ideId);
+        window.alert(t("topBar.ideNotFound", { ide: ide?.label ?? "your IDE" }));
+      }
+    } finally {
+      setOpeningIde(false);
+    }
   };
 
   return (
@@ -193,6 +215,17 @@ export function TopBar() {
 
         <div className="editor-topbar-actions">
           <ThemeSelector />
+          {projectPath && window.electronAPI ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              leadingIcon={SquareTerminal}
+              disabled={openingIde}
+              onClick={() => void handleOpenIde()}
+            >
+              {openingIde ? t("topBar.openingIde") : t("topBar.openIde")}
+            </Button>
+          ) : null}
           <Button variant="ghost" size="sm" leadingIcon={FolderOpen} onClick={handleClose}>
             {t("topBar.open")}
           </Button>

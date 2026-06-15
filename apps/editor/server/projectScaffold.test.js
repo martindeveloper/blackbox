@@ -4,6 +4,8 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import Fastify from "fastify";
+import { PROJECT_CONFIG_PATH } from "../shared/blackboxPaths.js";
+import { EDITOR_VERSION } from "../shared/editorVersion.js";
 import { registerRoutes } from "./routes.js";
 import { ProjectService } from "./projectService.js";
 import {
@@ -11,7 +13,7 @@ import {
   DEFAULT_LIBRARY_REF,
   PROJECT_MEDIA_DIRS,
   bootstrapStarterCode,
-  ensureDevTsconfig,
+  ensureProjectIdeSetup,
   ensureGameFontsCss,
   ensureProjectSidecars,
   writeNewProject,
@@ -23,28 +25,55 @@ import {
   exampleSecondChapterDoc,
 } from "./exampleContent.js";
 
-test("ensureDevTsconfig writes a relative-extends config only inside a monorepo", async () => {
+test("ensureProjectIdeSetup generates IDE files against the editor SDK", async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "blackbox-tsconfig-"));
   try {
-    // Standalone (non-developer) layout: no apps/web/tsconfig.game.json above.
-    const standalone = path.join(root, "standalone-game");
-    await fs.mkdir(standalone, { recursive: true });
-    assert.equal(await ensureDevTsconfig(standalone), false);
-    await assert.rejects(fs.access(path.join(standalone, "tsconfig.json")));
-
-    // Monorepo (developer) layout: game at <monorepo>/data/<name>.
-    await fs.mkdir(path.join(root, "apps", "web"), { recursive: true });
-    await fs.writeFile(path.join(root, "apps", "web", "tsconfig.game.json"), "{}\n");
-    const game = path.join(root, "data", "my-game");
+    const game = path.join(root, "my-game");
     await fs.mkdir(game, { recursive: true });
 
-    assert.equal(await ensureDevTsconfig(game), true);
+    // No SDK available (e.g. corrupt install): no-op, no file written.
+    assert.equal(await ensureProjectIdeSetup(game, path.join(root, "missing-sdk")), false);
+    await assert.rejects(fs.access(path.join(game, "tsconfig.json")));
+
+    // SDK present (apps/web in dev, bundled preview-workspace when packaged).
+    const sdkRoot = path.join(root, "sdk");
+    const sdkTsconfig = path.join(sdkRoot, "tsconfig.game.json");
+    const typescriptLib = path.join(sdkRoot, "pkg", "node_modules", "typescript", "lib");
+    await fs.mkdir(typescriptLib, { recursive: true });
+    await fs.writeFile(sdkTsconfig, "{}\n");
+    await fs.mkdir(path.join(game, ".vscode"), { recursive: true });
+    await fs.writeFile(
+      path.join(game, ".vscode", "settings.json"),
+      `${JSON.stringify(
+        {
+          "editor.formatOnSave": true,
+        },
+        null,
+        2,
+      )}\n`,
+    );
+
+    assert.equal(await ensureProjectIdeSetup(game, sdkRoot), true);
     const written = await fs.readFile(path.join(game, "tsconfig.json"), "utf8");
-    assert.match(written, /"extends": "\.\.\/\.\.\/apps\/web\/tsconfig\.game\.json"/);
+    // Absolute extends so it resolves wherever the project lives — no monorepo.
+    assert.match(written, new RegExp(`"extends": "${sdkTsconfig.split(path.sep).join("/")}"`));
     assert.match(written, /"include"/);
+    const settings = JSON.parse(
+      await fs.readFile(path.join(game, ".vscode", "settings.json"), "utf8"),
+    );
+    assert.equal(settings["editor.formatOnSave"], true);
+    assert.equal(settings["js/ts.tsdk.path"], typescriptLib.split(path.sep).join("/"));
+    assert.equal(settings["js/ts.tsdk.promptToUseWorkspaceVersion"], true);
+    const extensions = JSON.parse(
+      await fs.readFile(path.join(game, ".vscode", "extensions.json"), "utf8"),
+    );
+    assert.deepEqual(extensions.recommendations, ["oxc.oxc-vscode"]);
+    const gitignore = await fs.readFile(path.join(game, ".gitignore"), "utf8");
+    assert.match(gitignore, /^tsconfig\.json$/m);
+    assert.match(gitignore, /^\.vscode\/settings\.json$/m);
 
     // Idempotent: identical content is not rewritten.
-    assert.equal(await ensureDevTsconfig(game), false);
+    assert.equal(await ensureProjectIdeSetup(game, sdkRoot), false);
   } finally {
     await fs.rm(root, { recursive: true, force: true });
   }
@@ -267,6 +296,10 @@ test("create route produces an openable project", async () => {
     assert.equal(created.statusCode, 200);
     const { project } = created.json();
     assert.ok(project.id);
+    assert.deepEqual(
+      JSON.parse(await fs.readFile(path.join(projectsRoot, "fresh", PROJECT_CONFIG_PATH), "utf8")),
+      { id: project.id, editorVersion: EDITOR_VERSION },
+    );
     service.setProjectCodeTrust(project.id, false);
 
     const opened = await app.inject({

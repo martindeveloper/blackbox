@@ -135,7 +135,9 @@ export async function registerRoutes(app, service) {
 
   app.post(
     "/projects/:id/open",
-    projectRequest(service, (project) => service.openProject(project.id)),
+    projectRequest(service, (project, request) =>
+      service.openProject(project.id, request.body?.acceptEditorVersion === true),
+    ),
   );
 
   app.post(

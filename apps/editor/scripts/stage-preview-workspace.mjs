@@ -31,6 +31,11 @@ const ROOTS = [
   "i18next",
   "react-i18next",
   "fzstd",
+  "typescript",
+  // Type-only deps: not needed to build a preview, but they let a developer's IDE
+  // resolve React types against the bundled SDK without a monorepo or npm install.
+  "@types/react",
+  "@types/react-dom",
 ];
 
 const NATIVE_GLOBS = [
@@ -80,10 +85,29 @@ for (const entry of readdirSync(WEB_ROOT)) {
     cpSync(path.join(WEB_ROOT, entry), path.join(OUT, entry));
   }
 }
+
+// The editor points a developer's project tsconfig at <workspace>/tsconfig.game.json
+// for IDE types. It is apps/web's game config with two layout deltas: staged
+// node_modules live under pkg/, and the preview protocol is staged locally.
+const gameTsconfig = JSON.parse(readFileSync(path.join(WEB_ROOT, "tsconfig.game.json"), "utf8"));
+const gamePaths = gameTsconfig.compilerOptions.paths;
+for (const key of Object.keys(gamePaths)) {
+  gamePaths[key] = gamePaths[key].map((p) => p.replace("./node_modules/", "./pkg/node_modules/"));
+}
+gamePaths["@preview-protocol"] = ["./shared/previewProtocol.ts"];
+gamePaths["@analytics"] = ["./src/engine/lib/analytics.noop.ts"];
+gamePaths.fzstd = ["./pkg/node_modules/fzstd/lib/index.d.ts"];
+gamePaths["@wasm-module"] = ["./shared/blackbox_wasm.d.ts"];
+writeFileSync(path.join(OUT, "tsconfig.game.json"), `${JSON.stringify(gameTsconfig, null, 2)}\n`);
+
 mkdirSync(path.join(OUT, "shared"), { recursive: true });
 cpSync(
   path.join(EDITOR_ROOT, "shared", "previewProtocol.ts"),
   path.join(OUT, "shared", "previewProtocol.ts"),
+);
+cpSync(
+  path.join(REPO_ROOT, ".cache", "wasm", "editor-preview", "blackbox_wasm.d.ts"),
+  path.join(OUT, "shared", "blackbox_wasm.d.ts"),
 );
 writeFileSync(
   path.join(OUT, "package.json"),

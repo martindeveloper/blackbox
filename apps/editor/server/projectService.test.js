@@ -5,13 +5,15 @@ import path from "node:path";
 import test from "node:test";
 import Fastify from "fastify";
 import {
-  EDITOR_CONFIG_BASENAME,
   EDITOR_SIDECAR_DIR,
   HEATMAP_PATH,
   LAYOUT_PATH,
+  PROJECT_CONFIG_BASENAME,
+  PROJECT_CONFIG_PATH,
   TOOL_RUNS_DIR,
   TOOL_RUNS_PATH,
 } from "../shared/blackboxPaths.js";
+import { EDITOR_VERSION } from "../shared/editorVersion.js";
 import { registerRoutes } from "./routes.js";
 import { ProjectError, ProjectService } from "./projectService.js";
 
@@ -274,6 +276,48 @@ test("requires and persists a trust decision before opening any project", async 
   }
 });
 
+test("warns before opening with a different editor version and updates on acceptance", async () => {
+  const env = await fixture();
+
+  try {
+    const [project] = env.service.listProjects();
+    env.service.setProjectCodeTrust(project.id, false);
+
+    // Unmarked existing projects are adopted without a warning.
+    await env.service.openProject(project.id);
+    const currentProjectDoc = JSON.parse(
+      await fs.readFile(path.join(env.projectPath, PROJECT_CONFIG_PATH), "utf8"),
+    );
+    assert.equal(currentProjectDoc.editorVersion, EDITOR_VERSION);
+
+    await fs.writeFile(
+      path.join(env.projectPath, PROJECT_CONFIG_PATH),
+      `${JSON.stringify({ ...currentProjectDoc, editorVersion: "0.0.1" }, null, 2)}\n`,
+    );
+    env.service.requireProject(project.id).editorVersion = "0.0.1";
+    await assert.rejects(
+      env.service.openProject(project.id),
+      (error) =>
+        error instanceof ProjectError &&
+        error.code === "editor_version_mismatch" &&
+        error.details.projectVersion === "0.0.1" &&
+        error.details.editorVersion === EDITOR_VERSION,
+    );
+    assert.deepEqual(
+      JSON.parse(await fs.readFile(path.join(env.projectPath, PROJECT_CONFIG_PATH), "utf8")),
+      { ...currentProjectDoc, editorVersion: "0.0.1" },
+    );
+
+    await env.service.openProject(project.id, true);
+    assert.deepEqual(
+      JSON.parse(await fs.readFile(path.join(env.projectPath, PROJECT_CONFIG_PATH), "utf8")),
+      { ...currentProjectDoc, editorVersion: EDITOR_VERSION },
+    );
+  } finally {
+    await env.close();
+  }
+});
+
 test("revokes all UI trust without removing recent projects", async () => {
   const env = await fixture();
 
@@ -439,8 +483,8 @@ test("re-registers a recreated project folder after the old path row is orphaned
     );
     await fs.mkdir(path.join(env.projectPath, EDITOR_SIDECAR_DIR), { recursive: true });
     await fs.writeFile(
-      path.join(env.projectPath, EDITOR_SIDECAR_DIR, EDITOR_CONFIG_BASENAME),
-      `${JSON.stringify({ id: "newEditor01", path: env.projectPath })}\n`,
+      path.join(env.projectPath, EDITOR_SIDECAR_DIR, PROJECT_CONFIG_BASENAME),
+      `${JSON.stringify({ id: "newEditor01", editorVersion: EDITOR_VERSION })}\n`,
     );
 
     const recreated = await env.service.registerProject(env.projectPath);

@@ -2,16 +2,30 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { USER_DATA_ROOT } from "./config.js";
 import { EDITOR_SIDECAR_DIR, USER_PREFS_BASENAME } from "../shared/blackboxPaths.js";
+import { DEFAULT_IDE_ID, isRegisteredIdeId } from "../shared/ideRegistry.js";
 
 const USER_PREFS_PATH = path.join(USER_DATA_ROOT, EDITOR_SIDECAR_DIR, USER_PREFS_BASENAME);
+export const DEFAULT_USER_PREFS = Object.freeze({
+  theme: "device",
+  preferredIde: DEFAULT_IDE_ID,
+});
 
 export async function readUserPrefs() {
+  let raw = {};
   try {
-    const text = await fs.readFile(USER_PREFS_PATH, "utf8");
-    return JSON.parse(text);
-  } catch {
-    return {};
-  }
+    raw = JSON.parse(await fs.readFile(USER_PREFS_PATH, "utf8"));
+  } catch {}
+  const prefs = normalizeUserPrefs(raw);
+  if (needsPrefsBackfill(raw, prefs)) await writeUserPrefs(prefs);
+  return prefs;
+}
+
+function normalizeUserPrefs(raw) {
+  return { ...DEFAULT_USER_PREFS, ...sanitizePrefs(raw) };
+}
+
+function needsPrefsBackfill(raw, prefs) {
+  return JSON.stringify(raw) !== JSON.stringify(prefs);
 }
 
 export async function writeUserPrefs(prefs) {
@@ -23,6 +37,9 @@ export function sanitizePrefs(raw) {
   const prefs = {};
   if (raw.theme === "light" || raw.theme === "dark" || raw.theme === "device") {
     prefs.theme = raw.theme;
+  }
+  if (typeof raw.preferredIde === "string" && isRegisteredIdeId(raw.preferredIde)) {
+    prefs.preferredIde = raw.preferredIde;
   }
   if (typeof raw.leftColumnWidth === "number" && Number.isFinite(raw.leftColumnWidth)) {
     prefs.leftColumnWidth = Math.round(raw.leftColumnWidth);

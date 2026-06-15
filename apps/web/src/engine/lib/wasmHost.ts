@@ -1,9 +1,9 @@
-import type { BlackboxEngine as WasmBlackboxEngine } from "../../../../../.cache/wasm/clients-web/blackbox_wasm.js";
+import type { BlackboxEngine as WasmBlackboxEngine } from "@wasm-module";
 import type { LogLevel } from "./logger.js";
 
 export type BlackboxEngine = WasmBlackboxEngine;
 
-type WasmPkg = typeof import("../../../../../.cache/wasm/clients-web/blackbox_wasm.js");
+type WasmPkg = typeof import("@wasm-module");
 
 let wasmPkg: WasmPkg | null = null;
 let initPromise: Promise<void> | null = null;

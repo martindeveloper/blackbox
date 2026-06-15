@@ -27,7 +27,7 @@ silent_archive_game/     ← project root (open this folder)
   music/
   sfx/
   saves/                     ← optional runtime save files
-  .blackbox/                 ← editor sidecars (layout, trash, editor.json)
+  .blackbox/                 ← editor sidecars (project, layout, trash, user state)
   src/                       ← optional custom UI (game.ts, app.css, fonts.css)
 ```
 
@@ -52,18 +52,18 @@ silent_archive_game/     ← project root (open this folder)
 
 ## Project API and engine tools
 
-The local server owns all project file access. Each project keeps a sidecar for its stable ID and optional tool configuration:
+The local server owns all project file access. Each project keeps a shared sidecar for its stable ID and last editor version:
 
 ```json
 {
   "id": "t4kW7JnHxqw",
-  "path": "/absolute/path/to/blackbox/data/silent_archive_game"
+  "editorVersion": "0.1.0"
 }
 ```
 
 `id` is an 11-character project identifier. The server generates one when missing.
 
-File: `<project>/.blackbox/editor.json` (alongside `layout.json`, `trash.json`, and `trash/`). Project files, media, trash, lint, and bundle operations all use the stable project ID through `/api/v1/projects/:id`.
+File: `<project>/.blackbox/project.json` (alongside `layout.json`, `trash.json`, and `trash/`). Machine-specific project state, including optional tool overrides and tool-run history, lives under `<project>/.blackbox/user/` and should be gitignored. No absolute project path is stored.
 
 The server stores its project registry, revisions, and file index in
 `<user-data>/.blackbox/editor.db`, plus UI preferences in

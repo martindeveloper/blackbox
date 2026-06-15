@@ -3,6 +3,7 @@ import type { ThemePreference } from "../context/ThemeContext.js";
 
 export interface UserPrefs {
   theme?: ThemePreference;
+  preferredIde?: string;
   leftColumnWidth?: number;
   rightColumnWidth?: number;
 }

@@ -11,6 +11,7 @@ import {
   removeEditorSocket,
 } from "./local-transport.mjs";
 import { setupMacApplicationMenu } from "./menu.mjs";
+import { openInIde } from "./ideHost.mjs";
 
 const ELECTRON_ROOT = path.dirname(fileURLToPath(import.meta.url));
 const CLIENT_ROOT = path.resolve(ELECTRON_ROOT, "..");
@@ -239,6 +240,15 @@ app
       });
       if (result.canceled || result.filePaths.length === 0) return null;
       return result.filePaths[0];
+    });
+    ipcMain.handle("editor:open-in-ide", async (event, projectPath, ideId) => {
+      if (event.sender !== mainWindow?.webContents) return false;
+      if (typeof projectPath !== "string" || projectPath.includes("\0")) return false;
+      if (ideId !== undefined && typeof ideId !== "string") return false;
+      const resolved = path.resolve(projectPath);
+      const stat = await fs.stat(resolved).catch(() => null);
+      if (!stat?.isDirectory()) return false;
+      return openInIde(resolved, ideId);
     });
     ipcMain.on("editor:set-dirty", (event, dirty) => {
       if (event.sender !== mainWindow?.webContents) return;

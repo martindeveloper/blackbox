@@ -19,7 +19,8 @@
       "@content-source": ["./src/engine/lib/bundleSource.ts"],
       "@preview-mode": ["./src/engine/lib/previewMode.stub.ts"],
       "@preview-reporter": ["./src/preview/PreviewReporter.stub.tsx"],
-      "@preview-protocol": ["../editor/shared/previewProtocol.ts"]
+      "@preview-protocol": ["../editor/shared/previewProtocol.ts"],
+      "@wasm-module": ["../../../../../.cache/wasm/clients-web/blackbox_wasm.js"]
     }
   }
 }

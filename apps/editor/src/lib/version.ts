@@ -1,1 +1,1 @@
-export const EDITOR_VERSION = "0.1.0";
+export { EDITOR_VERSION } from "../../shared/editorVersion.js";

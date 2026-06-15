@@ -6,11 +6,15 @@ import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import chokidar from "chokidar";
 import { PACKAGED, REPO_ROOT, STANDALONE, USER_DATA_ROOT } from "./config.js";
-import { ensureProjectEditorConfig, regenerateProjectEditorId } from "./editorConfig.js";
+import {
+  ensureProjectEditorConfig,
+  regenerateProjectEditorId,
+  writeProjectEditorVersion,
+} from "./editorConfig.js";
 import { moveToOsTrash } from "./osTrash.js";
 import {
   ensureProjectSidecars,
-  ensureDevTsconfig,
+  ensureProjectIdeSetup,
   bootstrapStarterCode,
 } from "./projectScaffold.js";
 import { projectHasCustomCode } from "./sharedLib.mjs";
@@ -19,10 +23,12 @@ import {
   EDITOR_SIDECAR_DIR,
   HEATMAP_PATH,
   LAYOUT_PATH,
-  TOOL_RUNS_DIR,
+  PROJECT_CONFIG_PATH,
   TRASH_DIR,
   TRASH_MANIFEST,
+  USER_DIR,
 } from "../shared/blackboxPaths.js";
+import { EDITOR_VERSION } from "../shared/editorVersion.js";
 
 const MEDIA_ROOTS = new Set(["textures", "music", "sfx"]);
 const HEATMAP_SCHEMA_VERSION = 2;
@@ -116,8 +122,8 @@ function projectRelativePath(projectPath, filePath) {
   return path.relative(projectPath, absolute).split(path.sep).join("/");
 }
 
-function isToolRunSidecar(relativePath) {
-  return relativePath === TOOL_RUNS_DIR || relativePath.startsWith(`${TOOL_RUNS_DIR}/`);
+function isUserSidecar(relativePath) {
+  return relativePath === USER_DIR || relativePath.startsWith(`${USER_DIR}/`);
 }
 
 function isAnalyticsRow(value) {
@@ -415,6 +421,7 @@ export class ProjectService {
       path: canonical,
       name: path.basename(canonical),
       title: typeof scenario.title === "string" ? scenario.title : null,
+      editorVersion: config.editorVersion,
       codeTrusted,
       revision: Number(existing?.revision ?? 1),
       lastOpened: existing?.last_opened ?? null,
@@ -483,8 +490,18 @@ export class ProjectService {
     return { relative: normalized, absolute: resolved };
   }
 
-  async openProject(id) {
+  async openProject(id, acceptEditorVersion = false) {
     const project = this.requireProject(id);
+    if (project.editorVersion !== EDITOR_VERSION) {
+      if (!acceptEditorVersion) {
+        throw new ProjectError(
+          "editor_version_mismatch",
+          "This project was last opened with a different editor version",
+          { projectVersion: project.editorVersion, editorVersion: EDITOR_VERSION },
+        );
+      }
+      await this.writeCurrentEditorVersion(project);
+    }
     if (project.codeTrusted === null) {
       throw new ProjectError(
         "project_trust_required",
@@ -494,8 +511,15 @@ export class ProjectService {
     const now = new Date().toISOString();
     project.lastOpened = now;
     this.db.prepare("UPDATE projects SET last_opened = ? WHERE id = ?").run(now, id);
-    if (project.codeTrusted === true) await ensureDevTsconfig(project.path);
+    if (project.codeTrusted === true) await ensureProjectIdeSetup(project.path);
     return this.snapshot(project);
+  }
+
+  async writeCurrentEditorVersion(project) {
+    const configPath = path.join(project.path, PROJECT_CONFIG_PATH);
+    this.suppress(configPath);
+    await writeProjectEditorVersion(project.path, EDITOR_VERSION);
+    project.editorVersion = EDITOR_VERSION;
   }
 
   async setProjectCodeTrust(id, trusted) {
@@ -507,7 +531,7 @@ export class ProjectService {
     this.db.prepare("UPDATE projects SET code_trusted = ? WHERE id = ?").run(Number(trusted), id);
     // Refresh the IDE-only tsconfig.json when custom code is trusted on a
     // developer (monorepo) machine. No-op elsewhere; never throws.
-    if (trusted) await ensureDevTsconfig(project.path);
+    if (trusted) await ensureProjectIdeSetup(project.path);
     return { trusted };
   }
 
@@ -977,7 +1001,7 @@ export class ProjectService {
 
   async indexProject(project) {
     if (!this.db) return;
-    const files = (await walkFiles(project.path)).filter((relative) => !isToolRunSidecar(relative));
+    const files = (await walkFiles(project.path)).filter((relative) => !isUserSidecar(relative));
     const replace = this.db.prepare(`
       INSERT INTO files (project_id, path, size, modified_ms)
       VALUES (?, ?, ?, ?)
@@ -1006,7 +1030,7 @@ export class ProjectService {
       ignoreInitial: true,
       awaitWriteFinish: { stabilityThreshold: 150, pollInterval: 25 },
       ignored: (filePath) =>
-        isToolRunSidecar(projectRelativePath(project.path, filePath)) ||
+        isUserSidecar(projectRelativePath(project.path, filePath)) ||
         /\.blackbox-[a-f0-9]+\.(tmp|bak)$/.test(filePath),
     });
     const onChange = (filePath) => {
@@ -1023,7 +1047,7 @@ export class ProjectService {
       ? path.resolve(filePath)
       : path.resolve(project.path, filePath);
     const relative = projectRelativePath(project.path, absolute);
-    if (isToolRunSidecar(relative)) return;
+    if (isUserSidecar(relative)) return;
 
     const suppressedUntil = this.suppressed.get(absolute) ?? 0;
     if (suppressedUntil >= Date.now()) {

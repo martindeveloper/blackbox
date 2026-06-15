@@ -4,7 +4,16 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { PACKAGED, REPO_ROOT, toolBinPath } from "./config.js";
 import { getCargoTargetDir } from "./cargo.js";
-import { EDITOR_CONFIG_BASENAME, EDITOR_SIDECAR_DIR } from "../shared/blackboxPaths.js";
+import {
+  EDITOR_SIDECAR_DIR,
+  PROJECT_CONFIG_BASENAME,
+  TOOL_RUNS_DIRNAME,
+  USER_DIRNAME,
+  USER_TOOLS_PATH,
+} from "../shared/blackboxPaths.js";
+import { EDITOR_VERSION } from "../shared/editorVersion.js";
+
+const LEGACY_EDITOR_CONFIG_BASENAME = "editor.json";
 
 export { EDITOR_SIDECAR_DIR } from "../shared/blackboxPaths.js";
 const EDITOR_ID_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
@@ -111,68 +120,147 @@ export async function findDefaultDataRoot() {
   return null;
 }
 
-function projectEditorConfigPath(projectDir) {
-  return path.join(projectDir, EDITOR_SIDECAR_DIR, EDITOR_CONFIG_BASENAME);
+function projectConfigPath(projectDir) {
+  return path.join(projectDir, EDITOR_SIDECAR_DIR, PROJECT_CONFIG_BASENAME);
 }
 
-async function readEditorConfigFile(configPath, projectDir = null) {
+async function readJsonFile(filePath) {
   try {
-    const text = await fs.readFile(configPath, "utf8");
-    const doc = JSON.parse(text);
-    if (!projectDir && (typeof doc.path !== "string" || !doc.path.trim())) {
-      return { ok: false, error: `invalid editor.json (missing path): ${configPath}` };
-    }
-
-    const projectPath = projectDir
-      ? path.resolve(projectDir)
-      : path.resolve(resolveEditorPath(doc.path.trim(), { $workspace: REPO_ROOT }));
-    const pathVars = {
-      $workspace: REPO_ROOT,
-      $project: projectPath,
-      $target: await getCargoTargetDir(),
-    };
-
-    const tools = resolveToolsFromDoc(doc, pathVars);
-
-    const id =
-      typeof doc.id === "string" && EDITOR_ID_PATTERN.test(doc.id.trim()) ? doc.id.trim() : null;
-    return { ok: true, projectPath, tools, id, doc };
+    return { ok: true, doc: JSON.parse(await fs.readFile(filePath, "utf8")) };
   } catch (error) {
     if (error?.code === "ENOENT") return { ok: false, missing: true };
-    return { ok: false, error: `failed to read editor.json: ${configPath}` };
+    return { ok: false, error: `failed to read JSON: ${filePath}` };
   }
 }
 
-async function writeEditorConfigFile(configPath, doc) {
-  await fs.writeFile(configPath, `${JSON.stringify(doc, null, 2)}\n`);
+async function writeJsonFile(filePath, doc) {
+  await fs.mkdir(path.dirname(filePath), { recursive: true });
+  await fs.writeFile(filePath, `${JSON.stringify(doc, null, 2)}\n`);
+}
+
+function normalizeProjectConfigFields(doc) {
+  const id =
+    typeof doc.id === "string" && EDITOR_ID_PATTERN.test(doc.id.trim())
+      ? doc.id.trim()
+      : generateEditorId();
+  const editorVersion =
+    typeof doc.editorVersion === "string" && doc.editorVersion.trim()
+      ? doc.editorVersion.trim()
+      : EDITOR_VERSION;
+  return { id, editorVersion };
+}
+
+function projectConfigOnDisk(doc) {
+  return (
+    typeof doc.id === "string" &&
+    typeof doc.editorVersion === "string" &&
+    Object.keys(doc).length === 2
+  );
+}
+
+async function writeProjectConfig(projectDir, fields) {
+  const normalized = normalizeProjectConfigFields(fields);
+  const configPath = projectConfigPath(projectDir);
+  const existing = await readJsonFile(configPath);
+  if (
+    existing.ok &&
+    existing.doc.id === normalized.id &&
+    existing.doc.editorVersion === normalized.editorVersion &&
+    projectConfigOnDisk(existing.doc)
+  ) {
+    return normalized;
+  }
+  await writeJsonFile(configPath, normalized);
+  return normalized;
+}
+
+async function migrateLegacySidecar(projectDir) {
+  const sidecarDir = path.join(projectDir, EDITOR_SIDECAR_DIR);
+  const legacyConfigPath = path.join(sidecarDir, LEGACY_EDITOR_CONFIG_BASENAME);
+  const configPath = projectConfigPath(projectDir);
+  const legacyToolRunsDir = path.join(sidecarDir, TOOL_RUNS_DIRNAME);
+  const userToolRunsDir = path.join(sidecarDir, USER_DIRNAME, TOOL_RUNS_DIRNAME);
+
+  const projectConfig = await readJsonFile(configPath);
+  if (projectConfig.missing) {
+    const legacy = await readJsonFile(legacyConfigPath);
+    if (legacy.ok) {
+      const { id, editorVersion } = normalizeProjectConfigFields(legacy.doc);
+      await writeProjectConfig(projectDir, { id, editorVersion });
+
+      if (legacy.doc.tools && typeof legacy.doc.tools === "object") {
+        const toolsPath = path.join(projectDir, USER_TOOLS_PATH);
+        const existingTools = await readJsonFile(toolsPath);
+        if (existingTools.missing) {
+          await writeJsonFile(toolsPath, { tools: legacy.doc.tools });
+        }
+      }
+      await fs.unlink(legacyConfigPath).catch(() => {});
+    }
+  }
+
+  try {
+    await fs.access(legacyToolRunsDir);
+    try {
+      await fs.access(userToolRunsDir);
+    } catch {
+      await fs.mkdir(path.dirname(userToolRunsDir), { recursive: true });
+      await fs.rename(legacyToolRunsDir, userToolRunsDir);
+    }
+  } catch {
+    // No legacy tool-runs directory.
+  }
+}
+
+async function readProjectTools(projectDir) {
+  const toolsFile = await readJsonFile(path.join(projectDir, USER_TOOLS_PATH));
+  if (!toolsFile.ok) return nullTools();
+  const pathVars = {
+    $workspace: REPO_ROOT,
+    $project: projectDir,
+    $target: await getCargoTargetDir(),
+  };
+  return resolveToolsFromDoc(toolsFile.doc, pathVars);
 }
 
 export async function ensureProjectEditorConfig(projectDir) {
   const resolvedProjectDir = path.resolve(projectDir);
-  const configPath = projectEditorConfigPath(resolvedProjectDir);
-  const existing = await readEditorConfigFile(configPath, resolvedProjectDir);
+  await migrateLegacySidecar(resolvedProjectDir);
+  const configPath = projectConfigPath(resolvedProjectDir);
+  const existing = await readJsonFile(configPath);
+  if (!existing.ok && !existing.missing) return existing;
 
-  if (existing.ok) {
-    if (!existing.id) {
-      const doc = { ...existing.doc, id: generateEditorId() };
-      await writeEditorConfigFile(configPath, doc);
-      return { ...existing, id: doc.id, doc };
-    }
-    return existing;
-  }
-
-  await fs.mkdir(path.dirname(configPath), { recursive: true });
-  const doc = { id: generateEditorId(), path: resolvedProjectDir };
-  await writeEditorConfigFile(configPath, doc);
-  return { ok: true, projectPath: resolvedProjectDir, tools: nullTools(), id: doc.id, doc };
+  const normalized = await writeProjectConfig(resolvedProjectDir, existing.ok ? existing.doc : {});
+  return {
+    ok: true,
+    projectPath: resolvedProjectDir,
+    tools: await readProjectTools(resolvedProjectDir),
+    id: normalized.id,
+    editorVersion: normalized.editorVersion,
+    doc: normalized,
+  };
 }
 
 export async function regenerateProjectEditorId(projectDir) {
-  const configPath = projectEditorConfigPath(path.resolve(projectDir));
-  const text = await fs.readFile(configPath, "utf8");
-  const doc = { ...JSON.parse(text), id: generateEditorId() };
-  await writeEditorConfigFile(configPath, doc);
-  return doc.id;
+  const resolvedProjectDir = path.resolve(projectDir);
+  const existing = await readJsonFile(projectConfigPath(resolvedProjectDir));
+  if (!existing.ok) {
+    throw new Error(existing.error ?? `Missing project config for ${resolvedProjectDir}`);
+  }
+  const normalized = await writeProjectConfig(resolvedProjectDir, {
+    ...existing.doc,
+    id: generateEditorId(),
+  });
+  return normalized.id;
+}
+
+export async function writeProjectEditorVersion(projectDir, editorVersion) {
+  const resolvedProjectDir = path.resolve(projectDir);
+  const existing = await readJsonFile(projectConfigPath(resolvedProjectDir));
+  if (!existing.ok) {
+    throw new Error(existing.error ?? `Missing project config for ${resolvedProjectDir}`);
+  }
+  await writeProjectConfig(resolvedProjectDir, { ...existing.doc, editorVersion });
 }
 
 export async function readToolsConfigForScenario(scenarioName) {
@@ -181,8 +269,7 @@ export async function readToolsConfigForScenario(scenarioName) {
   if (!dataRoot) return nullTools();
   const project = await findScenarioProject(dataRoot, scenarioName);
   if (!project.ok) return nullTools();
-  const config = await readEditorConfigFile(projectEditorConfigPath(project.projectDir));
-  return config.ok ? (config.tools ?? nullTools()) : nullTools();
+  return readProjectTools(project.projectDir);
 }
 
 async function findScenarioProject(dataRoot, scenarioName) {

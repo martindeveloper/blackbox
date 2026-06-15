@@ -5,16 +5,15 @@ import {
   bootstrapProjectCode,
   deleteTrash,
   emptyTrash as emptyTrashApi,
-  openProject as openProjectApi,
   restoreTrash,
   saveDocuments,
-  setProjectCodeTrust,
   subscribeProject,
   trashMedia,
   uploadMedia,
   type ProjectEvent,
   type RootFileEntry,
 } from "../lib/projectApi.js";
+import { openProjectWithPrompts } from "../lib/openProjectFlow.js";
 import type { TrashEntry } from "../lib/trash.js";
 import { renameNodeId } from "../lib/renameNodeId.js";
 import type { LoadedBundle } from "../lib/scenarioLoader.js";
@@ -161,22 +160,8 @@ export const useScenarioStore = create<ScenarioState>((set, get) => ({
 
   openProject: async (projectId) => {
     try {
-      let snapshot;
-      try {
-        snapshot = await openProjectApi(projectId);
-      } catch (error) {
-        if (!(error instanceof ApiError) || error.code !== "project_trust_required") throw error;
-        const trusted = await confirmModal({
-          title: translate("welcome.trustProjectTitle"),
-          message: translate("welcome.trustProjectMessage"),
-          confirmLabel: translate("welcome.trustProjectAction"),
-          cancelLabel: translate("welcome.openProjectSafely"),
-          closeAborts: true,
-        });
-        if (trusted === null) return false;
-        await setProjectCodeTrust(projectId, trusted);
-        snapshot = await openProjectApi(projectId);
-      }
+      const snapshot = await openProjectWithPrompts(projectId);
+      if (!snapshot) return false;
       unsubscribeProject?.();
       set({
         projectId: snapshot.project.id,

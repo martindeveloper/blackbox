@@ -40,11 +40,23 @@ const CLIENT_ID = crypto.randomUUID();
 export class ApiError extends Error {
   code: string;
   currentRevision?: number;
+  projectVersion?: string;
+  editorVersion?: string;
 
-  constructor(code: string, message: string, currentRevision?: number) {
+  constructor(
+    code: string,
+    message: string,
+    details?: {
+      currentRevision?: number;
+      projectVersion?: string;
+      editorVersion?: string;
+    },
+  ) {
     super(message);
     this.code = code;
-    this.currentRevision = currentRevision;
+    this.currentRevision = details?.currentRevision;
+    this.projectVersion = details?.projectVersion;
+    this.editorVersion = details?.editorVersion;
   }
 }
 
@@ -57,13 +69,15 @@ async function responseJson<T>(response: Response): Promise<T> {
     code?: string;
     message?: string;
     currentRevision?: number;
+    projectVersion?: string;
+    editorVersion?: string;
   };
   if (!response.ok) {
-    throw new ApiError(
-      body.code ?? "request_failed",
-      body.message ?? `HTTP ${response.status}`,
-      body.currentRevision,
-    );
+    throw new ApiError(body.code ?? "request_failed", body.message ?? `HTTP ${response.status}`, {
+      currentRevision: body.currentRevision,
+      projectVersion: body.projectVersion,
+      editorVersion: body.editorVersion,
+    });
   }
   return body;
 }
@@ -111,8 +125,11 @@ export async function deleteProject(projectId: string, confirmName: string): Pro
   await postJson(projectUrl(projectId, "/delete"), { confirmName });
 }
 
-export function openProject(projectId: string): Promise<ProjectSnapshot> {
-  return postJson(projectUrl(projectId, "/open"), {});
+export function openProject(
+  projectId: string,
+  acceptEditorVersion = false,
+): Promise<ProjectSnapshot> {
+  return postJson(projectUrl(projectId, "/open"), { acceptEditorVersion });
 }
 
 export async function setProjectCodeTrust(projectId: string, trusted: boolean): Promise<void> {
