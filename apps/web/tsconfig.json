@@ -7,6 +7,7 @@
     "src/**/*.ts",
     "src/**/*.tsx",
     "../../.cache/wasm/clients-web/**/*.d.ts",
-    "../editor/shared/**/*.ts"
+    "../editor/shared/**/*.ts",
+    "../editor/players/web/protocol.ts"
   ]
 }
