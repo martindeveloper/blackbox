@@ -32,6 +32,7 @@ import {
 } from "../lib/chapterFactory.js";
 import { removeChapterFromBundle, renameChapterId } from "../lib/chapterLifecycle.js";
 import { disconnectChoiceEdgeInBundle } from "../lib/disconnectChoiceEdge.js";
+import { diffDirtyKeys } from "../lib/historyDiff.js";
 import type { GraphEdgeKind } from "../lib/graphBuilder.js";
 import { createLibrarySidecar, createMetaCatalogSidecar } from "../lib/sidecarFactory.js";
 import type { MetaEntryKind } from "../lib/metaUsage.js";
@@ -47,6 +48,22 @@ import type {
   TextBlock,
   InlineNodeContent,
 } from "../types/wire.js";
+
+/**
+ * A single point in the undo/redo timeline. We snapshot the entire bundle
+ * (cheap at editor scale, and trivially correct) plus a `label` used to coalesce
+ * rapid edits — e.g. consecutive keystrokes in one inspector field collapse into
+ * a single history step instead of one step per character.
+ */
+interface HistorySnapshot {
+  label: string;
+  bundle: LoadedBundle;
+}
+
+/** Max history depth. Oldest entries are dropped once exceeded. */
+const HISTORY_LIMIT = 100;
+/** Window (ms) within which same-label edits coalesce into one history step. */
+const HISTORY_COALESCE_MS = 600;
 
 interface ScenarioState {
   bundle: LoadedBundle | null;
@@ -65,7 +82,18 @@ interface ScenarioState {
   conflict: ProjectEvent | null;
   validationIssues: ValidationIssue[];
   saving: boolean;
+  undoStack: HistorySnapshot[];
+  redoStack: HistorySnapshot[];
 
+  /**
+   * Capture the current bundle as a history checkpoint *before* a mutation.
+   * Generic on purpose: any future undoable action can opt in by calling this
+   * right before it replaces the bundle. `coalesce` (default true) merges
+   * consecutive checkpoints sharing the same `label` within a short window.
+   */
+  commitHistory: (label: string, coalesce?: boolean) => void;
+  undo: () => void;
+  redo: () => void;
   openProject: (projectId: string) => Promise<boolean>;
   reloadProject: () => Promise<boolean>;
   bootstrapProjectCode: () => Promise<boolean>;
@@ -135,6 +163,44 @@ function cloneBundle(bundle: LoadedBundle): LoadedBundle {
   return structuredClone(bundle);
 }
 
+// Coalescing trackers for history checkpoints. Module-level (not store state)
+// since they are bookkeeping that should never trigger a re-render.
+let lastCommitLabel: string | null = null;
+let lastCommitAt = 0;
+
+function resetHistory(): { undoStack: HistorySnapshot[]; redoStack: HistorySnapshot[] } {
+  lastCommitLabel = null;
+  lastCommitAt = 0;
+  return { undoStack: [], redoStack: [] };
+}
+
+/**
+ * Swap the live bundle to a history `entry` and reconcile bookkeeping. Re-marks
+ * as dirty every document that actually differs (so a reverted edit is written
+ * back even if it had already been saved) and bumps the edit/narrative versions
+ * forward so save-conflict detection still sees a monotonic timeline.
+ */
+function applyHistorySnapshot(
+  get: () => ScenarioState,
+  set: (partial: Partial<ScenarioState>) => void,
+  current: LoadedBundle,
+  entry: HistorySnapshot,
+  stacks: { undoStack: HistorySnapshot[]; redoStack: HistorySnapshot[] },
+): void {
+  const dirty = new Set(get().dirty);
+  for (const key of diffDirtyKeys(current, entry.bundle)) dirty.add(key);
+  lastCommitLabel = null;
+  lastCommitAt = 0;
+  set({
+    bundle: entry.bundle,
+    dirty,
+    editVersion: get().editVersion + 1,
+    narrativeVersion: get().narrativeVersion + 1,
+    ...stacks,
+  });
+  get().runValidation();
+}
+
 let unsubscribeProject: (() => void) | null = null;
 
 function pickMediaFile(category: MediaCategory): Promise<File | null> {
@@ -165,6 +231,51 @@ export const useScenarioStore = create<ScenarioState>((set, get) => ({
   conflict: null,
   validationIssues: [],
   saving: false,
+  undoStack: [],
+  redoStack: [],
+
+  commitHistory: (label, coalesce = true) => {
+    const { bundle, undoStack } = get();
+    if (!bundle) return;
+    const now = Date.now();
+    // Coalesce: if the same field is being edited within the window, the
+    // existing (older) checkpoint already captures the pre-edit state — keep it
+    // and just refresh the timer so the whole burst undoes in one step.
+    if (
+      coalesce &&
+      undoStack.length > 0 &&
+      lastCommitLabel === label &&
+      now - lastCommitAt < HISTORY_COALESCE_MS
+    ) {
+      lastCommitAt = now;
+      return;
+    }
+    const nextStack = [...undoStack, { label, bundle: cloneBundle(bundle) }];
+    if (nextStack.length > HISTORY_LIMIT) nextStack.shift();
+    lastCommitLabel = label;
+    lastCommitAt = now;
+    set({ undoStack: nextStack, redoStack: [] });
+  },
+
+  undo: () => {
+    const { undoStack, redoStack, bundle } = get();
+    if (undoStack.length === 0 || !bundle) return;
+    const entry = undoStack[undoStack.length - 1]!;
+    applyHistorySnapshot(get, set, bundle, entry, {
+      undoStack: undoStack.slice(0, -1),
+      redoStack: [...redoStack, { label: entry.label, bundle }],
+    });
+  },
+
+  redo: () => {
+    const { undoStack, redoStack, bundle } = get();
+    if (redoStack.length === 0 || !bundle) return;
+    const entry = redoStack[redoStack.length - 1]!;
+    applyHistorySnapshot(get, set, bundle, entry, {
+      undoStack: [...undoStack, { label: entry.label, bundle }],
+      redoStack: redoStack.slice(0, -1),
+    });
+  },
 
   openProject: async (projectId) => {
     try {
@@ -187,6 +298,7 @@ export const useScenarioStore = create<ScenarioState>((set, get) => ({
         narrativeVersion: 0,
         conflict: null,
         validationIssues: validateBundle(snapshot.bundle),
+        ...resetHistory(),
       });
       unsubscribeProject = subscribeProject(projectId, (event) => {
         const state = get();
@@ -434,6 +546,7 @@ export const useScenarioStore = create<ScenarioState>((set, get) => ({
     if (!bundle) return;
     const next = cloneBundle(bundle);
     Object.assign(next.scenario, patch);
+    get().commitHistory("scenario");
     set({ bundle: next });
     get().markDirty("scenario");
     get().runValidation();
@@ -522,6 +635,7 @@ export const useScenarioStore = create<ScenarioState>((set, get) => ({
     if (!bundle) return;
     const next = cloneBundle(bundle);
     next.chapters[chapterId] = chapter;
+    get().commitHistory(`chapter:${chapterId}`);
     set({ bundle: next });
     get().markDirty(`chapter:${chapterId}`);
     get().runValidation();
@@ -534,6 +648,7 @@ export const useScenarioStore = create<ScenarioState>((set, get) => ({
     const chapter = next.chapters[chapterId];
     if (!chapter) return;
     chapter.nodes[nodeId] = node;
+    get().commitHistory(`node:${chapterId}:${nodeId}`);
     set({ bundle: next });
     get().markDirty(`chapter:${chapterId}`);
     get().runValidation();
@@ -554,6 +669,7 @@ export const useScenarioStore = create<ScenarioState>((set, get) => ({
       choices: [],
     };
     chapter.nodes[nodeId] = node;
+    get().commitHistory(`addNode:${nodeId}`, false);
     set({ bundle: next });
     get().markDirty(`chapter:${chapterId}`);
     get().runValidation();
@@ -574,6 +690,7 @@ export const useScenarioStore = create<ScenarioState>((set, get) => ({
     const layout = next.layout.chapters[chapterId]?.nodes;
     if (layout) delete layout[nodeId];
 
+    get().commitHistory(`deleteNode:${nodeId}`, false);
     set({ bundle: next });
     get().markDirty(`chapter:${chapterId}`);
     get().markDirty("layout");
@@ -585,6 +702,7 @@ export const useScenarioStore = create<ScenarioState>((set, get) => ({
     if (!bundle) return;
     const next = cloneBundle(bundle);
     renameNodeId(next, chapterId, oldId, newId);
+    get().commitHistory(`renameNode:${oldId}`, false);
     set({ bundle: next });
     get().markDirty(`chapter:${chapterId}`);
     get().markDirty("scenario");
@@ -609,6 +727,7 @@ export const useScenarioStore = create<ScenarioState>((set, get) => ({
       goto: targetId,
     };
     source.choices = [...(source.choices ?? []), choice];
+    get().commitHistory(`connect:${sourceId}:${targetId}`, false);
     set({ bundle: next });
     get().markDirty(`chapter:${chapterId}`);
     get().runValidation();
@@ -630,6 +749,7 @@ export const useScenarioStore = create<ScenarioState>((set, get) => ({
     );
     if (!chapterDirty && !itemsDirty) return;
 
+    get().commitHistory(`disconnect:${sourceId}:${choiceId}`, false);
     set({ bundle: next });
     if (chapterDirty) get().markDirty(`chapter:${chapterId}`);
     if (itemsDirty) get().markDirty("items");
@@ -644,6 +764,7 @@ export const useScenarioStore = create<ScenarioState>((set, get) => ({
       next.layout.chapters[chapterId] = { nodes: {} };
     }
     next.layout.chapters[chapterId].nodes[nodeId] = { x, y };
+    get().commitHistory(`position:${chapterId}:${nodeId}`);
     set({ bundle: next });
     get().markDirty("layout");
   },
@@ -656,6 +777,7 @@ export const useScenarioStore = create<ScenarioState>((set, get) => ({
       next.layout.chapters[chapterId] = { nodes: {} };
     }
     Object.assign(next.layout.chapters[chapterId].nodes, positions);
+    get().commitHistory(`layout:${chapterId}`, false);
     set({ bundle: next });
     get().markDirty("layout");
   },
@@ -665,6 +787,7 @@ export const useScenarioStore = create<ScenarioState>((set, get) => ({
     if (!bundle) return;
     const next = cloneBundle(bundle);
     next.items.items[itemId] = item;
+    get().commitHistory(`item:${itemId}`);
     set({ bundle: next });
     get().markDirty("items");
     get().runValidation();
@@ -699,6 +822,7 @@ export const useScenarioStore = create<ScenarioState>((set, get) => ({
     if (!bundle) return;
     const next = cloneBundle(bundle);
     next.characters.characters[charId] = char;
+    get().commitHistory(`character:${charId}`);
     set({ bundle: next });
     get().markDirty("characters");
   },
@@ -736,6 +860,7 @@ export const useScenarioStore = create<ScenarioState>((set, get) => ({
     if (!bundle) return;
     const next = cloneBundle(bundle);
     Object.assign(next.assets, patch);
+    get().commitHistory("assets");
     set({ bundle: next });
     get().markDirty("assets");
   },
@@ -781,6 +906,7 @@ export const useScenarioStore = create<ScenarioState>((set, get) => ({
     const next = cloneBundle(bundle);
     const catalog = kind === "event" ? next.meta!.events : next.meta!.flags;
     catalog[id] = { ...catalog[id], ...patch };
+    get().commitHistory(`meta:${kind}:${id}`);
     set({ bundle: next });
     get().markDirty("meta");
   },
@@ -824,6 +950,7 @@ export const useScenarioStore = create<ScenarioState>((set, get) => ({
     if (!bundle?.library) return;
     const next = cloneBundle(bundle);
     next.library!.snippets[id] = block;
+    get().commitHistory(`library:snippet:${id}`);
     set({ bundle: next });
     get().markDirty("library");
   },
@@ -833,6 +960,7 @@ export const useScenarioStore = create<ScenarioState>((set, get) => ({
     if (!bundle?.library) return;
     const next = cloneBundle(bundle);
     next.library!.templates[id] = template;
+    get().commitHistory(`library:template:${id}`);
     set({ bundle: next });
     get().markDirty("library");
   },
@@ -883,6 +1011,7 @@ export const useScenarioStore = create<ScenarioState>((set, get) => ({
     const next = cloneBundle(bundle);
     next.library!.conditions ??= {};
     next.library!.conditions[id] = gate;
+    get().commitHistory(`library:condition:${id}`);
     set({ bundle: next });
     get().markDirty("library");
   },
@@ -913,6 +1042,7 @@ export const useScenarioStore = create<ScenarioState>((set, get) => ({
     if (!bundle) return;
     const next = cloneBundle(bundle);
     next.scenario.deathNode = node;
+    get().commitHistory("deathNode");
     set({ bundle: next });
     get().markDirty("scenario");
     get().runValidation();
@@ -923,6 +1053,7 @@ export const useScenarioStore = create<ScenarioState>((set, get) => ({
     if (!bundle) return;
     const next = cloneBundle(bundle);
     delete next.scenario.deathNode;
+    get().commitHistory("deathNode", false);
     set({ bundle: next });
     get().markDirty("scenario");
     get().runValidation();
@@ -953,6 +1084,7 @@ export const useScenarioStore = create<ScenarioState>((set, get) => ({
       narrativeVersion: 0,
       conflict: null,
       validationIssues: [],
+      ...resetHistory(),
     });
   },
 }));

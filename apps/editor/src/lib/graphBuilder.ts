@@ -311,6 +311,9 @@ export function applyDagreLayout(
 
   const nodeIds = new Set(nodes.map((node) => node.id));
   const depthByNode = new Map<string, number>();
+  // Spanning-tree parent + the source port (choice) index of the edge that first
+  // reached each node. Used after layout to fan children out in choice order.
+  const parentByNode = new Map<string, { parent: string; port: number }>();
   if (rootNodeId && nodeIds.has(rootNodeId)) {
     const queue = [rootNodeId];
     depthByNode.set(rootNodeId, 0);
@@ -322,6 +325,10 @@ export function applyDagreLayout(
         if (edge.source !== source || !nodeIds.has(edge.target)) continue;
         if (depthByNode.has(edge.target)) continue;
         depthByNode.set(edge.target, sourceDepth + 1);
+        parentByNode.set(edge.target, {
+          parent: source,
+          port: edge.data?.sourcePortIndex ?? 0,
+        });
         queue.push(edge.target);
       }
     }
@@ -347,5 +354,38 @@ export function applyDagreLayout(
       positions[node.id] = { x: pos.x - 100, y: pos.y - 38 };
     }
   }
+
+  // Dagre lays each node out as a single point and ignores where its source
+  // ports sit, so a fan-out can end up ordered opposite to its choices —
+  // crossing the edges. Re-slot each row left-to-right by (parent x, choice
+  // port index) so every parent's children follow the order of its handles.
+  const rows = new Map<number, string[]>();
+  for (const id of Object.keys(positions)) {
+    const key = Math.round(positions[id]!.y);
+    (rows.get(key) ?? rows.set(key, []).get(key)!).push(id);
+  }
+
+  for (const key of [...rows.keys()].sort((a, b) => a - b)) {
+    const row = rows.get(key)!;
+    if (row.length < 2) continue;
+    const slots = row.map((id) => positions[id]!.x).sort((a, b) => a - b);
+    const sortKey = (id: string): [number, number] => {
+      const info = parentByNode.get(id);
+      // Parent sits in an earlier (higher) row already re-slotted above.
+      const parentX = info ? (positions[info.parent]?.x ?? positions[id]!.x) : positions[id]!.x;
+      return [parentX, info?.port ?? 0];
+    };
+    const ordered = [...row].sort((a, b) => {
+      const [ax, ap] = sortKey(a);
+      const [bx, bp] = sortKey(b);
+      if (ax !== bx) return ax - bx;
+      if (ap !== bp) return ap - bp;
+      return positions[a]!.x - positions[b]!.x;
+    });
+    ordered.forEach((id, index) => {
+      positions[id]!.x = slots[index]!;
+    });
+  }
+
   return positions;
 }

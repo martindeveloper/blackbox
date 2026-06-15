@@ -77,6 +77,8 @@ export function EditorShell() {
   const dirty = useScenarioStore((s) => s.dirty);
   const conflict = useScenarioStore((s) => s.conflict);
   const save = useScenarioStore((s) => s.save);
+  const undo = useScenarioStore((s) => s.undo);
+  const redo = useScenarioStore((s) => s.redo);
   const reloadProject = useScenarioStore((s) => s.reloadProject);
   const overwriteConflict = useScenarioStore((s) => s.overwriteConflict);
   const navigate = useNavigate();
@@ -112,10 +114,28 @@ export function EditorShell() {
   const hideLeftDock = isMedia || isAbout || isDashboard;
 
   useEffect(() => {
+    const isTextEntry = (target: EventTarget | null) => {
+      const el = target as HTMLElement | null;
+      if (!el) return false;
+      const tag = el.tagName;
+      return tag === "INPUT" || tag === "TEXTAREA" || el.isContentEditable;
+    };
     const onKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "s") {
         e.preventDefault();
         void save();
+      }
+      // Undo/redo. Skip while editing a text field so the browser's native
+      // in-field undo keeps working; store-level history still applies once
+      // focus leaves the field.
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "z" && !isTextEntry(e.target)) {
+        e.preventDefault();
+        if (e.shiftKey) redo();
+        else undo();
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "y" && !isTextEntry(e.target)) {
+        e.preventDefault();
+        redo();
       }
       if (e.key === "Escape" && isActiveEditorPage(pathname, Page.EditorGraph)) {
         void editorNavigate(navigate, {
@@ -126,7 +146,7 @@ export function EditorShell() {
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [save, navigate, pathname, search.chapter]);
+  }, [save, undo, redo, navigate, pathname, search.chapter]);
 
   useEffect(() => {
     const electron = window.electronAPI;

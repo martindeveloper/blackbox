@@ -1,4 +1,4 @@
-import { Flame, GitBranch, LayoutGrid, Plus, Star, Trash2 } from "lucide-react";
+import { Flame, GitBranch, LayoutGrid, Plus, Redo2, Star, Trash2, Undo2 } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
@@ -51,6 +51,10 @@ export function GraphToolbar({
   const addNode = useScenarioStore((s) => s.addNode);
   const deleteNode = useScenarioStore((s) => s.deleteNode);
   const bundle = useScenarioStore((s) => s.bundle);
+  const undo = useScenarioStore((s) => s.undo);
+  const redo = useScenarioStore((s) => s.redo);
+  const canUndo = useScenarioStore((s) => s.undoStack.length > 0);
+  const canRedo = useScenarioStore((s) => s.redoStack.length > 0);
 
   const [newNodeId, setNewNodeId] = useState("");
 
@@ -121,6 +125,24 @@ export function GraphToolbar({
           disabled={!nodeId}
           title={t("common.delete")}
           onClick={() => void handleDelete()}
+        />
+        <Button
+          variant="ghost"
+          size="sm"
+          icon
+          leadingIcon={Undo2}
+          disabled={!canUndo}
+          title={`${t("graph.undo")} (⌘Z)`}
+          onClick={() => undo()}
+        />
+        <Button
+          variant="ghost"
+          size="sm"
+          icon
+          leadingIcon={Redo2}
+          disabled={!canRedo}
+          title={`${t("graph.redo")} (⌘⇧Z)`}
+          onClick={() => redo()}
         />
         <Button
           variant="ghost"

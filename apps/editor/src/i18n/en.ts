@@ -794,6 +794,8 @@ export const en = {
     addNode: "Add node",
     autoLayout: "Auto-layout",
     arrange: "Arrange",
+    undo: "Undo",
+    redo: "Redo",
     start: "Start",
     nodes_one: "{{count}} node",
     nodes_other: "{{count}} nodes",
