@@ -15,12 +15,12 @@ import { TopBar } from "./TopBar.js";
 import { EditorFooter } from "./EditorFooter.js";
 import { Icon } from "../icons/Icon.js";
 
-const MIN_LEFT = 120;
-const MAX_LEFT = 480;
-const DEFAULT_LEFT = 196;
-const MIN_RIGHT = 160;
-const MAX_RIGHT = 560;
-const DEFAULT_RIGHT = 256;
+import {
+  clampLeftPanelWidth,
+  clampRightPanelWidth,
+  DEFAULT_LEFT_PANEL,
+  DEFAULT_RIGHT_PANEL,
+} from "../../lib/panelLayout.js";
 
 function PanelHandle({
   side,
@@ -85,8 +85,8 @@ export function EditorShell() {
   const { prefs, ready, updatePrefs } = useUserPrefs();
   useHeatmapHydration();
 
-  const [leftWidth, setLeftWidth] = useState(DEFAULT_LEFT);
-  const [rightWidth, setRightWidth] = useState(DEFAULT_RIGHT);
+  const [leftWidth, setLeftWidth] = useState(DEFAULT_LEFT_PANEL);
+  const [rightWidth, setRightWidth] = useState(DEFAULT_RIGHT_PANEL);
   const [leftCollapsed, setLeftCollapsed] = useState(false);
   const [rightCollapsed, setRightCollapsed] = useState(false);
   const [dragging, setDragging] = useState<"left" | "right" | null>(null);
@@ -96,17 +96,13 @@ export function EditorShell() {
 
   useEffect(() => {
     if (!ready) return;
-    if (prefs.leftColumnWidth) {
-      const w = Math.max(MIN_LEFT, Math.min(MAX_LEFT, prefs.leftColumnWidth));
-      setLeftWidth(w);
-      prevLeftWidth.current = w;
-    }
-    if (prefs.rightColumnWidth) {
-      const w = Math.max(MIN_RIGHT, Math.min(MAX_RIGHT, prefs.rightColumnWidth));
-      setRightWidth(w);
-      prevRightWidth.current = w;
-    }
-  }, [ready]); // eslint-disable-line react-hooks/exhaustive-deps
+    const nextLeft = clampLeftPanelWidth(prefs.leftColumnWidth ?? DEFAULT_LEFT_PANEL);
+    const nextRight = clampRightPanelWidth(prefs.rightColumnWidth ?? DEFAULT_RIGHT_PANEL);
+    setLeftWidth(nextLeft);
+    setRightWidth(nextRight);
+    prevLeftWidth.current = nextLeft;
+    prevRightWidth.current = nextRight;
+  }, [ready, prefs.leftColumnWidth, prefs.rightColumnWidth]);
 
   const activity = useActivityView();
   const isMedia = activity === "media";
@@ -160,11 +156,11 @@ export function EditorShell() {
     setDragging(side);
     const onMouseMove = (e: MouseEvent) => {
       if (side === "left") {
-        const w = Math.max(MIN_LEFT, Math.min(MAX_LEFT, startWidth + e.clientX - startX));
+        const w = clampLeftPanelWidth(startWidth + e.clientX - startX);
         setLeftWidth(w);
         prevLeftWidth.current = w;
       } else {
-        const w = Math.max(MIN_RIGHT, Math.min(MAX_RIGHT, startWidth - (e.clientX - startX)));
+        const w = clampRightPanelWidth(startWidth - (e.clientX - startX));
         setRightWidth(w);
         prevRightWidth.current = w;
       }

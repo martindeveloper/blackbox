@@ -16,12 +16,16 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { Icon } from "../icons/Icon.js";
-import { ThemeSelector } from "./ThemeSelector.js";
+import {
+  ideLabelForPrefs,
+  UserSettingsButton,
+  UserSettingsModal,
+} from "../settings/UserSettingsModal.js";
 import { useScenarioStore } from "../../store/useScenarioStore.js";
 import { transitionToHome } from "../../lib/projectTransition.js";
 import { editorNavigate, navigateToTool } from "../../lib/routeHelpers.js";
 import { isActiveEditorPage, Page } from "../../lib/pages.js";
-import { DEFAULT_IDE_ID, getIdePluginMeta } from "../../shared/ideRegistry.js";
+import { CUSTOM_IDE_ID, DEFAULT_IDE_ID } from "../../../shared/ideRegistry.js";
 import { useToolRunnerStore } from "../../store/useToolRunnerStore.js";
 import { useUserPrefs } from "../../hooks/useUserPrefs.js";
 import { Button } from "../ui/Button.js";
@@ -46,6 +50,7 @@ export function TopBar() {
   const toolsBusy = toolRunState === "running";
   const previewActive = isActiveEditorPage(pathname, Page.EditorPreview);
   const [openingIde, setOpeningIde] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const { prefs } = useUserPrefs();
 
   const errorCount = validationIssues.filter((i) => i.severity === "error").length;
@@ -76,10 +81,12 @@ export function TopBar() {
     setOpeningIde(true);
     try {
       const ideId = prefs.preferredIde ?? DEFAULT_IDE_ID;
-      const opened = await window.electronAPI.openInIde(projectPath, ideId);
+      const customPath = ideId === CUSTOM_IDE_ID ? prefs.customIdePath : undefined;
+      const opened = await window.electronAPI.openInIde(projectPath, ideId, customPath);
       if (!opened) {
-        const ide = getIdePluginMeta(ideId);
-        window.alert(t("topBar.ideNotFound", { ide: ide?.label ?? "your IDE" }));
+        window.alert(
+          t("topBar.ideNotFound", { ide: ideLabelForPrefs(ideId, prefs.customIdePath) }),
+        );
       }
     } finally {
       setOpeningIde(false);
@@ -214,7 +221,8 @@ export function TopBar() {
         <span className="editor-topbar-divider" aria-hidden />
 
         <div className="editor-topbar-actions">
-          <ThemeSelector />
+          <UserSettingsButton onClick={() => setSettingsOpen(true)} />
+          {settingsOpen ? <UserSettingsModal onClose={() => setSettingsOpen(false)} /> : null}
           {projectPath && window.electronAPI ? (
             <Button
               variant="ghost"

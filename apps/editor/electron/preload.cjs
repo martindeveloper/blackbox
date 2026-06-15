@@ -3,7 +3,10 @@ const { contextBridge, ipcRenderer } = require("electron");
 contextBridge.exposeInMainWorld("electronAPI", {
   isElectron: true,
   pickProjectFolder: () => ipcRenderer.invoke("editor:pick-project-folder"),
-  openInIde: (projectPath, ideId) => ipcRenderer.invoke("editor:open-in-ide", projectPath, ideId),
+  probeIdes: (customPath) => ipcRenderer.invoke("editor:probe-ides", customPath),
+  pickIdeBinary: () => ipcRenderer.invoke("editor:pick-ide-binary"),
+  openInIde: (projectPath, ideId, customPath) =>
+    ipcRenderer.invoke("editor:open-in-ide", projectPath, ideId, customPath),
   setDirty: (dirty) => ipcRenderer.send("editor:set-dirty", dirty),
   onSaveBeforeClose: (callback) => {
     const listener = () => callback();

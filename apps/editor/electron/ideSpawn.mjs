@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import fs from "node:fs/promises";
 
 export function createIdeSpawn() {
   function run(command, args) {
@@ -30,5 +31,21 @@ export function createIdeSpawn() {
     return false;
   }
 
-  return { openFirstLauncher };
+  async function openCustomBinary(command, projectPath) {
+    return run(command, [projectPath]);
+  }
+
+  return { isLauncherAvailable, openFirstLauncher, openCustomBinary };
+}
+
+export async function isCustomIdeAvailable(customPath) {
+  if (typeof customPath !== "string" || !customPath.trim()) return false;
+  const resolved = customPath.trim();
+  try {
+    await fs.access(resolved);
+    const stat = await fs.stat(resolved);
+    return stat.isFile();
+  } catch {
+    return false;
+  }
 }

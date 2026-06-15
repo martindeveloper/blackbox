@@ -1,13 +1,26 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  createContext,
+  createElement,
+  use,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { fetchUserPrefs, saveUserPrefs, type UserPrefs } from "../lib/userPrefs.js";
 
 const DEBOUNCE_MS = 600;
 
-export function useUserPrefs(): {
+interface UserPrefsContextValue {
   prefs: UserPrefs;
   ready: boolean;
   updatePrefs: (patch: Partial<UserPrefs>) => void;
-} {
+}
+
+const UserPrefsContext = createContext<UserPrefsContextValue | null>(null);
+
+export function UserPrefsProvider({ children }: { children: ReactNode }) {
   const [prefs, setPrefs] = useState<UserPrefs>({});
   const [ready, setReady] = useState(false);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -33,5 +46,17 @@ export function useUserPrefs(): {
     }, DEBOUNCE_MS);
   }, []);
 
-  return { prefs, ready, updatePrefs };
+  return createElement(
+    UserPrefsContext.Provider,
+    { value: { prefs, ready, updatePrefs } },
+    children,
+  );
+}
+
+export function useUserPrefs(): UserPrefsContextValue {
+  const ctx = use(UserPrefsContext);
+  if (!ctx) {
+    throw new Error("useUserPrefs must be used within UserPrefsProvider");
+  }
+  return ctx;
 }

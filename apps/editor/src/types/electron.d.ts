@@ -1,7 +1,14 @@
+export interface IdeProbeResult {
+  plugins: Array<{ id: string; available: boolean }>;
+  customAvailable: boolean;
+}
+
 export interface ElectronAPI {
   isElectron: true;
   pickProjectFolder: () => Promise<string | null>;
-  openInIde: (projectPath: string, ideId?: string) => Promise<boolean>;
+  probeIdes: (customPath?: string) => Promise<IdeProbeResult>;
+  pickIdeBinary: () => Promise<string | null>;
+  openInIde: (projectPath: string, ideId?: string, customPath?: string) => Promise<boolean>;
   setDirty: (dirty: boolean) => void;
   onSaveBeforeClose: (callback: () => void) => () => void;
   reportSaveBeforeClose: (saved: boolean) => void;
