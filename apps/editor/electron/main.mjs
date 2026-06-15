@@ -18,6 +18,7 @@ import { applyDarwinShellPath } from "./shellPath.mjs";
 const ELECTRON_ROOT = path.dirname(fileURLToPath(import.meta.url));
 const CLIENT_ROOT = path.resolve(ELECTRON_ROOT, "..");
 const APP_NAME = "Blackbox Editor";
+const SHUTDOWN_TIMEOUT_MS = 1500;
 
 protocol.registerSchemesAsPrivileged([
   {
@@ -42,25 +43,19 @@ let mainWindow = null;
 let editorServer = null;
 let editorSocketPath = null;
 let shutdownPromise = null;
+// Set on before-quit so confirm-close can call app.quit() vs window.close().
+let isQuitting = false;
+let shutdownDone = false;
 
 const closeGuard = {
   dirty: false,
-  force: false,
-  intent: null,
-  prompting: false,
-  savePending: false,
+  allowClose: false,
 };
 
 function resetCloseGuard() {
   closeGuard.dirty = false;
-  closeGuard.force = false;
-  closeGuard.intent = null;
-  closeGuard.prompting = false;
-  closeGuard.savePending = false;
-}
-
-function canCloseImmediately() {
-  return closeGuard.force || !closeGuard.dirty;
+  closeGuard.allowClose = false;
+  isQuitting = false;
 }
 
 async function configureRuntimePaths() {
@@ -85,10 +80,6 @@ async function configureRuntimePaths() {
     : path.join(CLIENT_ROOT, "resources", "bin");
   process.env.BLACKBOX_TOOLS_DIR = toolsDir;
 
-  // Build CLI: in dev the editor drives the repository CLI in place; a packaged build runs
-  // the staged copy under resources, with prebuilt WASM and a writable bundler cache.
-  // Set BLACKBOX_CLI_DIR explicitly in both modes — BLACKBOX_APP_ROOT points the server's
-  // REPO_ROOT at user-data, so the CLI dir must not fall back to it.
   const cliDir = usePackagedResources
     ? path.join(process.resourcesPath, "cli")
     : path.resolve(CLIENT_ROOT, "..", "..");
@@ -154,13 +145,16 @@ async function createWindow() {
     return { action: "deny" };
   });
   mainWindow.on("close", (event) => {
-    if (canCloseImmediately()) return;
+    if (closeGuard.allowClose || !closeGuard.dirty) return;
     event.preventDefault();
-    void requestClose(closeGuard.intent === "quit" ? "quit" : "window");
+    mainWindow?.webContents.send("editor:request-close");
   });
   mainWindow.on("closed", () => {
     mainWindow = null;
     closeGuard.dirty = false;
+    if (isQuitting) {
+      void exitAfterShutdown();
+    }
   });
 
   await mainWindow.loadURL(EDITOR_ORIGIN);
@@ -171,7 +165,11 @@ async function shutdown() {
     protocol.unhandle(EDITOR_SCHEME);
   }
   if (editorServer) {
-    await editorServer.close();
+    const closing = editorServer.close();
+    await Promise.race([
+      closing,
+      new Promise((resolve) => setTimeout(resolve, SHUTDOWN_TIMEOUT_MS)),
+    ]);
     editorServer = null;
   }
   if (editorSocketPath) {
@@ -185,60 +183,29 @@ function beginShutdown() {
   return shutdownPromise;
 }
 
-function finishClose(intent) {
-  closeGuard.force = true;
-  closeGuard.dirty = false;
-  closeGuard.savePending = false;
-  closeGuard.intent = intent;
-  if (intent === "quit") {
-    app.quit();
-  } else {
-    mainWindow?.close();
+async function exitAfterShutdown() {
+  if (shutdownDone) return;
+  shutdownDone = true;
+  try {
+    await beginShutdown();
+  } catch (error) {
+    console.error("[editor] shutdown failed:", error instanceof Error ? error.message : error);
   }
+  setImmediate(() => app.exit(0));
 }
 
-async function requestClose(intent) {
-  const window = mainWindow;
-  if (!window || window.isDestroyed()) {
-    if (intent === "quit") {
-      closeGuard.force = true;
-      app.quit();
-    }
+function confirmCloseFromRenderer() {
+  closeGuard.allowClose = true;
+  closeGuard.dirty = false;
+  if (isQuitting) {
+    app.quit();
     return;
   }
-  if (!closeGuard.dirty) {
-    finishClose(intent);
-    return;
-  }
-  if (closeGuard.prompting || closeGuard.savePending) return;
+  mainWindow?.close();
+}
 
-  closeGuard.prompting = true;
-  closeGuard.intent = intent;
-  try {
-    const { response } = await dialog.showMessageBox(window, {
-      type: "warning",
-      title: "Unsaved changes",
-      message: "Save changes before closing?",
-      detail: "Your unsaved story changes will be lost if you don't save them.",
-      buttons: ["Save", "Don't Save", "Cancel"],
-      defaultId: 0,
-      cancelId: 2,
-      noLink: true,
-    });
-
-    if (response === 0) {
-      closeGuard.savePending = true;
-      window.webContents.send("editor:save-before-close");
-      return;
-    }
-    if (response === 1) {
-      finishClose(intent);
-      return;
-    }
-    closeGuard.intent = null;
-  } finally {
-    closeGuard.prompting = false;
-  }
+function cancelCloseFromRenderer() {
+  isQuitting = false;
 }
 
 const cliArgs = parseCliMode(process.argv);
@@ -331,21 +298,13 @@ if (cliArgs !== null) {
         if (event.sender !== mainWindow?.webContents) return;
         closeGuard.dirty = dirty === true;
       });
-      ipcMain.on("editor:save-before-close-result", (event, saved) => {
-        if (event.sender !== mainWindow?.webContents || closeGuard.intent === null) return;
-        closeGuard.savePending = false;
-        if (saved === true) {
-          finishClose(closeGuard.intent);
-        } else {
-          closeGuard.intent = null;
-          void dialog.showMessageBox(mainWindow, {
-            type: "error",
-            title: "Could not save",
-            message: "The project could not be saved.",
-            detail: "The editor will remain open so you can resolve the problem and try again.",
-            buttons: ["OK"],
-          });
-        }
+      ipcMain.on("editor:confirm-close", (event) => {
+        if (event.sender !== mainWindow?.webContents) return;
+        confirmCloseFromRenderer();
+      });
+      ipcMain.on("editor:cancel-close", (event) => {
+        if (event.sender !== mainWindow?.webContents) return;
+        cancelCloseFromRenderer();
       });
 
       await createWindow();
@@ -364,15 +323,13 @@ if (cliArgs !== null) {
     });
 }
 
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") app.quit();
+app.on("before-quit", () => {
+  isQuitting = true;
 });
 
-app.on("before-quit", (event) => {
-  if (!canCloseImmediately()) {
-    event.preventDefault();
-    void requestClose("quit");
-    return;
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
+    isQuitting = true;
+    void exitAfterShutdown();
   }
-  void beginShutdown();
 });

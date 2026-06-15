@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { appendLogLine } from "../../shared/logBuffer.js";
 import type {
   BuildCapabilities,
   BuildConfiguration,
@@ -7,9 +8,7 @@ import type {
   BuildRunSnapshot,
   BuildStage,
 } from "../lib/buildApi.js";
-import { stagesForPlatform } from "../lib/buildApi.js";
-
-const MAX_LOG_LINES = 5000;
+import { getBuildCapabilities, stagesForPlatform } from "../lib/buildApi.js";
 
 interface BuildStore {
   platform: BuildPlatform;
@@ -18,12 +17,12 @@ interface BuildStore {
   run: BuildRunSnapshot | null;
   log: string[];
   capabilities: BuildCapabilities | null;
+  preflightLoading: boolean;
+  preflightError: string | null;
   setPlatform: (platform: BuildPlatform) => void;
   setConfiguration: (configuration: BuildConfiguration) => void;
   toggleStage: (stage: BuildStage) => void;
-  selectAllStages: () => void;
-  setCapabilities: (capabilities: BuildCapabilities) => void;
-  resetSelection: (platform: BuildPlatform) => void;
+  refreshPreflight: (projectId: string) => Promise<void>;
   applyEvent: (event: BuildEvent) => void;
 }
 
@@ -34,10 +33,12 @@ function allStages(platform: BuildPlatform): BuildStage[] {
 export const useBuildStore = create<BuildStore>((set, get) => ({
   platform: "web",
   configuration: "release",
-  selectedStages: allStages("web"),
+  selectedStages: stagesForPlatform("web"),
   run: null,
   log: [],
   capabilities: null,
+  preflightLoading: false,
+  preflightError: null,
 
   setPlatform: (platform) =>
     set({
@@ -54,11 +55,18 @@ export const useBuildStore = create<BuildStore>((set, get) => ({
     set({ selectedStages: ordered });
   },
 
-  selectAllStages: () => set({ selectedStages: allStages(get().platform) }),
-
-  setCapabilities: (capabilities) => set({ capabilities }),
-
-  resetSelection: (platform) => set({ selectedStages: allStages(platform) }),
+  refreshPreflight: async (projectId) => {
+    set({ preflightLoading: true, preflightError: null });
+    try {
+      const capabilities = await getBuildCapabilities(projectId);
+      set({ capabilities, preflightLoading: false, preflightError: null });
+    } catch (error) {
+      set({
+        preflightLoading: false,
+        preflightError: error instanceof Error ? error.message : String(error),
+      });
+    }
+  },
 
   applyEvent: (event) => {
     if (event.type === "snapshot") {
@@ -70,8 +78,8 @@ export const useBuildStore = create<BuildStore>((set, get) => ({
       return;
     }
     if (event.type === "log") {
-      const log = [...get().log, event.line];
-      if (log.length > MAX_LOG_LINES) log.splice(0, log.length - MAX_LOG_LINES);
+      const log = [...get().log];
+      appendLogLine(log, event.line);
       set({ log });
       return;
     }

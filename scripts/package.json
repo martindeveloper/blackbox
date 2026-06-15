@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "check": "npm run lint && npm run fmt:check",
+    "test": "node --test lib/*.test.mjs",
     "fmt": "oxfmt .",
     "fmt:check": "oxfmt --check .",
     "lint": "oxlint .",

@@ -94,20 +94,8 @@
   white-space: nowrap;
 }
 
-.build-result--running {
-  color: var(--editor-primary);
-}
-
-.build-result--done {
-  color: var(--editor-success);
-}
-
 .build-result--error {
   color: var(--editor-danger);
-}
-
-.build-result--canceled {
-  color: var(--editor-warning);
 }
 
 .build-options {
@@ -530,6 +518,57 @@
   gap: 6px;
   font-size: 11px;
   line-height: 1.35;
+  color: var(--editor-warning);
+}
+
+.build-preflight-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.build-preflight-list,
+.build-preflight-checks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.build-preflight-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.build-preflight-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.build-preflight-stage {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--editor-text-subtle);
+}
+
+.build-preflight-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.build-preflight-check--error {
+  color: var(--editor-danger);
+}
+
+.build-preflight-check--warning {
   color: var(--editor-warning);
 }
 

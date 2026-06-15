@@ -7,7 +7,13 @@ import type {
   BuildPlatform,
   PlatformCapability,
 } from "../../lib/buildApi.js";
-import { BUILD_CONFIGURATIONS, BUILD_PLATFORMS } from "../../lib/buildApi.js";
+import {
+  BUILD_CONFIGURATIONS,
+  BUILD_PLATFORMS,
+  CONFIGURATION_LABEL_KEYS,
+  emptyPlatformCapability,
+  PLATFORM_LABEL_KEYS,
+} from "../../lib/buildApi.js";
 
 interface Props {
   platform: BuildPlatform;
@@ -22,16 +28,9 @@ function platformCapability(
   capabilities: BuildCapabilities | null,
   platform: BuildPlatform,
 ): PlatformCapability {
-  if (!capabilities)
-    return { available: true, reasons: [], package: { available: true, reasons: [] } };
+  if (!capabilities) return emptyPlatformCapability();
   return capabilities[platform];
 }
-
-const PLATFORM_LABEL: Record<BuildPlatform, string> = {
-  web: "build.platformWeb",
-  ios: "build.platformIos",
-  android: "build.platformAndroid",
-};
 
 export function PlatformConfigPicker({
   platform,
@@ -66,7 +65,7 @@ export function PlatformConfigPicker({
               >
                 <span className="build-segment-option-content">
                   <Icon icon={PLATFORM_ICONS[value]} size={14} strokeWidth={1.75} />
-                  {t(PLATFORM_LABEL[value])}
+                  {t(PLATFORM_LABEL_KEYS[value])}
                 </span>
               </button>
             );
@@ -91,7 +90,7 @@ export function PlatformConfigPicker({
                 value === configuration ? " build-segment-option--active" : ""
               }`}
             >
-              {t(value === "debug" ? "build.configDebug" : "build.configRelease")}
+              {t(CONFIGURATION_LABEL_KEYS[value])}
             </button>
           ))}
         </div>

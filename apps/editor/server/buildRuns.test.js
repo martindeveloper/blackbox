@@ -4,7 +4,8 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { BuildRunRegistry } from "./pipeline/buildRuns.js";
-import { isStageAllowed, stagesForPlatform } from "./pipeline/cli.js";
+import { stagesForPlatform } from "../shared/buildStages.js";
+import { isStageAllowed } from "./pipeline/cli.js";
 import { BUILD_RUNS_PATH } from "../shared/blackboxPaths.js";
 
 async function tempProject() {
@@ -224,9 +225,7 @@ test("persists per-stage logs in build-runs.json", async () => {
     );
     assert.deepEqual(current.log, ["running bundle", "running build"]);
 
-    const stored = JSON.parse(
-      await readFile(path.join(root, BUILD_RUNS_PATH), "utf8"),
-    );
+    const stored = JSON.parse(await readFile(path.join(root, BUILD_RUNS_PATH), "utf8"));
     assert.equal(stored.version, 2);
     assert.deepEqual(
       stored.run.stages.map((stage) => stage.log),

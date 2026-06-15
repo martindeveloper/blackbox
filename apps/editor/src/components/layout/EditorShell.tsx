@@ -7,6 +7,7 @@ import { isActiveEditorPage, Page } from "../../lib/pages.js";
 import { editorNavigate, useActivityView, useEditorSearch } from "../../lib/routeHelpers.js";
 import { useUserPrefs } from "../../hooks/useUserPrefs.js";
 import { useHeatmapHydration } from "../../hooks/useHeatmapHydration.js";
+import { confirmModal } from "../../lib/modalApi.js";
 import { ActivityBar } from "./ActivityBar.js";
 import { FileTree } from "./FileTree.js";
 import { ToolsSidebar } from "../tools/ToolsSidebar.js";
@@ -162,13 +163,33 @@ export function EditorShell() {
   useEffect(() => {
     const electron = window.electronAPI;
     if (!electron) return;
-    return electron.onSaveBeforeClose(() => {
-      void save().then((saved) => {
-        const clean = useScenarioStore.getState().dirty.size === 0;
-        electron.reportSaveBeforeClose(saved && clean);
-      });
+    return electron.onRequestClose(() => {
+      void (async () => {
+        const state = useScenarioStore.getState();
+        if (state.dirty.size > 0) {
+          const choice = await confirmModal({
+            title: t("topBar.closeUnsavedTitle"),
+            message: t("topBar.closeUnsavedMessage"),
+            confirmLabel: t("topBar.closeUnsavedSave"),
+            cancelLabel: t("topBar.closeUnsavedDiscard"),
+            closeAborts: true,
+          });
+          if (choice === null) {
+            electron.cancelClose();
+            return;
+          }
+          if (choice === true) {
+            const saved = await state.save();
+            if (!saved || useScenarioStore.getState().dirty.size > 0) {
+              electron.cancelClose();
+              return;
+            }
+          }
+        }
+        electron.confirmClose();
+      })();
     });
-  }, [save]);
+  }, [t]);
 
   const startDrag = (side: "left" | "right", startX: number, startWidth: number) => {
     setDragging(side);

@@ -1,17 +1,28 @@
 import { projectApiUrl } from "./projectApi.js";
+import {
+  BUILD_CONFIGURATIONS,
+  BUILD_PLATFORMS,
+  stagesForPlatform,
+} from "../../shared/buildStages.js";
 
 export type BuildPlatform = "web" | "ios" | "android";
 export type BuildConfiguration = "debug" | "release";
-export type BuildStage = "build" | "bundle" | "package";
+export type BuildStage = "bundle" | "build" | "package";
 export type StageState = "pending" | "running" | "done" | "error" | "canceled";
 export type BuildRunState = "running" | "done" | "error" | "canceled";
 
-export const BUILD_PLATFORMS: BuildPlatform[] = ["web", "ios", "android"];
-export const BUILD_CONFIGURATIONS: BuildConfiguration[] = ["debug", "release"];
+export { BUILD_CONFIGURATIONS, BUILD_PLATFORMS, stagesForPlatform };
 
-export function stagesForPlatform(_platform: BuildPlatform): BuildStage[] {
-  return ["bundle", "build", "package"];
-}
+export const PLATFORM_LABEL_KEYS: Record<BuildPlatform, string> = {
+  web: "build.platformWeb",
+  ios: "build.platformIos",
+  android: "build.platformAndroid",
+};
+
+export const CONFIGURATION_LABEL_KEYS: Record<BuildConfiguration, string> = {
+  debug: "build.configDebug",
+  release: "build.configRelease",
+};
 
 export interface BuildStageSnapshot {
   stage: BuildStage;
@@ -37,21 +48,48 @@ export interface BuildRunWithLog {
   log: string[];
 }
 
-export interface PackagingCapability {
+export type PreflightSeverity = "error" | "warning";
+
+export interface PreflightCheck {
+  severity: PreflightSeverity;
+  message: string;
+}
+
+export interface StagePreflight {
   available: boolean;
-  reasons: string[];
+  checks: PreflightCheck[];
 }
 
 export interface PlatformCapability {
   available: boolean;
   reasons: string[];
-  package: PackagingCapability;
+  stages: Record<BuildStage, StagePreflight>;
 }
 
 export interface BuildCapabilities {
   web: PlatformCapability;
   ios: PlatformCapability;
   android: PlatformCapability;
+}
+
+export function selectedStagesAvailable(
+  capability: PlatformCapability | undefined,
+  selectedStages: BuildStage[],
+): boolean {
+  if (!capability) return true;
+  return selectedStages.every((stage) => capability.stages[stage]?.available ?? true);
+}
+
+export function emptyPlatformCapability(): PlatformCapability {
+  return {
+    available: true,
+    reasons: [],
+    stages: {
+      bundle: { available: true, checks: [] },
+      build: { available: true, checks: [] },
+      package: { available: true, checks: [] },
+    },
+  };
 }
 
 export type BuildEvent =
@@ -80,13 +118,6 @@ export async function getBuildCapabilities(projectId: string): Promise<BuildCapa
   return res.json() as Promise<BuildCapabilities>;
 }
 
-export async function getCurrentBuild(projectId: string): Promise<BuildRunWithLog | null> {
-  const res = await fetch(projectApiUrl(projectId, "/build/runs/current"));
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const data = (await res.json()) as { current: BuildRunWithLog | null };
-  return data.current;
-}
-
 export interface StartBuildResult {
   run: BuildRunSnapshot;
   log: string[];
@@ -108,14 +139,16 @@ export async function cancelBuild(projectId: string, runId: string): Promise<boo
   return data.canceled;
 }
 
-export async function clearBuildResult(projectId: string): Promise<void> {
-  const response = await fetch(projectApiUrl(projectId, "/build/runs/current"), {
-    method: "DELETE",
-  });
+async function deleteJson(url: string): Promise<void> {
+  const response = await fetch(url, { method: "DELETE" });
   if (!response.ok) {
     const data = (await response.json()) as { message?: string };
     throw new Error(data?.message ?? `HTTP ${response.status}`);
   }
+}
+
+export async function clearBuildResult(projectId: string): Promise<void> {
+  await deleteJson(projectApiUrl(projectId, "/build/runs/current"));
 }
 
 export function subscribeBuild(

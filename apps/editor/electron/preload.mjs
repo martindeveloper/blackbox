@@ -9,10 +9,11 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.invoke("editor:open-in-ide", projectPath, ideId, customPath),
   revealPath: (targetPath) => ipcRenderer.invoke("editor:reveal-path", targetPath),
   setDirty: (dirty) => ipcRenderer.send("editor:set-dirty", dirty),
-  onSaveBeforeClose: (callback) => {
+  onRequestClose: (callback) => {
     const listener = () => callback();
-    ipcRenderer.on("editor:save-before-close", listener);
-    return () => ipcRenderer.removeListener("editor:save-before-close", listener);
+    ipcRenderer.on("editor:request-close", listener);
+    return () => ipcRenderer.removeListener("editor:request-close", listener);
   },
-  reportSaveBeforeClose: (saved) => ipcRenderer.send("editor:save-before-close-result", saved),
+  confirmClose: () => ipcRenderer.send("editor:confirm-close"),
+  cancelClose: () => ipcRenderer.send("editor:cancel-close"),
 });

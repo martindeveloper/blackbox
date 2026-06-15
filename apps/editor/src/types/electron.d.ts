@@ -11,8 +11,9 @@ export interface ElectronAPI {
   openInIde: (projectPath: string, ideId?: string, customPath?: string) => Promise<boolean>;
   revealPath: (targetPath: string) => Promise<boolean>;
   setDirty: (dirty: boolean) => void;
-  onSaveBeforeClose: (callback: () => void) => () => void;
-  reportSaveBeforeClose: (saved: boolean) => void;
+  onRequestClose: (callback: () => void) => () => void;
+  confirmClose: () => void;
+  cancelClose: () => void;
 }
 
 declare global {

@@ -232,11 +232,12 @@ export function emptyTrash(
 export function subscribeProject(
   projectId: string,
   onEvent: (event: ProjectEvent) => void,
+  { includeOwnClient = false }: { includeOwnClient?: boolean } = {},
 ): () => void {
   const events = new EventSource(projectUrl(projectId, "/events"));
   events.onmessage = (message) => {
     const event = JSON.parse(message.data) as ProjectEvent;
-    if (event.clientId !== CLIENT_ID) onEvent(event);
+    if (includeOwnClient || event.clientId !== CLIENT_ID) onEvent(event);
   };
   return () => events.close();
 }

@@ -1,17 +1,12 @@
 import { spawn } from "node:child_process";
 import { existsSync, readdirSync } from "node:fs";
 import path from "node:path";
+import {
+  BUILD_CONFIGURATIONS,
+  BUILD_PLATFORMS,
+  stagesForPlatform,
+} from "../../shared/buildStages.js";
 import { getCliDir, getToolsDir, toolBinPath, bundledToolsEnabled } from "../config.js";
-
-export const BUILD_PLATFORMS = ["web", "ios", "android"];
-export const BUILD_CONFIGURATIONS = ["debug", "release"];
-// Stage order matters: bundle content first, then compile/assemble platform projects that
-// consume it, then package a publish-ready artifact.
-export const BUILD_STAGES = ["bundle", "build", "package"];
-
-export function stagesForPlatform(_platform) {
-  return [...BUILD_STAGES];
-}
 
 export function isValidPlatform(value) {
   return BUILD_PLATFORMS.includes(value);
@@ -29,7 +24,7 @@ function buildDir(projectPath, configuration) {
   return path.join(projectPath, ".blackbox", "build", configuration);
 }
 
-export function stageOutputDir(projectPath, platform, stage, configuration) {
+function stageOutputDir(projectPath, platform, stage, configuration) {
   const root = buildDir(projectPath, configuration);
   if (stage === "bundle") return path.join(root, "bundle", platform);
   if (stage === "package") return path.join(root, "package", platform);
@@ -51,7 +46,7 @@ function findFirst(dir, predicate) {
   return null;
 }
 
-export function resolveArtifact(projectPath, platform, stage, configuration) {
+function resolveArtifact(projectPath, platform, stage, configuration) {
   const dir = stageOutputDir(projectPath, platform, stage, configuration);
   if (stage !== "package") return dir;
   if (platform === "web") {

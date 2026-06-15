@@ -8,13 +8,9 @@ import { readUserPrefs, writeUserPrefs, sanitizePrefs } from "./prefs.js";
 import { ProjectError } from "./projectService.js";
 import { ToolRunRegistry } from "./toolRuns.js";
 import { BuildRunRegistry } from "./pipeline/buildRuns.js";
-import {
-  isValidConfiguration,
-  isValidPlatform,
-  isStageAllowed,
-  stagesForPlatform,
-} from "./pipeline/cli.js";
-import { detectBuildCapabilities } from "./pipeline/capabilities.js";
+import { stagesForPlatform } from "../shared/buildStages.js";
+import { isValidConfiguration, isValidPlatform, isStageAllowed } from "./pipeline/cli.js";
+import { detectBuildCapabilities } from "./pipeline/preflight/index.js";
 import { getPlayer, listPlayers, playersWith } from "../players/registry.mjs";
 import { runPlayerBundle } from "./tools/bundle.mjs";
 import { ensureProjectSidecars, writeNewProject } from "./projectScaffold.js";
@@ -380,27 +376,6 @@ export async function registerRoutes(app, service) {
     }),
   );
 
-  app.post(
-    "/projects/:id/lint",
-    projectRequest(service, async (project, request) => {
-      return executeTool(service, project.id, "linter", request.body ?? {});
-    }),
-  );
-
-  app.post(
-    "/projects/:id/simulate",
-    projectRequest(service, async (project, request) => {
-      return executeTool(service, project.id, "simulator", request.body ?? {});
-    }),
-  );
-
-  app.post(
-    "/projects/:id/bundle",
-    projectRequest(service, async (project, request) => {
-      return executeTool(service, project.id, "bundle", request.body ?? {});
-    }),
-  );
-
   app.get(
     "/projects/:id/tools/runs/:tool",
     projectRequest(service, async (project, request, reply) => {
@@ -429,7 +404,7 @@ export async function registerRoutes(app, service) {
 
   app.get(
     "/projects/:id/build/capabilities",
-    projectRequest(service, async () => detectBuildCapabilities()),
+    projectRequest(service, async (project) => detectBuildCapabilities(project.path)),
   );
 
   app.get(

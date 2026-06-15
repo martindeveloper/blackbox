@@ -31,23 +31,18 @@ function StatusMark({ state, selected }: { state: DisplayState; selected: boolea
       </span>
     );
   }
-  if (state === "done") {
-    return (
-      <span className="build-stage-mark build-stage-mark--done">
-        <Icon icon={Check} size={13} />
-      </span>
-    );
-  }
-  if (state === "error" || state === "canceled") {
-    return (
-      <span className={`build-stage-mark build-stage-mark--${state}`}>
-        <Icon icon={X} size={13} />
-      </span>
-    );
-  }
+  const modifier = state === "idle" ? "" : ` build-stage-mark--${state}`;
+  const icon =
+    state === "done"
+      ? Check
+      : state === "error" || state === "canceled"
+        ? X
+        : selected
+          ? Check
+          : Minus;
   return (
-    <span className="build-stage-mark">
-      <Icon icon={selected ? Check : Minus} size={13} />
+    <span className={`build-stage-mark${modifier}`}>
+      <Icon icon={icon} size={13} />
     </span>
   );
 }

@@ -8,32 +8,39 @@ import { useBuildStore } from "../../store/useBuildStore.js";
 import {
   cancelBuild,
   clearBuildResult,
-  getBuildCapabilities,
+  CONFIGURATION_LABEL_KEYS,
+  PLATFORM_LABEL_KEYS,
+  selectedStagesAvailable,
   startBuild,
   stagesForPlatform,
   subscribeBuild,
 } from "../../lib/buildApi.js";
+import { subscribeProject } from "../../lib/projectApi.js";
 import { PlatformConfigPicker } from "./PlatformConfigPicker.js";
 import { BuildPipeline } from "./BuildPipeline.js";
 import { BuildLog } from "./BuildLog.js";
+
+function scenarioPreflightChanged(changedPaths: string[]) {
+  return changedPaths.some(
+    (changed) => changed === "scenario.json" || changed.endsWith("/scenario.json"),
+  );
+}
 
 export function BuildEditor() {
   const { t } = useTranslation();
   const projectId = useScenarioStore((s) => s.projectId);
   const projectName = useScenarioStore((s) => s.projectName);
-  const {
-    platform,
-    configuration,
-    selectedStages,
-    run,
-    log,
-    capabilities,
-    setPlatform,
-    setConfiguration,
-    toggleStage,
-    setCapabilities,
-    applyEvent,
-  } = useBuildStore();
+  const platform = useBuildStore((s) => s.platform);
+  const configuration = useBuildStore((s) => s.configuration);
+  const selectedStages = useBuildStore((s) => s.selectedStages);
+  const run = useBuildStore((s) => s.run);
+  const log = useBuildStore((s) => s.log);
+  const capabilities = useBuildStore((s) => s.capabilities);
+  const setPlatform = useBuildStore((s) => s.setPlatform);
+  const setConfiguration = useBuildStore((s) => s.setConfiguration);
+  const toggleStage = useBuildStore((s) => s.toggleStage);
+  const refreshPreflight = useBuildStore((s) => s.refreshPreflight);
+  const applyEvent = useBuildStore((s) => s.applyEvent);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -44,18 +51,33 @@ export function BuildEditor() {
 
   useEffect(() => {
     if (!projectId) return;
-    let active = true;
-    void getBuildCapabilities(projectId)
-      .then((caps) => active && setCapabilities(caps))
-      .catch(() => {});
-    return () => {
-      active = false;
-    };
-  }, [projectId, setCapabilities]);
+    void refreshPreflight(projectId);
+  }, [projectId, refreshPreflight]);
+
+  useEffect(() => {
+    if (!projectId) return;
+    const unsubscribe = subscribeProject(
+      projectId,
+      (event) => {
+        if (scenarioPreflightChanged(event.changedPaths)) {
+          void refreshPreflight(projectId);
+        }
+      },
+      { includeOwnClient: true },
+    );
+    return unsubscribe;
+  }, [projectId, refreshPreflight]);
 
   const running = run?.state === "running";
-  const platformAvailable = capabilities?.[platform]?.available ?? true;
-  const canRun = Boolean(projectId) && !running && platformAvailable && selectedStages.length > 0;
+  const platformCapability = capabilities?.[platform];
+  const platformAvailable = platformCapability?.available ?? true;
+  const stagesAvailable = selectedStagesAvailable(platformCapability, selectedStages);
+  const canRun =
+    Boolean(projectId) &&
+    !running &&
+    platformAvailable &&
+    stagesAvailable &&
+    selectedStages.length > 0;
 
   const onRun = useCallback(async () => {
     if (!projectId) return;
@@ -125,12 +147,8 @@ export function BuildEditor() {
           <span className="build-command-project">{projectName}</span>
           <span className="build-command-summary">
             {t("build.targetSummary", {
-              platform: t(
-                `build.platform${platform === "ios" ? "Ios" : platform === "web" ? "Web" : "Android"}`,
-              ),
-              configuration: t(
-                configuration === "debug" ? "build.configDebug" : "build.configRelease",
-              ),
+              platform: t(PLATFORM_LABEL_KEYS[platform]),
+              configuration: t(CONFIGURATION_LABEL_KEYS[configuration]),
             })}
           </span>
         </span>

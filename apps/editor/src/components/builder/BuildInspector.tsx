@@ -1,5 +1,13 @@
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, CheckCircle2, CircleDashed, FolderOpen, Loader2, XCircle } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  CircleDashed,
+  FolderOpen,
+  Loader2,
+  RefreshCw,
+  XCircle,
+} from "lucide-react";
 import { Icon } from "../icons/Icon.js";
 import { Button } from "../ui/Button.js";
 import { FormField } from "../ui/FormField.js";
@@ -7,7 +15,13 @@ import { Section, SectionBody, SectionHeader } from "../ui/Section.js";
 import { revealPath } from "../../lib/revealPath.js";
 import { useBuildStore } from "../../store/useBuildStore.js";
 import { useScenarioStore } from "../../store/useScenarioStore.js";
-import { stagesForPlatform, type BuildRunState } from "../../lib/buildApi.js";
+import {
+  CONFIGURATION_LABEL_KEYS,
+  PLATFORM_LABEL_KEYS,
+  stagesForPlatform,
+  type BuildRunState,
+  type PreflightCheck,
+} from "../../lib/buildApi.js";
 
 const RUN_STATUS_KEY: Record<BuildRunState, string> = {
   running: "build.running",
@@ -26,44 +40,62 @@ const STATUS_ICON = {
 
 type BuildStatus = BuildRunState | "ready";
 
-const STATUS_CLASS: Record<BuildStatus, string> = {
-  ready: "build-inspector-status",
-  running: "build-inspector-status build-inspector-status--running",
-  done: "build-inspector-status build-inspector-status--done",
-  error: "build-inspector-status build-inspector-status--error",
-  canceled: "build-inspector-status build-inspector-status--canceled",
-};
+function PreflightCheckRow({ check }: { check: PreflightCheck }) {
+  const icon = check.severity === "error" ? XCircle : AlertTriangle;
+  return (
+    <li className={`build-preflight-check build-preflight-check--${check.severity}`}>
+      <Icon icon={icon} size={12} />
+      <span>{check.message}</span>
+    </li>
+  );
+}
 
 export function BuildInspector() {
   const { t } = useTranslation();
+  const projectId = useScenarioStore((s) => s.projectId);
   const projectName = useScenarioStore((s) => s.projectName);
-  const { platform, configuration, selectedStages, run, capabilities } = useBuildStore();
+  const platform = useBuildStore((s) => s.platform);
+  const configuration = useBuildStore((s) => s.configuration);
+  const selectedStages = useBuildStore((s) => s.selectedStages);
+  const run = useBuildStore((s) => s.run);
+  const capabilities = useBuildStore((s) => s.capabilities);
+  const preflightLoading = useBuildStore((s) => s.preflightLoading);
+  const preflightError = useBuildStore((s) => s.preflightError);
+  const refreshPreflight = useBuildStore((s) => s.refreshPreflight);
 
   const status: BuildStatus = run?.state ?? "ready";
   const StatusIcon = STATUS_ICON[status];
   const statusLabel = run ? t(RUN_STATUS_KEY[run.state]) : t("build.ready");
   const artifact = run?.state === "done" ? run.artifact : null;
-  const packageWarning =
-    selectedStages.includes("package") && capabilities?.[platform]?.package.reasons.length
-      ? capabilities[platform].package.reasons.join(" · ")
-      : null;
+  const platformCapability = capabilities?.[platform];
+  const selectedStageChecks = selectedStages
+    .map((stage) => ({
+      stage,
+      checks: platformCapability?.stages[stage]?.checks ?? [],
+    }))
+    .filter((entry) => entry.checks.length > 0);
+  const canReveal = Boolean(window.electronAPI && artifact);
 
-  const platformLabel = t(
-    `build.platform${platform === "ios" ? "Ios" : platform === "web" ? "Web" : "Android"}`,
-  );
-  const configurationLabel = t(
-    configuration === "debug" ? "build.configDebug" : "build.configRelease",
-  );
+  const platformLabel = t(PLATFORM_LABEL_KEYS[platform]);
+  const configurationLabel = t(CONFIGURATION_LABEL_KEYS[configuration]);
   const stagesLabel = stagesForPlatform(platform)
     .filter((stage) => selectedStages.includes(stage))
     .map((stage) => t(`build.stage.${stage}`))
     .join(" → ");
-  const canReveal = Boolean(typeof window !== "undefined" && window.electronAPI && artifact);
+  const statusClass =
+    status === "ready"
+      ? "build-inspector-status"
+      : `build-inspector-status build-inspector-status--${status}`;
+
+  const onRefreshPreflight = () => {
+    if (!projectId || preflightLoading) return;
+    void refreshPreflight(projectId);
+  };
 
   return (
     <div className="space-y-3">
       <FormField label={t("build.status")}>
-        <div className={STATUS_CLASS[status]}>
+        <div className={statusClass}>
           <Icon
             icon={StatusIcon}
             size={12}
@@ -91,6 +123,48 @@ export function BuildInspector() {
       </FormField>
 
       <Section>
+        <SectionHeader>
+          <div className="build-preflight-header">
+            <span>{t("build.preflightTitle")}</span>
+            <Button
+              size="sm"
+              variant="ghost"
+              leadingIcon={RefreshCw}
+              disabled={!projectId || preflightLoading || run?.state === "running"}
+              onClick={onRefreshPreflight}
+            >
+              {preflightLoading ? t("build.preflightRefreshing") : t("build.preflightRefresh")}
+            </Button>
+          </div>
+        </SectionHeader>
+        <SectionBody>
+          {preflightError ? (
+            <div className="build-inspector-warning" role="alert">
+              <Icon icon={AlertTriangle} size={12} />
+              <span>{preflightError}</span>
+            </div>
+          ) : preflightLoading && !capabilities ? (
+            <span className="build-inspector-muted">{t("build.preflightRefreshing")}</span>
+          ) : selectedStageChecks.length > 0 ? (
+            <ul className="build-preflight-list">
+              {selectedStageChecks.map(({ stage, checks }) => (
+                <li key={stage} className="build-preflight-group">
+                  <span className="build-preflight-stage">{t(`build.stage.${stage}`)}</span>
+                  <ul className="build-preflight-checks">
+                    {checks.map((check, index) => (
+                      <PreflightCheckRow key={`${stage}-${index}`} check={check} />
+                    ))}
+                  </ul>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <span className="build-inspector-muted">{t("build.preflightOk")}</span>
+          )}
+        </SectionBody>
+      </Section>
+
+      <Section>
         <SectionHeader>{t("build.output")}</SectionHeader>
         <SectionBody>
           {artifact ? (
@@ -108,20 +182,6 @@ export function BuildInspector() {
             </div>
           ) : (
             <span className="build-inspector-muted">{t("build.outputNone")}</span>
-          )}
-        </SectionBody>
-      </Section>
-
-      <Section>
-        <SectionHeader>{t("build.packageWarning")}</SectionHeader>
-        <SectionBody>
-          {packageWarning ? (
-            <div className="build-inspector-warning" role="note">
-              <Icon icon={AlertTriangle} size={12} />
-              <span>{packageWarning}</span>
-            </div>
-          ) : (
-            <span className="build-inspector-muted">{t("build.noWarnings")}</span>
           )}
         </SectionBody>
       </Section>
