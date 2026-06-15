@@ -76,17 +76,17 @@ export function TopBar() {
     void editorNavigate(navigate, { to: Page.EditorPreview });
   };
 
+  const preferredIdeId = prefs.preferredIde ?? DEFAULT_IDE_ID;
+  const preferredIdeLabel = ideLabelForPrefs(preferredIdeId, prefs.customIdePath);
+
   const handleOpenIde = async () => {
     if (!projectPath || !window.electronAPI || openingIde) return;
     setOpeningIde(true);
     try {
-      const ideId = prefs.preferredIde ?? DEFAULT_IDE_ID;
-      const customPath = ideId === CUSTOM_IDE_ID ? prefs.customIdePath : undefined;
-      const opened = await window.electronAPI.openInIde(projectPath, ideId, customPath);
+      const customPath = preferredIdeId === CUSTOM_IDE_ID ? prefs.customIdePath : undefined;
+      const opened = await window.electronAPI.openInIde(projectPath, preferredIdeId, customPath);
       if (!opened) {
-        window.alert(
-          t("topBar.ideNotFound", { ide: ideLabelForPrefs(ideId, prefs.customIdePath) }),
-        );
+        window.alert(t("topBar.ideNotFound", { ide: preferredIdeLabel }));
       }
     } finally {
       setOpeningIde(false);
@@ -231,7 +231,9 @@ export function TopBar() {
               disabled={openingIde}
               onClick={() => void handleOpenIde()}
             >
-              {openingIde ? t("topBar.openingIde") : t("topBar.openIde")}
+              {openingIde
+                ? t("topBar.openingIde", { ide: preferredIdeLabel })
+                : t("topBar.openIde", { ide: preferredIdeLabel })}
             </Button>
           ) : null}
           <Button variant="ghost" size="sm" leadingIcon={FolderOpen} onClick={handleClose}>

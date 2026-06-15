@@ -7,7 +7,10 @@ import { IDE_PLUGINS } from "../shared/ideRegistry.js";
 import { ensureIdeProjectSettings } from "./idePlugins/index.js";
 
 test("registered IDE plugins expose id and label", () => {
-  assert.ok(IDE_PLUGINS.length > 0);
+  assert.deepEqual(
+    IDE_PLUGINS.map((plugin) => plugin.id),
+    ["vscode", "cursor", "zed"],
+  );
   for (const plugin of IDE_PLUGINS) {
     assert.equal(typeof plugin.id, "string");
     assert.equal(typeof plugin.label, "string");

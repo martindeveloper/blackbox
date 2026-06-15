@@ -7,7 +7,11 @@
  * 3. If it needs project scaffolding, implement `server/idePlugins/<id>.js` and register it in
  *    `server/idePlugins/index.js`.
  */
-export const IDE_PLUGINS = Object.freeze([{ id: "vscode", label: "Visual Studio Code" }]);
+export const IDE_PLUGINS = Object.freeze([
+  { id: "vscode", label: "Visual Studio Code" },
+  { id: "cursor", label: "Cursor" },
+  { id: "zed", label: "Zed" },
+]);
 
 export const DEFAULT_IDE_ID = IDE_PLUGINS[0].id;
 

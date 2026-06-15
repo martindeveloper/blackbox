@@ -1,9 +1,11 @@
 import { IDE_PLUGINS } from "../../shared/ideRegistry.js";
+import { cursorPlugin } from "./cursor.js";
 import { vscodePlugin } from "./vscode.js";
 
 /** @type {Record<string, typeof vscodePlugin>} */
 const implementations = {
   vscode: vscodePlugin,
+  cursor: cursorPlugin,
 };
 
 export function getIdePlugin(id) {

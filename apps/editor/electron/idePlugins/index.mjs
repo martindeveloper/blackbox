@@ -1,9 +1,13 @@
 import { IDE_PLUGINS } from "../../shared/ideRegistry.js";
+import { cursorPlugin } from "./cursor.mjs";
 import { vscodePlugin } from "./vscode.mjs";
+import { zedPlugin } from "./zed.mjs";
 
 /** @type {Record<string, typeof vscodePlugin>} */
 const implementations = {
   vscode: vscodePlugin,
+  cursor: cursorPlugin,
+  zed: zedPlugin,
 };
 
 export function getIdePlugin(id) {
