@@ -120,6 +120,70 @@
   gap: 4px;
 }
 
+.editor-unsaved {
+  position: relative;
+  display: inline-flex;
+}
+
+/* Portaled to <body>, so it is fixed-positioned and sits above everything. */
+.editor-unsaved-pop {
+  position: fixed;
+  z-index: 1000;
+  min-width: 160px;
+  max-width: 280px;
+  padding: 7px 9px;
+  border-radius: 6px;
+  border: 1px solid var(--editor-border-2);
+  background: var(--editor-surface-2);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+  animation: editor-unsaved-pop-in 0.12s ease;
+}
+
+@keyframes editor-unsaved-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.editor-unsaved-pop-title {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--editor-muted);
+}
+
+.editor-unsaved-pop-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.editor-unsaved-pop-list li {
+  font-size: 11px;
+  color: var(--editor-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.editor-unsaved-pop-list li::before {
+  content: "•";
+  margin-right: 6px;
+  color: var(--editor-warning);
+}
+
 .editor-topbar-actions {
   display: flex;
   align-items: center;

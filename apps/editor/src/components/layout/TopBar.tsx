@@ -11,7 +11,8 @@ import {
   SquareTerminal,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { Icon } from "../icons/Icon.js";
@@ -30,9 +31,71 @@ import { useUserPrefs } from "../../hooks/useUserPrefs.js";
 import { Button } from "../ui/Button.js";
 import { IconButton } from "../ui/IconButton.js";
 import { StatusPill } from "../ui/StatusPill.js";
+import { useModal } from "../../context/ModalProvider.js";
+
+/**
+ * The "Unsaved" pill plus a hover popover listing which documents are dirty.
+ * The popover is portaled to <body> with fixed positioning so it escapes the
+ * top bar's `overflow: hidden` clipping and stacking context (a plain absolute
+ * child renders behind the workspace and is invisible).
+ */
+function UnsavedPill({ labels }: { labels: string[] }) {
+  const { t } = useTranslation();
+  const anchorRef = useRef<HTMLDivElement>(null);
+  const [coords, setCoords] = useState<{ top: number; right: number } | null>(null);
+
+  const placePopover = () => {
+    const rect = anchorRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    setCoords({ top: rect.bottom + 6, right: window.innerWidth - rect.right });
+  };
+
+  // Keep the popover anchored if the window resizes while it is open.
+  useLayoutEffect(() => {
+    if (!coords) return;
+    const onResize = () => placePopover();
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [coords]);
+
+  return (
+    <div
+      ref={anchorRef}
+      className="editor-unsaved"
+      tabIndex={0}
+      onMouseEnter={placePopover}
+      onMouseLeave={() => setCoords(null)}
+      onFocus={placePopover}
+      onBlur={() => setCoords(null)}
+    >
+      <StatusPill variant="unsaved">
+        <Icon icon={Circle} size={7} strokeWidth={3} className="fill-current" />
+        {t("topBar.unsaved")}
+      </StatusPill>
+      {coords
+        ? createPortal(
+            <div
+              className="editor-unsaved-pop"
+              role="tooltip"
+              style={{ top: coords.top, right: coords.right }}
+            >
+              <span className="editor-unsaved-pop-title">{t("topBar.unsavedTitle")}</span>
+              <ul className="editor-unsaved-pop-list">
+                {labels.map((label) => (
+                  <li key={label}>{label}</li>
+                ))}
+              </ul>
+            </div>,
+            document.body,
+          )
+        : null}
+    </div>
+  );
+}
 
 export function TopBar() {
   const { t } = useTranslation();
+  const { confirm } = useModal();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
 
@@ -55,11 +118,35 @@ export function TopBar() {
   const errorCount = validationIssues.filter((i) => i.severity === "error").length;
   const warnCount = validationIssues.filter((i) => i.severity === "warning").length;
 
+  const dirtyLabels = [...dirty]
+    .map((key) => {
+      if (key.startsWith("chapter:")) {
+        const chapterId = key.slice("chapter:".length);
+        const name = bundle?.chapters[chapterId]?.title ?? chapterId;
+        return t("topBar.dirtyDocs.chapter", { name });
+      }
+      return t(`topBar.dirtyDocs.${key}`, { defaultValue: key });
+    })
+    .sort((a, b) => a.localeCompare(b));
+
   const projectTitle = bundle?.scenario.title ?? projectName;
   const projectFolderName = projectName;
   const showFolderName = projectTitle && projectFolderName && projectTitle !== projectFolderName;
 
-  const handleClose = () => {
+  const handleClose = async () => {
+    // Guard against silently discarding unsaved work. Three outcomes:
+    //   true  → Save & close, false → Don't save, null → dismissed (keep editing)
+    if (dirty.size > 0) {
+      const choice = await confirm({
+        title: t("topBar.closeUnsavedTitle"),
+        message: t("topBar.closeUnsavedMessage"),
+        confirmLabel: t("topBar.closeUnsavedSave"),
+        cancelLabel: t("topBar.closeUnsavedDiscard"),
+        closeAborts: true,
+      });
+      if (choice === null) return;
+      if (choice === true && !(await save())) return;
+    }
     void transitionToHome(closeFolder, () => {
       window.location.hash = "/";
     });
@@ -209,12 +296,7 @@ export function TopBar() {
               {t("common.warnings", { count: warnCount })}
             </StatusPill>
           ) : null}
-          {dirty.size > 0 ? (
-            <StatusPill variant="unsaved">
-              <Icon icon={Circle} size={7} strokeWidth={3} className="fill-current" />
-              {t("topBar.unsaved")}
-            </StatusPill>
-          ) : null}
+          {dirty.size > 0 ? <UnsavedPill labels={dirtyLabels} /> : null}
         </div>
 
         <span className="editor-topbar-divider" aria-hidden />
@@ -246,7 +328,11 @@ export function TopBar() {
               >
                 {saving ? t("topBar.saving") : t("topBar.save")}
               </Button>
-              <IconButton icon={X} title={t("topBar.closeProject")} onClick={handleClose} />
+              <IconButton
+                icon={X}
+                title={t("topBar.closeProject")}
+                onClick={() => void handleClose()}
+              />
             </>
           ) : null}
         </div>

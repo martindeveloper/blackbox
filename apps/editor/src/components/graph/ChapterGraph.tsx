@@ -251,7 +251,7 @@ function ChapterGraphInner() {
   const [edges, setEdges, onEdgesChange] = useEdgesState(graphData.edges);
 
   const handleEdgesChange = useCallback(
-    (changes: EdgeChange[]) => {
+    (changes: EdgeChange<Edge<ScenarioEdgeData>>[]) => {
       if (chapterId) {
         for (const change of changes) {
           if (change.type !== "remove") continue;

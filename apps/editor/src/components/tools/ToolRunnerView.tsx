@@ -222,7 +222,14 @@ export function ToolRunnerView({ toolId, title, icon, commandLabel }: ToolRunner
       return;
     }
     const parsed = result?.parsed;
-    if (!parsed || !isCompleteSimulatorOutput(parsed) || !parsed.analytics) return;
+    if (
+      !parsed ||
+      parsed.kind !== "simulator" ||
+      !isCompleteSimulatorOutput(parsed) ||
+      !parsed.analytics
+    ) {
+      return;
+    }
     const projectId = useScenarioStore.getState().projectId;
     if (!projectId) return;
 
