@@ -50,7 +50,6 @@ function UnsavedPill({ labels }: { labels: string[] }) {
     setCoords({ top: rect.bottom + 6, right: window.innerWidth - rect.right });
   };
 
-  // Keep the popover anchored if the window resizes while it is open.
   useLayoutEffect(() => {
     if (!coords) return;
     const onResize = () => placePopover();

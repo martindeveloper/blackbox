@@ -1,7 +1,16 @@
 import { existsSync } from "node:fs";
+import { spawnSync } from "node:child_process";
 import path from "node:path";
-import { commandExists } from "../../../../scripts/lib/spawn.mjs";
 import { getCliDir } from "../config.js";
+
+function commandExists(command) {
+  const checker = process.platform === "win32" ? "where" : "which";
+  const result = spawnSync(checker, [command], {
+    stdio: "ignore",
+    shell: process.platform === "win32",
+  });
+  return result.status === 0;
+}
 
 function capacitorBin() {
   const name = process.platform === "win32" ? "cap.cmd" : "cap";

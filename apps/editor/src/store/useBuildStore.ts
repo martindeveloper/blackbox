@@ -42,7 +42,6 @@ export const useBuildStore = create<BuildStore>((set, get) => ({
   setPlatform: (platform) =>
     set({
       platform,
-      // Drop stages that don't exist for the new platform (e.g. package on mobile).
       selectedStages: get().selectedStages.filter((stage) => allStages(platform).includes(stage)),
     }),
 
@@ -51,7 +50,6 @@ export const useBuildStore = create<BuildStore>((set, get) => ({
   toggleStage: (stage) => {
     const current = get().selectedStages;
     const next = current.includes(stage) ? current.filter((s) => s !== stage) : [...current, stage];
-    // Keep canonical stage order so the pipeline always runs build → bundle → package.
     const ordered = allStages(get().platform).filter((s) => next.includes(s));
     set({ selectedStages: ordered });
   },

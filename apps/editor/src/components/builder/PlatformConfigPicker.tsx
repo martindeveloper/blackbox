@@ -1,4 +1,6 @@
 import { useTranslation } from "react-i18next";
+import { Icon } from "../icons/Icon.js";
+import { PLATFORM_ICONS } from "../icons/PlatformIcons.js";
 import type {
   BuildCapabilities,
   BuildConfiguration,
@@ -62,7 +64,10 @@ export function PlatformConfigPicker({
                   value === platform ? " build-segment-option--active" : ""
                 }`}
               >
-                {t(PLATFORM_LABEL[value])}
+                <span className="build-segment-option-content">
+                  <Icon icon={PLATFORM_ICONS[value]} size={14} strokeWidth={1.75} />
+                  {t(PLATFORM_LABEL[value])}
+                </span>
               </button>
             );
           })}

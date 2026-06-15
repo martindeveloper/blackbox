@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Hammer, Play, Square } from "lucide-react";
+import { Hammer, Play, RotateCcw, Square } from "lucide-react";
 import { Icon } from "../icons/Icon.js";
 import { Button } from "../ui/Button.js";
 import { useScenarioStore } from "../../store/useScenarioStore.js";
 import { useBuildStore } from "../../store/useBuildStore.js";
 import {
   cancelBuild,
+  clearBuildResult,
   getBuildCapabilities,
   startBuild,
   stagesForPlatform,
@@ -35,7 +36,6 @@ export function BuildEditor() {
   } = useBuildStore();
   const [error, setError] = useState<string | null>(null);
 
-  // Stream build events for this project (initial frame carries the current run + log).
   useEffect(() => {
     if (!projectId) return;
     const unsubscribe = subscribeBuild(projectId, applyEvent);
@@ -71,10 +71,18 @@ export function BuildEditor() {
     if (!projectId || !run) return;
     try {
       await cancelBuild(projectId, run.id);
-    } catch {
-      // ignore — the stream will reflect the final state
-    }
+    } catch {}
   }, [projectId, run]);
+
+  const onClear = useCallback(async () => {
+    if (!projectId || running || !run) return;
+    setError(null);
+    try {
+      await clearBuildResult(projectId);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    }
+  }, [projectId, running, run]);
 
   if (!projectId) {
     return <div className="build-empty">{t("build.openProject")}</div>;
@@ -86,6 +94,7 @@ export function BuildEditor() {
     : allSelected
       ? t("build.runAll")
       : t("build.runSelected");
+  const canClear = Boolean(run && !running);
 
   return (
     <div className="build-screen">
@@ -106,6 +115,11 @@ export function BuildEditor() {
             {runLabel}
           </Button>
         )}
+        {canClear ? (
+          <Button variant="ghost" leadingIcon={RotateCcw} onClick={onClear}>
+            {t("build.clearResult")}
+          </Button>
+        ) : null}
         <span className="build-command-separator" />
         <span className="build-command-target">
           <span className="build-command-project">{projectName}</span>

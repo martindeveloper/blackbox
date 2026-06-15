@@ -21,7 +21,6 @@ import {
 export const DEFAULT_LIBRARY_REF = "library.json";
 export const DEFAULT_COOK_REF = "bundle.cook.json";
 
-/** Default on-disk media layout for new projects (matches silent_archive_game). */
 export const PROJECT_MEDIA_DIRS = [
   "textures/backgrounds",
   "textures/icons",

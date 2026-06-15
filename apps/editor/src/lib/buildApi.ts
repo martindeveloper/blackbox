@@ -9,15 +9,15 @@ export type BuildRunState = "running" | "done" | "error" | "canceled";
 export const BUILD_PLATFORMS: BuildPlatform[] = ["web", "ios", "android"];
 export const BUILD_CONFIGURATIONS: BuildConfiguration[] = ["debug", "release"];
 
-/** Stages offered per platform. Package archives on every platform (www / .ipa / .aab). */
 export function stagesForPlatform(_platform: BuildPlatform): BuildStage[] {
-  return ["build", "bundle", "package"];
+  return ["bundle", "build", "package"];
 }
 
 export interface BuildStageSnapshot {
   stage: BuildStage;
   state: StageState;
   artifact: string | null;
+  log: string[];
 }
 
 export interface BuildRunSnapshot {
@@ -108,6 +108,16 @@ export async function cancelBuild(projectId: string, runId: string): Promise<boo
   return data.canceled;
 }
 
+export async function clearBuildResult(projectId: string): Promise<void> {
+  const response = await fetch(projectApiUrl(projectId, "/build/runs/current"), {
+    method: "DELETE",
+  });
+  if (!response.ok) {
+    const data = (await response.json()) as { message?: string };
+    throw new Error(data?.message ?? `HTTP ${response.status}`);
+  }
+}
+
 export function subscribeBuild(
   projectId: string,
   onEvent: (event: BuildEvent) => void,
@@ -116,9 +126,7 @@ export function subscribeBuild(
   events.onmessage = (message) => {
     try {
       onEvent(JSON.parse(message.data) as BuildEvent);
-    } catch {
-      // ignore malformed frames
-    }
+    } catch {}
   };
   return () => events.close();
 }

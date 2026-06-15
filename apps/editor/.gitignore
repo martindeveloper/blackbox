@@ -2,6 +2,7 @@ node_modules/
 dist/
 release/
 resources/bin/
+resources/cli/
 resources/preview-workspace/
 resources/players/*/workspace/
 resources/icon.png

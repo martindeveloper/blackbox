@@ -19,7 +19,6 @@ function resolveWebIconEntry(projectRoot, value) {
   return null;
 }
 
-/** Web icon paths from scenario.json `platforms.web` (null when no adventure or favicon configured). */
 export function resolveWebIconSources(env = process.env) {
   const adventure = resolveWebDevAdventure(env);
   if (!adventure) return null;
@@ -38,7 +37,6 @@ export function resolveWebIconSources(env = process.env) {
   return { favicon: web.icon, extras };
 }
 
-/** Copy favicon.svg, generate favicon.ico + game-icon.png, and copy extra web icon assets into www/. */
 export async function buildWebIcons(env = process.env, { wwwDir = resolveWebWwwDir(env) } = {}) {
   const sources = resolveWebIconSources(env);
   if (!sources) {

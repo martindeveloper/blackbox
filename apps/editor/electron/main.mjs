@@ -315,6 +315,18 @@ if (cliArgs !== null) {
         if (!stat?.isDirectory()) return false;
         return openInIde(resolved, ideId, customPath);
       });
+      ipcMain.handle("editor:reveal-path", async (event, targetPath) => {
+        if (event.sender !== mainWindow?.webContents) return false;
+        if (typeof targetPath !== "string" || targetPath.includes("\0")) return false;
+        const resolved = path.resolve(targetPath);
+        const stat = await fs.stat(resolved).catch(() => null);
+        if (!stat) return false;
+        if (stat.isDirectory()) {
+          return (await shell.openPath(resolved)) === "";
+        }
+        shell.showItemInFolder(resolved);
+        return true;
+      });
       ipcMain.on("editor:set-dirty", (event, dirty) => {
         if (event.sender !== mainWindow?.webContents) return;
         closeGuard.dirty = dirty === true;

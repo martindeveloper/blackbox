@@ -63,7 +63,6 @@ export function resolveWebOutDir(env = process.env) {
   return path.join(adventure.adventureRoot, ".blackbox", "build", configuration, "web");
 }
 
-/** Served static site root: `<adventure>/.blackbox/build/<configuration>/web/www`. */
 export function resolveWebWwwDir(env = process.env) {
   return path.join(resolveWebOutDir(env), "www");
 }

@@ -3,7 +3,6 @@ import path from "node:path";
 import { runProcess, runCargo, platformBin } from "../cargo.js";
 import { appendOutput, commandResult, parseBundle } from "../parsers.js";
 
-/** Run blackbox-bundler for a registered player id (`--platform` value). */
 export async function runPlayerBundle({
   platform,
   projectPath,

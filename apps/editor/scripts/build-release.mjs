@@ -307,6 +307,8 @@ console.log("==> staging preview workspace for packaged on-demand preview builds
 runSync("node", ["./players/registry.mjs", "stageForPackaging"], { cwd: editorRoot });
 console.log("==> staging shared lib modules for packaged preview builds");
 runSync("node", ["./scripts/stage-shared-lib.mjs"], { cwd: editorRoot });
+console.log("==> staging build CLI for packaged web/iOS/Android builds");
+runSync("node", ["./scripts/stage-cli.mjs"], { cwd: editorRoot });
 
 const selectedPlatforms =
   options.platform === "all"

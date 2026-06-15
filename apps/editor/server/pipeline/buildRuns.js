@@ -5,11 +5,40 @@ import path from "node:path";
 import { BUILD_RUNS_PATH } from "../../shared/blackboxPaths.js";
 import { isStageAllowed, spawnStage, stagesForPlatform } from "./cli.js";
 
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
 const MAX_LOG_LINES = 5000;
 
+function appendLogLine(log, line) {
+  log.push(line);
+  if (log.length > MAX_LOG_LINES) {
+    log.splice(0, log.length - MAX_LOG_LINES);
+  }
+}
+
+function createStage(stage) {
+  return { stage, state: "pending", artifact: null, log: [] };
+}
+
+function normalizeStage(stage) {
+  return {
+    stage: stage.stage,
+    state: stage.state,
+    artifact: stage.artifact ?? null,
+    log: Array.isArray(stage.log) ? stage.log : [],
+  };
+}
+
+function combinedLog(stages) {
+  return stages.flatMap((stage) => stage.log ?? []);
+}
+
 function stageSnapshot(stage) {
-  return { stage: stage.stage, state: stage.state, artifact: stage.artifact };
+  return {
+    stage: stage.stage,
+    state: stage.state,
+    artifact: stage.artifact,
+    log: stage.log ?? [],
+  };
 }
 
 function snapshot(record) {
@@ -63,6 +92,7 @@ export class BuildRunRegistry {
       emitter: new EventEmitter(),
       controller: null,
       writeChain: Promise.resolve(),
+      executing: null,
       ready: null,
     };
     project.emitter.setMaxListeners(0);
@@ -70,8 +100,9 @@ export class BuildRunRegistry {
     project.ready = (async () => {
       try {
         const stored = JSON.parse(await fs.readFile(this.filePath(root), "utf8"));
-        if (stored?.version === SCHEMA_VERSION && isStoredRun(stored.run)) {
+        if ((stored?.version === SCHEMA_VERSION || stored?.version === 1) && isStoredRun(stored.run)) {
           const run = stored.run;
+          let upgraded = stored.version !== SCHEMA_VERSION;
           // A run still marked running means the editor stopped mid-build.
           if (run.state === "running") {
             run.state = "error";
@@ -80,11 +111,11 @@ export class BuildRunRegistry {
             for (const stage of run.stages) {
               if (stage.state === "running") stage.state = "error";
             }
-            project.current = { ...run, stages: run.stages };
-            await this.persist(root, project);
-          } else {
-            project.current = { ...run, stages: run.stages };
+            upgraded = true;
           }
+          project.current = { ...run, stages: run.stages.map(normalizeStage) };
+          project.log = combinedLog(project.current.stages);
+          if (upgraded) await this.persist(root, project);
         }
       } catch (error) {
         if (error?.code !== "ENOENT" && !(error instanceof SyntaxError)) throw error;
@@ -98,11 +129,11 @@ export class BuildRunRegistry {
     const run = project.current ? snapshot(project.current) : null;
     const contents = `${JSON.stringify({ version: SCHEMA_VERSION, run }, null, 2)}\n`;
     const target = this.filePath(projectRoot);
-    const temporary = `${target}.${randomUUID()}.tmp`;
+    const temporary = `${target}.tmp`;
+    await fs.mkdir(path.dirname(target), { recursive: true });
     project.writeChain = project.writeChain
       .catch(() => {})
       .then(async () => {
-        await fs.mkdir(path.dirname(target), { recursive: true });
         await fs.writeFile(temporary, contents);
         await fs.rename(temporary, target);
       });
@@ -111,9 +142,10 @@ export class BuildRunRegistry {
 
   emit(project, event) {
     if (event.type === "log") {
-      project.log.push(event.line);
-      if (project.log.length > MAX_LOG_LINES) {
-        project.log.splice(0, project.log.length - MAX_LOG_LINES);
+      appendLogLine(project.log, event.line);
+      if (event.stage && project.current) {
+        const stage = project.current.stages.find((entry) => entry.stage === event.stage);
+        if (stage) appendLogLine(stage.log, event.line);
       }
     }
     project.emitter.emit("event", event);
@@ -137,7 +169,6 @@ export class BuildRunRegistry {
     return project?.current?.state === "running";
   }
 
-  /** Start a build run of the given ordered stages. One run per project at a time. */
   async start(projectRoot, { platform, configuration, stages }) {
     const root = path.resolve(projectRoot);
     const project = await this.load(root);
@@ -156,7 +187,7 @@ export class BuildRunRegistry {
       state: "running",
       startedAt: Date.now(),
       completedAt: null,
-      stages: ordered.map((stage) => ({ stage, state: "pending", artifact: null })),
+      stages: ordered.map((stage) => createStage(stage)),
       artifact: null,
       error: null,
     };
@@ -165,7 +196,9 @@ export class BuildRunRegistry {
     await this.persist(root, project);
     this.emit(project, { type: "started", run: snapshot(record) });
 
-    void this.execute(root, project, record);
+    project.executing = this.execute(root, project, record).finally(() => {
+      project.executing = null;
+    });
 
     return { run: snapshot(record), log: [], alreadyRunning: false };
   }
@@ -183,7 +216,7 @@ export class BuildRunRegistry {
           configuration: record.configuration,
           stage: stageRecord.stage,
         },
-        (line) => this.emit(project, { type: "log", line }),
+        (line) => this.emit(project, { type: "log", line, stage: stageRecord.stage }),
       );
       project.controller = handle;
       const { exitCode, canceled, artifact } = await handle.done;
@@ -193,6 +226,7 @@ export class BuildRunRegistry {
         stageRecord.state = "canceled";
         record.state = "canceled";
         this.emit(project, { type: "stage", stage: stageRecord.stage, state: "canceled" });
+        await this.persist(root, project);
         break;
       }
       if (exitCode !== 0) {
@@ -200,12 +234,14 @@ export class BuildRunRegistry {
         record.state = "error";
         record.error = `Stage "${stageRecord.stage}" exited with code ${exitCode}`;
         this.emit(project, { type: "stage", stage: stageRecord.stage, state: "error" });
+        await this.persist(root, project);
         break;
       }
       stageRecord.state = "done";
       stageRecord.artifact = artifact;
       record.artifact = artifact;
       this.emit(project, { type: "stage", stage: stageRecord.stage, state: "done", artifact });
+      await this.persist(root, project);
     }
 
     if (record.state === "running") record.state = "done";
@@ -225,6 +261,25 @@ export class BuildRunRegistry {
     if (project.current.state !== "running") return false;
     project.current.state = "canceled";
     project.controller?.cancel();
+    return true;
+  }
+
+  /** Wait for queued build-runs.json writes (used by tests and shutdown). */
+  async flush(projectRoot) {
+    const project = this.projects.get(path.resolve(projectRoot));
+    if (!project) return;
+    if (project.executing) await project.executing.catch(() => {});
+    await project.writeChain.catch(() => {});
+  }
+
+  async clear(projectRoot) {
+    const root = path.resolve(projectRoot);
+    const project = await this.load(root);
+    if (project.current?.state === "running") return false;
+    project.current = null;
+    project.log = [];
+    await this.persist(root, project);
+    this.emit(project, { type: "snapshot", current: null });
     return true;
   }
 }

@@ -5,11 +5,9 @@ import { getCliDir, getToolsDir, toolBinPath, bundledToolsEnabled } from "../con
 
 export const BUILD_PLATFORMS = ["web", "ios", "android"];
 export const BUILD_CONFIGURATIONS = ["debug", "release"];
-// Stage order matters: a downstream stage consumes the output of the ones before it.
-// `package` produces a publish-ready artifact on every platform: a www archive (web), an
-// .ipa via xcodebuild (iOS), or an .aab via gradlew (Android). The mobile packagers call
-// the host's existing Xcode / Android toolchains — they are used if present, never bundled.
-export const BUILD_STAGES = ["build", "bundle", "package"];
+// Stage order matters: bundle content first, then compile/assemble platform projects that
+// consume it, then package a publish-ready artifact.
+export const BUILD_STAGES = ["bundle", "build", "package"];
 
 export function stagesForPlatform(_platform) {
   return [...BUILD_STAGES];
@@ -31,12 +29,10 @@ function buildDir(projectPath, configuration) {
   return path.join(projectPath, ".blackbox", "build", configuration);
 }
 
-/** The directory a stage writes into, used to report and existence-check output. */
 export function stageOutputDir(projectPath, platform, stage, configuration) {
   const root = buildDir(projectPath, configuration);
   if (stage === "bundle") return path.join(root, "bundle", platform);
   if (stage === "package") return path.join(root, "package", platform);
-  // build
   if (platform === "web") return path.join(root, "web", "www");
   if (platform === "ios") return path.join(root, "ios");
   return path.join(root, "android");
@@ -55,7 +51,6 @@ function findFirst(dir, predicate) {
   return null;
 }
 
-/** Resolve the concrete artifact a finished stage produced (a file for package, else a dir). */
 export function resolveArtifact(projectPath, platform, stage, configuration) {
   const dir = stageOutputDir(projectPath, platform, stage, configuration);
   if (stage !== "package") return dir;

@@ -488,6 +488,19 @@ export async function registerRoutes(app, service) {
     })),
   );
 
+  app.delete(
+    "/projects/:id/build/runs/current",
+    projectRequest(service, async (project, request, reply) => {
+      const cleared = await buildRuns.clear(project.path);
+      if (!cleared) {
+        return reply
+          .code(409)
+          .send({ code: "build_running", message: "Cannot clear while a build is running" });
+      }
+      return { cleared: true };
+    }),
+  );
+
   app.get(
     "/projects/:id/build/runs/stream",
     projectRequest(service, async (project, request, reply) => {

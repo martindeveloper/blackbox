@@ -438,8 +438,8 @@ export const en = {
     debugHint: "Dev WASM, uncompressed bundles, in-game dev console.",
     releaseHint: "Production WASM, compressed bundles.",
     stages: "Pipeline",
-    packageWarning: "Packaging blocked",
-    noWarnings: "No packaging blockers.",
+    packageWarning: "Pre-flight checks",
+    noWarnings: "All checks passed.",
     stage: {
       build: "Build",
       bundle: "Bundle",
@@ -478,6 +478,7 @@ export const en = {
     failed: "Build failed",
     canceled: "Build canceled",
     interrupted: "The previous build was interrupted.",
+    clearResult: "Clear result",
   },
   tools: {
     projectTarget: "Project",

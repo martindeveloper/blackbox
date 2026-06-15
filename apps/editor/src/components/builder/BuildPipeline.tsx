@@ -23,32 +23,31 @@ function stageStatus(stageRuns: BuildStageSnapshot[], stage: BuildStage): Displa
   return stageRuns.find((s) => s.stage === stage)?.state ?? "idle";
 }
 
-function StatusMark({ state }: { state: DisplayState }) {
-  const cls = `build-stage-mark build-stage-mark--${state}`;
+function StatusMark({ state, selected }: { state: DisplayState; selected: boolean }) {
   if (state === "running") {
     return (
-      <span className={cls}>
+      <span className="build-stage-mark build-stage-mark--running">
         <Icon icon={Loader2} size={13} className="build-spin" />
       </span>
     );
   }
   if (state === "done") {
     return (
-      <span className={cls}>
+      <span className="build-stage-mark build-stage-mark--done">
         <Icon icon={Check} size={13} />
       </span>
     );
   }
   if (state === "error" || state === "canceled") {
     return (
-      <span className={cls}>
+      <span className={`build-stage-mark build-stage-mark--${state}`}>
         <Icon icon={X} size={13} />
       </span>
     );
   }
   return (
     <span className="build-stage-mark">
-      <Icon icon={Minus} size={13} />
+      <Icon icon={selected ? Check : Minus} size={13} />
     </span>
   );
 }
@@ -75,7 +74,7 @@ export function BuildPipeline({ platform, selectedStages, stageRuns, disabled, o
               >
                 <span className="build-stage-top">
                   <span className="build-stage-name">{t(`build.stage.${stage}`)}</span>
-                  <StatusMark state={state} />
+                  <StatusMark state={state} selected={selected} />
                 </span>
                 <span className="build-stage-desc">{t(`build.stageHint.${stage}`)}</span>
                 {state !== "idle" ? (

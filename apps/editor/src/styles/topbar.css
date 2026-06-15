@@ -125,7 +125,6 @@
   display: inline-flex;
 }
 
-/* Portaled to <body>, so it is fixed-positioned and sits above everything. */
 .editor-unsaved-pop {
   position: fixed;
   z-index: 1000;

@@ -7,6 +7,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   pickIdeBinary: () => ipcRenderer.invoke("editor:pick-ide-binary"),
   openInIde: (projectPath, ideId, customPath) =>
     ipcRenderer.invoke("editor:open-in-ide", projectPath, ideId, customPath),
+  revealPath: (targetPath) => ipcRenderer.invoke("editor:reveal-path", targetPath),
   setDirty: (dirty) => ipcRenderer.send("editor:set-dirty", dirty),
   onSaveBeforeClose: (callback) => {
     const listener = () => callback();

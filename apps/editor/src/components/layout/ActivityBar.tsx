@@ -4,13 +4,13 @@ import {
   BookCopy,
   LayoutDashboard,
   FolderOpen,
-  Hammer,
   Info,
   Layers,
   Package,
   Play,
+  Rocket,
+  SquareTerminal,
   Users,
-  Wrench,
   Workflow,
   type LucideIcon,
 } from "lucide-react";
@@ -31,8 +31,8 @@ const MAIN_ITEMS: { id: ActivityView; labelKey: string; icon: LucideIcon }[] = [
   { id: "assets", labelKey: "activity.assets", icon: Layers },
   { id: "meta", labelKey: "activity.meta", icon: BookMarked },
   { id: "library", labelKey: "activity.library", icon: BookCopy },
-  { id: "tools", labelKey: "activity.tools", icon: Wrench },
-  { id: "build", labelKey: "activity.build", icon: Hammer },
+  { id: "tools", labelKey: "activity.tools", icon: SquareTerminal },
+  { id: "build", labelKey: "activity.build", icon: Rocket },
   { id: "preview", labelKey: "activity.preview", icon: Play },
 ];
 

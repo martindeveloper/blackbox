@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -17,7 +17,6 @@ function deferred() {
   return { promise, resolve };
 }
 
-/** Fake spawner: each stage resolves with the queued result (default success). */
 function fakeSpawn(results = {}) {
   const calls = [];
   const spawn = (root, opts, onLine) => {
@@ -39,16 +38,19 @@ function fakeSpawn(results = {}) {
 async function waitForSettled(registry, root) {
   for (let i = 0; i < 200; i += 1) {
     const current = await registry.getCurrent(root);
-    if (current && current.run.state !== "running") return current;
+    if (current && current.run.state !== "running") {
+      await registry.flush(root);
+      return current;
+    }
     await new Promise((r) => setTimeout(r, 5));
   }
   throw new Error("build run did not settle");
 }
 
 test("stage helpers: package is offered on every platform", () => {
-  assert.deepEqual(stagesForPlatform("web"), ["build", "bundle", "package"]);
-  assert.deepEqual(stagesForPlatform("ios"), ["build", "bundle", "package"]);
-  assert.deepEqual(stagesForPlatform("android"), ["build", "bundle", "package"]);
+  assert.deepEqual(stagesForPlatform("web"), ["bundle", "build", "package"]);
+  assert.deepEqual(stagesForPlatform("ios"), ["bundle", "build", "package"]);
+  assert.deepEqual(stagesForPlatform("android"), ["bundle", "build", "package"]);
   assert.equal(isStageAllowed("package", "web"), true);
   assert.equal(isStageAllowed("package", "ios"), true);
   assert.equal(isStageAllowed("package", "android"), true);
@@ -66,7 +68,7 @@ test("runs selected stages in canonical order to completion", async () => {
     });
     const current = await waitForSettled(registry, root);
     assert.equal(current.run.state, "done");
-    assert.deepEqual(calls, ["build", "bundle", "package"]);
+    assert.deepEqual(calls, ["bundle", "build", "package"]);
     assert.equal(current.run.artifact, "/artifact/package");
     assert.ok(current.run.stages.every((s) => s.state === "done"));
   } finally {
@@ -86,16 +88,16 @@ test("stops on stage failure and leaves later stages pending", async () => {
     });
     const current = await waitForSettled(registry, root);
     assert.equal(current.run.state, "error");
-    assert.deepEqual(calls, ["build", "bundle"]); // package never ran
+    assert.deepEqual(calls, ["bundle"]); // build and package never ran
     const states = Object.fromEntries(current.run.stages.map((s) => [s.stage, s.state]));
-    assert.deepEqual(states, { build: "done", bundle: "error", package: "pending" });
+    assert.deepEqual(states, { bundle: "error", build: "pending", package: "pending" });
     assert.match(current.run.error, /bundle/);
   } finally {
     await rm(root, { recursive: true, force: true });
   }
 });
 
-test("packages mobile platforms too (build, bundle, package)", async () => {
+test("packages mobile platforms too (bundle, build, package)", async () => {
   const root = await tempProject();
   try {
     const { spawn, calls } = fakeSpawn();
@@ -106,10 +108,10 @@ test("packages mobile platforms too (build, bundle, package)", async () => {
       stages: ["build", "bundle", "package"],
     });
     const current = await waitForSettled(registry, root);
-    assert.deepEqual(calls, ["build", "bundle", "package"]);
+    assert.deepEqual(calls, ["bundle", "build", "package"]);
     assert.deepEqual(
       current.run.stages.map((s) => s.stage),
-      ["build", "bundle", "package"],
+      ["bundle", "build", "package"],
     );
   } finally {
     await rm(root, { recursive: true, force: true });
@@ -198,6 +200,103 @@ test("refuses a second concurrent run", async () => {
       stages: ["build"],
     });
     assert.equal(second.alreadyRunning, true);
+    gate.resolve();
+    await waitForSettled(registry, root);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("persists per-stage logs in build-runs.json", async () => {
+  const root = await tempProject();
+  try {
+    const { spawn } = fakeSpawn();
+    const registry = new BuildRunRegistry({ spawn });
+    await registry.start(root, {
+      platform: "web",
+      configuration: "release",
+      stages: ["bundle", "build"],
+    });
+    const current = await waitForSettled(registry, root);
+    assert.deepEqual(
+      current.run.stages.map((stage) => stage.log),
+      [["running bundle"], ["running build"]],
+    );
+    assert.deepEqual(current.log, ["running bundle", "running build"]);
+
+    const stored = JSON.parse(
+      await readFile(path.join(root, BUILD_RUNS_PATH), "utf8"),
+    );
+    assert.equal(stored.version, 2);
+    assert.deepEqual(
+      stored.run.stages.map((stage) => stage.log),
+      [["running bundle"], ["running build"]],
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("loads v1 build runs without stage logs", async () => {
+  const root = await tempProject();
+  try {
+    const file = path.join(root, BUILD_RUNS_PATH);
+    await mkdir(path.dirname(file), { recursive: true });
+    await writeFile(
+      file,
+      JSON.stringify({
+        version: 1,
+        run: {
+          id: "legacy",
+          platform: "web",
+          configuration: "release",
+          state: "done",
+          startedAt: Date.now() - 1000,
+          completedAt: Date.now(),
+          stages: [{ stage: "build", state: "done", artifact: "/artifact/build" }],
+          artifact: "/artifact/build",
+          error: null,
+        },
+      }),
+    );
+    const registry = new BuildRunRegistry();
+    const current = await registry.getCurrent(root);
+    assert.deepEqual(current.run.stages[0].log, []);
+    assert.deepEqual(current.log, []);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("clear drops the stored run and log", async () => {
+  const root = await tempProject();
+  try {
+    const { spawn } = fakeSpawn();
+    const registry = new BuildRunRegistry({ spawn });
+    await registry.start(root, { platform: "web", configuration: "release", stages: ["build"] });
+    await waitForSettled(registry, root);
+    assert.ok(await registry.getCurrent(root));
+
+    const cleared = await registry.clear(root);
+    assert.equal(cleared, true);
+    assert.equal(await registry.getCurrent(root), null);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("clear refuses while a build is running", async () => {
+  const root = await tempProject();
+  try {
+    const gate = deferred();
+    const spawn = () => ({
+      done: gate.promise.then(() => ({ exitCode: 0, canceled: false, artifact: "/x" })),
+      cancel() {},
+    });
+    const registry = new BuildRunRegistry({ spawn });
+    await registry.start(root, { platform: "web", configuration: "release", stages: ["build"] });
+    const cleared = await registry.clear(root);
+    assert.equal(cleared, false);
     gate.resolve();
     await waitForSettled(registry, root);
   } finally {

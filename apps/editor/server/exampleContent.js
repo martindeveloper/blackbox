@@ -1,5 +1,3 @@
-// Guided-tour documents for optional example scaffolding (see projectScaffold.js).
-
 export function exampleSecondChapterId(firstChapterId) {
   return firstChapterId === "two" ? "second" : "two";
 }
