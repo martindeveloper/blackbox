@@ -8,8 +8,9 @@ export interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement
 export function Checkbox({ label, className, ...props }: CheckboxProps) {
   return (
     <label className={cn("ui-checkbox", className)}>
-      <input type="checkbox" {...props} />
-      {label ? <span>{label}</span> : null}
+      <input className="ui-checkbox-input" type="checkbox" {...props} />
+      <span className="ui-checkbox-control" aria-hidden="true" />
+      {label ? <span className="ui-checkbox-label">{label}</span> : null}
     </label>
   );
 }

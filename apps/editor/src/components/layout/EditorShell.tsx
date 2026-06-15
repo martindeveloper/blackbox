@@ -133,12 +133,28 @@ export function EditorShell() {
   }, [save, navigate, pathname, search.chapter]);
 
   useEffect(() => {
+    const electron = window.electronAPI;
+    if (electron) {
+      electron.setDirty(dirty.size > 0);
+      return;
+    }
     const onBeforeUnload = (e: BeforeUnloadEvent) => {
       if (dirty.size > 0) e.preventDefault();
     };
     window.addEventListener("beforeunload", onBeforeUnload);
     return () => window.removeEventListener("beforeunload", onBeforeUnload);
   }, [dirty]);
+
+  useEffect(() => {
+    const electron = window.electronAPI;
+    if (!electron) return;
+    return electron.onSaveBeforeClose(() => {
+      void save().then((saved) => {
+        const clean = useScenarioStore.getState().dirty.size === 0;
+        electron.reportSaveBeforeClose(saved && clean);
+      });
+    });
+  }, [save]);
 
   const startDrag = (side: "left" | "right", startX: number, startWidth: number) => {
     setDragging(side);

@@ -5,11 +5,16 @@ export interface FormFieldProps {
   children: ReactNode;
   hint?: string;
   className?: string;
+  layout?: "grid" | "stacked";
 }
 
-export function FormField({ label, children, hint, className }: FormFieldProps) {
+export function FormField({ label, children, hint, className, layout = "grid" }: FormFieldProps) {
   return (
-    <label className={["form-field", className].filter(Boolean).join(" ")}>
+    <label
+      className={["form-field", layout === "stacked" && "form-field--stacked", className]
+        .filter(Boolean)
+        .join(" ")}
+    >
       <span className="form-field-label">{label}</span>
       <div className="form-field-control">
         {children}

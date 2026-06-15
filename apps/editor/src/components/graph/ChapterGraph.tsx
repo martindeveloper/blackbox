@@ -220,6 +220,7 @@ function ChapterGraphInner() {
           data: analyticsActive
             ? {
                 ...node.data,
+                inspectorSelected: node.id === nodeId,
                 analyticsActive: true,
                 analyticsIntensity: insight?.intensity ?? 0,
                 analyticsBadge: insight?.badge ?? coldBadge,
@@ -233,11 +234,14 @@ function ChapterGraphInner() {
                 analyticsMarkers: insight?.markers ?? [],
                 analyticsColor: insight?.color,
               }
-            : node.data,
+            : {
+                ...node.data,
+                inspectorSelected: node.id === nodeId,
+              },
         };
       }),
     };
-  }, [bundle, chapter, chapterId, insights, analyticsMode, t]);
+  }, [bundle, chapter, chapterId, insights, analyticsMode, nodeId, t]);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(graphData.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(graphData.edges);

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
 import type { TextBlock, TextEntry } from "../../types/wire.js";
+import { textBlockHasDirection } from "../../lib/authorEditorHelpers.js";
 import {
   isTextBlock,
   snippetIdFromTextEntry,
@@ -20,6 +21,7 @@ import { Select } from "../ui/Select.js";
 import { Textarea } from "../ui/Textarea.js";
 import { GateEditor } from "./GateEditor.js";
 import { InterpolationField } from "./InterpolationField.js";
+import { AuthorDetails } from "./AuthorDetails.js";
 
 const TEXT_KINDS = ["paragraph", "dialogue", "thought", "stage_direction"];
 const SIDES = ["left", "right", "center"];
@@ -186,123 +188,121 @@ export function TextBlockEditor({ entries, onChange }: TextBlockEditorProps) {
 
         if (!isTextBlock(entry)) return null;
         const block = entry;
+        const hasDirection = textBlockHasDirection(block);
+
+        const patchBlock = (patch: Partial<TextBlock>) => {
+          const copy = [...entries];
+          copy[i] = { ...block, ...patch };
+          onChange(copy);
+        };
+
+        const speakerField = (
+          <FormField layout="stacked" label={t("textBlock.speaker")}>
+            <Select
+              options={characterOptions}
+              value={block.speaker ?? ""}
+              onChange={(e) => patchBlock({ speaker: e.target.value || undefined })}
+            />
+          </FormField>
+        );
 
         return (
-          <Card key={textEntryKey(entry, i)} className="mb-3">
-            <div className="mb-2 flex justify-end">
+          <Card key={textEntryKey(entry, i)} className="author-text-card mb-3">
+            <div className="author-card-toolbar">
+              <div className="author-block-type">
+                <Select
+                  aria-label={t("textBlock.kind")}
+                  options={TEXT_KINDS.map((k) => ({
+                    value: k,
+                    label: t(`textBlock.kinds.${k}`),
+                  }))}
+                  value={block.kind}
+                  onChange={(e) => patchBlock({ kind: e.target.value })}
+                />
+              </div>
               <Button
-                variant="danger"
+                variant="ghost"
                 size="sm"
-                leadingIcon={Trash2}
+                icon
+                title={t("textBlock.remove")}
+                aria-label={t("textBlock.remove")}
                 onClick={() => onChange(entries.filter((_, j) => j !== i))}
               >
-                {t("common.remove")}
+                <Trash2 size={14} />
               </Button>
             </div>
-            <FormField label={t("textBlock.kind")}>
-              <Select
-                options={TEXT_KINDS.map((k) => ({
-                  value: k,
-                  label: t(`textBlock.kinds.${k}`),
-                }))}
-                value={block.kind}
-                onChange={(e) => {
-                  const copy = [...entries];
-                  copy[i] = { ...block, kind: e.target.value };
-                  onChange(copy);
-                }}
+            {block.kind === "dialogue" ? (
+              <div className="author-speaker-row">{speakerField}</div>
+            ) : null}
+            <div className="author-prose">
+              <InterpolationField
+                layout="stacked"
+                showHint={false}
+                label={t("textBlock.whatHappens")}
+                value={block.text}
+                rows={6}
+                placeholder={t(`textBlock.placeholders.${block.kind}`)}
+                onChange={(text) => patchBlock({ text })}
               />
-            </FormField>
-            <InterpolationField
-              label={t("textBlock.text")}
-              value={block.text}
-              rows={4}
-              onChange={(text) => {
-                const copy = [...entries];
-                copy[i] = { ...block, text };
-                onChange(copy);
-              }}
-            />
-            <InterpolationField
-              label={t("textBlock.else")}
-              value={block.else ?? ""}
-              rows={3}
-              onChange={(elseText) => {
-                const copy = [...entries];
-                copy[i] = { ...block, else: elseText || undefined };
-                onChange(copy);
-              }}
-            />
-            <FormField label={t("textBlock.speaker")}>
-              <Select
-                options={characterOptions}
-                value={block.speaker ?? ""}
-                onChange={(e) => {
-                  const copy = [...entries];
-                  copy[i] = { ...block, speaker: e.target.value || undefined };
-                  onChange(copy);
-                }}
+            </div>
+            <AuthorDetails
+              inline
+              summary={t("textBlock.directionAndLogic")}
+              configured={hasDirection}
+              open={hasDirection}
+            >
+              {block.kind !== "dialogue" ? speakerField : null}
+              <FormField label={t("textBlock.emotion")}>
+                <Input
+                  placeholder={t("textBlock.emotionPlaceholder")}
+                  value={block.emotion ?? ""}
+                  onChange={(e) => patchBlock({ emotion: e.target.value || undefined })}
+                />
+              </FormField>
+              <FormField label={t("textBlock.side")}>
+                <Select
+                  options={[
+                    { value: "", label: t("common.none") },
+                    ...SIDES.map((s) => ({ value: s, label: t(`textBlock.sides.${s}`) })),
+                  ]}
+                  value={block.side ?? ""}
+                  onChange={(e) =>
+                    patchBlock({
+                      side: (e.target.value || undefined) as TextBlock["side"],
+                    })
+                  }
+                />
+              </FormField>
+              <FormField label={t("textBlock.actor")} hint={t("textBlock.actorHint")}>
+                <Select
+                  options={characterOptions}
+                  value={block.actor ?? ""}
+                  onChange={(e) => patchBlock({ actor: e.target.value || undefined })}
+                />
+              </FormField>
+              <GateEditor
+                label={t("textBlock.showOnlyWhen")}
+                value={block.when}
+                onChange={(when) => patchBlock({ when })}
               />
-            </FormField>
-            <FormField label={t("textBlock.emotion")}>
-              <Input
-                value={block.emotion ?? ""}
-                onChange={(e) => {
-                  const copy = [...entries];
-                  copy[i] = { ...block, emotion: e.target.value || undefined };
-                  onChange(copy);
-                }}
+              <GateEditor
+                label={t("textBlock.hideWhen")}
+                value={block.unless}
+                onChange={(unless) => patchBlock({ unless })}
               />
-            </FormField>
-            <FormField label={t("textBlock.side")}>
-              <Select
-                options={[
-                  { value: "", label: t("common.none") },
-                  ...SIDES.map((s) => ({ value: s, label: t(`textBlock.sides.${s}`) })),
-                ]}
-                value={block.side ?? ""}
-                onChange={(e) => {
-                  const copy = [...entries];
-                  copy[i] = { ...block, side: (e.target.value || undefined) as TextBlock["side"] };
-                  onChange(copy);
-                }}
+              <InterpolationField
+                label={t("textBlock.else")}
+                value={block.else ?? ""}
+                rows={3}
+                onChange={(elseText) => patchBlock({ else: elseText || undefined })}
               />
-            </FormField>
-            <FormField label={t("textBlock.actor")} hint={t("textBlock.actorHint")}>
-              <Select
-                options={characterOptions}
-                value={block.actor ?? ""}
-                onChange={(e) => {
-                  const copy = [...entries];
-                  copy[i] = { ...block, actor: e.target.value || undefined };
-                  onChange(copy);
-                }}
-              />
-            </FormField>
-            <GateEditor
-              label={t("common.when")}
-              value={block.when}
-              onChange={(when) => {
-                const copy = [...entries];
-                copy[i] = { ...block, when };
-                onChange(copy);
-              }}
-            />
-            <GateEditor
-              label={t("common.unless")}
-              value={block.unless}
-              onChange={(unless) => {
-                const copy = [...entries];
-                copy[i] = { ...block, unless };
-                onChange(copy);
-              }}
-            />
+            </AuthorDetails>
           </Card>
         );
       })}
-      <div className="flex flex-wrap gap-2">
+      <div className="author-block-actions">
         <Button
-          size="sm"
+          className="author-add-button"
           leadingIcon={Plus}
           onClick={() => onChange([...entries, { kind: "paragraph", text: "" }])}
         >

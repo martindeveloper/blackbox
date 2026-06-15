@@ -402,7 +402,7 @@
   padding: 1px 0;
 }
 
-.tools-filter-rule .ui-checkbox span {
+.tools-filter-rule .ui-checkbox-label {
   font-family: var(--font-mono);
   font-size: 10px;
   color: var(--editor-text-subtle);

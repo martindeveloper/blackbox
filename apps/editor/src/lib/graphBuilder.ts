@@ -36,6 +36,7 @@ export interface ScenarioNodeData {
   analyticsRank?: number;
   analyticsMarkers?: ("spine" | "split")[];
   analyticsColor?: string;
+  inspectorSelected?: boolean;
   [key: string]: unknown;
 }
 

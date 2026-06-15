@@ -84,3 +84,239 @@
   font-size: 10px;
   font-style: italic;
 }
+
+.node-authoring {
+  --author-accent: var(--editor-primary);
+  margin: -8px;
+  min-height: 100%;
+  background: var(--editor-inspector);
+}
+
+.node-authoring-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--editor-border-subtle);
+}
+
+.node-authoring-header .editor-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.node-authoring-id {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  color: var(--editor-text-subtle);
+}
+
+.node-authoring-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 10px 24px;
+}
+
+.node-authoring-body > .form-field--stacked .editor-input {
+  padding: 8px 10px;
+  font-size: 13px;
+}
+
+.node-authoring-snippets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.author-text-card,
+.author-choice-card {
+  overflow: hidden;
+  padding: 0;
+  border-radius: 3px;
+  border-color: var(--editor-border-2);
+  box-shadow: none;
+}
+
+.author-card-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 34px;
+  padding: 5px 7px 5px 10px;
+  background: var(--editor-surface-2);
+  border-bottom: 1px solid var(--editor-border-subtle);
+}
+
+.author-block-type .editor-input {
+  width: auto;
+  min-width: 128px;
+  padding-left: 0;
+  color: var(--author-accent);
+  background-color: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.author-speaker-row,
+.author-choice-card > .form-field,
+.author-choice-card > .author-details {
+  margin-right: 10px;
+  margin-left: 10px;
+}
+
+.author-speaker-row {
+  padding-top: 9px;
+}
+
+.author-prose {
+  padding: 10px;
+}
+
+.author-prose textarea.editor-input {
+  min-height: 132px;
+  padding: 12px 13px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.author-prose .interpolation-tokens {
+  gap: 3px;
+}
+
+.author-prose .interpolation-token {
+  padding: 2px 6px;
+  font-size: 8px;
+}
+
+.author-details {
+  border: 1px solid var(--editor-border);
+  border-radius: 4px;
+  background: var(--editor-surface-3);
+}
+
+.author-details > summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 7px 10px;
+  color: var(--editor-text-muted);
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 600;
+  list-style: none;
+}
+
+.author-details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.author-details > summary svg {
+  transition: transform 120ms ease;
+}
+
+.author-details[open] > summary svg {
+  transform: rotate(180deg);
+}
+
+.author-details > summary span {
+  margin-left: auto;
+  color: var(--author-accent);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 500;
+}
+
+.author-details-body {
+  padding: 9px 10px 10px;
+  border-top: 1px solid var(--editor-border-subtle);
+}
+
+.author-details--inline {
+  margin: 0 10px 10px;
+  background: transparent;
+  border-width: 0 0 1px;
+  border-radius: 0;
+}
+
+.author-details--inline > summary {
+  padding-right: 2px;
+  padding-left: 2px;
+}
+
+.author-choice-card {
+  padding-bottom: 1px;
+}
+
+.author-choice-number {
+  color: var(--editor-text-muted);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.author-choice-label {
+  padding-top: 11px;
+}
+
+.author-choice-label .editor-input {
+  padding: 8px 9px;
+  font-size: 13px;
+}
+
+.author-choice-card > .form-field:not(.author-choice-label) {
+  grid-template-columns: 78px 1fr;
+  min-width: 0;
+}
+
+.author-choice-card > .author-details {
+  margin-top: 10px;
+}
+
+.author-add-button {
+  width: 100%;
+  min-height: 38px;
+  border-style: dashed;
+  color: var(--author-accent);
+}
+
+.author-block-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px;
+}
+
+.node-authoring .gate-editor-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 30px;
+  border-bottom: 1px solid var(--editor-border-subtle);
+}
+
+.node-authoring .gate-editor-label {
+  color: var(--editor-text-muted);
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.node-authoring .gate-editor-toggle .ui-checkbox {
+  flex-direction: row-reverse;
+  margin: 0;
+}
+
+.node-authoring-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  margin-top: 10px;
+}

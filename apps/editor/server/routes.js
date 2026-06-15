@@ -108,12 +108,22 @@ export async function registerRoutes(app, service) {
       }
     }
 
+    const withCode = body.withCode === true;
+    const withExample = body.withExample === true;
+
     let created = false;
     try {
-      await writeNewProject(projectPath, { title, firstChapterId, firstChapterTitle });
+      await writeNewProject(projectPath, {
+        title,
+        firstChapterId,
+        firstChapterTitle,
+        withExample,
+      });
       created = true;
 
       const project = await service.registerProject(projectPath);
+      // Scaffold + trust the optional custom-code starter via the canonical path.
+      if (withCode) await service.bootstrapProjectCode(project.id);
       return { project };
     } catch (error) {
       if (created) {
@@ -133,6 +143,11 @@ export async function registerRoutes(app, service) {
     projectRequest(service, (project, request) =>
       service.setProjectCodeTrust(project.id, request.body?.trusted),
     ),
+  );
+
+  app.post(
+    "/projects/:id/bootstrap-code",
+    projectRequest(service, (project) => service.bootstrapProjectCode(project.id)),
   );
 
   app.post("/projects/revoke-code-trust", () => service.revokeAllProjectCodeTrust());

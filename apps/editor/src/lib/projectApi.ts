@@ -96,6 +96,10 @@ export interface CreateProjectOptions {
   title: string;
   firstChapterId: string;
   firstChapterTitle: string;
+  /** Scaffold a custom-code starter into src/ and trust it (developer projects). */
+  withCode?: boolean;
+  /** Scaffold a two-chapter guided example that demonstrates the data model. */
+  withExample?: boolean;
 }
 
 export async function createProject(options: CreateProjectOptions): Promise<ProjectSummary> {
@@ -115,6 +119,14 @@ export async function setProjectCodeTrust(projectId: string, trusted: boolean): 
   await postJson<{ trusted: boolean }>(projectUrl(projectId, "/trust-code"), {
     trusted,
   });
+}
+
+export async function bootstrapProjectCode(projectId: string): Promise<string[]> {
+  const result = await postJson<{ created: string[] }>(
+    projectUrl(projectId, "/bootstrap-code"),
+    {},
+  );
+  return result.created;
 }
 
 export async function revokeAllProjectCodeTrust(): Promise<number> {

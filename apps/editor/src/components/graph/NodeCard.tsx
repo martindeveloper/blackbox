@@ -10,6 +10,7 @@ export function NodeCard({ data, selected }: NodeProps) {
   const d = data as ScenarioNodeData;
   const hasAnalytics = d.analyticsActive === true;
   const intensity = d.analyticsIntensity ?? 0;
+  const active = selected || d.inspectorSelected === true;
 
   const analyticsStyle: CSSProperties | undefined = hasAnalytics
     ? ({
@@ -21,7 +22,7 @@ export function NodeCard({ data, selected }: NodeProps) {
 
   return (
     <div
-      className={`graph-node ${selected ? "graph-node-selected" : ""}${hasAnalytics ? ` graph-node--analytics graph-node--analytics-${d.analyticsTone ?? "reach"}${intensity <= 0 ? " graph-node--analytics-cold" : ""}` : ""}`}
+      className={`graph-node ${active ? "graph-node-selected" : ""}${hasAnalytics ? ` graph-node--analytics graph-node--analytics-${d.analyticsTone ?? "reach"}${intensity <= 0 ? " graph-node--analytics-cold" : ""}` : ""}`}
       style={analyticsStyle}
     >
       {d.incomingHandles.length > 0 ? (

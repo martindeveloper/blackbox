@@ -1,4 +1,4 @@
-import { Layers, Plus, Quote, Skull, Star } from "lucide-react";
+import { Code2, Layers, Plus, Quote, Skull, Star } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
 import { Icon } from "../icons/Icon.js";
@@ -32,6 +32,7 @@ export function FileTree() {
   const projectHasCustomCode = useScenarioStore((s) => s.projectHasCustomCode);
   const updateAssets = useScenarioStore((s) => s.updateAssets);
   const addChapter = useScenarioStore((s) => s.addChapter);
+  const bootstrapProjectCode = useScenarioStore((s) => s.bootstrapProjectCode);
 
   const handleAddChapter = () => {
     const created = addChapter();
@@ -280,6 +281,25 @@ export function FileTree() {
           <p className="file-tree-trust-pill" title={t("fileTree.untrustedCustomCodeHint")}>
             {t("fileTree.untrustedCustomCodePill")}
           </p>
+        ) : null}
+        {!projectHasCustomCode ? (
+          <aside className="file-tree-bootstrap">
+            <div className="file-tree-bootstrap-heading">
+              <Code2 size={13} aria-hidden="true" />
+              <span>{t("fileTree.bootstrapCodeTitle")}</span>
+              <span className="file-tree-bootstrap-optional">
+                {t("fileTree.bootstrapCodeOptional")}
+              </span>
+            </div>
+            <p className="file-tree-bootstrap-hint">{t("fileTree.bootstrapCodeHint")}</p>
+            <Button
+              className="file-tree-bootstrap-action"
+              size="sm"
+              onClick={() => void bootstrapProjectCode()}
+            >
+              {t("fileTree.bootstrapCode")}
+            </Button>
+          </aside>
         ) : null}
         <div className="file-tree-stats">
           <p>{t("fileTree.chaptersCount", { count: bundle.scenario.chapters.length })}</p>

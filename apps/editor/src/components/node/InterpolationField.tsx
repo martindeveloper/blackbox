@@ -14,6 +14,8 @@ interface InterpolationFieldProps {
   rows?: number;
   hint?: string;
   placeholder?: string;
+  layout?: "grid" | "stacked";
+  showHint?: boolean;
 }
 
 export function InterpolationField({
@@ -25,6 +27,8 @@ export function InterpolationField({
   rows = 3,
   hint,
   placeholder,
+  layout = "grid",
+  showHint = true,
 }: InterpolationFieldProps) {
   const { t } = useTranslation();
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -49,7 +53,11 @@ export function InterpolationField({
 
   return (
     <div className="interpolation-field">
-      <FormField label={label ?? ""} hint={hint ?? t("interpolation.hint")}>
+      <FormField
+        layout={layout}
+        label={label ?? ""}
+        hint={showHint ? (hint ?? t("interpolation.hint")) : undefined}
+      >
         <Textarea
           ref={inputRef}
           className={mono ? "font-mono text-[11px]" : undefined}

@@ -19,7 +19,7 @@ export function ChoiceListEditor({ choices, chapterIds, onChange }: ChoiceListEd
   const { t } = useTranslation();
 
   return (
-    <div>
+    <div className="author-choice-list">
       {choices.map((choice, i) => (
         <ChoiceEditor
           key={choice.id}
@@ -33,7 +33,11 @@ export function ChoiceListEditor({ choices, chapterIds, onChange }: ChoiceListEd
           onRemove={() => onChange(choices.filter((_, j) => j !== i))}
         />
       ))}
-      <Button size="sm" leadingIcon={Plus} onClick={() => onChange([...choices, newChoice()])}>
+      <Button
+        className="author-add-button"
+        leadingIcon={Plus}
+        onClick={() => onChange([...choices, newChoice()])}
+      >
         {t("choice.add")}
       </Button>
     </div>

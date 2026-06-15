@@ -1,6 +1,7 @@
 import { Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { ChoiceAction, ChoiceContent, RollMode, SkillCheckOutcome } from "../../types/wire.js";
+import { choiceHasAdvancedFields } from "../../lib/authorEditorHelpers.js";
 import { RefPickerField } from "../pickers/RefPickerField.js";
 import { Button } from "../ui/Button.js";
 import { Card } from "../ui/Card.js";
@@ -10,6 +11,7 @@ import { Select } from "../ui/Select.js";
 import { ExprOnlyField } from "./ExprInputField.js";
 import { EffectEditor } from "./EffectEditor.js";
 import { GateEditor } from "./GateEditor.js";
+import { AuthorDetails } from "./AuthorDetails.js";
 
 type ResolutionMode = "goto" | "effects" | "check" | "action" | "openLoadMenu";
 
@@ -60,6 +62,7 @@ function OutcomeEditor({
 export function ChoiceEditor({ choice, chapterIds, onChange, onRemove }: ChoiceEditorProps) {
   const { t } = useTranslation();
   const mode = getResolutionMode(choice);
+  const hasAdvanced = choiceHasAdvancedFields(choice);
 
   const setMode = (next: ResolutionMode) => {
     const base = {
@@ -100,72 +103,30 @@ export function ChoiceEditor({ choice, chapterIds, onChange, onRemove }: ChoiceE
     onChange({ ...choice, action, goto: undefined, check: undefined });
 
   return (
-    <Card variant="elevated" className="mb-3 p-3">
-      <div className="mb-2 flex items-center justify-between">
-        <span className="graph-node-id">{choice.id}</span>
-        <Button variant="danger" size="sm" leadingIcon={Trash2} onClick={onRemove}>
-          {t("common.remove")}
+    <Card variant="elevated" className="author-choice-card mb-3">
+      <div className="author-card-toolbar">
+        <span className="author-choice-number">{t("choice.playerChoice")}</span>
+        <Button
+          variant="ghost"
+          size="sm"
+          icon
+          title={t("choice.remove")}
+          aria-label={t("choice.remove")}
+          onClick={onRemove}
+        >
+          <Trash2 size={14} />
         </Button>
       </div>
 
-      <FormField label={t("common.id")}>
+      <FormField layout="stacked" label={t("choice.playerSees")} className="author-choice-label">
         <Input
-          mono
-          value={choice.id}
-          onChange={(e) => onChange({ ...choice, id: e.target.value })}
-        />
-      </FormField>
-      <FormField label={t("common.label")}>
-        <Input
+          placeholder={t("choice.labelPlaceholder")}
           value={choice.label}
           onChange={(e) => onChange({ ...choice, label: e.target.value })}
         />
       </FormField>
-      <RefPickerField
-        kind="sfx"
-        label={t("choice.sfx")}
-        value={choice.sfx ?? ""}
-        onChange={(sfx) => onChange({ ...choice, sfx: sfx || undefined })}
-      />
-      <FormField label={t("choice.disabledReason")}>
-        <Input
-          value={choice.disabledReason ?? ""}
-          onChange={(e) => onChange({ ...choice, disabledReason: e.target.value || undefined })}
-        />
-      </FormField>
-      <FormField label={t("choice.whenDisabledReason")}>
-        <Input
-          value={choice.whenDisabledReason ?? ""}
-          onChange={(e) => onChange({ ...choice, whenDisabledReason: e.target.value || undefined })}
-        />
-      </FormField>
-      <FormField label={t("choice.unlessDisabledReason")}>
-        <Input
-          value={choice.unlessDisabledReason ?? ""}
-          onChange={(e) =>
-            onChange({ ...choice, unlessDisabledReason: e.target.value || undefined })
-          }
-        />
-      </FormField>
 
-      <GateEditor
-        label={t("choice.requires")}
-        value={choice.requires}
-        onChange={(requires) => onChange({ ...choice, requires })}
-      />
-
-      <GateEditor
-        label={t("common.when")}
-        value={choice.when}
-        onChange={(when) => onChange({ ...choice, when })}
-      />
-      <GateEditor
-        label={t("common.unless")}
-        value={choice.unless}
-        onChange={(unless) => onChange({ ...choice, unless })}
-      />
-
-      <FormField label={t("choice.resolution")}>
+      <FormField label={t("choice.outcome")}>
         <Select
           options={[
             { value: "goto", label: t("choice.resolutionGoto") },
@@ -368,6 +329,64 @@ export function ChoiceEditor({ choice, chapterIds, onChange, onRemove }: ChoiceE
           ) : null}
         </>
       ) : null}
+
+      <AuthorDetails
+        inline
+        summary={t("choice.availabilityAndDetails")}
+        configured={hasAdvanced}
+        open={hasAdvanced}
+      >
+        <FormField label={t("common.id")} hint={t("choice.idHint")}>
+          <Input
+            mono
+            value={choice.id}
+            onChange={(e) => onChange({ ...choice, id: e.target.value })}
+          />
+        </FormField>
+        <RefPickerField
+          kind="sfx"
+          label={t("choice.sfx")}
+          value={choice.sfx ?? ""}
+          onChange={(sfx) => onChange({ ...choice, sfx: sfx || undefined })}
+        />
+        <GateEditor
+          label={t("choice.availableWhen")}
+          value={choice.when}
+          onChange={(when) => onChange({ ...choice, when })}
+        />
+        <GateEditor
+          label={t("choice.hiddenWhen")}
+          value={choice.unless}
+          onChange={(unless) => onChange({ ...choice, unless })}
+        />
+        <GateEditor
+          label={t("choice.requires")}
+          value={choice.requires}
+          onChange={(requires) => onChange({ ...choice, requires })}
+        />
+        <FormField label={t("choice.disabledReason")}>
+          <Input
+            value={choice.disabledReason ?? ""}
+            onChange={(e) => onChange({ ...choice, disabledReason: e.target.value || undefined })}
+          />
+        </FormField>
+        <FormField label={t("choice.whenDisabledReason")}>
+          <Input
+            value={choice.whenDisabledReason ?? ""}
+            onChange={(e) =>
+              onChange({ ...choice, whenDisabledReason: e.target.value || undefined })
+            }
+          />
+        </FormField>
+        <FormField label={t("choice.unlessDisabledReason")}>
+          <Input
+            value={choice.unlessDisabledReason ?? ""}
+            onChange={(e) =>
+              onChange({ ...choice, unlessDisabledReason: e.target.value || undefined })
+            }
+          />
+        </FormField>
+      </AuthorDetails>
     </Card>
   );
 }

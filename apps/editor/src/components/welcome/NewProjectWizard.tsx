@@ -9,6 +9,7 @@ import { transitionToEditor } from "../../lib/projectTransition.js";
 import { Page } from "../../lib/pages.js";
 import { editorNavigate } from "../../lib/projectRoute.js";
 import { Icon } from "../icons/Icon.js";
+import { Checkbox } from "../ui/Checkbox.js";
 import { ThemeSelector } from "../layout/ThemeSelector.js";
 
 interface NewProjectWizardProps {
@@ -63,6 +64,9 @@ export function NewProjectWizard({ onBack }: NewProjectWizardProps) {
   const [chapterId, setChapterId] = useState("prologue");
   const [chapterIdManuallyEdited, setChapterIdManuallyEdited] = useState(false);
 
+  const [withExample, setWithExample] = useState(true);
+  const [withCode, setWithCode] = useState(false);
+
   const [parentPath, setParentPath] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -113,6 +117,8 @@ export function NewProjectWizard({ onBack }: NewProjectWizardProps) {
         title: title.trim(),
         firstChapterId: chapterId.trim() || "prologue",
         firstChapterTitle: chapterTitle.trim() || "Prologue",
+        withExample,
+        withCode,
       });
       if (!(await openProject(project.id))) return;
       await transitionToEditor(() =>
@@ -210,6 +216,19 @@ export function NewProjectWizard({ onBack }: NewProjectWizardProps) {
                     The directory name created on disk. Auto-derived from title.
                   </span>
                 </div>
+
+                <div className="wizard-field">
+                  <Checkbox
+                    checked={withCode}
+                    onChange={(e) => setWithCode(e.target.checked)}
+                    label="Include custom code starter"
+                  />
+                  <span className="wizard-field-hint">
+                    Scaffold a <code>src/</code> folder (React App, game config, styles) with
+                    commented starter files. For developers customising the UI — data-only projects
+                    can leave this off.
+                  </span>
+                </div>
               </>
             )}
 
@@ -252,6 +271,19 @@ export function NewProjectWizard({ onBack }: NewProjectWizardProps) {
                   />
                   <span className="wizard-field-hint">
                     Unique machine identifier used in references and file names.
+                  </span>
+                </div>
+
+                <div className="wizard-field">
+                  <Checkbox
+                    checked={withExample}
+                    onChange={(e) => setWithExample(e.target.checked)}
+                    label="Add example content"
+                  />
+                  <span className="wizard-field-hint">
+                    Fill the first chapter and a second chapter with a short, neutral guided tour —
+                    nodes, choices, items, a skill check, a game over, and an ending — that teaches
+                    the editor. Uncheck for a single empty chapter.
                   </span>
                 </div>
               </>

@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { defaultImportPath, type MediaCategory, type MediaFileEntry } from "../lib/mediaLibrary.js";
 import {
   ApiError,
+  bootstrapProjectCode,
   deleteTrash,
   emptyTrash as emptyTrashApi,
   openProject as openProjectApi,
@@ -66,6 +67,7 @@ interface ScenarioState {
 
   openProject: (projectId: string) => Promise<boolean>;
   reloadProject: () => Promise<boolean>;
+  bootstrapProjectCode: () => Promise<boolean>;
   overwriteConflict: () => Promise<boolean>;
   refreshMediaLibrary: () => Promise<void>;
   importMediaFile: (category: MediaCategory, targetDir?: string) => Promise<string | null>;
@@ -213,6 +215,24 @@ export const useScenarioStore = create<ScenarioState>((set, get) => ({
     const projectId = get().projectId;
     if (!projectId) return false;
     return get().openProject(projectId);
+  },
+
+  bootstrapProjectCode: async () => {
+    const projectId = get().projectId;
+    if (!projectId) return false;
+    try {
+      const created = await bootstrapProjectCode(projectId);
+      await get().reloadProject();
+      if (created.length > 0) {
+        notifySuccess(translate("fileTree.bootstrapCodeDone", { count: created.length }));
+      } else {
+        notifySuccess(translate("fileTree.bootstrapCodeExists"));
+      }
+      return true;
+    } catch (error) {
+      notifyFromError(error);
+      return false;
+    }
   },
 
   overwriteConflict: async () => {

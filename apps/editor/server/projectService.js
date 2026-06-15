@@ -8,7 +8,11 @@ import chokidar from "chokidar";
 import { PACKAGED, REPO_ROOT, STANDALONE, USER_DATA_ROOT } from "./config.js";
 import { ensureProjectEditorConfig, regenerateProjectEditorId } from "./editorConfig.js";
 import { moveToOsTrash } from "./osTrash.js";
-import { ensureProjectSidecars } from "./projectScaffold.js";
+import {
+  ensureProjectSidecars,
+  ensureDevTsconfig,
+  bootstrapStarterCode,
+} from "./projectScaffold.js";
 import { projectHasCustomCode } from "./sharedLib.mjs";
 import {
   EDITOR_DB_BASENAME,
@@ -490,17 +494,30 @@ export class ProjectService {
     const now = new Date().toISOString();
     project.lastOpened = now;
     this.db.prepare("UPDATE projects SET last_opened = ? WHERE id = ?").run(now, id);
+    if (project.codeTrusted === true) await ensureDevTsconfig(project.path);
     return this.snapshot(project);
   }
 
-  setProjectCodeTrust(id, trusted) {
+  async setProjectCodeTrust(id, trusted) {
     if (typeof trusted !== "boolean") {
       throw new ProjectError("invalid_request", "trusted must be a boolean");
     }
     const project = this.requireProject(id);
     project.codeTrusted = trusted;
     this.db.prepare("UPDATE projects SET code_trusted = ? WHERE id = ?").run(Number(trusted), id);
+    // Refresh the IDE-only tsconfig.json when custom code is trusted on a
+    // developer (monorepo) machine. No-op elsewhere; never throws.
+    if (trusted) await ensureDevTsconfig(project.path);
     return { trusted };
+  }
+
+  async bootstrapProjectCode(id) {
+    const project = this.requireProject(id);
+    const created = await bootstrapStarterCode(project.path);
+    // The author scaffolded this code on their own machine — trust it implicitly
+    // (which also refreshes the dev tsconfig.json) rather than prompting.
+    await this.setProjectCodeTrust(id, true);
+    return { created };
   }
 
   revokeAllProjectCodeTrust() {

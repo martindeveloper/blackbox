@@ -261,12 +261,10 @@ export function GateEditor({ value, onChange, label, nested, onRemove }: GateEdi
   const enabled = value !== undefined;
 
   return (
-    <div>
-      {label ? (
-        <span className="mb-1 block text-[10px] uppercase text-muted-2">{label}</span>
-      ) : null}
+    <div className="gate-editor">
       {nested ? (
-        <div className="mb-2 flex justify-end">
+        <div className="mb-2 flex items-center justify-between gap-2">
+          {label ? <span className="text-[10px] uppercase text-muted-2">{label}</span> : null}
           {onRemove ? (
             <Button variant="danger" size="sm" leadingIcon={X} onClick={onRemove}>
               {t("common.remove")}
@@ -274,12 +272,14 @@ export function GateEditor({ value, onChange, label, nested, onRemove }: GateEdi
           ) : null}
         </div>
       ) : (
-        <Checkbox
-          label={t("common.enabled")}
-          className="mb-2"
-          checked={enabled}
-          onChange={(e) => onChange(e.target.checked ? { type: "hasFlag", flag: "" } : undefined)}
-        />
+        <div className="gate-editor-toggle">
+          {label ? <span className="gate-editor-label">{label}</span> : null}
+          <Checkbox
+            label={t("common.enabled")}
+            checked={enabled}
+            onChange={(e) => onChange(e.target.checked ? { type: "hasFlag", flag: "" } : undefined)}
+          />
+        </div>
       )}
       {enabled ? (
         Array.isArray(value) ? (

@@ -38,6 +38,27 @@ app.setName(APP_NAME);
 let mainWindow = null;
 let editorServer = null;
 let editorSocketPath = null;
+let shutdownPromise = null;
+
+const closeGuard = {
+  dirty: false,
+  force: false,
+  intent: null,
+  prompting: false,
+  savePending: false,
+};
+
+function resetCloseGuard() {
+  closeGuard.dirty = false;
+  closeGuard.force = false;
+  closeGuard.intent = null;
+  closeGuard.prompting = false;
+  closeGuard.savePending = false;
+}
+
+function canCloseImmediately() {
+  return closeGuard.force || !closeGuard.dirty;
+}
 
 async function configureRuntimePaths() {
   // Renamed macOS dev bundles (see ensure-electron.mjs) still report
@@ -86,6 +107,8 @@ async function createWindow() {
     editorServer = await startServer();
   }
 
+  resetCloseGuard();
+
   const icon = loadAppIcon(CLIENT_ROOT);
   mainWindow = new BrowserWindow({
     width: 1440,
@@ -109,6 +132,15 @@ async function createWindow() {
     void shell.openExternal(url);
     return { action: "deny" };
   });
+  mainWindow.on("close", (event) => {
+    if (canCloseImmediately()) return;
+    event.preventDefault();
+    void requestClose(closeGuard.intent === "quit" ? "quit" : "window");
+  });
+  mainWindow.on("closed", () => {
+    mainWindow = null;
+    closeGuard.dirty = false;
+  });
 
   await mainWindow.loadURL(EDITOR_ORIGIN);
 }
@@ -124,6 +156,67 @@ async function shutdown() {
   if (editorSocketPath) {
     await removeEditorSocket(editorSocketPath);
     editorSocketPath = null;
+  }
+}
+
+function beginShutdown() {
+  shutdownPromise ??= shutdown();
+  return shutdownPromise;
+}
+
+function finishClose(intent) {
+  closeGuard.force = true;
+  closeGuard.dirty = false;
+  closeGuard.savePending = false;
+  closeGuard.intent = intent;
+  if (intent === "quit") {
+    app.quit();
+  } else {
+    mainWindow?.close();
+  }
+}
+
+async function requestClose(intent) {
+  const window = mainWindow;
+  if (!window || window.isDestroyed()) {
+    if (intent === "quit") {
+      closeGuard.force = true;
+      app.quit();
+    }
+    return;
+  }
+  if (!closeGuard.dirty) {
+    finishClose(intent);
+    return;
+  }
+  if (closeGuard.prompting || closeGuard.savePending) return;
+
+  closeGuard.prompting = true;
+  closeGuard.intent = intent;
+  try {
+    const { response } = await dialog.showMessageBox(window, {
+      type: "warning",
+      title: "Unsaved changes",
+      message: "Save changes before closing?",
+      detail: "Your unsaved story changes will be lost if you don't save them.",
+      buttons: ["Save", "Don't Save", "Cancel"],
+      defaultId: 0,
+      cancelId: 2,
+      noLink: true,
+    });
+
+    if (response === 0) {
+      closeGuard.savePending = true;
+      window.webContents.send("editor:save-before-close");
+      return;
+    }
+    if (response === 1) {
+      finishClose(intent);
+      return;
+    }
+    closeGuard.intent = null;
+  } finally {
+    closeGuard.prompting = false;
   }
 }
 
@@ -147,6 +240,26 @@ app
       if (result.canceled || result.filePaths.length === 0) return null;
       return result.filePaths[0];
     });
+    ipcMain.on("editor:set-dirty", (event, dirty) => {
+      if (event.sender !== mainWindow?.webContents) return;
+      closeGuard.dirty = dirty === true;
+    });
+    ipcMain.on("editor:save-before-close-result", (event, saved) => {
+      if (event.sender !== mainWindow?.webContents || closeGuard.intent === null) return;
+      closeGuard.savePending = false;
+      if (saved === true) {
+        finishClose(closeGuard.intent);
+      } else {
+        closeGuard.intent = null;
+        void dialog.showMessageBox(mainWindow, {
+          type: "error",
+          title: "Could not save",
+          message: "The project could not be saved.",
+          detail: "The editor will remain open so you can resolve the problem and try again.",
+          buttons: ["OK"],
+        });
+      }
+    });
 
     await createWindow();
 
@@ -167,6 +280,11 @@ app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();
 });
 
-app.on("before-quit", () => {
-  void shutdown();
+app.on("before-quit", (event) => {
+  if (!canCloseImmediately()) {
+    event.preventDefault();
+    void requestClose("quit");
+    return;
+  }
+  void beginShutdown();
 });
