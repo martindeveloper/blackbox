@@ -23,9 +23,13 @@ export async function buildIcnsFromPng(pngPath, outputPath) {
   try {
     for (const [size, name] of ICONSET_SIZES) {
       const output = path.join(iconsetDir, name);
-      const result = spawnSync("sips", ["-z", String(size), String(size), pngPath, "--out", output], {
-        stdio: "ignore",
-      });
+      const result = spawnSync(
+        "sips",
+        ["-z", String(size), String(size), pngPath, "--out", output],
+        {
+          stdio: "ignore",
+        },
+      );
       if (result.status !== 0) {
         throw new Error(`failed to resize app icon to ${size}x${size}`);
       }

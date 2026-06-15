@@ -32,12 +32,14 @@ function platformConfig<P extends keyof ScenarioPlatforms>(
   platforms: ScenarioPlatforms | undefined,
   platform: P,
 ): NonNullable<ScenarioPlatforms[P]> {
-  return { ...(platforms?.[platform] ?? {}) } as NonNullable<ScenarioPlatforms[P]>;
+  return { ...platforms?.[platform] } as NonNullable<ScenarioPlatforms[P]>;
 }
 
-function detectOrientationPreset(raw: PlatformOrientations | string[] | undefined): OrientationPreset {
+function detectOrientationPreset(
+  raw: PlatformOrientations | string[] | undefined,
+): OrientationPreset {
   if (!raw) return "default";
-  const list = Array.isArray(raw) ? raw : raw.iphone ?? raw.phone ?? [];
+  const list = Array.isArray(raw) ? raw : (raw.iphone ?? raw.phone ?? []);
   if (list.length === 0) return "default";
   const normalized = list.map((item) => item.toLowerCase());
   const hasPortrait = normalized.some((item) => item.includes("portrait"));
@@ -48,7 +50,9 @@ function detectOrientationPreset(raw: PlatformOrientations | string[] | undefine
   return "default";
 }
 
-function orientationPresetValue(preset: OrientationPreset): PlatformOrientations | string[] | undefined {
+function orientationPresetValue(
+  preset: OrientationPreset,
+): PlatformOrientations | string[] | undefined {
   if (preset === "default") return undefined;
   if (preset === "portrait") return { iphone: ["portrait"], ipad: ["portrait"] };
   if (preset === "landscape") return { iphone: ["landscape"], ipad: ["landscape"] };
@@ -83,14 +87,14 @@ export function ScenarioPlatformSettings({ scenario, onChange }: Props) {
   const patchSigning = (patch: Partial<NonNullable<IosPlatformConfig["signing"]>>) => {
     const ios = platformConfig(platforms, "ios") as IosPlatformConfig;
     patchPlatform("ios", {
-      signing: { ...(ios.signing ?? {}), ...patch },
+      signing: { ...ios.signing, ...patch },
     });
   };
 
   const patchKeystore = (patch: Partial<NonNullable<AndroidPlatformConfig["keystore"]>>) => {
     const android = platformConfig(platforms, "android") as AndroidPlatformConfig;
     patchPlatform("android", {
-      keystore: { ...(android.keystore ?? {}), ...patch },
+      keystore: { ...android.keystore, ...patch },
     });
   };
 
@@ -129,7 +133,11 @@ export function ScenarioPlatformSettings({ scenario, onChange }: Props) {
       </div>
 
       <div className="scenario-platform-body">
-        <div className="build-segment scenario-platform-tabs" role="group" aria-label={t("scenario.platforms")}>
+        <div
+          className="build-segment scenario-platform-tabs"
+          role="group"
+          aria-label={t("scenario.platforms")}
+        >
           {BUILD_PLATFORMS.map((value) => (
             <button
               key={value}
@@ -162,7 +170,9 @@ export function ScenarioPlatformSettings({ scenario, onChange }: Props) {
                 mono
                 value={web.outputName ?? ""}
                 placeholder={t("scenario.platformOutputNamePlaceholder")}
-                onChange={(e) => patchPlatform("web", { outputName: optionalString(e.target.value) })}
+                onChange={(e) =>
+                  patchPlatform("web", { outputName: optionalString(e.target.value) })
+                }
               />
             </FormField>
             <FormField label={t("scenario.platformVersion")}>
@@ -242,9 +252,7 @@ export function ScenarioPlatformSettings({ scenario, onChange }: Props) {
               <Select
                 options={categoryOptions}
                 value={ios.category ?? ""}
-                onChange={(e) =>
-                  patchPlatform("ios", { category: optionalString(e.target.value) })
-                }
+                onChange={(e) => patchPlatform("ios", { category: optionalString(e.target.value) })}
               />
             </FormField>
             <FormField label={t("scenario.platformOrientations")}>
@@ -354,7 +362,9 @@ export function ScenarioPlatformSettings({ scenario, onChange }: Props) {
                 value={detectOrientationPreset(android.orientations)}
                 onChange={(e) =>
                   patchPlatform("android", {
-                    orientations: androidOrientationPresetValue(e.target.value as OrientationPreset),
+                    orientations: androidOrientationPresetValue(
+                      e.target.value as OrientationPreset,
+                    ),
                   })
                 }
               />

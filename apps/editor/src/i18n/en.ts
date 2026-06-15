@@ -944,7 +944,8 @@ export const en = {
     title: "Manifest",
     kicker: "Scenario manifest",
     untitled: "Untitled scenario",
-    description: "The project contract: identity, chapter order, publish targets, defaults, and linked data.",
+    description:
+      "The project contract: identity, chapter order, publish targets, defaults, and linked data.",
     identity: "Project identity",
     identityHint: "Runtime-facing metadata",
     statsConfigured: "stats",
