@@ -305,6 +305,8 @@ console.log(`==> building editor web assets on ${os.platform()}/${os.arch()}`);
 runSync("npm", ["run", "build"], { cwd: editorRoot });
 console.log("==> staging preview workspace for packaged on-demand preview builds");
 runSync("node", ["./scripts/stage-preview-workspace.mjs"], { cwd: editorRoot });
+console.log("==> staging shared lib modules for packaged preview builds");
+runSync("node", ["./scripts/stage-shared-lib.mjs"], { cwd: editorRoot });
 
 const selectedPlatforms =
   options.platform === "all"
