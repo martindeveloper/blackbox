@@ -5,9 +5,10 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import livereload from "livereload";
+import { resolveWebWwwDir } from "./scripts/lib/adventureDev.mjs";
 
 const CLIENT_ROOT = path.dirname(fileURLToPath(import.meta.url));
-const DIST = path.join(CLIENT_ROOT, "dist", "www");
+const DIST = resolveWebWwwDir(process.env);
 const DEV_MODE = process.argv.includes("--dev");
 
 const PORT = Number(process.env.PORT || 8080);
@@ -110,7 +111,7 @@ server.listen(PORT, async () => {
   try {
     await fs.access(path.join(DIST, "index.html"));
   } catch {
-    console.warn("dist/www/ is missing; run: npm run build or npm run dev");
+    console.warn(`${DIST} is missing index.html — run: BLACKBOX_ADVENTURE=<project> npm run build (or dev)`);
   }
 
   if (DEV_MODE) {
@@ -118,4 +119,5 @@ server.listen(PORT, async () => {
   }
 
   console.log(`Blackbox web client: http://localhost:${PORT}`);
+  console.log(`Serving: ${DIST}`);
 });

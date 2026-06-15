@@ -55,7 +55,7 @@ Authoring files remain in the scenario folder. Cooked files are build artifacts 
 cargo run -p blackbox-bundler --release -- \
   data/silent_archive_game/scenario.json \
   --platform web \
-  -o apps/web/dist/www/bundle
+  -o data/silent_archive_game/.blackbox/build/release/web/www/bundle
 ```
 
 ### Options
@@ -122,7 +122,7 @@ demand.
 Inspect a complete project output directory:
 
 ```bash
-cargo run -p blackbox-bundler -- inspect apps/web/dist/www/bundle
+cargo run -p blackbox-bundler -- inspect data/silent_archive_game/.blackbox/build/release/web/www/bundle
 ```
 
 The inspector reads `project.box.meta`, verifies every referenced shared/chapter map and blob,
@@ -169,7 +169,7 @@ are packed with a warning.
 
 ## Web integration
 
-`apps/web/scripts/build-bundle.mjs` writes to `apps/web/dist/www/bundle`.
+`apps/web/scripts/build-bundle.mjs` writes to `<adventure>/.blackbox/build/<configuration>/web/www/bundle`.
 
 | npm command | Transcode | Archive | Verbose | Ignore missing |
 |-------------|-----------|---------|---------|----------------|
@@ -194,7 +194,7 @@ cargo run -p blackbox-bundler -- doctor --platform web
 cargo run -p blackbox-lint -- data/silent_archive_game/scenario.json
 node apps/web/scripts/build-bundle.mjs --verbose --ignore-missing
 node apps/web/scripts/build-bundle.mjs --ignore-missing --archive-compress zstd
-cargo run -p blackbox-bundler -- inspect apps/web/dist/www/bundle
+cargo run -p blackbox-bundler -- inspect data/silent_archive_game/.blackbox/build/release/web/www/bundle
 ```
 
 ## Architecture

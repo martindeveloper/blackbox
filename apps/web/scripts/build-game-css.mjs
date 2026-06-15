@@ -2,7 +2,7 @@
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { resolveWebPlayerGame, resolveWebOutDir } from "./lib/adventureDev.mjs";
+import { resolveWebPlayerGame, resolveWebWwwDir } from "./lib/adventureDev.mjs";
 import { buildGameCss } from "../../../scripts/lib/buildGameCss.mjs";
 
 const WEB_ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
@@ -17,6 +17,6 @@ if (!gameSrc) {
 await buildGameCss({
   webRoot: WEB_ROOT,
   gameSrc,
-  outFile: path.join(WEB_ROOT, "dist/www/style.css"),
+  outFile: path.join(resolveWebWwwDir(process.env), "style.css"),
   watch,
 });

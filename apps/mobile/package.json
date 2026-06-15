@@ -10,9 +10,13 @@
     "ios:sync": "node ./scripts/ios.mjs sync",
     "ios:sync:fast": "node ./scripts/ios.mjs sync --no-build",
     "ios:open": "node ./scripts/ios.mjs open",
-    "ios:run": "node ./scripts/ios.mjs run"
+    "ios:run": "node ./scripts/ios.mjs run",
+    "android:sync": "node ./scripts/android.mjs sync",
+    "android:sync:fast": "node ./scripts/android.mjs sync --no-build",
+    "android:run": "node ./scripts/android.mjs run"
   },
   "dependencies": {
+    "@capacitor/android": "^8.4.0",
     "@capacitor/app": "^8.1.0",
     "@capacitor/core": "^8.4.0",
     "@capacitor/haptics": "^8.0.2",

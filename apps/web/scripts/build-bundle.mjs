@@ -3,8 +3,9 @@
 import { existsSync, mkdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { resolveWebDevAdventure, resolveWebOutDir } from "./lib/adventureDev.mjs";
+import { resolveBuildConfiguration } from "../../../scripts/lib/adventure.mjs";
 import { runSync } from "../../../scripts/lib/spawn.mjs";
+import { resolveWebDevAdventure, resolveWebOutDir } from "./lib/adventureDev.mjs";
 
 const clientRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.resolve(clientRoot, "../..");
@@ -22,12 +23,15 @@ function envFlag(name) {
 
 function parseArgs(argv) {
   const adventure = resolveWebDevAdventure();
+  const configuration = resolveBuildConfiguration(process.env);
   const options = {
     platform: process.env.BUNDLE_PLATFORM ?? "web",
     skipTranscode: envFlag("BUNDLE_SKIP_TRANSCODE"),
     ignoreMissing: envFlag("BUNDLE_IGNORE_MISSING"),
     verbose: envFlag("BUNDLE_VERBOSE"),
-    archiveCompress: process.env.BUNDLE_ARCHIVE_COMPRESS ?? "none",
+    archiveCompress:
+      process.env.BUNDLE_ARCHIVE_COMPRESS ??
+      (configuration === "debug" ? "none" : "none"),
     scenario: adventure?.scenarioPath ?? null,
     allowEmpty: false,
   };

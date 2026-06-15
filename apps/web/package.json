@@ -14,7 +14,7 @@
     "build:wasm:dev": "node ./scripts/build-wasm.mjs --profile dev",
     "check": "npm run lint && npm run fmt:check",
     "deploy": "node ./scripts/deploy.mjs",
-    "dev": "npm run prepare:dev && concurrently -k -n js,css,assets,server -c blue,magenta,yellow,green \"npm run watch:js\" \"npm run watch:css\" \"npm run watch:assets\" \"node server.js --dev\"",
+    "dev": "BLACKBOX_CONFIGURATION=debug npm run prepare:dev && concurrently -k -n js,css,assets,server -c blue,magenta,yellow,green \"npm run watch:js\" \"npm run watch:css\" \"npm run watch:assets\" \"node server.js --dev\"",
     "fmt": "oxfmt .",
     "fmt:check": "oxfmt --check .",
     "lint": "oxlint .",

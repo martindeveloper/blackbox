@@ -25,5 +25,31 @@
   "chapters": [
     { "id": "alpha", "title": "Alpha", "ref": "chapter_alpha.json" },
     { "id": "beta", "title": "Beta", "ref": "chapter_beta.json" }
-  ]
+  ],
+  "platforms": {
+    "web": {
+      "appName": "Sample Scenario",
+      "outputName": "sample-scenario-web"
+    },
+    "ios": {
+      "bundleId": "dev.blackbox.samplescenario",
+      "appName": "Sample Scenario",
+      "backgroundColor": "#070503",
+      "signing": {
+        "teamId": "env:APPLE_TEAM_ID",
+        "method": "app-store"
+      }
+    },
+    "android": {
+      "applicationId": "dev.blackbox.samplescenario",
+      "appName": "Sample Scenario",
+      "backgroundColor": "#070503",
+      "keystore": {
+        "path": "release.keystore",
+        "storePasswordEnv": "ANDROID_KEYSTORE_PASSWORD",
+        "keyAlias": "upload",
+        "keyPasswordEnv": "ANDROID_KEY_PASSWORD"
+      }
+    }
+  }
 }

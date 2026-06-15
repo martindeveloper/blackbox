@@ -1,5 +1,6 @@
 import { existsSync, statSync } from "node:fs";
 import path from "node:path";
+import { resolveBuildConfiguration } from "../../../../scripts/lib/adventure.mjs";
 import {
   DEFAULT_WEB_PLAYER_GAME,
   localProjectSrcDir,
@@ -55,10 +56,16 @@ export function resolveWebOutDir(env = process.env) {
   if (!adventure) {
     throw new Error(
       "BLACKBOX_ADVENTURE (or BLACKBOX_SCENARIO) is required — the web build writes " +
-        "into <adventure>/.blackbox/build/web, never into the engine repo.",
+        "into <adventure>/.blackbox/build/<configuration>/web, never into the engine repo.",
     );
   }
-  return path.join(adventure.adventureRoot, ".blackbox", "build", "web");
+  const configuration = resolveBuildConfiguration(env);
+  return path.join(adventure.adventureRoot, ".blackbox", "build", configuration, "web");
+}
+
+/** Served static site root: `<adventure>/.blackbox/build/<configuration>/web/www`. */
+export function resolveWebWwwDir(env = process.env) {
+  return path.join(resolveWebOutDir(env), "www");
 }
 
 export function resolveWebPlayerGame(env = process.env, webRoot, repoRoot) {

@@ -63,21 +63,15 @@ export function ModalProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const closeModal = useCallback((id: string) => {
-    const currentStack = stackRef.current;
-    const target = currentStack.find((entry) => entry.id === id);
-    if (!target) return;
-
     setStack((current) => current.filter((entry) => entry.id !== id));
-    target?.onClose?.();
   }, []);
 
   const closeTopModal = useCallback(() => {
-    const currentStack = stackRef.current;
-    const top = currentStack.at(-1);
+    const top = stackRef.current.at(-1);
     if (!top) return;
 
+    top.onClose?.();
     setStack((current) => current.filter((entry) => entry.id !== top.id));
-    top?.onClose?.();
   }, []);
 
   const hasOpenModals = useCallback(() => stackRef.current.length > 0, []);
@@ -121,7 +115,10 @@ export function ModalProvider({ children }: { children: ReactNode }) {
           enableEscape={false}
           showClose={modal.showClose ?? true}
           layer={index}
-          onClose={() => closeModal(modal.id)}
+          onClose={() => {
+            modal.onClose?.();
+            closeModal(modal.id);
+          }}
         >
           {modal.children}
         </ModalShell>

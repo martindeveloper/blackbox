@@ -1,15 +1,16 @@
-import { cpSync, existsSync, mkdirSync, rmSync, watch } from "node:fs";
+import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, watch, writeFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { resolveBuildConfiguration } from "../../../scripts/lib/adventure.mjs";
+import { resolveWebOutDir } from "./lib/adventureDev.mjs";
+import { buildWebIcons, resolveWebIconSources, resolveWebWwwDir } from "./lib/webIcons.mjs";
 
 const clientRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 const repoRoot = join(clientRoot, "../..");
-const distRoot = join(clientRoot, "dist");
-const www = join(distRoot, "www");
+const deployRoot = resolveWebOutDir(process.env);
 const indexHtml = join(clientRoot, "index.html");
 const vercelJson = join(clientRoot, "vercel.json");
-const assetsDir = join(clientRoot, "assets");
 const pkgDir = join(repoRoot, ".cache/wasm/clients-web");
 const wasmGlueFiles = [
   "blackbox_wasm.js",
@@ -18,19 +19,20 @@ const wasmGlueFiles = [
   "blackbox_wasm_bg.wasm.d.ts",
 ];
 const legacyWasmArtifacts = ["blackbox_wasm.wasm", "package.json"];
-const faviconFiles = ["favicon.svg", "favicon.ico", "game-icon.png", "silent-archive-tags.svg"];
 
 const watchMode = process.argv.includes("--watch");
+const www = resolveWebWwwDir(process.env);
+const configuration = resolveBuildConfiguration(process.env);
 
-function syncFavicons() {
-  for (const name of faviconFiles) {
-    const source = join(assetsDir, name);
-    if (existsSync(source)) {
-      cpSync(source, join(www, name));
-    } else if (!watchMode) {
-      console.warn(`${name} missing — run \`npm run build:favicon\``);
-    }
+function syncIndexHtml() {
+  let html = readFileSync(indexHtml, "utf8");
+  if (configuration === "debug" && !html.includes("__BLACKBOX_DEV__")) {
+    html = html.replace(
+      '<script type="module" src="/app.js"></script>',
+      '<script>globalThis.__BLACKBOX_DEV__=true;</script>\n    <script type="module" src="/app.js"></script>',
+    );
   }
+  writeFileSync(join(www, "index.html"), html);
 }
 
 function syncWasmPkg() {
@@ -56,41 +58,48 @@ function syncWasmPkg() {
 
 function syncVercelConfig() {
   if (existsSync(vercelJson)) {
-    mkdirSync(distRoot, { recursive: true });
-    cpSync(vercelJson, join(distRoot, "vercel.json"));
+    mkdirSync(deployRoot, { recursive: true });
+    cpSync(vercelJson, join(deployRoot, "vercel.json"));
   }
 }
 
-function syncDist() {
+async function syncDist() {
   mkdirSync(www, { recursive: true });
-  cpSync(indexHtml, join(www, "index.html"));
-  syncFavicons();
+  syncIndexHtml();
+  await buildWebIcons(process.env, { wwwDir: www });
   syncWasmPkg();
   syncVercelConfig();
 }
 
-syncDist();
+await syncDist();
 
 if (watchMode) {
-  console.log("Watching static assets for dist/www/ sync…");
+  console.log(`Watching static assets for ${www} sync…`);
 
   watch(indexHtml, { persistent: true }, (eventType) => {
     if (eventType === "change") {
-      cpSync(indexHtml, join(www, "index.html"));
-      console.log("synced index.html -> dist/www/");
+      syncIndexHtml();
+      console.log(`synced index.html -> ${www}`);
     }
   });
 
-  const faviconSvg = join(assetsDir, "favicon.svg");
+  const iconSources = resolveWebIconSources(process.env);
   const buildFaviconScript = join(clientRoot, "scripts", "build-favicon.mjs");
-  if (existsSync(faviconSvg)) {
-    watch(faviconSvg, { persistent: true }, (eventType) => {
+  if (iconSources?.favicon) {
+    watch(iconSources.favicon, { persistent: true }, async (eventType) => {
       if (eventType === "change") {
-        spawnSync(process.execPath, [buildFaviconScript], { stdio: "inherit" });
-        syncFavicons();
-        console.log("rebuilt and synced favicon assets -> dist/www/");
+        await buildWebIcons(process.env, { wwwDir: www });
+        console.log(`rebuilt web icons -> ${www}`);
       }
     });
+    for (const extra of iconSources.extras) {
+      watch(extra.source, { persistent: true }, (eventType) => {
+        if (eventType === "change") {
+          spawnSync(process.execPath, [buildFaviconScript], { stdio: "inherit" });
+          console.log(`synced ${extra.destName} -> ${www}`);
+        }
+      });
+    }
   }
 
   for (const name of wasmGlueFiles) {
@@ -99,7 +108,7 @@ if (watchMode) {
     watch(source, { persistent: true }, (eventType) => {
       if (eventType === "change") {
         syncWasmPkg();
-        console.log(`synced pkg/${name} -> dist/www/pkg/`);
+        console.log(`synced pkg/${name} -> ${www}/pkg/`);
       }
     });
   }

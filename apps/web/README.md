@@ -17,10 +17,10 @@ Full documentation (features, scenario authoring, engine API) lives in the [repo
 BLACKBOX_ADVENTURE=../../data/my_game npm run build
 
 # Dev server with watch + live reload
-npm run dev
+BLACKBOX_ADVENTURE=../../data/my_game npm run dev
 
-# Serve dist/ without rebuild
-npm start
+# Serve the built site without rebuild
+BLACKBOX_ADVENTURE=../../data/my_game npm start
 ```
 
 Open [http://localhost:8080](http://localhost:8080).
@@ -40,7 +40,24 @@ apps/web/
                     Built-in generic UI when a project has no custom shell
   ../../.cache/wasm/clients-web/
                     wasm-bindgen build cache
-  dist/             Deploy root (.vercel/, vercel.json); static site in dist/www/
+  ../../data/<game-id>/.blackbox/build/<configuration>/
+                    Per-project build output (debug/ or release/)
+```
+
+All web build artifacts land under `<adventure>/.blackbox/build/<configuration>/` — never in `apps/web/dist/`.
+Use `debug` for dev tooling (in-game console via `__BLACKBOX_DEV__`); `release` for production packages and deploy.
+
+```txt
+<adventure>/.blackbox/build/release/
+  web/
+    vercel.json       Copied from apps/web/vercel.json at build time
+    www/              Static site served locally and deployed to Vercel
+      app.js
+      style.css
+      index.html
+      pkg/
+      bundle/
+      favicon.*
 ```
 
 ## Common commands
@@ -48,12 +65,12 @@ apps/web/
 | Command                     | Purpose                                                          |
 | --------------------------- | ---------------------------------------------------------------- |
 | `npm run build`             | Full release dist; requires `BLACKBOX_ADVENTURE`                 |
-| `npm run dev`               | Watch + live reload (cooks assets, no zst archive)               |
+| `npm run dev`               | Watch + live reload; requires `BLACKBOX_ADVENTURE`               |
 | `npm run build:wasm`        | Rebuild wasm-bindgen pkg only                                    |
 | `npm run build:bundler`     | Cook scenario bundle (release: zstd archive)                     |
 | `npm run build:bundler:dev` | Cook scenario bundle (dev: verbose, skip missing assets, no zst) |
 | `npm run check`             | Oxlint + Oxfmt check                                             |
-| `npm run deploy`            | Clean build + Vercel production deploy                           |
+| `npm run deploy`            | Vercel production deploy from built `www/` (requires `BLACKBOX_ADVENTURE`) |
 | `npm run test:wasm`         | Smoke-test wasm-bindgen ABI                                      |
 
 ## Engine API
@@ -76,7 +93,8 @@ a single safe retry, and loads or unloads per-chapter bundles during chapter tra
 
 Keep engine protocol, bundle, save, audio, diagnostics, and session lifecycle code in `src/engine/`.
 Put game-owned React components, translations, styles, icons, labels, stat presentation, and timing
-under `data/<game-id>/src/`. The game passes its notification and timing behavior to
+under `data/<game-id>/src/`. Web favicons and touch icons live under `data/<game-id>/platform/web/`
+and are referenced from `scenario.json` → `platforms.web.icon` (and optional `platforms.web.icons`). The game passes its notification and timing behavior to
 `useBlackboxSession` through `SessionPresentationAdapter`.
 
 Each game package includes a `tsconfig.json` extending `apps/web/tsconfig.game.json` so engine and
@@ -92,6 +110,12 @@ BLACKBOX_ADVENTURE=../../data/silent_archive_game npm run dev
 Projects with a local `src/game.ts` bundle that UI; otherwise the generic shell is used. Override
 only when needed with `BLACKBOX_WEB_PLAYER_GAME=<game-id>`.
 
+Production Vercel deploy via the unified CLI:
+
+```bash
+node cli.js --project=data/silent_archive_game --platform=web --stage=build --configuration=release --deploy=vercel
+```
+
 ### Web fonts
 
 Custom UI shells declare web fonts in `src/fonts.css` (`@import url(...)` or `@font-face`). The
@@ -102,7 +126,7 @@ compiled `style.css`.
 
 ## Bundle layout
 
-`blackbox-bundler` writes `dist/www/bundle/project.box.meta`, a shared bundle, and one bundle per
+`blackbox-bundler` writes `<adventure>/.blackbox/build/<configuration>/web/www/bundle/project.box.meta`, a shared bundle, and one bundle per
 chapter. The client loads shared content and the starting chapter first, then fetches chapter
 bundles on demand. Release builds use the `.box.zst` blobs named by each bundle map; development
 builds use uncompressed `.box` files.

@@ -135,7 +135,48 @@ See `project_ios_audio_architecture` in memory for the invariants that must hold
 
 The Capacitor config is **generated** per-adventure into `.blackbox/build/
 capacitor.config.json` by [`scripts/lib/workspace.mjs`](scripts/lib/workspace.mjs)
-— that's the source of truth for native-feel settings. App identity is derived
-from the adventure: `appName` = the scenario `title`; `appId` =
-`$BLACKBOX_APP_ID_BASE` (default `dev.blackbox`) + the sanitized game id. Set
-`BLACKBOX_APP_ID_BASE` to use your own reverse-DNS prefix.
+— that's the source of truth for native-feel settings. App identity comes from
+`scenario.json` → `platforms.ios` / `platforms.android` (bundle ID, app name,
+signing, icons, splash paths). When those sections are absent, `appName` falls
+back to the scenario `title` and `appId` defaults to
+`$BLACKBOX_APP_ID_BASE` (default `dev.blackbox`) + the sanitized game id.
+
+## Unified build CLI (CI)
+
+All platforms share one headless entry point at the repo root:
+
+```bash
+node cli.js --project='/abs/path/to/adventure' --platform=web|ios|android --stage=lint|build|bundle|package
+```
+
+| Stage | What it does |
+| --- | --- |
+| `lint` | `blackbox-lint` on the scenario (+ web player oxlint for `--platform=web`) |
+| `build` | Compile the web player; iOS/Android also sync the Capacitor native project |
+| `bundle` | Platform-specific content bundle via `blackbox-bundler` |
+| `package` | Publish-ready artifact: web `.tar.gz`, iOS `.ipa`, Android `.aab` |
+
+Platform publish settings live in `scenario.json` under `platforms`:
+
+```json
+{
+  "platforms": {
+    "web": { "appName": "My Game", "outputName": "my-game-web" },
+    "ios": {
+      "bundleId": "com.example.mygame",
+      "signing": { "teamId": "XXXXXXXXXX", "method": "app-store" }
+    },
+    "android": {
+      "applicationId": "com.example.mygame",
+      "keystore": {
+        "path": "release.keystore",
+        "storePasswordEnv": "ANDROID_KEYSTORE_PASSWORD",
+        "keyAlias": "upload",
+        "keyPasswordEnv": "ANDROID_KEY_PASSWORD"
+      }
+    }
+  }
+}
+```
+
+See `node cli.js --help` for the full option list.

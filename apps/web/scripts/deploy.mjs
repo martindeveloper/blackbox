@@ -1,14 +1,26 @@
 #!/usr/bin/env node
 
-import { rmSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { runSync } from "../../../scripts/lib/spawn.mjs";
+import { deployWwwToVercel } from "../../../scripts/lib/vercelDeploy.mjs";
+import { resolveWebWwwDir } from "./lib/adventureDev.mjs";
 
 const clientRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const distWww = path.join(clientRoot, "dist", "www");
-const distDir = path.join(clientRoot, "dist");
 
-rmSync(distWww, { recursive: true, force: true });
-runSync("npm", ["run", "build"], { cwd: clientRoot });
-runSync("vercel", ["deploy", "--prod", "--archive=tgz"], { cwd: distDir });
+runSync("npm", ["run", "build", "--prefix", clientRoot], {
+  env: {
+    ...process.env,
+    BLACKBOX_CONFIGURATION: "release",
+    PROFILE: "release",
+  },
+});
+
+const wwwDir = resolveWebWwwDir({
+  ...process.env,
+  BLACKBOX_CONFIGURATION: "release",
+});
+
+deployWwwToVercel(wwwDir, {
+  templatePath: path.join(clientRoot, "vercel.json"),
+});

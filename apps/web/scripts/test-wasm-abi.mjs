@@ -3,9 +3,11 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { resolveWebWwwDir } from "./lib/adventureDev.mjs";
+
 const clientRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 const repoRoot = join(clientRoot, "../..");
-const bundleDir = join(clientRoot, "dist", "www", "bundle");
+const bundleDir = join(resolveWebWwwDir(process.env), "bundle");
 const wasmPkgDir = join(repoRoot, ".cache/wasm/clients-web");
 const BOX_HEADER_SIZE = 16;
 
