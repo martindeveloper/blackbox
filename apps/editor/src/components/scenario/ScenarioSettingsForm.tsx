@@ -22,6 +22,7 @@ import { FieldRow } from "../ui/FieldRow.js";
 import { FormField } from "../ui/FormField.js";
 import { Input } from "../ui/Input.js";
 import { Section, SectionBody, SectionHeader } from "../ui/Section.js";
+import { ScenarioPlatformSettings } from "./ScenarioPlatformSettings.js";
 
 interface ScenarioSettingsFormProps {
   expanded?: boolean;
@@ -129,6 +130,11 @@ export function ScenarioSettingsForm({ expanded = false }: ScenarioSettingsFormP
 
       {expanded ? (
         <>
+          <ScenarioPlatformSettings
+            scenario={scenario}
+            onChange={(platforms) => updateScenario({ platforms })}
+          />
+
           <div className="scenario-manifest-grid">
             <Section className="scenario-card scenario-card--stats">
               <SectionHeader>{t("scenario.defaultStats")}</SectionHeader>

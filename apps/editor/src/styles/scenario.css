@@ -139,6 +139,33 @@
   padding-right: 26px;
 }
 
+.scenario-platforms {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.36fr) minmax(0, 1.64fr);
+  gap: 20px;
+  margin-bottom: 12px;
+  padding: 13px 14px;
+  border: 1px solid var(--editor-border);
+  background: color-mix(in srgb, var(--editor-bg) 22%, var(--editor-surface));
+}
+
+.scenario-platform-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.scenario-platform-tabs {
+  max-width: 360px;
+}
+
+.scenario-platform-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
 .scenario-manifest-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -219,6 +246,15 @@
   .scenario-identity {
     grid-template-columns: 1fr;
     gap: 10px;
+  }
+
+  .scenario-platforms {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .scenario-platform-fields {
+    grid-template-columns: 1fr;
   }
 
   .scenario-manifest-grid {

@@ -6,6 +6,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
+import { buildIcnsFromPng } from "./lib/mac-icns.mjs";
 
 const require = createRequire(import.meta.url);
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
@@ -109,6 +110,40 @@ function setPlistValue(plistPath, key, value) {
   }
 }
 
+async function resolveDevIconPng() {
+  const candidates = [
+    path.join(ROOT, "resources", "icon.png"),
+    path.join(ROOT, "public", "icon.png"),
+  ];
+  for (const candidate of candidates) {
+    if (await fileExists(candidate)) return candidate;
+  }
+  return null;
+}
+
+async function shouldRefreshBundleIcon(pngPath, icnsPath) {
+  try {
+    const [pngStat, icnsStat] = await Promise.all([fs.stat(pngPath), fs.stat(icnsPath)]);
+    return pngStat.mtimeMs > icnsStat.mtimeMs;
+  } catch {
+    return true;
+  }
+}
+
+async function installMacBundleIcon(appBundle) {
+  const pngPath = await resolveDevIconPng();
+  if (!pngPath) return;
+
+  const resourcesDir = path.join(appBundle, "Contents", "Resources");
+  const icnsPath = path.join(resourcesDir, "icon.icns");
+  if (!(await shouldRefreshBundleIcon(pngPath, icnsPath))) return;
+
+  await buildIcnsFromPng(pngPath, icnsPath);
+  const plistPath = path.join(appBundle, "Contents", "Info.plist");
+  setPlistValue(plistPath, "CFBundleIconFile", "icon.icns");
+  await fs.utimes(icnsPath, new Date(), new Date());
+}
+
 async function ensureMacBundleBranding() {
   if (process.platform !== "darwin") return;
 
@@ -133,6 +168,7 @@ async function ensureMacBundleBranding() {
   setPlistValue(plistPath, "CFBundleDisplayName", APP_NAME);
   setPlistValue(plistPath, "CFBundleExecutable", MAC_EXECUTABLE_NAME);
   setPlistValue(plistPath, "CFBundleIdentifier", APP_IDENTIFIER);
+  await installMacBundleIcon(appBundle);
   await fs.writeFile(path.join(ELECTRON_DIR, "path.txt"), platformPath(), "utf8");
 
   // Nudge Launch Services to stop reusing stale bundle metadata during dev.

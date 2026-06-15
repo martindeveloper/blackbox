@@ -36,6 +36,10 @@ protocol.registerSchemesAsPrivileged([
 
 if (process.platform === "darwin") {
   process.title = APP_NAME;
+  const startupIcon = loadAppIcon(CLIENT_ROOT);
+  if (startupIcon && app.dock) {
+    app.dock.setIcon(startupIcon);
+  }
 }
 app.setName(APP_NAME);
 
@@ -243,10 +247,6 @@ if (cliArgs !== null) {
 
       setupMacApplicationMenu(APP_NAME, CLIENT_ROOT);
 
-      const icon = loadAppIcon(CLIENT_ROOT);
-      if (icon && process.platform === "darwin") {
-        app.dock.setIcon(icon);
-      }
       ipcMain.handle("editor:pick-project-folder", async () => {
         const result = await dialog.showOpenDialog(mainWindow, {
           properties: ["openDirectory"],

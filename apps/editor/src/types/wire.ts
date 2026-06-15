@@ -26,6 +26,70 @@ export interface ChapterRef {
   ref: string;
 }
 
+export interface PlatformSigningConfig {
+  teamId?: string;
+  method?: string;
+  certificate?: string;
+  provisioningProfile?: string;
+  codeSignIdentity?: string;
+}
+
+export interface PlatformKeystoreConfig {
+  path?: string;
+  storePasswordEnv?: string;
+  keyAlias?: string;
+  keyPasswordEnv?: string;
+}
+
+export interface PlatformOrientations {
+  iphone?: string[];
+  ipad?: string[];
+  phone?: string[];
+}
+
+export interface WebPlatformConfig {
+  appName?: string;
+  displayName?: string;
+  outputName?: string;
+  icon?: string;
+  version?: string;
+  backgroundColor?: string;
+}
+
+export interface IosPlatformConfig {
+  bundleId?: string;
+  appName?: string;
+  displayName?: string;
+  version?: string;
+  buildNumber?: string;
+  versionCode?: string;
+  category?: string;
+  orientations?: PlatformOrientations | string[];
+  icon?: string;
+  backgroundColor?: string;
+  signing?: PlatformSigningConfig;
+}
+
+export interface AndroidPlatformConfig {
+  applicationId?: string;
+  bundleId?: string;
+  appName?: string;
+  displayName?: string;
+  version?: string;
+  versionCode?: number | string;
+  buildNumber?: string;
+  orientations?: string[] | PlatformOrientations;
+  icon?: string;
+  backgroundColor?: string;
+  keystore?: PlatformKeystoreConfig;
+}
+
+export interface ScenarioPlatforms {
+  web?: WebPlatformConfig;
+  ios?: IosPlatformConfig;
+  android?: AndroidPlatformConfig;
+}
+
 export interface GameContent {
   spec: string;
   formatVersion: number;
@@ -41,6 +105,7 @@ export interface GameContent {
   libraryRef?: string;
   cookRef?: string;
   relationshipOverrides?: Record<string, RelationshipScores>;
+  platforms?: ScenarioPlatforms;
   chapters: ChapterRef[];
   nodes?: Record<string, NodeContent>;
   deathNode?: InlineNodeContent;
