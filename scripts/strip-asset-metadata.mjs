@@ -11,7 +11,18 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".."
 const dataDir = process.env.DATA_DIR ?? path.join(repoRoot, "data");
 
 const imageExts = new Set(["png", "jpg", "jpeg", "webp", "gif", "bmp", "tif", "tiff"]);
-const audioExts = new Set(["mp3", "wav", "flac", "ogg", "opus", "m4a", "aac", "wma", "aiff", "aif"]);
+const audioExts = new Set([
+  "mp3",
+  "wav",
+  "flac",
+  "ogg",
+  "opus",
+  "m4a",
+  "aac",
+  "wma",
+  "aiff",
+  "aif",
+]);
 
 let dryRun = false;
 let verbose = false;
@@ -98,7 +109,10 @@ function runMagick(args) {
 }
 
 function stripImageMagick(file) {
-  const tmp = path.join(os.tmpdir(), `strip-img-${process.pid}-${Math.random().toString(16).slice(2)}`);
+  const tmp = path.join(
+    os.tmpdir(),
+    `strip-img-${process.pid}-${Math.random().toString(16).slice(2)}`,
+  );
   if (dryRun) {
     console.log(`  [dry-run] image: ${file}`);
     return;
@@ -210,7 +224,9 @@ if (!existsSync(dataDir)) {
 if (commandExists("exiftool")) {
   stripImagesWithExiftool();
 } else {
-  warn("exiftool not found; using ImageMagick for images (install exiftool for faster image stripping)");
+  warn(
+    "exiftool not found; using ImageMagick for images (install exiftool for faster image stripping)",
+  );
   stripImagesWithMagick();
 }
 

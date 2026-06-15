@@ -1,0 +1,16 @@
+{
+  "name": "blackbox-scripts",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "npm run lint && npm run fmt:check",
+    "fmt": "oxfmt .",
+    "fmt:check": "oxfmt --check .",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint --fix ."
+  },
+  "devDependencies": {
+    "oxfmt": "^0.54.0",
+    "oxlint": "^1.69.0"
+  }
+}

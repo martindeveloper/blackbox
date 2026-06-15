@@ -1,8 +1,21 @@
+import { spawn } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { resolvePlatformConfig } from "../../lib/adventure.mjs";
 import { deployWwwToVercel } from "../../lib/vercelDeploy.mjs";
-import { exec, fail, log, REPO_ROOT, runBundler, runLint, runWebLint, runWebPlayerBuild, WEB_ROOT } from "../lib/run.mjs";
+import { playerBuildEnv } from "../lib/buildEnv.mjs";
+import {
+  exec,
+  fail,
+  log,
+  REPO_ROOT,
+  runBundler,
+  runLint,
+  runScriptsLint,
+  runWebLint,
+  runWebPlayerBuild,
+  WEB_ROOT,
+} from "../lib/run.mjs";
 
 function ensureDir(dir) {
   mkdirSync(dir, { recursive: true });
@@ -32,11 +45,12 @@ function writeManifest(dir, project, platformConfig) {
 
 export function stageLint(project) {
   runLint(project);
+  runScriptsLint();
   runWebLint();
 }
 
 export function stageBuild(project, { configuration = project.configuration ?? "release" } = {}) {
-  runWebPlayerBuild(project, { configuration });
+  runWebPlayerBuild(project, { configuration, platform: "web" });
   if (!existsSync(project.webWwwDir)) {
     fail("web", `missing build output at ${project.webWwwDir}`);
   }
@@ -47,12 +61,18 @@ export function stageBundle(project, { configuration = project.configuration ?? 
   return runBundler(project, "web", { configuration });
 }
 
-export function stagePackage(project, { noBuild = false, configuration = project.configuration ?? "release" } = {}) {
+export function stagePackage(
+  project,
+  { noBuild = false, configuration = project.configuration ?? "release" } = {},
+) {
   const platformConfig = resolvePlatformConfig(project, "web");
   if (!noBuild) {
     stageBuild(project, { configuration });
   } else if (!existsSync(project.webWwwDir)) {
-    fail("web", `missing build output at ${project.webWwwDir} — run build first or drop --no-build`);
+    fail(
+      "web",
+      `missing build output at ${project.webWwwDir} — run build first or drop --no-build`,
+    );
   }
   const bundleOut = stageBundle(project, { configuration });
 
@@ -82,18 +102,57 @@ export function stagePackage(project, { noBuild = false, configuration = project
   return tarPath;
 }
 
-export function stageDeploy(project, { noBuild = false, configuration = project.configuration ?? "release" } = {}) {
+export function stageDeploy(
+  project,
+  { noBuild = false, configuration = project.configuration ?? "release" } = {},
+) {
   if (configuration !== "release") {
     fail("web", "deploy requires --configuration=release");
   }
   if (!noBuild) {
     stageBuild(project, { configuration });
   } else if (!existsSync(project.webWwwDir)) {
-    fail("web", `missing build output at ${project.webWwwDir} — run build first or drop --no-build`);
+    fail(
+      "web",
+      `missing build output at ${project.webWwwDir} — run build first or drop --no-build`,
+    );
   }
 
   log("deploy", `vercel production deploy from ${path.relative(REPO_ROOT, project.webWwwDir)}`);
   deployWwwToVercel(project.webWwwDir, {
     templatePath: path.join(WEB_ROOT, "vercel.json"),
+  });
+}
+
+/** Serve the built www/ with apps/web/server.js (blocks until the process exits). */
+export function spawnWebServer(
+  project,
+  { configuration = project.configuration ?? "release" } = {},
+) {
+  const wwwDir = project.webWwwDir;
+  if (!existsSync(path.join(wwwDir, "index.html"))) {
+    fail(
+      "web",
+      `nothing to serve at ${path.relative(REPO_ROOT, wwwDir)} — run \`node cli.js build\` first`,
+    );
+  }
+
+  const port = process.env.PORT ?? "8080";
+  log(
+    "server",
+    `starting http://localhost:${port} (${configuration}) -> ${path.relative(REPO_ROOT, wwwDir)}`,
+  );
+
+  return new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, [path.join(WEB_ROOT, "server.js")], {
+      cwd: WEB_ROOT,
+      env: playerBuildEnv(project, configuration),
+      stdio: "inherit",
+    });
+    child.on("error", reject);
+    child.on("close", (code) => {
+      if (code === 0 || code === null) resolve();
+      else reject(new Error(`web server exited with code ${code ?? 1}`));
+    });
   });
 }

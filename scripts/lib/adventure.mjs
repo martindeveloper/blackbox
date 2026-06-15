@@ -1,11 +1,14 @@
 import { existsSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
+import { resolveAndroidScreenOrientation } from "./platformAndroid.mjs";
+import { resolveIosCategory, resolveIosOrientations } from "./platformIos.mjs";
 
 const DEFAULT_APP_ID_BASE = "dev.blackbox";
-const DEFAULT_BG = "#070503";
+export const DEFAULT_BG = "#070503";
 export const BUILD_CONFIGURATIONS = new Set(["debug", "release"]);
+export const BUILD_PLATFORMS = new Set(["web", "ios", "android"]);
 
-function slugifyGameId(gameId) {
+export function slugifyGameId(gameId) {
   return gameId.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
 }
 
@@ -48,6 +51,15 @@ function resolveMaybeEnvObject(obj) {
     }
   }
   return out;
+}
+
+/** Player shell target: `web`, `ios`, or `android`. */
+export function resolveBuildPlatform(env = process.env) {
+  const raw = (env.BLACKBOX_PLATFORM ?? env.BUNDLE_PLATFORM ?? "web").toLowerCase();
+  if (!BUILD_PLATFORMS.has(raw)) {
+    throw new Error(`invalid platform "${raw}" — expected web, ios, or android`);
+  }
+  return raw;
 }
 
 /** Build output variant: `debug` (dev tooling) or `release` (production). */
@@ -158,6 +170,8 @@ export function resolvePlatformConfig(project, platform) {
       ...shared,
       bundleId: raw.bundleId ?? defaultBundleId,
       buildNumber: String(raw.buildNumber ?? raw.versionCode ?? "1"),
+      category: resolveIosCategory(raw.category),
+      orientations: resolveIosOrientations(raw.orientations),
       signing: {
         teamId,
         method: signing.method ?? "app-store",
@@ -177,6 +191,7 @@ export function resolvePlatformConfig(project, platform) {
       ...shared,
       applicationId: raw.applicationId ?? raw.bundleId ?? defaultBundleId,
       versionCode: Number(raw.versionCode ?? raw.buildNumber ?? 1),
+      screenOrientation: resolveAndroidScreenOrientation(raw.orientations),
       keystore,
     };
   }

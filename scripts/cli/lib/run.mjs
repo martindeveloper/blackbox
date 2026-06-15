@@ -7,6 +7,7 @@ import { playerBuildEnv } from "./buildEnv.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const REPO_ROOT = path.resolve(HERE, "..", "..", "..");
+export const SCRIPTS_ROOT = path.join(REPO_ROOT, "scripts");
 export const WEB_ROOT = path.join(REPO_ROOT, "apps", "web");
 export const MOBILE_ROOT = path.join(REPO_ROOT, "apps", "mobile");
 
@@ -29,7 +30,11 @@ export function runLint(project) {
 export function runBundler(
   project,
   platform,
-  { configuration = project.configuration ?? "release", ignoreMissing = true, archiveCompress } = {},
+  {
+    configuration = project.configuration ?? "release",
+    ignoreMissing = true,
+    archiveCompress,
+  } = {},
 ) {
   const outDir = project.bundleDir(platform);
   const compress = archiveCompress ?? (configuration === "debug" ? "none" : "zstd");
@@ -59,15 +64,23 @@ export function runBundler(
   return outDir;
 }
 
-export function runWebPlayerBuild(project, { configuration = project.configuration ?? "release" } = {}) {
-  log("build", `compiling web player for ${project.gameId} (${configuration})`);
+export function runWebPlayerBuild(
+  project,
+  { configuration = project.configuration ?? "release", platform = "web" } = {},
+) {
+  log("build", `compiling web player for ${project.gameId} (${configuration}, ${platform})`);
   runSync("npm", ["run", "build", "--prefix", WEB_ROOT], {
     cwd: REPO_ROOT,
     env: {
-      ...playerBuildEnv(project, configuration),
+      ...playerBuildEnv(project, configuration, platform),
       PROFILE: wasmProfileForConfiguration(configuration),
     },
   });
+}
+
+export function runScriptsLint() {
+  log("lint", "running build scripts linter");
+  runSync("npm", ["run", "lint", "--prefix", SCRIPTS_ROOT], { cwd: REPO_ROOT });
 }
 
 export function runWebLint() {

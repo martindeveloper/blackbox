@@ -1,8 +1,7 @@
-import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync } from "node:fs";
 import path from "node:path";
-import sharp from "sharp";
-import toIco from "to-ico";
 import { resolvePlatformConfig, resolveProject } from "../../../../scripts/lib/adventure.mjs";
+import { buildWebFaviconBundle } from "../../../../scripts/lib/platformIcons.mjs";
 import { resolveWebDevAdventure, resolveWebWwwDir } from "./adventureDev.mjs";
 
 export { resolveWebWwwDir };
@@ -52,17 +51,7 @@ export async function buildWebIcons(env = process.env, { wwwDir = resolveWebWwwD
   }
 
   mkdirSync(wwwDir, { recursive: true });
-
-  const favicon = readFileSync(sources.favicon);
-  cpSync(sources.favicon, path.join(wwwDir, "favicon.svg"));
-
-  const sizes = [16, 32, 48];
-  await sharp(favicon).resize(1024, 1024).png().toFile(path.join(wwwDir, "game-icon.png"));
-
-  const pngs = await Promise.all(
-    sizes.map((size) => sharp(favicon).resize(size, size).png().toBuffer()),
-  );
-  writeFileSync(path.join(wwwDir, "favicon.ico"), await toIco(pngs));
+  await buildWebFaviconBundle(sources.favicon, wwwDir);
 
   for (const extra of sources.extras) {
     if (!existsSync(extra.source)) {

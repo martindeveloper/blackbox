@@ -19,7 +19,7 @@ test("buildGameCss prepends src/fonts.css before bundled rules", async () => {
     path.join(gameSrc, "fonts.css"),
     '@import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap");\n',
   );
-  await fs.writeFile(path.join(gameSrc, "app.css"), ':root { --game-accent: #f00; }\n');
+  await fs.writeFile(path.join(gameSrc, "app.css"), ":root { --game-accent: #f00; }\n");
 
   try {
     await buildGameCss({ webRoot: WEB_ROOT, gameSrc, outFile });

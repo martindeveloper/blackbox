@@ -7,7 +7,9 @@ import path from "node:path";
 
 function frontendDeps(webRoot) {
   const config = JSON.parse(fs.readFileSync(path.join(webRoot, "tsconfig.game.json"), "utf8"));
-  return Object.keys(config.compilerOptions.paths).filter((specifier) => !specifier.startsWith("@"));
+  return Object.keys(config.compilerOptions.paths).filter(
+    (specifier) => !specifier.startsWith("@"),
+  );
 }
 
 export function resolveEngineDepAliases(webRoot, requireFrom = null) {

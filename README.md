@@ -49,11 +49,16 @@ On Linux, use your distribution's package manager.
 From the repository root:
 
 ```bash
-npm install --prefix apps/editor
+node cli.js prepare
 npm run electron:dev --prefix apps/editor
 ```
 
-The first launch builds the editor and its Rust tools, so it can take a few minutes.
+`prepare` installs npm dependencies (web, mobile, editor), fetches Rust crates, adds the
+`wasm32-unknown-unknown` target when needed, then verifies `node`, `npm`, `rustc`, and `cargo`
+are available. `ffmpeg` and `cwebp` are optional but reported when missing (needed for asset
+bundling).
+
+The first editor launch builds engine tools, so it can take a few minutes.
 
 ### Create your first project
 

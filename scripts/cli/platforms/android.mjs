@@ -1,30 +1,31 @@
 import {
+  androidRootFor,
   buildPayload,
   capSyncAndroid,
-  ensureWorkspace,
   packageAndroid,
 } from "../../../apps/mobile/scripts/lib/workspace.mjs";
 import { resolvePlatformConfig } from "../../lib/adventure.mjs";
-import { fail, log, REPO_ROOT, runBundler, runLint } from "../lib/run.mjs";
+import { toMobileAdv } from "../lib/mobileAdv.mjs";
+import { fail, log, REPO_ROOT, runBundler, runLint, runScriptsLint } from "../lib/run.mjs";
 import path from "node:path";
 
 export function stageLint(project) {
   runLint(project);
+  runScriptsLint();
 }
 
-export function stageBuild(project, { noBuild = false } = {}) {
-  const adv = toMobileAdv(project);
-  buildPayload(adv, { noBuild });
-  ensureWorkspace(adv);
-  capSyncAndroid(adv);
-  log("build", `ok -> ${path.relative(REPO_ROOT, path.join(adv.buildDir, "android"))}`);
+export async function stageBuild(project, { noBuild = false } = {}) {
+  const adv = toMobileAdv(project, "android");
+  buildPayload(adv, { noBuild, platform: "android" });
+  await capSyncAndroid(adv);
+  log("build", `ok -> ${path.relative(REPO_ROOT, androidRootFor(adv))}`);
 }
 
 export function stageBundle(project, { configuration = project.configuration ?? "release" } = {}) {
   return runBundler(project, "android", { configuration });
 }
 
-export function stagePackage(project, options = {}) {
+export async function stagePackage(project, options = {}) {
   const platformConfig = resolvePlatformConfig(project, "android");
   if (!platformConfig.keystore?.path) {
     fail(
@@ -39,23 +40,9 @@ export function stagePackage(project, options = {}) {
     );
   }
 
-  stageBuild(project, options);
+  await stageBuild(project, options);
   stageBundle(project);
 
-  const adv = toMobileAdv(project);
+  const adv = toMobileAdv(project, "android");
   return packageAndroid(adv, platformConfig);
-}
-
-function toMobileAdv(project) {
-  const platformConfig = resolvePlatformConfig(project, "android");
-  return {
-    root: project.root,
-    scenario: project.scenarioPath,
-    gameId: project.gameId,
-    title: project.title,
-    buildDir: project.buildDir,
-    webWwwDir: project.webWwwDir,
-    configuration: project.configuration,
-    platform: platformConfig,
-  };
 }

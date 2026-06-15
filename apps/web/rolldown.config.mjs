@@ -1,6 +1,8 @@
 import { defineConfig } from "rolldown";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { resolveBuildConfiguration, resolveBuildPlatform } from "../../scripts/lib/adventure.mjs";
+import { resolveWebBuildAliases } from "../../scripts/lib/webBuildAliases.mjs";
 import { resolveWebPlayerGame, resolveWebOutDir } from "./scripts/lib/adventureDev.mjs";
 import { createWebRolldownResolve } from "../../scripts/lib/webRolldownResolve.mjs";
 
@@ -9,6 +11,11 @@ const REPO_ROOT = path.resolve(WEB_ROOT, "../..");
 
 const { gameSrc } = resolveWebPlayerGame(process.env, WEB_ROOT, REPO_ROOT);
 const appJs = path.join(resolveWebOutDir(process.env), "www", "app.js");
+const buildAliases = resolveWebBuildAliases(WEB_ROOT, {
+  platform: resolveBuildPlatform(process.env),
+  configuration: resolveBuildConfiguration(process.env),
+  target: "player",
+});
 
 export default defineConfig({
   cwd: WEB_ROOT,
@@ -18,10 +25,8 @@ export default defineConfig({
   resolve: createWebRolldownResolve(WEB_ROOT, {
     gameSrc,
     aliases: {
+      ...buildAliases,
       "@content-source": path.join(WEB_ROOT, "src", "engine", "lib", "bundleSource.ts"),
-      "@preview-mode": path.join(WEB_ROOT, "src", "engine", "lib", "previewMode.stub.ts"),
-      "@preview-reporter": path.join(WEB_ROOT, "src", "preview", "PreviewReporter.stub.tsx"),
-      "@analytics": path.join(WEB_ROOT, "src", "engine", "lib", "vercelAnalytics.ts"),
     },
   }),
   transform: {

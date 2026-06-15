@@ -31,9 +31,7 @@ export function ndkPrebuiltHost(ndkRoot) {
       return candidate;
     }
   }
-  console.error(
-    `error: no supported NDK prebuilt toolchain found under ${prebuiltRoot}`,
-  );
+  console.error(`error: no supported NDK prebuilt toolchain found under ${prebuiltRoot}`);
   process.exit(1);
 }
 
@@ -96,7 +94,10 @@ export function findNdk() {
 export function androidLinker(ndkRoot, apiLevel = process.env.ANDROID_API_LEVEL ?? "24") {
   const prebuilt = ndkPrebuiltHost(ndkRoot);
   const binDir = path.join(ndkRoot, "toolchains", "llvm", "prebuilt", prebuilt, "bin");
-  const linker = path.join(binDir, `aarch64-linux-android${apiLevel}-clang${process.platform === "win32" ? ".cmd" : ""}`);
+  const linker = path.join(
+    binDir,
+    `aarch64-linux-android${apiLevel}-clang${process.platform === "win32" ? ".cmd" : ""}`,
+  );
   if (!existsSync(linker)) {
     const fallback = path.join(binDir, `aarch64-linux-android${apiLevel}-clang`);
     if (!existsSync(fallback)) {

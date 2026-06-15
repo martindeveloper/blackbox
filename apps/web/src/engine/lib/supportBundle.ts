@@ -1,4 +1,5 @@
 import type { GameView } from "../types/game.js";
+import { SUPPORT_BUNDLE_ENABLED } from "@platform";
 import { diagnostics } from "@content-source";
 import { type StatusKind } from "./engine.js";
 import { readAllSlots } from "./slots.js";
@@ -15,6 +16,7 @@ interface SupportBundleInput {
 }
 
 export function downloadSupportBundle(input: SupportBundleInput): void {
+  if (!SUPPORT_BUNDLE_ENABLED) return;
   logger.info("support", "Creating support bundle");
   try {
     const createdAt = new Date();

@@ -14,6 +14,13 @@ html.md {
   /* Kill the whole-document rubber-band scroll. The player's own panels still
      scroll internally (they are nested overflow containers, not the root). */
   overscroll-behavior: none;
+
+  /* env() on iOS / modern WebView; --safe-area-inset-* from Capacitor SystemBars
+     on Android (status bar + display cutout / punch-hole / Dynamic Island). */
+  --bb-safe-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+  --bb-safe-right: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
+  --bb-safe-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+  --bb-safe-left: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
 }
 
 html.ios body,
@@ -22,12 +29,81 @@ html.md body {
   inset: 0;
   overflow: hidden;
   overscroll-behavior: none;
+  /* Match capacitor.config backgroundColor so nothing flashes between splash and app. */
+  background: #070503;
   /* No grey flash when a tap is registered. */
   -webkit-tap-highlight-color: transparent;
   /* A narrative reader should not show the iOS text-selection loupe / callout. */
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
+}
+
+/* Keep chrome clear of status bar, notch, punch-hole camera, and home indicator.
+   Background art stays full-bleed; only interactive UI is inset. */
+html.ios .text-game-player-app > header,
+html.md .text-game-player-app > header,
+html.ios .text-game-player-header,
+html.md .text-game-player-header {
+  box-sizing: border-box;
+  padding-top: max(0.5rem, var(--bb-safe-top));
+  padding-right: max(1rem, var(--bb-safe-right));
+  padding-left: max(1rem, var(--bb-safe-left));
+  height: auto;
+  min-height: calc(2.5rem + var(--bb-safe-top));
+}
+
+html.ios .text-game-player-main,
+html.md .text-game-player-main {
+  padding-bottom: var(--bb-safe-bottom);
+}
+
+html.ios .bb-default-main-menu,
+html.md .bb-default-main-menu {
+  padding-top: max(3rem, calc(3rem + var(--bb-safe-top)));
+  padding-bottom: max(3rem, calc(3rem + var(--bb-safe-bottom)));
+}
+
+/* Custom main menus using mm-* layout (e.g. non-default slot picker chrome). */
+html.ios .mm-root,
+html.md .mm-root {
+  padding-top: var(--bb-safe-top);
+  padding-bottom: max(1rem, var(--bb-safe-bottom));
+}
+
+html.ios .mm-root--menu,
+html.md .mm-root--menu {
+  padding-bottom: max(2.5rem, calc(2.5rem + var(--bb-safe-bottom)));
+}
+
+html.ios .mm-footer-meta,
+html.md .mm-footer-meta {
+  bottom: max(0.5rem, var(--bb-safe-bottom));
+}
+
+html.ios .dev-console,
+html.md .dev-console {
+  padding-top: var(--bb-safe-top);
+}
+
+@media (max-width: 639px) {
+  html.ios .modal-backdrop,
+  html.md .modal-backdrop {
+    padding-top: max(0.75rem, var(--bb-safe-top));
+    padding-right: max(0.75rem, var(--bb-safe-right));
+    padding-bottom: max(0.75rem, var(--bb-safe-bottom));
+    padding-left: max(0.75rem, var(--bb-safe-left));
+  }
+
+  html.ios .modal-panel:has(.save-panel) .modal-header,
+  html.md .modal-panel:has(.save-panel) .modal-header {
+    padding-top: max(0.8rem, var(--bb-safe-top));
+  }
+
+  html.ios .save-panel,
+  html.md .save-panel {
+    padding-bottom: max(1rem, var(--bb-safe-bottom));
+  }
 }
 
 /* Keep real inputs usable (save-slot names, dev console, etc.). */

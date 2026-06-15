@@ -3,7 +3,7 @@
 import { existsSync, mkdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { resolveBuildConfiguration } from "../../../scripts/lib/adventure.mjs";
+import { resolveBuildConfiguration, resolveBuildPlatform } from "../../../scripts/lib/adventure.mjs";
 import { runSync } from "../../../scripts/lib/spawn.mjs";
 import { resolveWebDevAdventure, resolveWebOutDir } from "./lib/adventureDev.mjs";
 
@@ -25,7 +25,7 @@ function parseArgs(argv) {
   const adventure = resolveWebDevAdventure();
   const configuration = resolveBuildConfiguration(process.env);
   const options = {
-    platform: process.env.BUNDLE_PLATFORM ?? "web",
+    platform: resolveBuildPlatform(process.env),
     skipTranscode: envFlag("BUNDLE_SKIP_TRANSCODE"),
     ignoreMissing: envFlag("BUNDLE_IGNORE_MISSING"),
     verbose: envFlag("BUNDLE_VERBOSE"),

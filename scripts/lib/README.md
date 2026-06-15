@@ -13,6 +13,7 @@ The files fall into three groups:
 - `gamePaths.mjs` — resolve game-UI source dirs
 - `buildGameCss.mjs` — compile a game UI's Tailwind bundle (`buildGameCss.test.mjs`)
 - `webRolldownResolve.mjs` — rolldown `resolve` config for the web player
+- `webBuildAliases.mjs` — stub/full module aliases (`@platform`, `@analytics`, `@preview-mode`, `@preview-reporter`)
 
 These are special: they are consumed by the `apps/web` build **and run at runtime
 by the packaged editor's on-demand preview compiler**. The packaged editor can't

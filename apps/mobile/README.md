@@ -102,10 +102,11 @@ npm run ios:sync:fast
 - **Haptics** — Medium tap on story choices, Light on other controls.
 - **No web tells** — pinch-zoom, tap highlight, text selection, and the
   long-press callout are all suppressed (inputs stay selectable).
-- **Clears the Dynamic Island** — `StatusBar.overlaysWebView: false` insets the
-  webview below the status bar / island, so the game header never collides with
-  it. The full-bleed background art (a fixed `z-index:-1` layer) starts just
-  below the island; the strip behind the bar is the `#070503` theme color.
+- **Clears the Dynamic Island / camera cutout** — Capacitor 8 `SystemBars` with
+  `insetsHandling: "css"` injects `--safe-area-inset-*` on Android (status bar +
+  display cutout). `native.css` pads the game header and menus with those insets
+  (and `env(safe-area-inset-*)` on iOS) so titles never collide with the clock,
+  notch, or punch-hole. Full-bleed background art is unchanged.
 - **Game audio, not "media"** — `AppDelegate.swift` sets the `AVAudioSession`
   category to `.ambient` (`.mixWithOthers`). Without it, WKWebView's WebAudio is
   treated as `.playback` media and hijacks the Now Playing / Dynamic Island
@@ -137,8 +138,15 @@ The Capacitor config is **generated** per-adventure into `.blackbox/build/
 capacitor.config.json` by [`scripts/lib/workspace.mjs`](scripts/lib/workspace.mjs)
 — that's the source of truth for native-feel settings. App identity comes from
 `scenario.json` → `platforms.ios` / `platforms.android` (bundle ID, app name,
-signing, icons, splash paths). When those sections are absent, `appName` falls
-back to the scenario `title` and `appId` defaults to
+signing, icons, splash paths, category, and orientations). Each platform
+declares its own `icon` SVG under `platform/<platform>/` — the build renders PNGs
+the same way web turns `platforms.web.icon` into `favicon.ico` / `game-icon.png`
+(via `sharp`). iOS writes a 1024×1024 `AppIcon`; Android fills all `mipmap-*`
+launcher slots and sets `ic_launcher_background` from `backgroundColor`.
+
+`platforms.ios` also supports `displayName` (Xcode Display Name),
+`category` (`"games"` → App Store Games), and `orientations` (`"portrait"`,
+`"landscape"`, etc. per `iphone` / `ipad`). When those sections are absent, `appName` falls back to the scenario `title` and `appId` defaults to
 `$BLACKBOX_APP_ID_BASE` (default `dev.blackbox`) + the sanitized game id.
 
 ## Unified build CLI (CI)
@@ -146,8 +154,11 @@ back to the scenario `title` and `appId` defaults to
 All platforms share one headless entry point at the repo root:
 
 ```bash
-node cli.js --project='/abs/path/to/adventure' --platform=web|ios|android --stage=lint|build|bundle|package
+node cli.js prepare
+node cli.js build --project='/abs/path/to/adventure' --platform=web|ios|android
 ```
+
+`prepare` bootstraps the repo (npm + Rust deps, toolchain checks).
 
 | Stage | What it does |
 | --- | --- |
@@ -156,18 +167,29 @@ node cli.js --project='/abs/path/to/adventure' --platform=web|ios|android --stag
 | `bundle` | Platform-specific content bundle via `blackbox-bundler` |
 | `package` | Publish-ready artifact: web `.tar.gz`, iOS `.ipa`, Android `.aab` |
 
+Actions: `lint`, `build`, `bundle`, `package` (positional first argument).
+
 Platform publish settings live in `scenario.json` under `platforms`:
 
 ```json
 {
   "platforms": {
-    "web": { "appName": "My Game", "outputName": "my-game-web" },
+    "web": {
+      "appName": "My Game",
+      "outputName": "my-game-web",
+      "icon": "platform/web/favicon.svg"
+    },
     "ios": {
       "bundleId": "com.example.mygame",
+      "displayName": "My Game",
+      "category": "games",
+      "orientations": { "iphone": ["portrait"], "ipad": ["portrait"] },
+      "icon": "platform/ios/icon.svg",
       "signing": { "teamId": "XXXXXXXXXX", "method": "app-store" }
     },
     "android": {
       "applicationId": "com.example.mygame",
+      "icon": "platform/android/icon.svg",
       "keystore": {
         "path": "release.keystore",
         "storePasswordEnv": "ANDROID_KEYSTORE_PASSWORD",

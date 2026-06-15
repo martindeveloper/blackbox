@@ -25,9 +25,9 @@ const adv = resolveAdventure(argv);
 switch (cmd) {
   case "sync":
   case "run": {
-    buildPayload(adv, { noBuild });
+    buildPayload(adv, { noBuild, platform: "ios" });
     ensureWorkspace(adv);
-    capSyncIos(adv);
+    await capSyncIos(adv);
     if (cmd === "run") capRunIos(adv);
     break;
   }

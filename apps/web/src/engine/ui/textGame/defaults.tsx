@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { SUPPORT_BUNDLE_ENABLED } from "@platform";
 import { characterBySpeaker } from "../../lib/characters.js";
 import { activeIntelKeys, formatRefId } from "../../lib/format.js";
 import { isEditableTarget } from "../../lib/keyboard.js";
@@ -383,6 +384,16 @@ export function DefaultJournal({ events, meta }: JournalProps) {
   );
 }
 
+function SupportBundleMenuButton({ onClick }: { onClick?: () => void }) {
+  const { t } = useTranslation();
+  if (!SUPPORT_BUNDLE_ENABLED || !onClick) return null;
+  return (
+    <button type="button" onClick={onClick}>
+      {t("mainMenu.supportBundle", { defaultValue: "SUPPORT BUNDLE" })}
+    </button>
+  );
+}
+
 export function DefaultSystemMenu({
   isTerminal,
   onSave,
@@ -404,9 +415,7 @@ export function DefaultSystemMenu({
           {t("choices.restart")}
         </button>
       )}
-      <button type="button" onClick={onCreateSupportBundle}>
-        {t("mainMenu.supportBundle", { defaultValue: "SUPPORT BUNDLE" })}
-      </button>
+      <SupportBundleMenuButton onClick={onCreateSupportBundle} />
     </div>
   );
 }
@@ -487,9 +496,7 @@ export function DefaultMainMenu({
           </button>
         </div>
       )}
-      <button type="button" onClick={onCreateSupportBundle}>
-        {t("mainMenu.supportBundle", { defaultValue: "SUPPORT BUNDLE" })}
-      </button>
+      <SupportBundleMenuButton onClick={onCreateSupportBundle} />
     </div>
   );
 }
@@ -565,7 +572,7 @@ export function DefaultGameScreen({
             onSave={onSave}
             onOpenMainMenu={onOpenMainMenu}
             onRestart={onRestart}
-            onCreateSupportBundle={onCreateSupportBundle}
+            {...(onCreateSupportBundle ? { onCreateSupportBundle } : {})}
           />
         ),
       });

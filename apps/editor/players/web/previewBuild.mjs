@@ -11,6 +11,7 @@ import {
   createWebRolldownResolve,
   projectHasCustomCode,
   resolvePreviewGameSrc,
+  resolveWebBuildAliases,
 } from "../../server/sharedLib.mjs";
 import { PROTOCOL_PATH, resolveWorkspaceRoot } from "./manifest.mjs";
 
@@ -76,12 +77,13 @@ async function buildJs(web, gameSrc, outDir) {
       gameSrc,
       requireFrom,
       aliases: {
+        ...resolveWebBuildAliases(web, {
+          platform: "web",
+          configuration: "debug",
+          target: "preview",
+        }),
         "@content-source": path.join(web, "src", "engine", "lib", "previewSource.ts"),
-        "@preview-mode": path.join(web, "src", "engine", "lib", "previewMode.ts"),
         "@preview-protocol": await resolvePreviewProtocol(web),
-        "@preview-reporter": path.join(web, "src", "preview", "PreviewReporter.tsx"),
-        // Local preview must not load a telemetry vendor; use the no-op impl.
-        "@analytics": path.join(web, "src", "engine", "lib", "analytics.noop.ts"),
       },
     }),
     transform: { jsx: "react-jsx" },

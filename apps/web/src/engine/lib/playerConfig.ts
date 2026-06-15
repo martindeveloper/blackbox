@@ -1,4 +1,5 @@
 import type { TextGameComponentOverrides } from "../ui/textGame/types.js";
+import { IS_WEB_PLATFORM } from "@platform";
 import { notifyStorageChanged } from "@preview-mode";
 
 export type PlayerTheme = "dark" | "light";
@@ -145,7 +146,8 @@ export function configureWebPlayer(gameId: string, options: WebPlayerOptions = {
       defaultTheme,
       analytics: {
         available:
-          options.settings?.analytics?.available ?? DEFAULT_OPTIONS.settings.analytics.available,
+          IS_WEB_PLATFORM &&
+          (options.settings?.analytics?.available ?? DEFAULT_OPTIONS.settings.analytics.available),
         defaultEnabled:
           options.settings?.analytics?.defaultEnabled ??
           DEFAULT_OPTIONS.settings.analytics.defaultEnabled,

@@ -19,6 +19,7 @@ import { musicAssetLabel, serializeEngineState } from "../../lib/engine.js";
 import { isEditableTarget, matchesShortcut } from "../../lib/keyboard.js";
 import { formatPageTitle, pageTitleContextFromSession } from "../../lib/pageTitle.js";
 import { PREVIEW_ENABLED } from "@preview-mode";
+import { IS_WEB_PLATFORM, SUPPORT_BUNDLE_ENABLED } from "@platform";
 import { PreviewReporter } from "@preview-reporter";
 import { downloadSupportBundle } from "../../lib/supportBundle.js";
 import type { AudioPlaybackConfig } from "../../hooks/useAudio.js";
@@ -286,6 +287,7 @@ export function TextGamePlayerApp<FadeKind extends string>({
   const handleOpenLoad = useCallback(() => openSaveModal(savedState), [openSaveModal, savedState]);
   const handleCreateSupportBundle = useCallback(
     (fromMenu = false) => {
+      if (!SUPPORT_BUNDLE_ENABLED) return;
       if (fromMenu) {
         downloadSupportBundle({ status: t("status.mainMenu"), statusKind: "info" });
         return;
@@ -338,7 +340,9 @@ export function TextGamePlayerApp<FadeKind extends string>({
             initialSlot={session.returnedFromSlot}
             onContinueSlot={continueSlot}
             onRestartSlot={requestSlotRestart}
-            onCreateSupportBundle={() => handleCreateSupportBundle(true)}
+            {...(SUPPORT_BUNDLE_ENABLED
+              ? { onCreateSupportBundle: () => handleCreateSupportBundle(true) }
+              : {})}
           />
         ) : session.phase === "ready" ? (
           <GameScreen
@@ -359,7 +363,9 @@ export function TextGamePlayerApp<FadeKind extends string>({
             onRestart={handleRestart}
             onOpenLoad={handleOpenLoad}
             onOpenMainMenu={goToMainMenu}
-            onCreateSupportBundle={handleCreateSupportBundle}
+            {...(SUPPORT_BUNDLE_ENABLED
+              ? { onCreateSupportBundle: handleCreateSupportBundle }
+              : {})}
           />
         ) : null}
 
@@ -386,10 +392,11 @@ export function TextGamePlayerApp<FadeKind extends string>({
       />
       <DevConsole
         enabled={
-          PREVIEW_ENABLED ||
-          Boolean(
-            (globalThis as typeof globalThis & { __BLACKBOX_DEV__?: boolean }).__BLACKBOX_DEV__,
-          )
+          IS_WEB_PLATFORM &&
+          (PREVIEW_ENABLED ||
+            Boolean(
+              (globalThis as typeof globalThis & { __BLACKBOX_DEV__?: boolean }).__BLACKBOX_DEV__,
+            ))
         }
         onExecute={executeDevCommand}
       />

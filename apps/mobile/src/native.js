@@ -17,7 +17,6 @@
   }
 
   var P = Cap.Plugins || {};
-  var StatusBar = P.StatusBar;
   var SplashScreen = P.SplashScreen;
   var Haptics = P.Haptics;
   var App = P.App;
@@ -33,29 +32,30 @@
     );
   }
 
-  // --- Status bar -------------------------------------------------------------
-  if (StatusBar) {
-    // Style.Dark = light glyphs, correct over the dark game background.
-    if (StatusBar.setStyle) StatusBar.setStyle({ style: "DARK" }).catch(function () {});
-    // Keep the webview inset below the status bar / Dynamic Island so the game
-    // header never collides with it (mirrors capacitor.config.ts).
-    if (StatusBar.setOverlaysWebView)
-      StatusBar.setOverlaysWebView({ overlay: false }).catch(function () {});
+  // --- System bars & safe areas -----------------------------------------------
+  // Capacitor 8 SystemBars handles edge-to-edge on Android 15+ and injects
+  // --safe-area-inset-* CSS vars (incl. display cutout / punch-hole). iOS uses
+  // env(safe-area-inset-*) via viewport-fit=cover. native.css pads UI chrome.
+  var SystemBars = P.SystemBars;
+  if (SystemBars && SystemBars.setStyle) {
+    SystemBars.setStyle({ style: "DARK" }).catch(function () {});
+  } else if (P.StatusBar && P.StatusBar.setStyle) {
+    P.StatusBar.setStyle({ style: "DARK" }).catch(function () {});
   }
 
   // --- Splash handoff ---------------------------------------------------------
-  // Hide the native splash only once React has painted into #root, so the player
-  // fades in directly from the launch image with no blank web frame. Falls back
-  // to a timeout in case the first paint never registers.
-  function hideSplash() {
-    if (!SplashScreen || !SplashScreen.hide) return;
-    SplashScreen.hide({ fadeOutDuration: 200 }).catch(function () {});
-  }
-
+  // Capacitor keeps LaunchScreen.storyboard visible (launchAutoHide: false) until
+  // we call SplashScreen.hide() after the first React paint into #root.
   var splashDone = false;
-  function finishSplash() {
+  function hideSplash() {
     if (splashDone) return;
     splashDone = true;
+    if (SplashScreen && SplashScreen.hide) {
+      SplashScreen.hide({ fadeOutDuration: 200 }).catch(function () {});
+    }
+  }
+
+  function finishSplash() {
     // One rAF so the first frame is actually on screen before we uncover it.
     requestAnimationFrame(function () {
       requestAnimationFrame(hideSplash);

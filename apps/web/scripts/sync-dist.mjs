@@ -2,7 +2,7 @@ import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, watch, writeFileSy
 import { spawnSync } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { resolveBuildConfiguration } from "../../../scripts/lib/adventure.mjs";
+import { resolveBuildConfiguration, resolveBuildPlatform } from "../../../scripts/lib/adventure.mjs";
 import { resolveWebOutDir } from "./lib/adventureDev.mjs";
 import { buildWebIcons, resolveWebIconSources, resolveWebWwwDir } from "./lib/webIcons.mjs";
 
@@ -23,10 +23,11 @@ const legacyWasmArtifacts = ["blackbox_wasm.wasm", "package.json"];
 const watchMode = process.argv.includes("--watch");
 const www = resolveWebWwwDir(process.env);
 const configuration = resolveBuildConfiguration(process.env);
+const platform = resolveBuildPlatform(process.env);
 
 function syncIndexHtml() {
   let html = readFileSync(indexHtml, "utf8");
-  if (configuration === "debug" && !html.includes("__BLACKBOX_DEV__")) {
+  if (configuration === "debug" && platform === "web" && !html.includes("__BLACKBOX_DEV__")) {
     html = html.replace(
       '<script type="module" src="/app.js"></script>',
       '<script>globalThis.__BLACKBOX_DEV__=true;</script>\n    <script type="module" src="/app.js"></script>',

@@ -10,7 +10,7 @@
  *     web/www/                        web player build output
  *     www/                            mobile payload (web/www + native layer)
  *     ios/                            Capacitor native project
- *     android/                        Capacitor native project
+ *     android/<GameName>/               Capacitor native project (android.path)
  *     capacitor.config.json           generated per-adventure
  *     package.json                    lists Capacitor deps (for plugin detection)
  *     node_modules -> apps/mobile/node_modules (symlink, for the cap CLI)
@@ -23,6 +23,8 @@ import {
   existsSync,
   mkdirSync,
   readFileSync,
+  readdirSync,
+  renameSync,
   rmSync,
   statSync,
   symlinkSync,
@@ -30,7 +32,26 @@ import {
 } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { resolvePlatformConfig, resolveProject } from "../../../../scripts/lib/adventure.mjs";
+import { resolvePlatformConfig, resolveProject, slugifyGameId, DEFAULT_BG, wasmProfileForConfiguration } from "../../../../scripts/lib/adventure.mjs";
+import { playerBuildEnv } from "../../../../scripts/cli/lib/buildEnv.mjs";
+import {
+  installAndroidLauncherIcons,
+  installIosAppIcon,
+} from "../../../../scripts/lib/platformIcons.mjs";
+import {
+  installAndroidSplash,
+  installIosSplash,
+} from "../../../../scripts/lib/platformSplash.mjs";
+import {
+  applyAndroidPlatformSettings,
+  applyAndroidReleaseConfig,
+  androidProjectRelativePath,
+  clearAndroidInjectedSigning,
+} from "../../../../scripts/lib/platformAndroid.mjs";
+import {
+  applyIosPlatformSettings,
+  iosXcodeSchemeName,
+} from "../../../../scripts/lib/platformIos.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const MOBILE_ROOT = path.resolve(HERE, "..", "..");
@@ -39,10 +60,6 @@ const WEB_ROOT = path.join(REPO_ROOT, "apps", "web");
 const NATIVE_SRC = path.join(MOBILE_ROOT, "src");
 const NATIVE_IOS = path.join(MOBILE_ROOT, "native", "ios");
 const CAP_BIN = path.join(MOBILE_ROOT, "node_modules", ".bin", "cap");
-
-// Game's darkest surface — matches the Silent Archive theme's --color-bg so the
-// launch screen / status-bar strip never flash a different color.
-const BG = "#070503";
 
 // Capacitor 8 requires iOS 15+. Older generated projects may still say 13.0 in
 // Podfile / pbxproj; CocoaPods fails pod install until those are bumped.
@@ -85,18 +102,21 @@ function webDistFor(adv) {
 }
 
 /** Build apps/web for the adventure and assemble <buildDir>/www with the native layer. */
-export function buildPayload(adv, { noBuild = false } = {}) {
+export function buildPayload(adv, { noBuild = false, platform } = {}) {
+  if (!platform) {
+    fail("buildPayload requires platform (ios, android, or web)");
+  }
   const www = path.join(adv.buildDir, "www");
   const webDist = webDistFor(adv);
+  const configuration = adv.configuration ?? process.env.BLACKBOX_CONFIGURATION ?? "release";
 
   if (!noBuild) {
-    log(`building web player (adventure: ${path.relative(REPO_ROOT, adv.scenario)})`);
+    log(`building web player (adventure: ${path.relative(REPO_ROOT, adv.scenario)}, platform=${platform})`);
     execFileSync("npm", ["run", "build", "--prefix", WEB_ROOT], {
       stdio: "inherit",
       env: {
-        ...process.env,
-        BLACKBOX_ADVENTURE: adv.root,
-        BLACKBOX_CONFIGURATION: adv.configuration ?? process.env.BLACKBOX_CONFIGURATION ?? "release",
+        ...playerBuildEnv({ root: adv.root, configuration }, configuration, platform),
+        PROFILE: wasmProfileForConfiguration(configuration),
       },
       shell: process.platform === "win32",
     });
@@ -134,8 +154,36 @@ export function buildPayload(adv, { noBuild = false } = {}) {
 
 function loadPlatformConfig(adv, platform) {
   if (adv.platform) return adv.platform;
-  const project = resolveProject(adv.root);
+  const project = resolveProject(adv.root, { configuration: adv.configuration });
   return resolvePlatformConfig(project, platform);
+}
+
+/** Capacitor android.path relative to the build dir, e.g. android/ExampleGame. */
+export function androidProjectPath(adv) {
+  const config = loadPlatformConfig(adv, "android");
+  return androidProjectRelativePath(config.displayName);
+}
+
+/** Absolute path to the generated Gradle project root. */
+export function androidRootFor(adv) {
+  return path.join(adv.buildDir, androidProjectPath(adv));
+}
+
+/** Move a legacy flat build/debug/android/ tree into android/<GameName>/ for Studio recents. */
+function migrateLegacyAndroidLayout(adv) {
+  const targetRoot = androidRootFor(adv);
+  if (existsSync(path.join(targetRoot, "gradlew"))) return;
+
+  const parent = path.join(adv.buildDir, "android");
+  if (!existsSync(path.join(parent, "gradlew"))) return;
+
+  const slug = path.basename(targetRoot);
+  mkdirSync(targetRoot, { recursive: true });
+  for (const ent of readdirSync(parent)) {
+    if (ent === slug) continue;
+    renameSync(path.join(parent, ent), path.join(targetRoot, ent));
+  }
+  log(`relocated Android project -> ${path.relative(REPO_ROOT, targetRoot)}`);
 }
 
 /** Write the disposable Capacitor workspace (config, package.json, node_modules symlink). */
@@ -143,31 +191,45 @@ export function ensureWorkspace(adv, platform = "ios") {
   mkdirSync(adv.buildDir, { recursive: true });
 
   const platformConfig = loadPlatformConfig(adv, platform);
+  const iosConfig = loadPlatformConfig(adv, "ios");
+  const androidConfig = loadPlatformConfig(adv, "android");
+  const iosScheme = iosXcodeSchemeName(iosConfig.displayName ?? iosConfig.appName);
   const config = {
     appId: platformConfig.bundleId ?? platformConfig.applicationId,
-    appName: platformConfig.appName,
+    appName: platformConfig.displayName,
     webDir: "www",
-    backgroundColor: platformConfig.backgroundColor ?? BG,
+    backgroundColor: platformConfig.backgroundColor ?? DEFAULT_BG,
     ios: {
+      scheme: iosScheme,
       contentInset: "never",
       scrollEnabled: false,
-      backgroundColor: platformConfig.backgroundColor ?? BG,
+      backgroundColor: iosConfig.backgroundColor ?? DEFAULT_BG,
       preferredContentMode: "mobile",
       limitsNavigationsToAppBoundDomains: true,
     },
     android: {
-      backgroundColor: platformConfig.backgroundColor ?? BG,
+      path: androidProjectPath(adv),
+      backgroundColor: androidConfig.backgroundColor ?? DEFAULT_BG,
     },
     plugins: {
       SplashScreen: {
+        // Keep LaunchScreen.storyboard visible until native.js calls SplashScreen.hide().
+        // launchShowDuration must be non-zero or iOS never mounts the overlay (Capacitor quirk).
+        launchShowDuration: 60000,
         launchAutoHide: false,
-        backgroundColor: platformConfig.splash?.backgroundColor ?? platformConfig.backgroundColor ?? BG,
+        backgroundColor: platformConfig.splash?.backgroundColor ?? platformConfig.backgroundColor ?? DEFAULT_BG,
         showSpinner: false,
       },
       StatusBar: {
         style: "DARK",
         overlaysWebView: false,
-        backgroundColor: platformConfig.backgroundColor ?? BG,
+        backgroundColor: platformConfig.backgroundColor ?? DEFAULT_BG,
+      },
+      SystemBars: {
+        insetsHandling: "css",
+        style: "DARK",
+        hidden: false,
+        animation: "NONE",
       },
     },
   };
@@ -179,7 +241,7 @@ export function ensureWorkspace(adv, platform = "ios") {
   // package.json so the cap CLI detects the installed plugins. Deps mirror the
   // engine tooling's runtime deps (resolved via the node_modules symlink below).
   const toolingPkg = JSON.parse(readFileSync(path.join(MOBILE_ROOT, "package.json"), "utf8"));
-  const slug = adv.gameId.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+  const slug = slugifyGameId(adv.gameId);
   writeFileSync(
     path.join(adv.buildDir, "package.json"),
     JSON.stringify(
@@ -246,8 +308,85 @@ function applyNativeOverrides(adv) {
   }
 }
 
+function nativeAssetRoots(adv, platform) {
+  if (platform === "ios") {
+    const iosApp = path.join(adv.buildDir, "ios", "App", "App");
+    return {
+      assetCatalog: path.join(iosApp, "Assets.xcassets"),
+      launchStoryboard: path.join(iosApp, "Base.lproj", "LaunchScreen.storyboard"),
+    };
+  }
+  if (platform === "android") {
+    return { resDir: path.join(androidRootFor(adv), "app", "src", "main", "res") };
+  }
+  return null;
+}
+
+/** Install splash assets from platforms.<platform>.splash into native projects. */
+export async function applyPlatformSplash(adv, platform) {
+  const config = loadPlatformConfig(adv, platform);
+  const imagePath = config.splash?.image;
+  if (!imagePath || !existsSync(imagePath)) return;
+
+  const backgroundColor = config.splash.backgroundColor ?? config.backgroundColor ?? DEFAULT_BG;
+  const roots = nativeAssetRoots(adv, platform);
+  if (!roots) return;
+
+  if (platform === "ios") {
+    await installIosSplash({
+      imagePath,
+      backgroundColor,
+      assetCatalogDir: roots.assetCatalog,
+      launchStoryboardPath: roots.launchStoryboard,
+    });
+    log(`installed iOS splash from ${path.relative(adv.root, imagePath)}`);
+    return;
+  }
+
+  await installAndroidSplash({ imagePath, resDir: roots.resDir });
+  log(`installed Android splash from ${path.relative(adv.root, imagePath)}`);
+}
+
+/** Generate native launcher icons from platforms.<platform>.icon (SVG). */
+export async function applyPlatformIcons(adv, platform) {
+  const config = loadPlatformConfig(adv, platform);
+  if (!config.icon) {
+    return;
+  }
+  if (!existsSync(config.icon)) {
+    log(`skipping ${platform} icons: not found at ${config.icon}`);
+    return;
+  }
+
+  const roots = nativeAssetRoots(adv, platform);
+  if (!roots) return;
+
+  if (platform === "ios") {
+    const out = await installIosAppIcon({ svgPath: config.icon, assetCatalogDir: roots.assetCatalog });
+    if (out) {
+      log(`installed iOS app icon from ${path.relative(adv.root, config.icon)}`);
+    }
+    return;
+  }
+
+  const written = await installAndroidLauncherIcons({
+    svgPath: config.icon,
+    resDir: roots.resDir,
+    backgroundColor: config.backgroundColor ?? DEFAULT_BG,
+  });
+  if (written?.length) {
+    log(`installed Android launcher icons from ${path.relative(adv.root, config.icon)}`);
+  }
+}
+
+/** Install splash and launcher icons for a native platform. */
+export async function applyPlatformAssets(adv, platform) {
+  await applyPlatformSplash(adv, platform);
+  await applyPlatformIcons(adv, platform);
+}
+
 /** Add the iOS platform if missing, otherwise sync; always re-assert native overrides. */
-export function capSyncIos(adv) {
+export async function capSyncIos(adv) {
   ensureWorkspace(adv, "ios");
   const iosDir = path.join(adv.buildDir, "ios");
   if (!existsSync(iosDir)) {
@@ -255,39 +394,38 @@ export function capSyncIos(adv) {
   }
   ensureIosDeploymentTarget(adv);
   cap(adv, ["sync", "ios"]);
+  applyIosPlatformSettings({
+    iosAppDir: path.join(adv.buildDir, "ios", "App"),
+    config: loadPlatformConfig(adv, "ios"),
+    log,
+  });
   applyNativeOverrides(adv);
+  await applyPlatformAssets(adv, "ios");
 }
 
 /** Add the Android platform if missing, otherwise sync. */
-export function capSyncAndroid(adv) {
+export async function capSyncAndroid(adv) {
   ensureWorkspace(adv, "android");
-  const androidDir = path.join(adv.buildDir, "android");
-  if (!existsSync(androidDir)) {
+  migrateLegacyAndroidLayout(adv);
+  const androidDir = androidRootFor(adv);
+  if (!existsSync(path.join(androidDir, "gradlew"))) {
     cap(adv, ["add", "android"]);
   }
   cap(adv, ["sync", "android"]);
-  applyAndroidReleaseConfig(adv);
+  applyAndroidPlatformSettings({
+    androidRoot: androidDir,
+    config: loadPlatformConfig(adv, "android"),
+    log,
+  });
+  clearAndroidInjectedSigning({ androidRoot: androidDir, log });
+  await applyPlatformAssets(adv, "android");
 }
 
-function applyAndroidReleaseConfig(adv) {
-  const platformConfig = loadPlatformConfig(adv, "android");
-  const gradleProps = path.join(adv.buildDir, "android", "gradle.properties");
-  if (!existsSync(gradleProps) || !platformConfig.keystore) return;
-
-  const lines = readFileSync(gradleProps, "utf8").split("\n");
-  const upsert = (key, value) => {
-    const idx = lines.findIndex((line) => line.startsWith(`${key}=`));
-    const entry = `${key}=${value}`;
-    if (idx === -1) lines.push(entry);
-    else lines[idx] = entry;
-  };
-
-  upsert("android.injected.signing.store.file", platformConfig.keystore.path);
-  upsert("android.injected.signing.store.password", platformConfig.keystore.storePassword ?? "");
-  upsert("android.injected.signing.key.alias", platformConfig.keystore.keyAlias ?? "upload");
-  upsert("android.injected.signing.key.password", platformConfig.keystore.keyPassword ?? "");
-  writeFileSync(gradleProps, lines.filter(Boolean).join("\n") + "\n");
-  log("configured Android release signing in gradle.properties");
+export function capOpenAndroid(adv) {
+  if (!existsSync(path.join(androidRootFor(adv), "gradlew"))) {
+    fail("no android project yet — run `node cli.js build --platform=android` first.");
+  }
+  cap(adv, ["open", "android"]);
 }
 
 export function capOpenIos(adv) {
@@ -333,9 +471,10 @@ export function packageIos(adv, platformConfig) {
     fail("no iOS workspace — run build/sync first.");
   }
 
+  const schemeName = iosXcodeSchemeName(platformConfig.displayName);
   const packageDir = path.join(adv.buildDir, "package", "ios");
   mkdirSync(packageDir, { recursive: true });
-  const archivePath = path.join(packageDir, "App.xcarchive");
+  const archivePath = path.join(packageDir, `${schemeName}.xcarchive`);
   const exportDir = path.join(packageDir, "export");
   rmSync(archivePath, { recursive: true, force: true });
   rmSync(exportDir, { recursive: true, force: true });
@@ -345,7 +484,7 @@ export function packageIos(adv, platformConfig) {
     "-workspace",
     workspace,
     "-scheme",
-    "App",
+    schemeName,
     "-configuration",
     "Release",
     "-archivePath",
@@ -369,8 +508,11 @@ export function packageIos(adv, platformConfig) {
     { stdio: "inherit", shell: false },
   );
 
-  const ipa = path.join(exportDir, "App.ipa");
+  const ipa = path.join(exportDir, `${schemeName}.ipa`);
   if (!existsSync(ipa)) {
+    // xcodebuild names the ipa after the target; fall back to App.ipa for older builds.
+    const legacy = path.join(exportDir, "App.ipa");
+    if (existsSync(legacy)) return legacy;
     fail(`expected ipa at ${ipa}`);
   }
   log(`created ${path.relative(REPO_ROOT, ipa)}`);
@@ -379,7 +521,7 @@ export function packageIos(adv, platformConfig) {
 
 /** Build a release .aab into <buildDir>/package/android/. */
 export function packageAndroid(adv, platformConfig) {
-  const androidRoot = path.join(adv.buildDir, "android");
+  const androidRoot = androidRootFor(adv);
   if (!existsSync(androidRoot)) {
     fail("no Android project — run build/sync first.");
   }
@@ -390,6 +532,12 @@ export function packageAndroid(adv, platformConfig) {
   const gradlew = path.join(androidRoot, process.platform === "win32" ? "gradlew.bat" : "gradlew");
   if (!existsSync(gradlew)) {
     fail(`missing gradle wrapper at ${gradlew}`);
+  }
+
+  try {
+    applyAndroidReleaseConfig({ androidRoot, platformConfig, log });
+  } catch (error) {
+    fail(error.message);
   }
 
   log(`building Android App Bundle (${platformConfig.applicationId})`);

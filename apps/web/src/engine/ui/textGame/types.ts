@@ -72,7 +72,7 @@ export interface MainMenuProps {
   initialSlot?: number;
   onContinueSlot: (index: number) => void;
   onRestartSlot: (index: number) => void;
-  onCreateSupportBundle: () => void;
+  onCreateSupportBundle?: () => void;
 }
 
 export interface SystemMenuProps {
@@ -80,7 +80,7 @@ export interface SystemMenuProps {
   onSave: () => void;
   onOpenMainMenu: () => void;
   onRestart: () => void;
-  onCreateSupportBundle: () => void;
+  onCreateSupportBundle?: () => void;
 }
 
 export interface GameScreenProps {
@@ -101,7 +101,7 @@ export interface GameScreenProps {
   onRestart: () => void;
   onOpenLoad: () => void;
   onOpenMainMenu: () => void;
-  onCreateSupportBundle: () => void;
+  onCreateSupportBundle?: () => void;
 }
 
 export interface TextGameComponents {

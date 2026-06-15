@@ -113,7 +113,7 @@ only when needed with `BLACKBOX_WEB_PLAYER_GAME=<game-id>`.
 Production Vercel deploy via the unified CLI:
 
 ```bash
-node cli.js --project=data/silent_archive_game --platform=web --stage=build --configuration=release --deploy=vercel
+node cli.js build --project=data/silent_archive_game --platform=web --configuration=release --deploy=vercel
 ```
 
 ### Web fonts
