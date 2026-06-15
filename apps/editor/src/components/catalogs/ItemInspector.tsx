@@ -99,7 +99,7 @@ export function ItemInspector({ itemId, onDeleted }: Props) {
         <SectionHeader>{t("item.actions")}</SectionHeader>
         <SectionBody>
           {(item.actions ?? []).map((action, i) => (
-            <Card key={action.id} className="mb-3">
+            <Card key={action.id} className="item-action-card mb-3">
               <div className="mb-2 flex justify-end">
                 <Button
                   variant="danger"
@@ -161,12 +161,14 @@ export function ItemInspector({ itemId, onDeleted }: Props) {
                   }
                 />
               </FormField>
-              <Checkbox
-                label={t("item.consumeItem")}
-                className="mb-2"
-                checked={action.consume !== false}
-                onChange={(e) => updateAction(i, { ...action, consume: e.target.checked })}
-              />
+              <div className="item-action-toggle">
+                <span>{t("item.consumeItem")}</span>
+                <Checkbox
+                  aria-label={t("item.consumeItem")}
+                  checked={action.consume !== false}
+                  onChange={(e) => updateAction(i, { ...action, consume: e.target.checked })}
+                />
+              </div>
               <GateEditor
                 label={t("choice.requires")}
                 value={action.requires}

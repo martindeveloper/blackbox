@@ -89,7 +89,9 @@
   --author-accent: var(--editor-primary);
   margin: -8px;
   min-height: 100%;
-  background: var(--editor-inspector);
+  background:
+    radial-gradient(circle at 100% 0%, var(--editor-glass-orange), transparent 22%),
+    color-mix(in srgb, var(--editor-inspector) 88%, transparent);
 }
 
 .node-authoring-header {
@@ -114,11 +116,88 @@
   color: var(--editor-text-subtle);
 }
 
+.node-authoring-tabs {
+  position: sticky;
+  top: -8px;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 0 8px;
+  border-bottom: 1px solid var(--editor-glass-border);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07), transparent), var(--editor-glass-strong);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(30px) saturate(1.4);
+  -webkit-backdrop-filter: blur(30px) saturate(1.4);
+}
+
+.node-authoring-tabs button {
+  display: flex;
+  min-width: 0;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 5px 6px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--editor-text-muted);
+  cursor: pointer;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.node-authoring-tabs button:hover {
+  background: color-mix(in srgb, var(--editor-surface-3) 62%, transparent);
+  color: var(--editor-text);
+}
+
+.node-authoring-tabs button.is-active {
+  border-bottom-color: var(--author-accent);
+  color: var(--author-accent);
+  background: linear-gradient(
+    180deg,
+    transparent,
+    color-mix(in srgb, var(--author-accent) 7%, transparent)
+  );
+}
+
+.node-authoring-tabs button > span {
+  min-width: 16px;
+  padding: 1px 4px;
+  border-radius: 999px;
+  background: var(--editor-surface-2);
+  color: currentColor;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  text-align: center;
+}
+
 .node-authoring-body {
   display: flex;
   flex-direction: column;
   gap: 10px;
   padding: 12px 10px 24px;
+}
+
+.node-authoring-section-heading {
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--editor-border-subtle);
+}
+
+.node-authoring-section-heading strong {
+  display: block;
+  color: var(--editor-text);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.node-authoring-section-heading p {
+  margin: 3px 0 0;
+  color: var(--editor-text-subtle);
+  font-size: 9px;
+  line-height: 1.45;
 }
 
 .node-authoring-body > .form-field--stacked .editor-input {

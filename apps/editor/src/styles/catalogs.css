@@ -309,6 +309,36 @@
   color: var(--editor-danger);
 }
 
+.item-action-card .item-action-toggle,
+.item-action-card .gate-editor-toggle {
+  display: grid;
+  grid-template-columns: minmax(78px, 32%) minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+  border-bottom: 1px solid var(--editor-border-subtle);
+}
+
+.item-action-card .item-action-toggle > span,
+.item-action-card .gate-editor-label {
+  color: var(--editor-text-muted);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.3;
+  text-transform: none;
+}
+
+.item-action-card .item-action-toggle .ui-checkbox,
+.item-action-card .gate-editor-toggle .ui-checkbox {
+  flex-direction: row-reverse;
+  justify-self: end;
+  margin: 0;
+}
+
+.item-action-card .gate-editor > .ui-card {
+  margin-top: 5px;
+}
+
 .catalog-entity-canvas {
   flex: 1;
   min-height: 0;

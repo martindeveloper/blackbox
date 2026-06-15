@@ -211,7 +211,6 @@ export function OpenFolderScreen() {
               <button
                 type="button"
                 className="splash-cta"
-                style={{ marginBottom: "8px" }}
                 disabled={loading || busy}
                 onClick={() => setShowNewProject(true)}
               >

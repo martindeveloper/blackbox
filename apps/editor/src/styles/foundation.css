@@ -1,23 +1,23 @@
 :root,
 :root[data-theme="dark"] {
-  --editor-bg: #0a0908;
-  --editor-stage: #0e0c0a;
-  --editor-surface: #12100e;
-  --editor-surface-2: #181614;
-  --editor-surface-3: #201e1a;
-  --editor-toolbar: #141210;
-  --editor-inspector: #12100e;
-  --editor-border: #060605;
-  --editor-border-subtle: #141210;
-  --editor-border-2: #38342e;
-  --editor-text: #eceae6;
-  --editor-text-muted: #969088;
-  --editor-text-subtle: #5e5850;
-  --editor-primary: #df6c00;
+  --editor-bg: #050505;
+  --editor-stage: #080808;
+  --editor-surface: #0d0d0d;
+  --editor-surface-2: #141414;
+  --editor-surface-3: #1a1a1a;
+  --editor-toolbar: rgba(8, 8, 8, 0.68);
+  --editor-inspector: rgba(7, 7, 7, 0.76);
+  --editor-border: #020202;
+  --editor-border-subtle: rgba(255, 255, 255, 0.045);
+  --editor-border-2: #303030;
+  --editor-text: #efefed;
+  --editor-text-muted: #9d9b97;
+  --editor-text-subtle: #62605c;
+  --editor-primary: #f07a12;
   --editor-accent: var(--editor-primary);
-  --editor-primary-hover: #ffaa44;
-  --editor-selection: rgba(223, 108, 0, 0.1);
-  --editor-selection-border: #df6c00;
+  --editor-primary-hover: #ff9a3d;
+  --editor-selection: rgba(240, 122, 18, 0.12);
+  --editor-selection-border: #f07a12;
   --editor-secondary: #6b9cf0;
   --editor-danger: #f07070;
   --editor-success: #6fcf97;
@@ -28,19 +28,29 @@
   --sim-ending-4: #e8c468;
   --sim-ending-5: #c084fc;
   --sim-ending-6: #f07070;
-  --editor-input-bg: #0c0b0a;
-  --editor-input-border: #302c28;
-  --editor-input-focus: #df6c00;
-  --editor-btn-bg: #201e1a;
-  --editor-btn-bg-hover: #282620;
-  --editor-btn-text: #e4e4e4;
-  --editor-btn-primary-bg: #9a4800;
-  --editor-btn-primary-bg-hover: #b85600;
+  --editor-input-bg: rgba(2, 2, 2, 0.78);
+  --editor-input-border: #2d2d2d;
+  --editor-input-focus: #f07a12;
+  --editor-btn-bg: rgba(38, 38, 38, 0.58);
+  --editor-btn-bg-hover: rgba(52, 52, 52, 0.76);
+  --editor-btn-text: #e8eaed;
+  --editor-btn-primary-bg: #b85406;
+  --editor-btn-primary-bg-hover: #d5660c;
   --editor-btn-primary-text: #ffffff;
-  --editor-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 2px 6px rgba(0, 0, 0, 0.45);
+  --editor-glass: rgba(9, 9, 9, 0.64);
+  --editor-glass-strong: rgba(13, 13, 13, 0.78);
+  --editor-highlight: rgba(255, 255, 255, 0.085);
+  --editor-glass-border: rgba(255, 255, 255, 0.1);
+  --editor-glass-orange: rgba(240, 122, 18, 0.07);
+  --editor-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.045) inset, 0 1px 1px rgba(0, 0, 0, 0.45),
+    0 5px 16px rgba(0, 0, 0, 0.24);
+  --editor-shadow-lg:
+    0 1px 0 rgba(255, 255, 255, 0.055) inset, 0 1px 2px rgba(0, 0, 0, 0.5),
+    0 16px 42px rgba(0, 0, 0, 0.42);
   --editor-grid: rgba(255, 255, 255, 0.03);
-  --editor-glow: rgba(223, 108, 0, 0.2);
-  --editor-row-alt: rgba(255, 255, 255, 0.015);
+  --editor-glow: rgba(240, 122, 18, 0.22);
+  --editor-row-alt: rgba(255, 255, 255, 0.018);
 }
 
 :root[data-theme="light"] {
@@ -75,6 +85,11 @@
   --editor-btn-primary-bg: #c85400;
   --editor-btn-primary-bg-hover: #df6c00;
   --editor-btn-primary-text: #ffffff;
+  --editor-glass: rgba(253, 253, 252, 0.76);
+  --editor-glass-strong: rgba(253, 253, 252, 0.92);
+  --editor-highlight: rgba(255, 255, 255, 0.82);
+  --editor-glass-border: rgba(255, 255, 255, 0.92);
+  --editor-glass-orange: rgba(223, 108, 0, 0.035);
   --editor-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.9) inset, 0 1px 2px rgba(0, 0, 0, 0.04),
     0 4px 14px rgba(0, 0, 0, 0.045);
@@ -106,6 +121,23 @@ body {
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+:root[data-theme="dark"] body {
+  background:
+    radial-gradient(ellipse 90% 58% at 50% -18%, rgba(255, 255, 255, 0.025), transparent 62%),
+    radial-gradient(ellipse 55% 48% at 100% 100%, rgba(240, 122, 18, 0.035), transparent 65%),
+    var(--editor-bg);
+}
+
+:root[data-theme="dark"] #root::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  pointer-events: none;
+  opacity: 0.018;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 input,

@@ -117,15 +117,24 @@
 
 .ui-card {
   margin-bottom: 6px;
-  border: 1px solid var(--editor-border);
-  border-radius: 2px;
+  border: 1px solid var(--editor-border-2);
+  border-radius: 3px;
   padding: 6px 8px;
-  background: var(--editor-input-bg);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.05), transparent 32%),
+    color-mix(in srgb, var(--editor-input-bg) 74%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.055);
+  backdrop-filter: blur(18px) saturate(1.24);
+  -webkit-backdrop-filter: blur(18px) saturate(1.24);
 }
 
 .ui-card-elevated {
   border-color: var(--editor-border-2);
-  background: var(--editor-surface-2);
+  background:
+    radial-gradient(circle at 100% 0%, var(--editor-glass-orange), transparent 28%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.07), transparent 34%),
+    color-mix(in srgb, var(--editor-surface-2) 72%, transparent);
+  box-shadow: var(--editor-shadow);
 }
 
 .ui-card-header {
@@ -143,8 +152,8 @@
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: color-mix(in srgb, var(--editor-bg) 60%, transparent);
-  backdrop-filter: blur(3px);
+  background: color-mix(in srgb, var(--editor-bg) 66%, transparent);
+  backdrop-filter: blur(14px) saturate(1.05);
   animation: modal-backdrop-in 160ms ease-out;
 }
 
@@ -156,11 +165,13 @@
   margin: 0;
   padding: 0;
   border: 1px solid var(--editor-border-2);
-  border-radius: 4px;
-  background: var(--editor-surface-3);
-  box-shadow:
-    var(--editor-shadow),
-    0 16px 48px rgba(0, 0, 0, 0.4);
+  border-radius: 6px;
+  background:
+    radial-gradient(circle at 85% 0%, var(--editor-glass-orange), transparent 32%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.1), transparent 34%), var(--editor-glass-strong);
+  box-shadow: var(--editor-shadow-lg);
+  backdrop-filter: blur(38px) saturate(1.5);
+  -webkit-backdrop-filter: blur(38px) saturate(1.5);
   animation: modal-panel-in 200ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -241,8 +252,12 @@
   padding: 8px 8px 8px 12px;
   border: 1px solid var(--editor-border-2);
   border-radius: 3px;
-  background: var(--editor-surface-3);
-  box-shadow: var(--editor-shadow);
+  background:
+    radial-gradient(circle at 100% 0%, var(--editor-glass-orange), transparent 34%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.085), transparent 38%), var(--editor-glass-strong);
+  box-shadow: var(--editor-shadow-lg);
+  backdrop-filter: blur(30px) saturate(1.4);
+  -webkit-backdrop-filter: blur(30px) saturate(1.4);
   pointer-events: auto;
   overflow: hidden;
   animation: notification-in 200ms cubic-bezier(0.22, 1, 0.36, 1);

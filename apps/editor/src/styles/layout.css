@@ -1,9 +1,10 @@
 .editor-shell {
-  background: var(--editor-bg);
+  background: transparent;
 }
 
 .editor-workspace {
-  background: var(--editor-bg);
+  position: relative;
+  background: color-mix(in srgb, var(--editor-bg) 90%, transparent);
 }
 
 .editor-footer {
@@ -13,8 +14,14 @@
   gap: 16px;
   height: 22px;
   padding: 0 18px;
-  background: var(--editor-toolbar);
-  border-top: 1px solid var(--editor-border);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.055), transparent 65%), var(--editor-glass);
+  border-top: 1px solid var(--editor-glass-border);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 -8px 24px rgba(0, 0, 0, 0.14);
+  backdrop-filter: blur(30px) saturate(1.35);
+  -webkit-backdrop-filter: blur(30px) saturate(1.35);
   flex-shrink: 0;
   overflow: hidden;
 }
@@ -83,17 +90,35 @@
 }
 
 .editor-dock {
-  background: var(--editor-surface);
-  border-color: var(--editor-border);
+  position: relative;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.035), transparent 28%),
+    radial-gradient(circle at 100% 0%, var(--editor-glass-orange), transparent 32%),
+    var(--editor-glass);
+  border-color: var(--editor-glass-border);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.075),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.012);
+  backdrop-filter: blur(32px) saturate(1.4);
+  -webkit-backdrop-filter: blur(32px) saturate(1.4);
 }
 
 .editor-dock-left {
   min-width: 0;
   overflow: hidden;
+  box-shadow:
+    inset -1px 0 0 rgba(255, 255, 255, 0.025),
+    8px 0 24px rgba(0, 0, 0, 0.1);
 }
 
 .editor-dock-right {
-  background: var(--editor-inspector);
+  background:
+    linear-gradient(225deg, rgba(255, 255, 255, 0.035), transparent 26%),
+    radial-gradient(circle at 0% 0%, var(--editor-glass-orange), transparent 30%),
+    var(--editor-inspector);
+  box-shadow:
+    inset 1px 0 0 rgba(255, 255, 255, 0.025),
+    -8px 0 24px rgba(0, 0, 0, 0.1);
 }
 
 .panel-expand-strip {
@@ -228,5 +253,12 @@
 }
 
 .editor-stage {
-  background: var(--editor-stage);
+  background:
+    radial-gradient(
+      ellipse 80% 45% at 50% 0%,
+      color-mix(in srgb, var(--editor-secondary) 2.8%, transparent),
+      transparent 70%
+    ),
+    var(--editor-stage);
+  box-shadow: inset 0 1px 5px rgba(0, 0, 0, 0.38);
 }

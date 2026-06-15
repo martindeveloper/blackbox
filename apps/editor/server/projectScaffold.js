@@ -362,10 +362,7 @@ export async function writeNewProject(
   await writeProjectTree(
     projectPath,
     [
-      [
-        "scenario.json",
-        newScenarioDoc({ title, firstChapterId, firstChapterTitle, chapterRef }),
-      ],
+      ["scenario.json", newScenarioDoc({ title, firstChapterId, firstChapterTitle, chapterRef })],
       [chapterRef, newChapterDoc({ id: firstChapterId, title: firstChapterTitle, startNodeId })],
       ...baseProjectJsonFiles(),
     ],

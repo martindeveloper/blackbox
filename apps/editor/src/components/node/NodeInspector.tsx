@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, BookOpenText, GitFork, SlidersHorizontal } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
 import { collectSnippetIdsFromText } from "../../lib/libraryRefs.js";
@@ -35,9 +35,11 @@ export function NodeInspector({ chapterId, nodeId }: Props) {
   const updateChapter = useScenarioStore((s) => s.updateChapter);
 
   const [renameValue, setRenameValue] = useState("");
+  const [workspace, setWorkspace] = useState<"scene" | "choices" | "setup">("scene");
 
   useEffect(() => {
     setRenameValue("");
+    setWorkspace("scene");
   }, [chapterId, nodeId]);
 
   if (!bundle || !chapterId || !nodeId) return null;
@@ -86,41 +88,90 @@ export function NodeInspector({ chapterId, nodeId }: Props) {
         <span className="node-authoring-id">{nodeId}</span>
       </header>
 
-      <div className="node-authoring-body">
-        <FormField layout="stacked" label={t("node.sceneTitle")} hint={t("node.sceneTitleHint")}>
-          <Input
-            value={node.title ?? ""}
-            placeholder={t("node.sceneTitlePlaceholder")}
-            onChange={(e) => patch({ ...node, title: e.target.value })}
+      <nav className="node-authoring-tabs" aria-label={t("node.workspaceLabel")}>
+        <button
+          type="button"
+          className={workspace === "scene" ? "is-active" : ""}
+          aria-selected={workspace === "scene"}
+          onClick={() => setWorkspace("scene")}
+        >
+          <BookOpenText size={14} />
+          {t("node.scene")}
+          <span>{node.text?.length ?? 0}</span>
+        </button>
+        <button
+          type="button"
+          className={workspace === "choices" ? "is-active" : ""}
+          aria-selected={workspace === "choices"}
+          onClick={() => setWorkspace("choices")}
+        >
+          <GitFork size={14} />
+          {t("node.choices")}
+          <span>{node.choices?.length ?? 0}</span>
+        </button>
+        <button
+          type="button"
+          className={workspace === "setup" ? "is-active" : ""}
+          aria-selected={workspace === "setup"}
+          onClick={() => setWorkspace("setup")}
+        >
+          <SlidersHorizontal size={14} />
+          {t("node.advanced")}
+        </button>
+      </nav>
+
+      {workspace === "scene" ? (
+        <div className="node-authoring-body">
+          <FormField layout="stacked" label={t("node.sceneTitle")} hint={t("node.sceneTitleHint")}>
+            <Input
+              value={node.title ?? ""}
+              placeholder={t("node.sceneTitlePlaceholder")}
+              onChange={(e) => patch({ ...node, title: e.target.value })}
+            />
+          </FormField>
+
+          <TextBlockEditor
+            entries={node.text ?? []}
+            onChange={(text) => patch({ ...node, text })}
           />
-        </FormField>
 
-        <TextBlockEditor entries={node.text ?? []} onChange={(text) => patch({ ...node, text })} />
+          {snippetIds.length > 0 ? (
+            <div className="node-authoring-snippets">
+              {snippetIds.map((id) => (
+                <button
+                  key={id}
+                  type="button"
+                  className="graph-node-badge graph-node-badge--snippet"
+                  onClick={() => void navigateToLibraryEntry(navigate, "snippet", id)}
+                >
+                  @{id}
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
-        {snippetIds.length > 0 ? (
-          <div className="node-authoring-snippets">
-            {snippetIds.map((id) => (
-              <button
-                key={id}
-                type="button"
-                className="graph-node-badge graph-node-badge--snippet"
-                onClick={() => void navigateToLibraryEntry(navigate, "snippet", id)}
-              >
-                @{id}
-              </button>
-            ))}
+      {workspace === "choices" ? (
+        <div className="node-authoring-body">
+          <div className="node-authoring-section-heading">
+            <strong>{t("node.choicePrompt")}</strong>
+            <p>{t("node.choicePromptHint")}</p>
           </div>
-        ) : null}
-
-        <AuthorDetails summary={t("node.choices")} badge={node.choices?.length ?? 0}>
           <ChoiceListEditor
             choices={node.choices ?? []}
             chapterIds={chapterIds}
             onChange={(choices) => patch({ ...node, choices })}
           />
-        </AuthorDetails>
+        </div>
+      ) : null}
 
-        <AuthorDetails summary={t("node.sceneSetup")}>
+      {workspace === "setup" ? (
+        <div className="node-authoring-body">
+          <div className="node-authoring-section-heading">
+            <strong>{t("node.sceneSetup")}</strong>
+            <p>{t("node.sceneSetupHint")}</p>
+          </div>
           <CatalogRefField
             label={t("node.background")}
             ids={catalogAssetIds(bundle.assets, "textures")}
@@ -150,96 +201,98 @@ export function NodeInspector({ chapterId, nodeId }: Props) {
               />
             </SectionBody>
           </Section>
-        </AuthorDetails>
 
-        <AuthorDetails summary={t("node.templateAndReuse")} open={Boolean(node.$extends)}>
-          <FormField label={t("node.extends")} hint={t("node.extendsHint")}>
-            <FieldRow>
-              <Select
-                options={[
-                  { value: "", label: t("common.none") },
-                  ...templateIds.map((id) => ({ value: id, label: id })),
-                ]}
-                value={node.$extends ?? ""}
-                onChange={(e) => patch({ ...node, $extends: e.target.value || undefined })}
-              />
-              {node.$extends ? (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  icon
-                  title={t("library.openTemplate")}
-                  onClick={() => void navigateToLibraryEntry(navigate, "template", node.$extends!)}
-                >
-                  <ArrowUpRight size={14} />
-                </Button>
-              ) : null}
-            </FieldRow>
-          </FormField>
-          {node.$extends ? (
-            <MergeConfigEditor merge={merge} onChange={($merge) => patch({ ...node, $merge })} />
-          ) : null}
-          {node.$extends ? (
-            <Section>
-              <SectionHeader>{t("node.templatePreview")}</SectionHeader>
-              <SectionBody className="space-y-2 text-[10px] text-muted">
-                {template ? (
-                  <>
-                    {template.title ? <p>{template.title}</p> : null}
-                    {(template.text?.length ?? 0) > 0 ? (
-                      <p>{t("node.templateTextBlocks", { count: template.text!.length })}</p>
-                    ) : null}
-                    {(template.choices?.length ?? 0) > 0 ? (
-                      <p>{t("node.templateChoices", { count: template.choices!.length })}</p>
-                    ) : null}
-                  </>
-                ) : (
-                  <p className="text-danger">
-                    {t("library.unknownTemplate", { id: node.$extends })}
-                  </p>
-                )}
-              </SectionBody>
-            </Section>
-          ) : null}
-        </AuthorDetails>
+          <AuthorDetails summary={t("node.templateAndReuse")} open={Boolean(node.$extends)}>
+            <FormField label={t("node.extends")} hint={t("node.extendsHint")}>
+              <FieldRow>
+                <Select
+                  options={[
+                    { value: "", label: t("common.none") },
+                    ...templateIds.map((id) => ({ value: id, label: id })),
+                  ]}
+                  value={node.$extends ?? ""}
+                  onChange={(e) => patch({ ...node, $extends: e.target.value || undefined })}
+                />
+                {node.$extends ? (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    icon
+                    title={t("library.openTemplate")}
+                    onClick={() =>
+                      void navigateToLibraryEntry(navigate, "template", node.$extends!)
+                    }
+                  >
+                    <ArrowUpRight size={14} />
+                  </Button>
+                ) : null}
+              </FieldRow>
+            </FormField>
+            {node.$extends ? (
+              <MergeConfigEditor merge={merge} onChange={($merge) => patch({ ...node, $merge })} />
+            ) : null}
+            {node.$extends ? (
+              <Section>
+                <SectionHeader>{t("node.templatePreview")}</SectionHeader>
+                <SectionBody className="space-y-2 text-[10px] text-muted">
+                  {template ? (
+                    <>
+                      {template.title ? <p>{template.title}</p> : null}
+                      {(template.text?.length ?? 0) > 0 ? (
+                        <p>{t("node.templateTextBlocks", { count: template.text!.length })}</p>
+                      ) : null}
+                      {(template.choices?.length ?? 0) > 0 ? (
+                        <p>{t("node.templateChoices", { count: template.choices!.length })}</p>
+                      ) : null}
+                    </>
+                  ) : (
+                    <p className="text-danger">
+                      {t("library.unknownTemplate", { id: node.$extends })}
+                    </p>
+                  )}
+                </SectionBody>
+              </Section>
+            ) : null}
+          </AuthorDetails>
 
-        <AuthorDetails summary={t("node.identityAndFlow")}>
-          <FormField label={t("node.renameId")} hint={t("node.renameIdHint")}>
-            <FieldRow>
-              <Input
-                mono
-                placeholder={nodeId}
-                value={renameValue}
-                onChange={(e) => setRenameValue(e.target.value)}
-              />
-              <Button size="sm" onClick={handleRename}>
-                {t("common.rename")}
-              </Button>
-            </FieldRow>
-          </FormField>
-          <div className="node-authoring-actions">
-            {chapter.startNodeId !== nodeId ? (
-              <Button size="sm" onClick={setAsStart}>
-                {t("node.setAsStart")}
-              </Button>
-            ) : (
-              <span className="text-[10px] text-success">{t("node.isStart")}</span>
-            )}
-            {chapter.deathNodeId !== nodeId ? (
-              <Button size="sm" onClick={setAsDeath}>
-                {t("node.setAsDeath")}
-              </Button>
-            ) : (
-              <>
-                <span className="text-[10px] text-danger">{t("node.isDeath")}</span>
-                <Button size="sm" variant="ghost" onClick={clearDeath}>
-                  {t("node.clearDeath")}
+          <AuthorDetails summary={t("node.identityAndFlow")}>
+            <FormField label={t("node.renameId")} hint={t("node.renameIdHint")}>
+              <FieldRow>
+                <Input
+                  mono
+                  placeholder={nodeId}
+                  value={renameValue}
+                  onChange={(e) => setRenameValue(e.target.value)}
+                />
+                <Button size="sm" onClick={handleRename}>
+                  {t("common.rename")}
                 </Button>
-              </>
-            )}
-          </div>
-        </AuthorDetails>
-      </div>
+              </FieldRow>
+            </FormField>
+            <div className="node-authoring-actions">
+              {chapter.startNodeId !== nodeId ? (
+                <Button size="sm" onClick={setAsStart}>
+                  {t("node.setAsStart")}
+                </Button>
+              ) : (
+                <span className="text-[10px] text-success">{t("node.isStart")}</span>
+              )}
+              {chapter.deathNodeId !== nodeId ? (
+                <Button size="sm" onClick={setAsDeath}>
+                  {t("node.setAsDeath")}
+                </Button>
+              ) : (
+                <>
+                  <span className="text-[10px] text-danger">{t("node.isDeath")}</span>
+                  <Button size="sm" variant="ghost" onClick={clearDeath}>
+                    {t("node.clearDeath")}
+                  </Button>
+                </>
+              )}
+            </div>
+          </AuthorDetails>
+        </div>
+      ) : null}
     </div>
   );
 }

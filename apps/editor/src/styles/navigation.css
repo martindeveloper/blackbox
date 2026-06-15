@@ -3,8 +3,16 @@
 }
 
 .activity-bar {
-  background: var(--editor-toolbar);
-  border-right: 1px solid var(--editor-border);
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.055), transparent 60%),
+    radial-gradient(circle at 0% 22%, var(--editor-glass-orange), transparent 28%),
+    var(--editor-glass);
+  border-right: 1px solid var(--editor-glass-border);
+  box-shadow:
+    inset -1px 0 0 rgba(255, 255, 255, 0.045),
+    4px 0 16px rgba(0, 0, 0, 0.16);
+  backdrop-filter: blur(32px) saturate(1.4);
+  -webkit-backdrop-filter: blur(32px) saturate(1.4);
 }
 
 .activity-bar-spacer {
@@ -30,12 +38,16 @@
 }
 
 .activity-btn:hover {
-  background: var(--editor-surface-2);
-  color: var(--editor-text-muted);
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.012));
+  color: var(--editor-text);
 }
 
 .activity-btn-active {
-  background: var(--editor-selection);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--editor-primary) 17%, transparent),
+    color-mix(in srgb, var(--editor-primary) 4%, transparent)
+  );
   color: var(--editor-primary);
 }
 
