@@ -456,7 +456,7 @@ export async function getToolRun(projectId: string, tool: ToolRunName): Promise<
 export async function runBundlerInspect(
   projectId: string,
   expectedRevision: number,
-  platform = "web",
+  platform: string,
   ignoreMissing = false,
 ): Promise<ToolRun> {
   const response = await postJson<{ run: ToolRun }>(

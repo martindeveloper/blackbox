@@ -3,7 +3,6 @@ import {
   AlertTriangle,
   Circle,
   FlaskConical,
-  FolderOpen,
   Loader2,
   MonitorPlay,
   Package,
@@ -236,9 +235,6 @@ export function TopBar() {
                 : t("topBar.openIde", { ide: preferredIdeLabel })}
             </Button>
           ) : null}
-          <Button variant="ghost" size="sm" leadingIcon={FolderOpen} onClick={handleClose}>
-            {t("topBar.open")}
-          </Button>
           {projectName ? (
             <>
               <Button

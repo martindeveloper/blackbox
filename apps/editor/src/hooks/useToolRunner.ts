@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { getDefaultBundlePlayerId } from "../lib/playersApi.js";
 import {
   getToolRun,
   runBundlerInspect,
@@ -141,7 +142,12 @@ export function useToolRunner(
           ? await runLinter(projectId, revision, lintOptions)
           : toolId === "simulator"
             ? await runSimulator(projectId, revision, simOptions ?? DEFAULT_SIM_OPTIONS)
-            : await runBundlerInspect(projectId, revision, "web", ignoreMissing);
+            : await runBundlerInspect(
+                projectId,
+                revision,
+                await getDefaultBundlePlayerId(),
+                ignoreMissing,
+              );
       applyRun(toolRun);
     } catch (error) {
       setResult({

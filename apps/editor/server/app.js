@@ -18,7 +18,9 @@ import { setupLiveReload, staticFileHandler } from "./static.js";
 import { findDefaultDataRoot } from "./editorConfig.js";
 import { registerRoutes } from "./routes.js";
 import { ProjectService } from "./projectService.js";
-import { ensurePreviewBuilt } from "../players/web/previewBuild.mjs";
+import { playersWith } from "../players/registry.mjs";
+
+const previewPlayer = playersWith("livePreview")[0] ?? null;
 
 export async function reservePort(preferred = PORT) {
   const tryPort = (port) =>
@@ -89,36 +91,41 @@ export async function createEditorServer(options = {}) {
     return reply.code(404).type("text/plain; charset=utf-8").send("Not found");
   });
 
-  fastify.get("/preview", async (request, reply) => {
-    try {
-      const projectId = request.query?.project;
-      let project = null;
-      if (projectId) {
-        try {
-          project = projectService.requireProject(projectId);
-        } catch {
-          project = null;
+  if (previewPlayer) {
+    fastify.get("/preview", async (request, reply) => {
+      try {
+        const projectId = request.query?.project;
+        let project = null;
+        if (projectId) {
+          try {
+            project = projectService.requireProject(projectId);
+          } catch {
+            project = null;
+          }
         }
+        const { game } = await previewPlayer.ensurePreviewBuilt(project);
+        const template = await fs.readFile(path.join(DIST, "preview", "preview.html"), "utf8");
+        const html = template.replaceAll("__GAME__", game);
+        return reply
+          .header("Cache-Control", "no-store")
+          .type("text/html; charset=utf-8")
+          .send(html);
+      } catch (error) {
+        request.log?.error?.(error);
+        return reply
+          .code(500)
+          .type("text/plain; charset=utf-8")
+          .send(`Preview build failed: ${error?.message ?? error}`);
       }
-      const { game } = await ensurePreviewBuilt(project);
-      const template = await fs.readFile(path.join(DIST, "preview", "preview.html"), "utf8");
-      const html = template.replaceAll("__GAME__", game);
-      return reply.header("Cache-Control", "no-store").type("text/html; charset=utf-8").send(html);
-    } catch (error) {
-      request.log?.error?.(error);
-      return reply
-        .code(500)
-        .type("text/plain; charset=utf-8")
-        .send(`Preview build failed: ${error?.message ?? error}`);
-    }
-  });
+    });
 
-  fastify.get("/preview/:game/preview.js", (request, reply) =>
-    sendPreviewAsset(reply, request.params.game, "preview.js", "text/javascript; charset=utf-8"),
-  );
-  fastify.get("/preview/:game/style.css", (request, reply) =>
-    sendPreviewAsset(reply, request.params.game, "style.css", "text/css; charset=utf-8"),
-  );
+    fastify.get("/preview/:game/preview.js", (request, reply) =>
+      sendPreviewAsset(reply, request.params.game, "preview.js", "text/javascript; charset=utf-8"),
+    );
+    fastify.get("/preview/:game/style.css", (request, reply) =>
+      sendPreviewAsset(reply, request.params.game, "style.css", "text/css; charset=utf-8"),
+    );
+  }
 
   fastify.get("/*", staticFileHandler);
 

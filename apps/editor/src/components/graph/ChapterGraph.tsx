@@ -12,6 +12,8 @@ import {
   useReactFlow,
   ReactFlowProvider,
   type Connection,
+  type Edge,
+  type EdgeChange,
   type OnNodeDrag,
 } from "@xyflow/react";
 import * as dagre from "@dagrejs/dagre";
@@ -21,6 +23,7 @@ import { graphThemeColors, useTheme } from "../../context/ThemeContext.js";
 import {
   buildChapterGraph,
   applyDagreLayout,
+  type ScenarioEdgeData,
   type ScenarioNodeData,
 } from "../../lib/graphBuilder.js";
 import { buildGraphInsights, type GraphAnalyticsMode } from "../../lib/heatMap.js";
@@ -139,6 +142,7 @@ function ChapterGraphInner() {
   const updateNodePosition = useScenarioStore((s) => s.updateNodePosition);
   const applyLayout = useScenarioStore((s) => s.applyLayout);
   const connectNodes = useScenarioStore((s) => s.connectNodes);
+  const disconnectChoiceEdge = useScenarioStore((s) => s.disconnectChoiceEdge);
 
   const storedAnalytics = useAnalyticsStore((s) => s.analytics);
   const analyticsProjectId = useAnalyticsStore((s) => s.projectId);
@@ -246,6 +250,24 @@ function ChapterGraphInner() {
   const [nodes, setNodes, onNodesChange] = useNodesState(graphData.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(graphData.edges);
 
+  const handleEdgesChange = useCallback(
+    (changes: EdgeChange[]) => {
+      if (chapterId) {
+        for (const change of changes) {
+          if (change.type !== "remove") continue;
+          const edge = edges.find((candidate) => candidate.id === change.id) as
+            | Edge<ScenarioEdgeData>
+            | undefined;
+          const data = edge?.data;
+          if (!edge || !data?.choiceId) continue;
+          disconnectChoiceEdge(chapterId, edge.source, data.choiceId, data.kind);
+        }
+      }
+      onEdgesChange(changes);
+    },
+    [chapterId, disconnectChoiceEdge, edges, onEdgesChange],
+  );
+
   useEffect(() => {
     setNodes(graphData.nodes);
     setEdges(graphData.edges);
@@ -337,7 +359,7 @@ function ChapterGraphInner() {
           nodes={nodes}
           edges={edges}
           onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
+          onEdgesChange={handleEdgesChange}
           onConnect={onConnect}
           onNodeDragStop={onNodeDragStop}
           onNodeClick={(_e, node) =>

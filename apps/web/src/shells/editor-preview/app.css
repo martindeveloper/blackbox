@@ -47,16 +47,7 @@
   --preview-text-subtle: #94948f;
 }
 
-html,
-body,
-#root {
-  width: 100%;
-  height: 100%;
-  margin: 0;
-}
-
 body {
-  overflow: hidden;
   background: var(--bb-app-bg);
   color: var(--bb-ui-text);
   font-family: var(--bb-font-display);

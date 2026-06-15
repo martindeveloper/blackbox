@@ -3,12 +3,15 @@ import path from "node:path";
 import { BUNDLE_CACHE, WORK_DIR, bundledToolsEnabled, toolBinPath } from "./config.js";
 import { getCargoTargetDir, runProcess, runCargo, platformBin, discoverOneTool } from "./cargo.js";
 import { nullTools } from "./editorConfig.js";
-import { commandResult, appendOutput, parseLint, parseBundle, parseSimulator } from "./parsers.js";
+import { commandResult, parseLint, parseSimulator } from "./parsers.js";
 import { readUserPrefs, writeUserPrefs, sanitizePrefs } from "./prefs.js";
 import { ProjectError } from "./projectService.js";
 import { ToolRunRegistry } from "./toolRuns.js";
-import { ensurePreviewBuilt } from "../players/web/previewBuild.mjs";
+import { getPlayer, listPlayers, playersWith } from "../players/registry.mjs";
+import { runPlayerBundle } from "./tools/bundle.mjs";
 import { ensureProjectSidecars, writeNewProject } from "./projectScaffold.js";
+
+const previewPlayer = playersWith("livePreview")[0] ?? null;
 
 function toolDiscoverySource(defaultBinName, binPath) {
   if (!binPath) return "config";
@@ -52,6 +55,8 @@ export async function registerRoutes(app, service) {
     await writeUserPrefs(merged);
     return merged;
   });
+
+  app.get("/players", () => ({ players: listPlayers() }));
 
   app.get("/projects", async () => ({ projects: service.listProjects() }));
 
@@ -239,11 +244,17 @@ export async function registerRoutes(app, service) {
 
   app.get(
     "/projects/:id/preview-build",
-    projectRequest(service, (project, request) =>
-      ensurePreviewBuilt(project, {
+    projectRequest(service, (project, request, reply) => {
+      if (!previewPlayer) {
+        return reply.code(503).send({
+          code: "preview_unavailable",
+          message: "No live-preview player is registered",
+        });
+      }
+      return previewPlayer.ensurePreviewBuilt(project, {
         force: request.query?.force === "1" || request.query?.force === "true",
-      }),
-    ),
+      });
+    }),
   );
 
   app.post(
@@ -475,51 +486,22 @@ function executeSimulator(service, projectId, body) {
 
 function executeBundle(service, projectId, body) {
   return service.withRevision(projectId, body.expectedRevision, async (locked) => {
-    const platform = typeof body.platform === "string" ? body.platform : "web";
-    const ignoreMissing = body.ignoreMissing === true;
-    const bundleWorkDir = path.join(WORK_DIR, ".cache");
-    await fs.mkdir(bundleWorkDir, { recursive: true });
-    await fs.mkdir(BUNDLE_CACHE, { recursive: true });
-    const outputDir = await fs.mkdtemp(path.join(bundleWorkDir, "editor-bundle-"));
-    try {
-      const tools = locked.tools ?? nullTools();
-      const args = [
-        path.join(locked.path, "scenario.json"),
-        "--platform",
-        platform,
-        "-o",
-        outputDir,
-        "--cache-dir",
-        BUNDLE_CACHE,
-        "--json",
-      ];
-      if (ignoreMissing) args.push("--ignore-missing");
-      const bundle = tools.bundler
-        ? await runProcess(platformBin(tools.bundler), args, WORK_DIR)
-        : await runCargo("blackbox-bundler", args, { release: true });
-      const stdout = [];
-      const stderr = [];
-      appendOutput(stdout, "bundle", bundle);
-      if (bundle.stderr) stderr.push(bundle.stderr);
-      let inspect = { exitCode: bundle.exitCode, stdout: "", stderr: "" };
-      if (bundle.exitCode === 0) {
-        const inspectArgs = ["inspect", outputDir, "--json"];
-        inspect = tools.bundler
-          ? await runProcess(platformBin(tools.bundler), inspectArgs, WORK_DIR)
-          : await runCargo("blackbox-bundler", inspectArgs, { release: true });
-        appendOutput(stdout, "inspect", inspect);
-        if (inspect.stderr) stderr.push(inspect.stderr);
-      }
-      const exitCode = bundle.exitCode || inspect.exitCode;
-      return {
-        ok: exitCode === 0,
-        exitCode,
-        raw: { stdout: stdout.join(""), stderr: stderr.join("") },
-        phases: { bundle: commandResult(bundle), inspect: commandResult(inspect) },
-        parsed: parseBundle(bundle.stdout, inspect.stdout, bundle.stderr),
-      };
-    } finally {
-      await fs.rm(outputDir, { recursive: true, force: true });
+    const defaultPlayerId = playersWith("bundle")[0]?.manifest.id;
+    const playerId = typeof body.platform === "string" ? body.platform : defaultPlayerId;
+    const player = playerId ? getPlayer(playerId) : null;
+    if (!player?.manifest.capabilities.bundle) {
+      throw new ProjectError(
+        "invalid_request",
+        `Unknown or non-bundling player: ${playerId ?? String(body.platform)}`,
+      );
     }
+    return runPlayerBundle({
+      platform: player.manifest.id,
+      projectPath: locked.path,
+      tools: locked.tools ?? nullTools(),
+      workDir: WORK_DIR,
+      bundleCache: BUNDLE_CACHE,
+      ignoreMissing: body.ignoreMissing === true,
+    });
   });
 }

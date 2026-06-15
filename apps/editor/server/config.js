@@ -1,6 +1,5 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { resolveWorkspaceRoot } from "../players/web/manifest.mjs";
 
 const SERVER_DIR = path.dirname(fileURLToPath(import.meta.url));
 
@@ -25,12 +24,6 @@ export const PREVIEW_CACHE = path.join(USER_DATA_ROOT, ".cache", "preview");
 // Writable scratch space for preview toolchain temp files (tailwind wrappers, etc.).
 export const PREVIEW_BUILD_CACHE = path.join(USER_DATA_ROOT, ".cache", "preview-build");
 export const WORK_DIR = USER_DATA_ROOT;
-
-// Web player workspace: engine sources + preview toolchain. Dev: apps/web.
-// Packaged: resources/players/web/workspace (see players/web/manifest.mjs).
-export const WEB_PLAYER_WORKSPACE = resolveWorkspaceRoot(process.env, CLIENT_ROOT);
-/** @deprecated Use WEB_PLAYER_WORKSPACE */
-export const PREVIEW_WEB_ROOT = WEB_PLAYER_WORKSPACE;
 
 export function getToolsDir() {
   return process.env.BLACKBOX_TOOLS_DIR ? path.resolve(process.env.BLACKBOX_TOOLS_DIR) : null;

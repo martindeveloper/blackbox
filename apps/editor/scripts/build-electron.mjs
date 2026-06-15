@@ -32,7 +32,7 @@ if (skipTools) {
 
 // Stage the web player workspace into resources/ so on-demand preview builds work
 // in the packaged app (electron-builder copies it via extraResources).
-await run("node", ["./players/web/stage.mjs"]);
+await run("node", ["./players/registry.mjs", "stageForPackaging"]);
 await run("node", ["./scripts/stage-shared-lib.mjs"]);
 
 console.log("Electron build inputs are ready. Run: npm run electron:dist");

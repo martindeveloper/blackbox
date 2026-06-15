@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { PACKAGED_WORKSPACE_REL } from "../players/web/manifest.mjs";
+import { configurePlayerRuntimes } from "../players/registry.mjs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { app, BrowserWindow, dialog, ipcMain, nativeTheme, protocol, shell } from "electron";
 import { loadAppIcon } from "./icon.mjs";
@@ -82,10 +82,12 @@ async function configureRuntimePaths() {
     : path.join(CLIENT_ROOT, "resources", "bin");
   process.env.BLACKBOX_TOOLS_DIR = toolsDir;
 
-  // Web player workspace for on-demand preview builds.
-  process.env.BLACKBOX_PLAYER_WEB_WORKSPACE = usePackagedResources
-    ? path.join(process.resourcesPath, PACKAGED_WORKSPACE_REL)
-    : path.join(CLIENT_ROOT, "..", "web");
+  configurePlayerRuntimes({
+    usePackagedResources,
+    clientRoot: CLIENT_ROOT,
+    resourcesPath: process.resourcesPath,
+    env: process.env,
+  });
 }
 
 async function startServer() {

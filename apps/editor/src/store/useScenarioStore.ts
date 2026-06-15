@@ -31,6 +31,8 @@ import {
   type CreatedChapter,
 } from "../lib/chapterFactory.js";
 import { removeChapterFromBundle, renameChapterId } from "../lib/chapterLifecycle.js";
+import { disconnectChoiceEdgeInBundle } from "../lib/disconnectChoiceEdge.js";
+import type { GraphEdgeKind } from "../lib/graphBuilder.js";
 import { createLibrarySidecar, createMetaCatalogSidecar } from "../lib/sidecarFactory.js";
 import type { MetaEntryKind } from "../lib/metaUsage.js";
 import { validateBundle, type ValidationIssue } from "../lib/validation.js";
@@ -89,6 +91,12 @@ interface ScenarioState {
   deleteNode: (chapterId: string, nodeId: string) => void;
   renameNode: (chapterId: string, oldId: string, newId: string) => void;
   connectNodes: (chapterId: string, sourceId: string, targetId: string) => void;
+  disconnectChoiceEdge: (
+    chapterId: string,
+    sourceId: string,
+    choiceId: string,
+    kind: GraphEdgeKind,
+  ) => void;
   updateNodePosition: (chapterId: string, nodeId: string, x: number, y: number) => void;
   applyLayout: (chapterId: string, positions: Record<string, { x: number; y: number }>) => void;
   updateItem: (itemId: string, item: ItemDefinition) => void;
@@ -603,6 +611,28 @@ export const useScenarioStore = create<ScenarioState>((set, get) => ({
     source.choices = [...(source.choices ?? []), choice];
     set({ bundle: next });
     get().markDirty(`chapter:${chapterId}`);
+    get().runValidation();
+  },
+
+  disconnectChoiceEdge: (chapterId, sourceId, choiceId, kind) => {
+    const bundle = get().bundle;
+    if (!bundle) return;
+    const next = cloneBundle(bundle);
+    const chapter = next.chapters[chapterId];
+    if (!chapter) return;
+
+    const { chapterDirty, itemsDirty } = disconnectChoiceEdgeInBundle(
+      chapter,
+      next.items,
+      sourceId,
+      choiceId,
+      kind,
+    );
+    if (!chapterDirty && !itemsDirty) return;
+
+    set({ bundle: next });
+    if (chapterDirty) get().markDirty(`chapter:${chapterId}`);
+    if (itemsDirty) get().markDirty("items");
     get().runValidation();
   },
 

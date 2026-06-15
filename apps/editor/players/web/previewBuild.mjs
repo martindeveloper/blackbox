@@ -3,7 +3,7 @@ import fs from "node:fs/promises";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { PREVIEW_BUILD_CACHE, PREVIEW_CACHE, WEB_PLAYER_WORKSPACE } from "../../server/config.js";
+import { PREVIEW_BUILD_CACHE, PREVIEW_CACHE, CLIENT_ROOT } from "../../server/config.js";
 import {
   BUILD_GAME_CSS_PATH,
   DEFAULT_PREVIEW_GAME,
@@ -12,7 +12,7 @@ import {
   projectHasCustomCode,
   resolvePreviewGameSrc,
 } from "../../server/sharedLib.mjs";
-import { PROTOCOL_PATH } from "./manifest.mjs";
+import { PROTOCOL_PATH, resolveWorkspaceRoot } from "./manifest.mjs";
 
 // Engine + built-in shell sources whose mtimes invalidate a cached preview bundle.
 const SHARED_SRC = ["src/engine", "src/preview", "src/shells"];
@@ -133,7 +133,7 @@ async function buildGame(web, uiKey, gameSrc, force) {
  * Untrusted and UI-less projects share the generic editor-preview shell.
  */
 export async function ensurePreviewBuilt(project, { force = false } = {}) {
-  const web = WEB_PLAYER_WORKSPACE;
+  const web = resolveWorkspaceRoot(process.env, CLIENT_ROOT);
   const useCustomCode = project?.codeTrusted === true && projectHasCustomCode(project.path);
   const uiKey = useCustomCode ? project.id : DEFAULT_PREVIEW_GAME;
   const projectPath = useCustomCode ? project.path : null;
