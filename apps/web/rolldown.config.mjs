@@ -1,13 +1,14 @@
 import { defineConfig } from "rolldown";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { resolveWebPlayerGame } from "./scripts/lib/adventureDev.mjs";
+import { resolveWebPlayerGame, resolveWebOutDir } from "./scripts/lib/adventureDev.mjs";
 import { createWebRolldownResolve } from "../../scripts/lib/webRolldownResolve.mjs";
 
 const WEB_ROOT = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(WEB_ROOT, "../..");
 
 const { gameSrc } = resolveWebPlayerGame(process.env, WEB_ROOT, REPO_ROOT);
+const appJs = path.join(resolveWebOutDir(process.env), "www", "app.js");
 
 export default defineConfig({
   cwd: WEB_ROOT,
@@ -27,7 +28,7 @@ export default defineConfig({
     jsx: "react-jsx",
   },
   output: {
-    file: "./dist/www/app.js",
+    file: appJs,
     format: "esm",
   },
 });

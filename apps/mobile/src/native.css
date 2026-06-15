@@ -1,0 +1,40 @@
+/*
+ * Native-feel overrides for the Capacitor shell. Loaded AFTER the player's
+ * style.css. Scoped under html.bb-native (set by native.js gate via the body
+ * class below is not available early, so we key off the capacitor platform class
+ * Capacitor adds to <html>: `.ios` / `.md` plus `capacitor`-served origin).
+ *
+ * Everything here is cosmetic hardening — safe to ship even if a rule is a no-op
+ * on the web, because these selectors only bite inside the native webview.
+ */
+
+/* Capacitor adds platform classes to <html>; `.ios` only exists in the app. */
+html.ios,
+html.md {
+  /* Kill the whole-document rubber-band scroll. The player's own panels still
+     scroll internally (they are nested overflow containers, not the root). */
+  overscroll-behavior: none;
+}
+
+html.ios body,
+html.md body {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+  /* No grey flash when a tap is registered. */
+  -webkit-tap-highlight-color: transparent;
+  /* A narrative reader should not show the iOS text-selection loupe / callout. */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Keep real inputs usable (save-slot names, dev console, etc.). */
+html.ios input,
+html.ios textarea,
+html.md input,
+html.md textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}

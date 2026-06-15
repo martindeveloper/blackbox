@@ -1,0 +1,26 @@
+{
+  "name": "blackbox-mobile",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "description": "Capacitor native shell that wraps the Blackbox web player. iOS first; Android shares this project.",
+  "scripts": {
+    "payload": "node ./scripts/payload.mjs",
+    "payload:fast": "node ./scripts/payload.mjs --no-build",
+    "ios:sync": "node ./scripts/ios.mjs sync",
+    "ios:sync:fast": "node ./scripts/ios.mjs sync --no-build",
+    "ios:open": "node ./scripts/ios.mjs open",
+    "ios:run": "node ./scripts/ios.mjs run"
+  },
+  "dependencies": {
+    "@capacitor/app": "^8.1.0",
+    "@capacitor/core": "^8.4.0",
+    "@capacitor/haptics": "^8.0.2",
+    "@capacitor/ios": "^8.4.0",
+    "@capacitor/splash-screen": "^8.0.1",
+    "@capacitor/status-bar": "^8.0.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.4.0"
+  }
+}

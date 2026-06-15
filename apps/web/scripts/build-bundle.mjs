@@ -1,14 +1,20 @@
 #!/usr/bin/env node
 
-import { existsSync, mkdirSync, rmSync } from "node:fs";
+import { existsSync, mkdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { resolveWebDevAdventure } from "./lib/adventureDev.mjs";
+import { resolveWebDevAdventure, resolveWebOutDir } from "./lib/adventureDev.mjs";
 import { runSync } from "../../../scripts/lib/spawn.mjs";
 
 const clientRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.resolve(clientRoot, "../..");
-const out = path.join(clientRoot, "dist/www/bundle");
+// Resolved lazily (after the scenario check) so `--allow-empty` with no adventure
+// stays a no-op instead of throwing on the missing adventure.
+let out = null;
+function outDir() {
+  if (!out) out = path.join(resolveWebOutDir(process.env), "www", "bundle");
+  return out;
+}
 
 function envFlag(name) {
   return process.env[name] === "1";
@@ -52,7 +58,6 @@ const options = parseArgs(process.argv.slice(2));
 
 if (!options.scenario) {
   if (options.allowEmpty) {
-    rmSync(out, { recursive: true, force: true });
     console.warn("==> skipping web bundle: no BLACKBOX_ADVENTURE configured");
     process.exit(0);
   }
@@ -63,10 +68,11 @@ if (!existsSync(options.scenario)) {
   throw new Error(`Scenario not found: ${options.scenario}`);
 }
 
-mkdirSync(out, { recursive: true });
+const bundleOut = outDir();
+mkdirSync(bundleOut, { recursive: true });
 
 console.log(
-  `==> building web bundle (scenario=${options.scenario}, platform=${options.platform}, output=${out}, archive=${options.archiveCompress})`,
+  `==> building web bundle (scenario=${options.scenario}, platform=${options.platform}, output=${bundleOut}, archive=${options.archiveCompress})`,
 );
 
 const args = [
@@ -74,7 +80,7 @@ const args = [
   "--platform",
   options.platform,
   "-o",
-  out,
+  bundleOut,
   "--cache-dir",
   path.join(repoRoot, ".cache/bundle"),
 ];

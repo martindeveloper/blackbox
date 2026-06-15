@@ -45,6 +45,22 @@ export function resolveWebDevAdventure(env = process.env) {
   };
 }
 
+/**
+ * Output root for the web player build, ALWAYS inside the adventure — never the
+ * engine repo. The served site is `<root>/www`; deploy config (vercel.json) sits
+ * at `<root>`. Throws if no adventure is set: the engine repo must stay clean.
+ */
+export function resolveWebOutDir(env = process.env) {
+  const adventure = resolveWebDevAdventure(env);
+  if (!adventure) {
+    throw new Error(
+      "BLACKBOX_ADVENTURE (or BLACKBOX_SCENARIO) is required — the web build writes " +
+        "into <adventure>/.blackbox/build/web, never into the engine repo.",
+    );
+  }
+  return path.join(adventure.adventureRoot, ".blackbox", "build", "web");
+}
+
 export function resolveWebPlayerGame(env = process.env, webRoot, repoRoot) {
   const adventure = resolveWebDevAdventure(env);
 

@@ -5,9 +5,10 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { writeBuildInfo } from "../../../scripts/lib/fs-utils.mjs";
 import { run, runSync } from "../../../scripts/lib/spawn.mjs";
+import { resolveWebOutDir } from "./lib/adventureDev.mjs";
 
 const clientRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const dist = path.join(clientRoot, "dist/www");
+const dist = path.join(resolveWebOutDir(process.env), "www");
 const scriptsDir = path.dirname(fileURLToPath(import.meta.url));
 
 const TARGET = "wasm32-unknown-unknown";

@@ -1,0 +1,5 @@
+# apps/mobile holds ONLY engine tooling. All adventure-specific build output
+# (www, the Capacitor ios/ project) is generated into
+# <adventure>/.blackbox/build/ and never lives here.
+node_modules/
+.DS_Store

@@ -2,7 +2,7 @@
 
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { resolveWebPlayerGame } from "./lib/adventureDev.mjs";
+import { resolveWebPlayerGame, resolveWebOutDir } from "./lib/adventureDev.mjs";
 import { buildGameCss } from "../../../scripts/lib/buildGameCss.mjs";
 
 const WEB_ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
