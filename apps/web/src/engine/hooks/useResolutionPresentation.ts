@@ -55,11 +55,9 @@ export function useResolutionPresentation({
   const [damagePulse, setDamagePulse] = useState<DamagePulse | null>(null);
   const [narrativeReady, setNarrativeReady] = useState(true);
   const pulseIdRef = useRef(0);
-  const timingRef = useRef(timing);
-  timingRef.current = timing;
 
   const epochKey = `${nodeId}:${resolutionEpoch}`;
-  const sequenceSnapshotRef = useRef({
+  const [epochSnapshot, setEpochSnapshot] = useState({
     mode,
     deferHp,
     textBlockCount,
@@ -67,11 +65,12 @@ export function useResolutionPresentation({
     notifications,
     baselineStats,
     authoritativeStats,
+    timing,
   });
   const [trackedEpochKey, setTrackedEpochKey] = useState(epochKey);
   if (trackedEpochKey !== epochKey) {
     setTrackedEpochKey(epochKey);
-    sequenceSnapshotRef.current = {
+    setEpochSnapshot({
       mode,
       deferHp,
       textBlockCount,
@@ -79,7 +78,8 @@ export function useResolutionPresentation({
       notifications,
       baselineStats,
       authoritativeStats,
-    };
+      timing,
+    });
     setSequencePhase("narrative");
     setNarrativeReady(mode !== "dice-first");
     setHpCommitted(!deferHp);
@@ -100,8 +100,8 @@ export function useResolutionPresentation({
       notifications: sequenceNotifications,
       baselineStats: sequenceBaseline,
       authoritativeStats: sequenceAuthoritative,
-    } = sequenceSnapshotRef.current;
-    const sequenceTiming = timingRef.current;
+      timing: sequenceTiming,
+    } = epochSnapshot;
 
     const timers: ReturnType<typeof setTimeout>[] = [];
 
@@ -163,7 +163,7 @@ export function useResolutionPresentation({
     return () => {
       for (const timer of timers) clearTimeout(timer);
     };
-  }, [epochKey]);
+  }, [epochKey, epochSnapshot]);
 
   return {
     showResolution: sequencePhase !== "narrative",

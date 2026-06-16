@@ -21,12 +21,11 @@ export function PreviewReporter({
   const readySentRef = useRef(false);
   const sessionPhase = session.phase;
   const readySession = sessionPhase === "ready" ? session : null;
-  const readyEngine = readySession?.engine;
 
   const engineSnapshot = useMemo(() => {
-    if (!readyEngine) return undefined;
-    return snapshotEngineState(readyEngine);
-  }, [readyEngine, readySession?.view]);
+    if (!readySession) return undefined;
+    return snapshotEngineState(readySession.engine);
+  }, [readySession]);
 
   const publishRuntimeState = useCallback(
     (forceEngineSnapshot = false) => {

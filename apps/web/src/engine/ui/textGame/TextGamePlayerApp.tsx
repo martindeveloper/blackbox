@@ -189,7 +189,10 @@ export function TextGamePlayerApp<FadeKind extends string>({
   const { playSfx, muted, toggleMute, audioBlocked } = useAudio(activeMusic, config.audio, {
     fadeKind,
   });
-  playSfxRef.current = playSfx;
+
+  useEffect(() => {
+    playSfxRef.current = playSfx;
+  });
 
   const projectTitle = projectInfo()?.title;
   const scenarioTitle = view?.scenario_title?.trim() || projectTitle?.trim() || t("header.brand");
@@ -308,10 +311,9 @@ export function TextGamePlayerApp<FadeKind extends string>({
   const ChapterTransition = config.ChapterTransition ?? DefaultChapterTransition;
   const bootActive = session.phase === "loading" || session.phase === "error";
   const [showBootLayer, setShowBootLayer] = useState(bootActive);
-
-  useEffect(() => {
-    if (bootActive) setShowBootLayer(true);
-  }, [bootActive]);
+  if (bootActive && !showBootLayer) {
+    setShowBootLayer(true);
+  }
 
   return (
     <div className={config.rootClassName ?? "text-game-player-app"} style={config.rootStyle}>

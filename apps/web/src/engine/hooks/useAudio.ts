@@ -230,7 +230,9 @@ export function useAudio<FadeKind extends string>(
         fadeIn,
         fadeOut,
       });
-      setAudioBlocked(engine.isBlocked());
+      if (engine.isBlocked()) {
+        queueMicrotask(() => setAudioBlocked(true));
+      }
     } else {
       logger.debug("audio", "Music stopped", {
         fadeKind: fadeKind ?? "default",

@@ -168,7 +168,9 @@ export function useBlackboxSession({ onSfx, presentation }: UseBlackboxSessionOp
       flushPlaytime,
       persistAutosave,
       playSfxSafe,
+      playtimeStartedAtRef,
       reportBootError,
+      setAppStatus,
       startAnalyticsSession,
       startPlaytimeClock,
       takePlaytimeDelta,
@@ -268,7 +270,7 @@ export function useBlackboxSession({ onSfx, presentation }: UseBlackboxSessionOp
         }
       })();
     },
-    [applyCommandResult, cancelAutosave, clearTransientUi, recoverFromAutosave, setAppStatus],
+    [applyCommandResult, cancelAutosave, clearTransientUi, recoverFromAutosave, setAppStatus, takePlaytimeDelta],
   );
 
   useEffect(() => {

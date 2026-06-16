@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { SUPPORT_BUNDLE_ENABLED } from "@platform";
 import { characterBySpeaker } from "../../lib/characters.js";
@@ -290,22 +290,26 @@ export function DefaultInventory({
   onUse,
 }: InventoryProps) {
   const { t } = useTranslation();
-  const [selectedRef, setSelectedRef] = useState<string | null>(
-    view.inventory_items[0]?.ref_id ?? null,
-  );
+  const [userSelectedRef, setUserSelectedRef] = useState<string | null>(null);
   const actions = useMemo(() => actionsByItem(view.item_actions), [view.item_actions]);
+  const selectedRef = useMemo(() => {
+    if (!view.inventory_items.length) return null;
+    if (
+      userSelectedRef &&
+      view.inventory_items.some((item) => item.ref_id === userSelectedRef)
+    ) {
+      return userSelectedRef;
+    }
+    return view.inventory_items[0]!.ref_id;
+  }, [userSelectedRef, view.inventory_items]);
   const selected = view.inventory_items.find((item) => item.ref_id === selectedRef);
 
+  const lastAutoExaminedRef = useRef<string | null>(null);
   useEffect(() => {
-    if (!view.inventory_items.length) {
-      setSelectedRef(null);
-      return;
-    }
-    if (selectedRef && view.inventory_items.some((item) => item.ref_id === selectedRef)) return;
-    const firstRef = view.inventory_items[0]!.ref_id;
-    setSelectedRef(firstRef);
-    onExamine(firstRef);
-  }, [onExamine, selectedRef, view.inventory_items]);
+    if (!selectedRef || selectedRef === lastAutoExaminedRef.current) return;
+    lastAutoExaminedRef.current = selectedRef;
+    onExamine(selectedRef);
+  }, [onExamine, selectedRef]);
 
   if (!view.inventory_items.length)
     return <p className="bb-default-empty-state">{t("inventory.empty")}</p>;
@@ -318,7 +322,7 @@ export function DefaultInventory({
             type="button"
             className={`bb-default-inventory__slot${selectedRef === item.ref_id ? " bb-default-inventory__slot--selected" : ""}`}
             onClick={() => {
-              setSelectedRef(item.ref_id);
+              setUserSelectedRef(item.ref_id);
               onExamine(item.ref_id);
             }}
           >

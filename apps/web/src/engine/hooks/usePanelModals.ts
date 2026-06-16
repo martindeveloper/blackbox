@@ -36,13 +36,8 @@ export function usePanelModals<Id extends string>({
       setOpenPanel(id);
       openModal(createModal(id, () => closePanel(id)));
     },
-    [closePanel, createModal, closeModal, openModal], // eslint-disable-line react-hooks/exhaustive-deps
+    [closePanel, createModal, closeModal, openModal, panelIds],
   );
-
-  useEffect(() => {
-    if (!openPanel) return;
-    openPanelModal(openPanel);
-  }, [openPanel, openPanelModal]);
 
   useEffect(() => {
     function handleKey(event: KeyboardEvent) {
@@ -72,7 +67,7 @@ export function usePanelModals<Id extends string>({
 
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
-  }, [hasOpenModals, openPanel, openPanelModal, primaryPanelId, primaryShortcut, shortcuts]);
+  }, [hasOpenModals, openPanel, openPanelModal, panelIds, primaryPanelId, primaryShortcut, shortcuts]);
 
   return { showPanel: openPanelModal };
 }

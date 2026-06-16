@@ -50,7 +50,10 @@ function useBodyScrollLock(locked: boolean) {
 export function ModalProvider({ children }: { children: ReactNode }) {
   const [stack, setStack] = useState<ModalDescriptor[]>([]);
   const stackRef = useRef<ModalDescriptor[]>([]);
-  stackRef.current = stack;
+
+  useEffect(() => {
+    stackRef.current = stack;
+  }, [stack]);
 
   const openModal = useCallback((descriptor: ModalDescriptor) => {
     setStack((current) => {

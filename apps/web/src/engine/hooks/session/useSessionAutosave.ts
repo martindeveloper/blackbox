@@ -1,4 +1,4 @@
-import { useCallback, useRef, type Dispatch, type RefObject, type SetStateAction } from "react";
+import { useCallback, useEffect, useRef, type Dispatch, type RefObject, type SetStateAction } from "react";
 import type { TFunction } from "i18next";
 import {
   EngineBusyError,
@@ -36,6 +36,7 @@ export function useSessionAutosave({
 }: UseSessionAutosaveOptions) {
   const autosaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autosaveGenerationRef = useRef(0);
+  const persistAutosaveRef = useRef<(engine: BlackboxEngine, view: GameView) => void>(() => {});
 
   const cancelAutosave = useCallback(() => {
     autosaveGenerationRef.current += 1;
@@ -52,7 +53,7 @@ export function useSessionAutosave({
         autosaveTimerRef.current = null;
         if (generation !== autosaveGenerationRef.current) return;
         if (commandPendingRef.current) {
-          persistAutosave(engine, view);
+          persistAutosaveRef.current(engine, view);
           return;
         }
         try {
@@ -91,7 +92,7 @@ export function useSessionAutosave({
         } catch (error: unknown) {
           if (error instanceof EngineBusyError) {
             logger.debug("session", "Autosave deferred (engine busy)");
-            persistAutosave(engine, view);
+            persistAutosaveRef.current(engine, view);
             return;
           }
           logger.error("session", "Autosave failed", error);
@@ -100,6 +101,10 @@ export function useSessionAutosave({
     },
     [activeSlotRef, commandPendingRef, lastAutosaveRef, takePlaytimeDelta],
   );
+
+  useEffect(() => {
+    persistAutosaveRef.current = persistAutosave;
+  });
 
   const recoverFromAutosave = useCallback(
     async (s: ReadySession, reason: string, context: Record<string, unknown>): Promise<boolean> => {
