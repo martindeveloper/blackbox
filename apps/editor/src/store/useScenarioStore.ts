@@ -104,6 +104,7 @@ interface ScenarioState {
   addNode: (chapterId: string, nodeId: string) => void;
   deleteNode: (chapterId: string, nodeId: string) => void;
   renameNode: (chapterId: string, oldId: string, newId: string) => void;
+  addChoice: (chapterId: string, nodeId: string) => void;
   connectNodes: (chapterId: string, sourceId: string, targetId: string) => void;
   disconnectChoiceEdge: (
     chapterId: string,
@@ -683,6 +684,27 @@ export const useScenarioStore = create<ScenarioState>((set, get) => ({
     get().markDirty("scenario");
     get().markDirty("layout");
     get().markDirty("items");
+    get().runValidation();
+  },
+
+  addChoice: (chapterId, nodeId) => {
+    const bundle = get().bundle;
+    if (!bundle) return;
+    const next = cloneBundle(bundle);
+    const chapter = next.chapters[chapterId];
+    if (!chapter) return;
+    const node = chapter.nodes[nodeId];
+    if (!node) return;
+
+    const choice: ChoiceContent = {
+      id: `choice_${Date.now()}`,
+      label: translate("defaults.newChoice"),
+      goto: "",
+    };
+    node.choices = [...(node.choices ?? []), choice];
+    get().commitHistory(`addChoice:${nodeId}`, false);
+    set({ bundle: next });
+    get().markDirty(`chapter:${chapterId}`);
     get().runValidation();
   },
 

@@ -13,6 +13,26 @@ const ROUTE_KINDS = [
   { kind: "itemAction", labelKey: "graph.help.item" },
 ] as const;
 
+const SHORTCUTS = [
+  { keys: ["N"], labelKey: "graph.help.shortcuts.addNode" },
+  { keys: ["C"], labelKey: "graph.help.shortcuts.addChoice" },
+  { keys: ["⌫"], labelKey: "graph.help.shortcuts.deleteNode" },
+  { keys: ["L"], labelKey: "graph.help.shortcuts.arrange" },
+  { keys: ["F"], labelKey: "graph.help.shortcuts.fit" },
+  { keys: ["H"], labelKey: "graph.help.shortcuts.analytics" },
+  { keys: ["⌘", "Z"], labelKey: "graph.help.shortcuts.undo" },
+  { keys: ["⌘", "⇧", "Z"], labelKey: "graph.help.shortcuts.redo" },
+  { keys: ["Esc"], labelKey: "graph.help.shortcuts.deselect" },
+  { keys: ["?"], labelKey: "graph.help.shortcuts.help" },
+] as const;
+
+function isTextEntry(target: EventTarget | null) {
+  const el = target as HTMLElement | null;
+  if (!el) return false;
+  const tag = el.tagName;
+  return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || el.isContentEditable;
+}
+
 export function GraphHelp() {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -38,6 +58,18 @@ export function GraphHelp() {
     };
   }, [open]);
 
+  // "?" toggles the shortcut reference from anywhere on the graph canvas.
+  useEffect(() => {
+    const toggleOnQuestionMark = (event: KeyboardEvent) => {
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      if (event.key !== "?" || isTextEntry(event.target)) return;
+      event.preventDefault();
+      setOpen((value) => !value);
+    };
+    window.addEventListener("keydown", toggleOnQuestionMark);
+    return () => window.removeEventListener("keydown", toggleOnQuestionMark);
+  }, []);
+
   return (
     <div className="graph-help" ref={rootRef}>
       <Button
@@ -48,7 +80,7 @@ export function GraphHelp() {
         aria-label={t("graph.help.open")}
         aria-expanded={open}
         aria-controls="graph-help-popover"
-        title={t("graph.help.open")}
+        title={`${t("graph.help.open")} (?)`}
         onClick={() => setOpen((value) => !value)}
       />
       {open ? (
@@ -90,6 +122,22 @@ export function GraphHelp() {
           </div>
           <div className="graph-help-note">{t("graph.help.parallel")}</div>
           <div className="graph-help-note">{t("graph.help.labels")}</div>
+
+          <div className="graph-help-section">
+            <div className="graph-help-kicker">{t("graph.help.shortcuts.kicker")}</div>
+            <dl className="graph-help-shortcuts">
+              {SHORTCUTS.map(({ keys, labelKey }) => (
+                <div className="graph-help-shortcut" key={labelKey}>
+                  <dt>
+                    {keys.map((key, i) => (
+                      <kbd key={i}>{key}</kbd>
+                    ))}
+                  </dt>
+                  <dd>{t(labelKey)}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
         </div>
       ) : null}
     </div>

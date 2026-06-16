@@ -29,6 +29,7 @@ import {
 import { buildGraphInsights, type GraphAnalyticsMode } from "../../lib/heatMap.js";
 import { useScenarioStore } from "../../store/useScenarioStore.js";
 import { useAnalyticsStore } from "../../store/useAnalyticsStore.js";
+import { useModal } from "../../context/ModalProvider.js";
 import { Page } from "../../lib/pages.js";
 import { editorNavigate, useEditorSearch } from "../../lib/routeHelpers.js";
 import { Subtitle } from "../ui/Heading.js";
@@ -132,6 +133,7 @@ function AnalyticsLegend({
 function ChapterGraphInner() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { confirm } = useModal();
   const search = useEditorSearch();
   const chapterId = search.chapter;
   const nodeId = search.node;
@@ -143,6 +145,9 @@ function ChapterGraphInner() {
   const applyLayout = useScenarioStore((s) => s.applyLayout);
   const connectNodes = useScenarioStore((s) => s.connectNodes);
   const disconnectChoiceEdge = useScenarioStore((s) => s.disconnectChoiceEdge);
+  const addNode = useScenarioStore((s) => s.addNode);
+  const deleteNode = useScenarioStore((s) => s.deleteNode);
+  const addChoice = useScenarioStore((s) => s.addChoice);
 
   const storedAnalytics = useAnalyticsStore((s) => s.analytics);
   const analyticsProjectId = useAnalyticsStore((s) => s.projectId);
@@ -323,6 +328,100 @@ function ChapterGraphInner() {
       void fitView({ padding: 0.18, maxZoom: 1, duration: 260 });
     });
   }, [chapterId, chapter?.startNodeId, nodes, edges, applyLayout, setNodes, fitView]);
+
+  const handleAddNode = useCallback(() => {
+    if (!chapterId || !chapter) return;
+    const id = `node_${Date.now()}`;
+    if (chapter.nodes[id]) return;
+    addNode(chapterId, id);
+    void editorNavigate(navigate, {
+      to: Page.EditorGraph,
+      search: { chapter: chapterId, node: id },
+    });
+  }, [chapterId, chapter, addNode, navigate]);
+
+  const handleDeleteNode = useCallback(async () => {
+    if (!chapterId || !nodeId) return;
+    const ok = await confirm({
+      title: t("graph.confirmDelete.title"),
+      message: t("graph.confirmDelete.message", { nodeId }),
+      variant: "danger",
+      confirmLabel: t("common.delete"),
+    });
+    if (!ok) return;
+    deleteNode(chapterId, nodeId);
+    void editorNavigate(navigate, {
+      to: Page.EditorGraph,
+      search: { chapter: chapterId, node: null },
+    });
+  }, [chapterId, nodeId, confirm, deleteNode, navigate, t]);
+
+  // Power-user shortcuts for the graph canvas. Single-key bindings stay clear of
+  // text-entry fields and of the modifier combos handled globally in EditorShell.
+  useEffect(() => {
+    const isTextEntry = (target: EventTarget | null) => {
+      const el = target as HTMLElement | null;
+      if (!el) return false;
+      const tag = el.tagName;
+      return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || el.isContentEditable;
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!chapterId || search.globalNode === "death") return;
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      if (isTextEntry(event.target)) return;
+
+      switch (event.key) {
+        case "n":
+        case "N":
+          event.preventDefault();
+          handleAddNode();
+          break;
+        case "c":
+        case "C":
+          if (!nodeId) return;
+          event.preventDefault();
+          addChoice(chapterId, nodeId);
+          break;
+        case "Backspace":
+        case "Delete":
+          if (!nodeId) return;
+          event.preventDefault();
+          void handleDeleteNode();
+          break;
+        case "l":
+        case "L":
+          event.preventDefault();
+          handleAutoLayout();
+          break;
+        case "f":
+        case "F":
+          event.preventDefault();
+          void fitView({ padding: 0.18, maxZoom: 1, duration: 260 });
+          break;
+        case "h":
+        case "H":
+          if (!heatAvailable) return;
+          event.preventDefault();
+          setShowHeat((value) => !value);
+          break;
+        default:
+          break;
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [
+    chapterId,
+    nodeId,
+    search.globalNode,
+    handleAddNode,
+    handleDeleteNode,
+    handleAutoLayout,
+    addChoice,
+    fitView,
+    heatAvailable,
+  ]);
+
   const { theme } = useTheme();
   const graphColors = graphThemeColors[theme];
 
