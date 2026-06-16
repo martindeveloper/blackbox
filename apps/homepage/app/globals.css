@@ -2530,7 +2530,12 @@ a {
   margin-top: 1rem;
   font-size: 0.84rem;
   line-height: 1.75;
-  color: color-mix(in srgb, currentColor 70%, transparent);
+  color: color-mix(in srgb, var(--editor-page-ink) 70%, transparent);
+  transition: color 180ms ease;
+}
+
+.editor-page-feature-card:hover p {
+  color: color-mix(in srgb, var(--editor-page-light) 70%, transparent);
 }
 
 .editor-page-tags {
