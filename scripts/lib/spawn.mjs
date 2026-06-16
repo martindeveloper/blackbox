@@ -1,14 +1,28 @@
 import { spawn, spawnSync } from "node:child_process";
+import { existsSync } from "node:fs";
 import path from "node:path";
 
-// Windows .cmd/.bat shims (npm, npx) need a shell. Direct .exe invocations must
-// avoid shell so paths with spaces (e.g. AppData\Blackbox Editor\.cache) are not split.
+/** Append .exe to absolute Windows paths when the file exists. */
+function normalizeWindowsCommand(command) {
+  const cmd = String(command);
+  if (process.platform !== "win32") return cmd;
+  const ext = path.extname(cmd).toLowerCase();
+  if (ext) return cmd;
+  if (!path.isAbsolute(cmd)) return cmd;
+  const withExe = `${cmd}.exe`;
+  return existsSync(withExe) ? withExe : cmd;
+}
+
+// Windows .cmd/.bat shims (npm, npx) need a shell when looked up by bare name.
+// Direct .exe invocations and absolute paths must avoid shell so Program Files /
+// WindowsApps / AppData paths with spaces are not split by cmd.exe.
 export function needsShell(command) {
   if (process.platform !== "win32") return false;
-  const ext = path.extname(String(command)).toLowerCase();
-  if (ext === ".exe") return false;
+  const cmd = normalizeWindowsCommand(String(command));
+  const ext = path.extname(cmd).toLowerCase();
+  if (ext === ".exe" || ext === ".com") return false;
+  if (path.isAbsolute(cmd)) return false;
   if (ext === ".cmd" || ext === ".bat") return true;
-  // Extensionless command — PATH may resolve to a .cmd shim.
   return ext === "";
 }
 
@@ -17,29 +31,70 @@ export function windowsSpawnOptions() {
   return process.platform === "win32" ? { windowsHide: true } : {};
 }
 
-function spawnOptions(command, { cwd, env = process.env, quiet = false } = {}) {
+function npmCliCandidates(cwd, cliFile) {
+  const roots = new Set();
+  if (cwd) roots.add(cwd);
+  if (process.env.BLACKBOX_CLI_DIR) {
+    roots.add(process.env.BLACKBOX_CLI_DIR);
+    roots.add(path.join(process.env.BLACKBOX_CLI_DIR, "apps", "web"));
+  }
+  roots.add(path.dirname(process.execPath));
+  return [...roots].map((root) => path.join(root, "node_modules", "npm", "bin", cliFile));
+}
+
+function resolveNpmSpawn(command, args, { cwd } = {}) {
+  if (process.platform !== "win32") return null;
+  const name = String(command).toLowerCase();
+  if (name !== "npm" && name !== "npx") return null;
+  const cliFile = name === "npx" ? "npx-cli.js" : "npm-cli.js";
+  for (const cli of npmCliCandidates(cwd, cliFile)) {
+    if (existsSync(cli)) {
+      return { command: process.execPath, args: [cli, ...args], shell: false };
+    }
+  }
+  return null;
+}
+
+function resolveSpawn(command, args, options = {}) {
+  const npm = resolveNpmSpawn(command, args, options);
+  if (npm) return npm;
+  const normalized = normalizeWindowsCommand(command);
   return {
-    cwd,
-    env,
-    stdio: quiet ? "pipe" : "inherit",
-    encoding: quiet ? "utf8" : undefined,
-    shell: needsShell(command),
-    ...windowsSpawnOptions(),
+    command: normalized,
+    args,
+    shell: needsShell(normalized),
+  };
+}
+
+function spawnOptions(command, args, { cwd, env = process.env, quiet = false } = {}) {
+  const resolved = resolveSpawn(command, args, { cwd });
+  return {
+    command: resolved.command,
+    args: resolved.args,
+    options: {
+      cwd,
+      env,
+      stdio: quiet ? "pipe" : "inherit",
+      encoding: quiet ? "utf8" : undefined,
+      shell: resolved.shell,
+      ...windowsSpawnOptions(),
+    },
   };
 }
 
 export function commandExists(command) {
-  const checker = process.platform === "win32" ? "where" : "which";
+  const checker = process.platform === "win32" ? "where.exe" : "which";
   const result = spawnSync(checker, [command], {
     stdio: "ignore",
-    shell: needsShell(checker),
+    shell: false,
     ...windowsSpawnOptions(),
   });
   return result.status === 0;
 }
 
 export function runSync(command, args, options = {}) {
-  const result = spawnSync(command, args, spawnOptions(command, options));
+  const { command: cmd, args: spawnArgs, options: spawnOpts } = spawnOptions(command, args, options);
+  const result = spawnSync(cmd, spawnArgs, spawnOpts);
   if (result.error) {
     console.error(`error: failed to run ${command}: ${result.error.message}`);
     process.exit(1);
@@ -51,8 +106,9 @@ export function runSync(command, args, options = {}) {
 }
 
 export function run(command, args, options = {}) {
+  const { command: cmd, args: spawnArgs, options: spawnOpts } = spawnOptions(command, args, options);
   return new Promise((resolve, reject) => {
-    const child = spawn(command, args, spawnOptions(command, options));
+    const child = spawn(cmd, spawnArgs, spawnOpts);
     child.on("error", reject);
     child.on("close", (code) => {
       if (code === 0) resolve();
@@ -62,7 +118,11 @@ export function run(command, args, options = {}) {
 }
 
 export function capture(command, args, options = {}) {
-  const result = spawnSync(command, args, spawnOptions(command, { ...options, quiet: true }));
+  const { command: cmd, args: spawnArgs, options: spawnOpts } = spawnOptions(command, args, {
+    ...options,
+    quiet: true,
+  });
+  const result = spawnSync(cmd, spawnArgs, spawnOpts);
   if (result.error) {
     throw result.error;
   }
