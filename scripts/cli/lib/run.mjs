@@ -90,8 +90,8 @@ export function runWebPlayerBuild(
   { configuration = project.configuration ?? "release", platform = "web" } = {},
 ) {
   log("build", `compiling web player for ${project.gameId} (${configuration}, ${platform})`);
-  runSync("npm", ["run", "build", "--prefix", WEB_ROOT], {
-    cwd: REPO_ROOT,
+  runSync("npm", ["run", "build"], {
+    cwd: WEB_ROOT,
     env: {
       ...playerBuildEnv(project, configuration, platform),
       PROFILE: wasmProfileForConfiguration(configuration),
@@ -101,12 +101,12 @@ export function runWebPlayerBuild(
 
 export function runScriptsLint() {
   log("lint", "running build scripts linter");
-  runSync("npm", ["run", "lint", "--prefix", SCRIPTS_ROOT], { cwd: REPO_ROOT });
+  runSync("npm", ["run", "lint"], { cwd: SCRIPTS_ROOT });
 }
 
 export function runWebLint() {
   log("lint", "running web player linter");
-  runSync("npm", ["run", "lint", "--prefix", WEB_ROOT], { cwd: REPO_ROOT });
+  runSync("npm", ["run", "lint"], { cwd: WEB_ROOT });
 }
 
 export function exec(command, args, { cwd = REPO_ROOT, env = process.env } = {}) {

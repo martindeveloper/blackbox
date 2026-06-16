@@ -42,17 +42,26 @@ function npmCliCandidates(cwd, cliFile) {
   return [...roots].map((root) => path.join(root, "node_modules", "npm", "bin", cliFile));
 }
 
-function whereFirst(command) {
-  if (process.platform !== "win32") return null;
+function whereAll(command) {
+  if (process.platform !== "win32") return [];
   const result = spawnSync("where.exe", [command], {
     stdio: ["ignore", "pipe", "ignore"],
     encoding: "utf8",
     ...windowsSpawnOptions(),
   });
-  if (result.status !== 0) return null;
-  const out = String(result.stdout ?? "").trim();
-  if (!out) return null;
-  return out.split(/\r?\n/)[0].trim();
+  if (result.status !== 0) return [];
+  return String(result.stdout ?? "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
+
+export function npmCliBesideShim(shimDir, cliFile) {
+  const candidates = [
+    path.join(shimDir, "node_modules", "npm", "bin", cliFile),
+    path.join(shimDir, cliFile),
+  ];
+  return candidates.find((candidate) => existsSync(candidate)) ?? null;
 }
 
 function resolveNpmSpawn(command, args, { cwd } = {}) {
@@ -66,19 +75,13 @@ function resolveNpmSpawn(command, args, { cwd } = {}) {
     }
   }
 
-  // When running from a packaged MSIX environment the next-to-node npm layout
-  // is sometimes not present, which would force us to fall back to spawning
-  // `npm` through cmd.exe. That cmd splitting breaks absolute paths containing
-  // spaces (e.g. "C:\\Program Files\\..."), leading npm to try to read
-  // "C:\\Program\\package.json".
-  //
-  // Prefer resolving the npm shim from PATH and calling its adjacent
-  // `*-cli.js` with a direct node invocation (shell disabled).
-  const shim = whereFirst(name);
-  if (shim) {
-    const dir = path.dirname(shim);
-    const adjacentCli = path.join(dir, cliFile);
-    if (existsSync(adjacentCli)) return { command: process.execPath, args: [adjacentCli, ...args], shell: false };
+  // Packaged editors may not ship npm next to their runtime. Resolve the npm
+  // shim from PATH and invoke its real *-cli.js with node (shell disabled).
+  // Windows Node installs place the CLI at
+  // <nodejs>/node_modules/npm/bin/npm-cli.js — not beside npm.cmd.
+  for (const shim of whereAll(name)) {
+    const cli = npmCliBesideShim(path.dirname(shim), cliFile);
+    if (cli) return { command: process.execPath, args: [cli, ...args], shell: false };
   }
 
   return null;

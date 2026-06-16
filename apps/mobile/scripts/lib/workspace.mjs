@@ -17,7 +17,7 @@
  *
  * Nothing adventure-specific is ever written under apps/mobile.
  */
-import { execFileSync } from "node:child_process";
+import { runSync } from "../../../../scripts/lib/spawn.mjs";
 import {
   cpSync,
   existsSync,
@@ -112,13 +112,12 @@ export function buildPayload(adv, { noBuild = false, platform } = {}) {
 
   if (!noBuild) {
     log(`building web player (adventure: ${path.relative(REPO_ROOT, adv.scenario)}, platform=${platform})`);
-    execFileSync("npm", ["run", "build", "--prefix", WEB_ROOT], {
-      stdio: "inherit",
+    runSync("npm", ["run", "build"], {
+      cwd: WEB_ROOT,
       env: {
         ...playerBuildEnv({ root: adv.root, configuration }, configuration, platform),
         PROFILE: wasmProfileForConfiguration(configuration),
       },
-      shell: process.platform === "win32",
     });
   }
   if (!existsSync(webDist)) {

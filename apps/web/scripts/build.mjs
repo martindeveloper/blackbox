@@ -58,7 +58,7 @@ if (prebuiltWasmDir) {
 } else {
   if (!existsSync(path.join(clientRoot, "node_modules"))) {
     console.log("==> installing npm dependencies");
-    runSync("npm", ["install", "--prefix", clientRoot]);
+    runSync("npm", ["install"], { cwd: clientRoot });
   }
 
   await run(process.execPath, [path.join(scriptsDir, "build-wasm.mjs"), "--profile", profile], {
@@ -75,9 +75,9 @@ const bundleArgs =
     : [path.join(scriptsDir, "build-bundle.mjs"), "--ignore-missing", "--archive-compress", "zstd"];
 runSync(process.execPath, bundleArgs);
 
-runSync("npm", ["run", "build:js", "--prefix", clientRoot]);
-runSync("npm", ["run", "build:css", "--prefix", clientRoot]);
-runSync("npm", ["run", "build:favicon", "--prefix", clientRoot]);
+runSync("npm", ["run", "build:js"], { cwd: clientRoot });
+runSync("npm", ["run", "build:css"], { cwd: clientRoot });
+runSync("npm", ["run", "build:favicon"], { cwd: clientRoot });
 runSync(process.execPath, [path.join(scriptsDir, "sync-dist.mjs")]);
 
 writeBuildInfo(dist, { crate: "blackbox-wasm", target: TARGET, profile, configuration });
