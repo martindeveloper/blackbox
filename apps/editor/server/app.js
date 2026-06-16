@@ -111,7 +111,9 @@ export async function createEditorServer(options = {}) {
           .type("text/html; charset=utf-8")
           .send(html);
       } catch (error) {
-        request.log?.error?.(error);
+        // Fastify runs with logger:false, so request.log is a no-op; use console
+        // so the stack reaches the teed log file in packaged builds.
+        console.error("[editor] preview page build failed:", error);
         return reply
           .code(500)
           .type("text/plain; charset=utf-8")

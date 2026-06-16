@@ -257,16 +257,27 @@ export async function registerRoutes(app, service) {
 
   app.get(
     serverProjectRoute(ProjectRoutes.PreviewBuild),
-    projectRequest(service, (project, request, reply) => {
+    projectRequest(service, async (project, request, reply) => {
       if (!previewPlayer) {
         return reply.code(503).send({
           code: "preview_unavailable",
           message: "No live-preview player is registered",
         });
       }
-      return previewPlayer.ensurePreviewBuilt(project, {
-        force: request.query?.force === "1" || request.query?.force === "true",
-      });
+      try {
+        return await previewPlayer.ensurePreviewBuilt(project, {
+          force: request.query?.force === "1" || request.query?.force === "true",
+        });
+      } catch (error) {
+        // ensurePreviewBuilt throws plain build errors (not ProjectError), which
+        // sendError would re-throw into a bodyless 500. Log the stack and return
+        // the message so the cause is visible in the log file and to the client.
+        console.error("[editor] preview build failed:", error);
+        return reply.code(500).send({
+          code: "preview_build_failed",
+          message: error instanceof Error ? error.message : String(error),
+        });
+      }
     }),
   );
 

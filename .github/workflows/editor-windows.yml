@@ -48,7 +48,11 @@ concurrency:
 jobs:
   build:
     name: Build Windows ${{ inputs.architecture }} (${{ inputs.package_format }})
-    runs-on: windows-latest
+    # Build each arch on a matching host so apps/web/node_modules carries the right
+    # native bindings (rolldown/tailwind-oxide/lightningcss/sharp). The packaged build
+    # loads these in place at runtime, so a cross-built package would ship wrong-arch
+    # bindings and fail with MODULE_NOT_FOUND.
+    runs-on: ${{ inputs.architecture == 'arm64' && 'windows-11-arm' || 'windows-latest' }}
     timeout-minutes: 60
     env:
       ELECTRON_SKIP_BINARY_DOWNLOAD: "1"

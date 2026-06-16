@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { app, BrowserWindow, dialog, ipcMain, nativeTheme, protocol, shell } from "electron";
 import { loadAppIcon } from "./icon.mjs";
+import { initFileLogging } from "./logFile.mjs";
 import {
   createEditorProtocolHandler,
   createEditorSocketPath,
@@ -74,6 +75,8 @@ async function configureRuntimePaths() {
   process.env.BLACKBOX_CLIENT_ROOT = CLIENT_ROOT;
   process.env.BLACKBOX_USER_DATA = app.getPath("userData");
   await fs.mkdir(process.env.BLACKBOX_USER_DATA, { recursive: true });
+  const logPath = initFileLogging(process.env.BLACKBOX_USER_DATA);
+  if (logPath) console.log(`[editor] logging to ${logPath}`);
   process.env.BLACKBOX_APP_ROOT = process.env.BLACKBOX_USER_DATA;
   process.env.BLACKBOX_DATA_ROOTS = [app.getPath("documents"), app.getPath("home")].join(
     path.delimiter,
