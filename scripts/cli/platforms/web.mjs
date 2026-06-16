@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { windowsSpawnOptions } from "../../lib/spawn.mjs";
 import { resolvePlatformConfig } from "../../lib/adventure.mjs";
 import { deployWwwToVercel } from "../../lib/vercelDeploy.mjs";
 import { playerBuildEnv } from "../lib/buildEnv.mjs";
@@ -148,6 +149,7 @@ export function spawnWebServer(
       cwd: WEB_ROOT,
       env: playerBuildEnv(project, configuration),
       stdio: "inherit",
+      ...windowsSpawnOptions(),
     });
     child.on("error", reject);
     child.on("close", (code) => {

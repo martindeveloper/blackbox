@@ -70,9 +70,26 @@ function resetCloseGuard() {
   isQuitting = false;
 }
 
-// Engine binaries shipped beside the editor. Names without the platform suffix;
-// `.exe` is appended at copy time on Windows (the only platform that stages).
+// Engine binaries shipped beside the editor, named without the platform suffix; the
+// executable extension (`.exe` on Windows, none elsewhere) is appended at copy time.
 const ENGINE_TOOLS = ["blackbox-bundler", "blackbox-lint", "blackbox-simulator"];
+const EXE_SUFFIX = process.platform === "win32" ? ".exe" : "";
+
+// Whether packaged resources live somewhere a plain system `node` (spawned by npm's
+// lifecycle runner, without the app's package identity) cannot load native addons or
+// execute binaries from — forcing us to stage a writable copy. This is the capability
+// the staging logic actually depends on, not the OS name.
+//
+// Today the only case is Windows MSIX: resources sit under C:\Program Files\WindowsApps,
+// whose ACL grants execute only to identity-carrying processes. Linux AppImage (a
+// read-only squashfs mounted at a random path that vanishes on exit) is the same shape
+// and lights up here for free once that format ships. Plain zip/dmg/deb extract to
+// ordinary writable+executable locations and need no staging.
+function packagedResourcesNeedStaging(resourcesDir) {
+  if (process.platform === "win32") return /[\\/]WindowsApps[\\/]/i.test(resourcesDir);
+  if (process.platform === "linux") return Boolean(process.env.APPIMAGE);
+  return false;
+}
 
 // Copy the packaged engine binaries into a writable per-user dir, refreshing when a
 // binary is missing or differs from the packaged copy (e.g. after an app upgrade).
@@ -83,7 +100,7 @@ async function stagePackagedTools(sourceDir, userDataDir) {
   try {
     await fs.mkdir(stagedDir, { recursive: true });
     for (const base of ENGINE_TOOLS) {
-      const name = `${base}.exe`;
+      const name = `${base}${EXE_SUFFIX}`;
       const src = path.join(sourceDir, name);
       const dest = path.join(stagedDir, name);
       const srcStat = await fs.stat(src).catch(() => null);
@@ -172,6 +189,29 @@ async function runDeferredCliStaging() {
   }
 }
 
+// Single decision point for where the engine tools and the build-CLI workspace resolve
+// from. When the packaged resources need staging (see packagedResourcesNeedStaging) it
+// points both at writable per-user copies and records the deferred CLI copy; otherwise
+// it returns the packaged dirs unchanged. The mechanism — the copy, the readiness gate,
+// the progress banner — is identical on every platform; only this predicate is conditional.
+async function resolveStagedToolchain({
+  packagedBinDir,
+  packagedCliDir,
+  usePackagedResources,
+  userDataDir,
+  version,
+}) {
+  if (!usePackagedResources || !packagedResourcesNeedStaging(process.resourcesPath)) {
+    return { toolsDir: packagedBinDir, cliDir: packagedCliDir };
+  }
+  // The packaged dir is read-only/ACL-protected for spawned children. Stage the engine
+  // tools eagerly (small) and the ~200 MB CLI workspace lazily (deferred to post-window).
+  return {
+    toolsDir: await stagePackagedTools(packagedBinDir, userDataDir),
+    cliDir: decideCliStaging(packagedCliDir, userDataDir, version),
+  };
+}
+
 async function configureRuntimePaths() {
   applyDarwinShellPath();
 
@@ -189,33 +229,25 @@ async function configureRuntimePaths() {
     path.delimiter,
   );
 
+  // The engine tools (small binaries) and the build-CLI workspace (~200 MB of native
+  // .node addons, prebuilt WASM, and scripts) both spawn under a plain system `node`
+  // that cannot load executable images out of an ACL-protected package dir. The resolver
+  // stages both into a writable per-user dir on platforms that need it (Windows MSIX
+  // today), and returns the packaged dirs as-is everywhere else.
   const packagedBinDir = usePackagedResources
     ? path.join(process.resourcesPath, "bin")
     : path.join(CLIENT_ROOT, "resources", "bin");
-  // On Windows MSIX the package's resources live under C:\Program Files\WindowsApps,
-  // whose ACL only lets processes carrying the package identity execute the binaries.
-  // The web build pipeline runs the bundler from a plain system `node` (spawned by
-  // npm's lifecycle runner), which lacks that identity and is denied with EPERM.
-  // Stage the engine tools into a writable per-user dir so any descendant can run them.
-  const toolsDir =
-    usePackagedResources && process.platform === "win32"
-      ? await stagePackagedTools(packagedBinDir, process.env.BLACKBOX_USER_DATA)
-      : packagedBinDir;
-  process.env.BLACKBOX_TOOLS_DIR = toolsDir;
-
   const packagedCliDir = usePackagedResources
     ? path.join(process.resourcesPath, "cli")
     : path.resolve(CLIENT_ROOT, "..", "..");
-  // Same WindowsApps constraint as the engine tools, one layer over: the build
-  // pipeline loads native .node addons (rolldown, tailwind oxide, lightningcss, …)
-  // from apps/web/node_modules under a plain system `node`, which cannot load
-  // executable images out of the ACL-protected package dir. Stage the whole CLI
-  // workspace into a writable per-user dir (once per app version) so the bindings
-  // and any spawned binaries resolve from a normal path.
-  const cliDir =
-    usePackagedResources && process.platform === "win32"
-      ? decideCliStaging(packagedCliDir, process.env.BLACKBOX_USER_DATA, app.getVersion())
-      : packagedCliDir;
+  const { toolsDir, cliDir } = await resolveStagedToolchain({
+    packagedBinDir,
+    packagedCliDir,
+    usePackagedResources,
+    userDataDir: process.env.BLACKBOX_USER_DATA,
+    version: app.getVersion(),
+  });
+  process.env.BLACKBOX_TOOLS_DIR = toolsDir;
   process.env.BLACKBOX_CLI_DIR = cliDir;
   if (usePackagedResources) {
     process.env.BLACKBOX_WASM_PREBUILT_DIR = path.join(cliDir, ".cache", "wasm", "clients-web");

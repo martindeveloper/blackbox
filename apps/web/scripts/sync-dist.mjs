@@ -3,6 +3,7 @@ import { spawnSync } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { resolveBuildConfiguration, resolveBuildPlatform } from "../../../scripts/lib/adventure.mjs";
+import { windowsSpawnOptions } from "../../../scripts/lib/spawn.mjs";
 import { resolveWebOutDir } from "./lib/adventureDev.mjs";
 import { buildWebIcons, resolveWebIconSources, resolveWebWwwDir } from "./lib/webIcons.mjs";
 
@@ -96,7 +97,10 @@ if (watchMode) {
     for (const extra of iconSources.extras) {
       watch(extra.source, { persistent: true }, (eventType) => {
         if (eventType === "change") {
-          spawnSync(process.execPath, [buildFaviconScript], { stdio: "inherit" });
+          spawnSync(process.execPath, [buildFaviconScript], {
+            stdio: "inherit",
+            ...windowsSpawnOptions(),
+          });
           console.log(`synced ${extra.destName} -> ${www}`);
         }
       });
