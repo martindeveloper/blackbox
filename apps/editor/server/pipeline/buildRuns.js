@@ -6,6 +6,7 @@ import { BUILD_RUNS_PATH } from "../../shared/blackboxPaths.js";
 import { appendLogLine } from "../../shared/logBuffer.js";
 import { stagesForPlatform } from "../../shared/buildStages.js";
 import { isStageAllowed, spawnStage } from "./cli.js";
+import { getStagingState, whenCliReady } from "../cliStaging.js";
 
 const SCHEMA_VERSION = 2;
 
@@ -190,6 +191,19 @@ export class BuildRunRegistry {
   }
 
   async execute(root, project, record) {
+    // The build CLI workspace may still be staging out of the read-only package dir
+    // on first launch after an install/upgrade (Windows MSIX). Wait for it so the
+    // build doesn't fail loading native addons; surface the wait in the first stage's
+    // log so the user understands the delay.
+    if (getStagingState().phase === "preparing" && record.stages.length > 0) {
+      this.appendStageLog(
+        project,
+        record.stages[0],
+        "[setup] preparing build environment (one-time, first run after install)…",
+      );
+    }
+    await whenCliReady();
+
     for (const stageRecord of record.stages) {
       if (record.state !== "running") break;
       stageRecord.state = "running";

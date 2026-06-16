@@ -14,6 +14,14 @@ import { setupMacApplicationMenu } from "./menu.mjs";
 import { openInIde, probeIdes } from "./ideHost.mjs";
 import { parseCliMode, printEditorCliHelp } from "./cliMode.mjs";
 import { applyDarwinShellPath } from "./shellPath.mjs";
+import {
+  beginCliStaging,
+  completeCliStaging,
+  failCliStaging,
+  getStagingState,
+  onCliStaging,
+  setStagingState,
+} from "../server/cliStaging.js";
 
 const ELECTRON_ROOT = path.dirname(fileURLToPath(import.meta.url));
 const CLIENT_ROOT = path.resolve(ELECTRON_ROOT, "..");
@@ -92,6 +100,78 @@ async function stagePackagedTools(sourceDir, userDataDir) {
   }
 }
 
+// The build CLI workspace (apps/web + node_modules with native .node addons,
+// prebuilt WASM, build scripts) is ~200 MB / 11k files and must be copied out of the
+// ACL-protected WindowsApps package dir before a build can load its native addons
+// from a plain system `node`. Copying it synchronously at startup made first launch
+// appear to hang, so the decision is made here (cheap) and the copy itself is deferred
+// until after the window is shown (see runDeferredCliStaging). Staged once per app
+// version, keyed by a stamp file written last so a partial copy restages next launch.
+let pendingCliStaging = null;
+
+function decideCliStaging(sourceDir, userDataDir, version) {
+  const stagedDir = path.join(userDataDir, "cli");
+  const stampFile = path.join(stagedDir, ".staged-version");
+  // Record the work to do; runDeferredCliStaging checks the stamp and copies if stale.
+  pendingCliStaging = { sourceDir, stagedDir, stampFile, version };
+  return stagedDir;
+}
+
+async function countFiles(dir) {
+  let total = 0;
+  for (const entry of await fs.readdir(dir, { withFileTypes: true })) {
+    total += entry.isDirectory() ? await countFiles(path.join(dir, entry.name)) : 1;
+  }
+  return total;
+}
+
+// Manual recursive copy (fs.cp gives no progress) invoking onFile per copied file.
+async function copyTree(src, dest, onFile) {
+  await fs.mkdir(dest, { recursive: true });
+  for (const entry of await fs.readdir(src, { withFileTypes: true })) {
+    const from = path.join(src, entry.name);
+    const to = path.join(dest, entry.name);
+    if (entry.isDirectory()) {
+      await copyTree(from, to, onFile);
+    } else {
+      await fs.copyFile(from, to);
+      onFile();
+    }
+  }
+}
+
+// Runs after the window is visible. Streams progress through the cliStaging module,
+// which the build pipeline gates on and the renderer renders as a banner.
+async function runDeferredCliStaging() {
+  if (!pendingCliStaging) return;
+  const { sourceDir, stagedDir, stampFile, version } = pendingCliStaging;
+  pendingCliStaging = null;
+
+  const staged = await fs.readFile(stampFile, "utf8").catch(() => null);
+  if (staged === version) return; // already staged for this version — leave readiness as-is
+
+  beginCliStaging();
+  try {
+    console.log(`[editor] staging build CLI to ${stagedDir} (one-time)…`);
+    await fs.rm(stagedDir, { recursive: true, force: true });
+    const total = await countFiles(sourceDir);
+    let copied = 0;
+    await copyTree(sourceDir, stagedDir, () => {
+      copied += 1;
+      // Throttle renderer updates; always emit the final file.
+      if (copied % 64 === 0 || copied === total) {
+        setStagingState({ phase: "preparing", copied, total });
+      }
+    });
+    await fs.writeFile(stampFile, version); // written last so a partial copy restages
+    console.log("[editor] build CLI staged");
+    completeCliStaging();
+  } catch (error) {
+    console.error(`[editor] failed to stage build CLI: ${error.message}`);
+    failCliStaging(error.message);
+  }
+}
+
 async function configureRuntimePaths() {
   applyDarwinShellPath();
 
@@ -123,9 +203,19 @@ async function configureRuntimePaths() {
       : packagedBinDir;
   process.env.BLACKBOX_TOOLS_DIR = toolsDir;
 
-  const cliDir = usePackagedResources
+  const packagedCliDir = usePackagedResources
     ? path.join(process.resourcesPath, "cli")
     : path.resolve(CLIENT_ROOT, "..", "..");
+  // Same WindowsApps constraint as the engine tools, one layer over: the build
+  // pipeline loads native .node addons (rolldown, tailwind oxide, lightningcss, …)
+  // from apps/web/node_modules under a plain system `node`, which cannot load
+  // executable images out of the ACL-protected package dir. Stage the whole CLI
+  // workspace into a writable per-user dir (once per app version) so the bindings
+  // and any spawned binaries resolve from a normal path.
+  const cliDir =
+    usePackagedResources && process.platform === "win32"
+      ? decideCliStaging(packagedCliDir, process.env.BLACKBOX_USER_DATA, app.getVersion())
+      : packagedCliDir;
   process.env.BLACKBOX_CLI_DIR = cliDir;
   if (usePackagedResources) {
     process.env.BLACKBOX_WASM_PREBUILT_DIR = path.join(cliDir, ".cache", "wasm", "clients-web");
@@ -262,6 +352,8 @@ async function runHeadlessCli(forwardedArgs) {
     printEditorCliHelp();
     return 1;
   }
+  // No window in headless mode, so stage synchronously before the build runs.
+  await runDeferredCliStaging();
   const { runCli } = await import("../server/pipeline/cli.js");
   return runCli(forwardedArgs, { inheritStdio: true });
 }
@@ -345,8 +437,17 @@ if (cliArgs !== null) {
         if (event.sender !== mainWindow?.webContents) return;
         cancelCloseFromRenderer();
       });
+      // Lets the renderer fetch the current staging state on mount (it may subscribe
+      // after the first progress events have already fired).
+      ipcMain.handle("editor:cli-staging-state", () => getStagingState());
+      // Forward staging progress to the renderer's banner.
+      onCliStaging((state) => mainWindow?.webContents.send("editor:cli-staging", state));
 
       await createWindow();
+
+      // Deferred until the window is shown so first launch is not blocked by the
+      // one-time ~200 MB copy out of the read-only package dir (Windows MSIX only).
+      void runDeferredCliStaging();
 
       app.on("activate", async () => {
         if (BrowserWindow.getAllWindows().length === 0) await createWindow();
