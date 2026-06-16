@@ -126,7 +126,12 @@ export interface StartBuildResult {
 
 export async function startBuild(
   projectId: string,
-  request: { platform: BuildPlatform; configuration: BuildConfiguration; stages: BuildStage[] },
+  request: {
+    platform: BuildPlatform;
+    configuration: BuildConfiguration;
+    stages: BuildStage[];
+    reactCompiler: boolean;
+  },
 ): Promise<StartBuildResult> {
   return postJson<StartBuildResult>(projectApiUrl(projectId, ProjectRoutes.BuildRuns), request);
 }

@@ -150,7 +150,7 @@ export class BuildRunRegistry {
       : null;
   }
 
-  async start(projectRoot, { platform, configuration, stages }) {
+  async start(projectRoot, { platform, configuration, stages, reactCompiler = true }) {
     const root = path.resolve(projectRoot);
     const project = await this.load(root);
     if (project.current?.state === "running") {
@@ -169,6 +169,8 @@ export class BuildRunRegistry {
       id: randomUUID(),
       platform,
       configuration,
+      // Build-time input (web/mobile player bundles only); not persisted in snapshots.
+      reactCompiler,
       state: "running",
       startedAt: Date.now(),
       completedAt: null,
@@ -199,6 +201,7 @@ export class BuildRunRegistry {
           platform: record.platform,
           configuration: record.configuration,
           stage: stageRecord.stage,
+          reactCompiler: record.reactCompiler,
         },
         (line) => this.appendStageLog(project, stageRecord, line),
       );

@@ -22,6 +22,9 @@ function parseArgs(argv) {
     configuration: "release",
     noBuild: false,
     webSpawnServer: false,
+    // null = unspecified: inherit BLACKBOX_REACT_COMPILER from the environment
+    // (e.g. set by the editor) rather than overriding it.
+    reactCompiler: null,
     help: false,
   };
 
@@ -54,6 +57,14 @@ function parseArgs(argv) {
       options.configuration = arg.slice("--configuration=".length);
     } else if (arg === "--configuration" && argv[i + 1]) {
       options.configuration = argv[++i];
+    } else if (arg === "--no-react-compiler") {
+      options.reactCompiler = false;
+    } else if (arg === "--react-compiler") {
+      options.reactCompiler = true;
+    } else if (arg.startsWith("--react-compiler=")) {
+      options.reactCompiler = !/^(0|false|off|no)$/i.test(
+        arg.slice("--react-compiler=".length).trim(),
+      );
     } else if (arg.startsWith("-")) {
       fail("cli", `unknown option: ${arg}`);
     } else if (!options.action) {
@@ -88,6 +99,9 @@ Options:
                        debug | release (default: release)
   --no-build           Reuse the last web player build where applicable
   --web-spawn-server   After a web build, start the static player server (web only)
+  --react-compiler=<bool>
+                       Compile the player UI with the React Compiler (default: on).
+                       Use --no-react-compiler to disable.
   -h, --help           Show this help
 
 Examples:
@@ -190,6 +204,12 @@ function validateWebSpawnServer(options, platform, action) {
 
 async function main() {
   const options = parseArgs(process.argv.slice(2));
+  // Forwarded to the web bundler via playerBuildEnv (which spreads process.env).
+  // Only set when explicitly passed so an inherited value (e.g. from the editor)
+  // wins when the flag is absent.
+  if (options.reactCompiler !== null) {
+    process.env.BLACKBOX_REACT_COMPILER = options.reactCompiler ? "true" : "false";
+  }
   if (options.help || !options.action) {
     printHelp();
     if (!options.help && !options.action) {

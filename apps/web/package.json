@@ -35,9 +35,11 @@
     "react-i18next": "^17.0.8"
   },
   "devDependencies": {
+    "@babel/core": "^7.29.7",
     "@tailwindcss/cli": "^4.3.1",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
+    "babel-plugin-react-compiler": "^1.0.0",
     "concurrently": "^10.0.3",
     "livereload": "^0.10.3",
     "oxfmt": "^0.54.0",

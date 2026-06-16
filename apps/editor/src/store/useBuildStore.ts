@@ -13,6 +13,7 @@ import { getBuildCapabilities, stagesForPlatform } from "../lib/buildApi.js";
 interface BuildStore {
   platform: BuildPlatform;
   configuration: BuildConfiguration;
+  reactCompiler: boolean;
   selectedStages: BuildStage[];
   run: BuildRunSnapshot | null;
   log: string[];
@@ -21,6 +22,7 @@ interface BuildStore {
   preflightError: string | null;
   setPlatform: (platform: BuildPlatform) => void;
   setConfiguration: (configuration: BuildConfiguration) => void;
+  setReactCompiler: (enabled: boolean) => void;
   toggleStage: (stage: BuildStage) => void;
   refreshPreflight: (projectId: string) => Promise<void>;
   applyEvent: (event: BuildEvent) => void;
@@ -33,6 +35,7 @@ function allStages(platform: BuildPlatform): BuildStage[] {
 export const useBuildStore = create<BuildStore>((set, get) => ({
   platform: "web",
   configuration: "release",
+  reactCompiler: true,
   selectedStages: stagesForPlatform("web"),
   run: null,
   log: [],
@@ -47,6 +50,8 @@ export const useBuildStore = create<BuildStore>((set, get) => ({
     }),
 
   setConfiguration: (configuration) => set({ configuration }),
+
+  setReactCompiler: (reactCompiler) => set({ reactCompiler }),
 
   toggleStage: (stage) => {
     const current = get().selectedStages;

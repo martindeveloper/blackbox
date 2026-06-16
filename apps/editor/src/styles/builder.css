@@ -150,6 +150,35 @@
   color: var(--editor-warning);
 }
 
+.build-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--editor-text);
+}
+
+.build-toggle input {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--editor-primary);
+  cursor: pointer;
+}
+
+.build-toggle input:disabled {
+  cursor: default;
+}
+
+.build-toggle:has(input:disabled) {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.build-toggle-text {
+  font-weight: 600;
+}
+
 .build-segment {
   display: grid;
   grid-auto-flow: column;

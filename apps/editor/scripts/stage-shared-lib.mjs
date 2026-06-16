@@ -12,6 +12,7 @@ const FILES = [
   "buildGameCss.mjs",
   "webRolldownResolve.mjs",
   "webBuildAliases.mjs",
+  "spawn.mjs",
 ];
 
 if (!existsSync(SRC)) {

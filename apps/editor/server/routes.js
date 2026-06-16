@@ -422,6 +422,8 @@ export async function registerRoutes(app, service) {
       const platform = typeof body.platform === "string" ? body.platform : "";
       const configuration = typeof body.configuration === "string" ? body.configuration : "";
       const stages = Array.isArray(body.stages) ? body.stages : [];
+      // Player-bundle option; defaults on unless explicitly false.
+      const reactCompiler = body.reactCompiler !== false;
 
       if (!isValidPlatform(platform)) {
         return reply
@@ -452,6 +454,7 @@ export async function registerRoutes(app, service) {
         platform,
         configuration,
         stages: selected,
+        reactCompiler,
       });
       return reply.code(result.alreadyRunning ? 409 : 202).send(result);
     }),

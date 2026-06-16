@@ -18,10 +18,12 @@ import {
 interface Props {
   platform: BuildPlatform;
   configuration: BuildConfiguration;
+  reactCompiler: boolean;
   capabilities: BuildCapabilities | null;
   disabled: boolean;
   onPlatform: (platform: BuildPlatform) => void;
   onConfiguration: (configuration: BuildConfiguration) => void;
+  onReactCompiler: (enabled: boolean) => void;
 }
 
 function platformCapability(
@@ -35,10 +37,12 @@ function platformCapability(
 export function PlatformConfigPicker({
   platform,
   configuration,
+  reactCompiler,
   capabilities,
   disabled,
   onPlatform,
   onConfiguration,
+  onReactCompiler,
 }: Props) {
   const { t } = useTranslation();
   const selectedCap = platformCapability(capabilities, platform);
@@ -97,6 +101,20 @@ export function PlatformConfigPicker({
         <p className="build-hint">
           {t(configuration === "debug" ? "build.debugHint" : "build.releaseHint")}
         </p>
+      </section>
+
+      <section className="build-section build-config-section">
+        <span className="build-section-label">{t("build.optimization")}</span>
+        <label className="build-toggle">
+          <input
+            type="checkbox"
+            checked={reactCompiler}
+            disabled={disabled}
+            onChange={(event) => onReactCompiler(event.currentTarget.checked)}
+          />
+          <span className="build-toggle-text">{t("build.reactCompiler")}</span>
+        </label>
+        <p className="build-hint">{t("build.reactCompilerHint")}</p>
       </section>
     </div>
   );

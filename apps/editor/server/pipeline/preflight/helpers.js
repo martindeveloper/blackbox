@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
-import { commandExists as probeCommandExists } from "../../../../../scripts/lib/spawn.mjs";
+import { commandExists as probeCommandExists } from "../../sharedLib.mjs";
 import { getCliDir } from "../../config.js";
 
 function readFfmpegEncoders() {

@@ -436,6 +436,10 @@ export const en = {
     configRelease: "Release",
     debugHint: "Dev WASM, uncompressed bundles, in-game dev console.",
     releaseHint: "Production WASM, compressed bundles.",
+    optimization: "Optimization",
+    reactCompiler: "React Compiler",
+    reactCompilerHint:
+      "Auto-memoizes the player UI for fewer re-renders. Larger bundle and slower build. Recommended on.",
     stages: "Pipeline",
     preflightTitle: "Pre-flight checks",
     preflightRefresh: "Refresh",

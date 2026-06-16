@@ -22,6 +22,7 @@ const gamePaths = await load("gamePaths.mjs");
 const buildCss = await load("buildGameCss.mjs");
 const rolldownResolve = await load("webRolldownResolve.mjs");
 const webBuildAliases = await load("webBuildAliases.mjs");
+const spawnLib = await load("spawn.mjs");
 
 export const BUILD_GAME_CSS_PATH = path.join(SHARED_LIB_ROOT, "buildGameCss.mjs");
 
@@ -34,3 +35,4 @@ export const {
 export const { buildGameCss } = buildCss;
 export const { createWebRolldownResolve } = rolldownResolve;
 export const { resolveWebBuildAliases } = webBuildAliases;
+export const { commandExists } = spawnLib;

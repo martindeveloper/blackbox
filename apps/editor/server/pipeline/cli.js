@@ -81,10 +81,10 @@ function prebuiltToolEnv() {
   return env;
 }
 
-function cliSpawnOptions({ inheritStdio = false } = {}) {
+function cliSpawnOptions({ inheritStdio = false, extraEnv = {} } = {}) {
   return {
     cwd: getCliDir(),
-    env: { ...process.env, ELECTRON_RUN_AS_NODE: "1", ...prebuiltToolEnv() },
+    env: { ...process.env, ELECTRON_RUN_AS_NODE: "1", ...prebuiltToolEnv(), ...extraEnv },
     stdio: inheritStdio ? "inherit" : ["ignore", "pipe", "pipe"],
   };
 }
@@ -113,7 +113,7 @@ export function runCli(cliArgs, { inheritStdio = false } = {}) {
  * Spawn the build CLI for a single stage, streaming merged stdout/stderr lines to `onLine`.
  * Returns a handle whose `done` resolves to `{ exitCode, canceled, artifact }`.
  */
-export function spawnStage(projectPath, { platform, configuration, stage }, onLine) {
+export function spawnStage(projectPath, { platform, configuration, stage, reactCompiler }, onLine) {
   const args = [
     cliEntry(),
     stage,
@@ -122,7 +122,14 @@ export function spawnStage(projectPath, { platform, configuration, stage }, onLi
     `--configuration=${configuration}`,
   ];
 
-  const child = spawn(process.execPath, args, cliSpawnOptions());
+  // Forwarded to the web bundler (apps/web rolldown config) through the CLI's
+  // playerBuildEnv, which spreads process.env. Set explicitly either way so the
+  // build reflects the Build-tab checkbox regardless of any ambient env value.
+  const extraEnv = {
+    BLACKBOX_REACT_COMPILER: reactCompiler === false ? "false" : "true",
+  };
+
+  const child = spawn(process.execPath, args, cliSpawnOptions({ extraEnv }));
 
   let buffer = "";
   let canceled = false;
