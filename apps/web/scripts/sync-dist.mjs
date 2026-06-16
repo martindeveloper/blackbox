@@ -2,7 +2,10 @@ import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, watch, writeFileSy
 import { spawnSync } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { resolveBuildConfiguration, resolveBuildPlatform } from "../../../scripts/lib/adventure.mjs";
+import {
+  resolveBuildConfiguration,
+  resolveBuildPlatform,
+} from "../../../scripts/lib/adventure.mjs";
 import { windowsSpawnOptions } from "../../../scripts/lib/spawn.mjs";
 import { resolveWebOutDir } from "./lib/adventureDev.mjs";
 import { buildWebIcons, resolveWebIconSources, resolveWebWwwDir } from "./lib/webIcons.mjs";

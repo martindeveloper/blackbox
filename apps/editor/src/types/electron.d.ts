@@ -3,11 +3,6 @@ export interface IdeProbeResult {
   customAvailable: boolean;
 }
 
-export type CliStagingState =
-  | { phase: "ready" }
-  | { phase: "preparing"; copied: number; total: number }
-  | { phase: "error"; message: string };
-
 export interface ElectronAPI {
   isElectron: true;
   pickProjectFolder: () => Promise<string | null>;
@@ -19,8 +14,6 @@ export interface ElectronAPI {
   onRequestClose: (callback: () => void) => () => void;
   confirmClose: () => void;
   cancelClose: () => void;
-  getCliStagingState: () => Promise<CliStagingState>;
-  onCliStaging: (callback: (state: CliStagingState) => void) => () => void;
 }
 
 declare global {

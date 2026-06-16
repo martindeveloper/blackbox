@@ -16,10 +16,4 @@ contextBridge.exposeInMainWorld("electronAPI", {
   },
   confirmClose: () => ipcRenderer.send("editor:confirm-close"),
   cancelClose: () => ipcRenderer.send("editor:cancel-close"),
-  getCliStagingState: () => ipcRenderer.invoke("editor:cli-staging-state"),
-  onCliStaging: (callback) => {
-    const listener = (_event, state) => callback(state);
-    ipcRenderer.on("editor:cli-staging", listener);
-    return () => ipcRenderer.removeListener("editor:cli-staging", listener);
-  },
 });

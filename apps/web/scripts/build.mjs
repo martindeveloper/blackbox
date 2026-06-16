@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { copyFileSync, existsSync, mkdirSync } from "node:fs";
+import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -29,6 +30,16 @@ const WASM_GLUE = [
 
 const repoRoot = path.resolve(clientRoot, "../..");
 const wasmCacheDir = path.join(repoRoot, ".cache/wasm/clients-web");
+
+// Resolve rolldown's CLI entry so it can be launched with process.execPath (no `.bin`
+// shim / PATH dependency), keeping the build on the in-package runtime on Windows MSIX.
+function resolveRolldownCli() {
+  const require = createRequire(import.meta.url);
+  const pkgPath = require.resolve("rolldown/package.json");
+  const bin = require(pkgPath).bin;
+  const rel = typeof bin === "string" ? bin : bin.rolldown;
+  return path.resolve(path.dirname(pkgPath), rel);
+}
 
 // A self-contained editor ships prebuilt WASM so the player build needs no Rust/wasm-pack.
 // BLACKBOX_WASM_PREBUILT_DIR points at the vendored glue (optionally under a <profile>/ subdir).
@@ -75,9 +86,15 @@ const bundleArgs =
     : [path.join(scriptsDir, "build-bundle.mjs"), "--ignore-missing", "--archive-compress", "zstd"];
 runSync(process.execPath, bundleArgs);
 
-runSync("npm", ["run", "build:js"], { cwd: clientRoot });
-runSync("npm", ["run", "build:css"], { cwd: clientRoot });
-runSync("npm", ["run", "build:favicon"], { cwd: clientRoot });
+// Run the JS/CSS/favicon steps with the current runtime (process.execPath) instead of
+// `npm run …`. These steps load native addons (rolldown, @tailwindcss/oxide via
+// build-game-css, sharp via build-favicon); on Windows MSIX they must run as the
+// in-package executable to keep package identity, or the loader denies the addons.
+runSync(process.execPath, [resolveRolldownCli(), "-c", "rolldown.config.mjs"], {
+  cwd: clientRoot,
+});
+runSync(process.execPath, [path.join(scriptsDir, "build-game-css.mjs")], { cwd: clientRoot });
+runSync(process.execPath, [path.join(scriptsDir, "build-favicon.mjs")], { cwd: clientRoot });
 runSync(process.execPath, [path.join(scriptsDir, "sync-dist.mjs")]);
 
 writeBuildInfo(dist, { crate: "blackbox-wasm", target: TARGET, profile, configuration });

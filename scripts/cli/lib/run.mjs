@@ -90,7 +90,13 @@ export function runWebPlayerBuild(
   { configuration = project.configuration ?? "release", platform = "web" } = {},
 ) {
   log("build", `compiling web player for ${project.gameId} (${configuration}, ${platform})`);
-  runSync("npm", ["run", "build"], {
+  // Invoke the build script with the current runtime (process.execPath) rather than via
+  // `npm run build`. On Windows MSIX this keeps the whole build subtree running as the
+  // in-package executable, which retains package identity and can therefore load the
+  // native build addons (rolldown, tailwind-oxide, lightningcss) directly from the
+  // ACL-protected package dir. Going through npm would hand off to a system `node`,
+  // which runs without identity and is denied (EPERM) by the WindowsApps loader.
+  runSync(process.execPath, [path.join(WEB_ROOT, "scripts", "build.mjs")], {
     cwd: WEB_ROOT,
     env: {
       ...playerBuildEnv(project, configuration, platform),
