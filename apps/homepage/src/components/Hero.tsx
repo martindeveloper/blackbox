@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { HeroGraphBg } from "./HeroGraphBg";
 
@@ -25,28 +26,33 @@ export function Hero() {
         </p>
         <p className="hero-description">{t("hero.description")}</p>
         <div className="hero-actions">
-          <a href="#features" className="btn btn--primary">
-            {t("hero.cta_primary")}
-          </a>
-          <a
-            href={t("github_url")}
-            className="btn btn--ghost"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {t("hero.cta_secondary")}
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              aria-hidden="true"
+          <Link href="/download" className="btn btn--primary hero-actions-primary">
+            {t("hero.cta_download")}
+          </Link>
+          <div className="hero-actions-secondary">
+            <a href="#features" className="btn btn--ghost">
+              {t("hero.cta_primary")}
+            </a>
+            <a
+              href={t("github_url")}
+              className="btn btn--ghost"
+              target="_blank"
+              rel="noopener noreferrer"
             >
-              <path d="M7 17L17 7M17 7H7M17 7v10" />
-            </svg>
-          </a>
+              {t("hero.cta_secondary")}
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                aria-hidden="true"
+              >
+                <path d="M7 17L17 7M17 7H7M17 7v10" />
+              </svg>
+            </a>
+          </div>
         </div>
       </div>
       <div className="hero-scroll-hint" aria-hidden="true">

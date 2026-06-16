@@ -64,6 +64,21 @@ export const en = {
           "Shape branching stories visually, preview from source, and validate every path with the Blackbox Rust toolchain.",
       },
     },
+    download: {
+      title: "Download",
+      description:
+        "Download Blackbox Editor for macOS, Windows, and Linux. Choose your platform and architecture to get the latest release.",
+      openGraph: {
+        title: "Download Blackbox Editor",
+        description:
+          "Get the local-first narrative authoring workspace for macOS, Windows, and Linux.",
+      },
+      twitter: {
+        title: "Download Blackbox Editor",
+        description:
+          "Get the local-first narrative authoring workspace for macOS, Windows, and Linux.",
+      },
+    },
   },
   nav: {
     features: "Features",
@@ -95,6 +110,11 @@ export const en = {
         { href: "#preview", label: "Preview" },
         { href: "#tools", label: "Tools" },
       ],
+      download: [
+        { href: "#download", label: "Download" },
+        { href: "/editor", label: "Editor" },
+        { href: "/#features", label: "Engine" },
+      ],
     },
   },
   hero: {
@@ -104,6 +124,7 @@ export const en = {
     description:
       "Blackbox is a pure-logic engine for text-based narrative RPGs. It loads JSON scenario content, tracks every branch and player decision, runs skill checks, and returns clean read-only views — your host app renders exactly what it wants.",
     cta_primary: "Explore Features",
+    cta_download: "Download Editor",
     cta_secondary: "View on GitHub",
   },
   pitch: {
@@ -651,6 +672,115 @@ export const en = {
       label: "One continuous workflow",
       headline: "Write. Connect. Test. Ship.",
       body: "Blackbox Editor keeps creative intent, source data, runtime behavior, and release validation in the same room.",
+    },
+  },
+  downloadPage: {
+    hero: {
+      kicker: {
+        product: "Blackbox Editor",
+        channel: "Release channel",
+      },
+      headline: "Pick your\nbuild.",
+      description:
+        "Desktop builds for macOS, Windows, and Linux. Select platform and architecture — links point to GitHub Releases once CI publishes them.",
+    },
+    selector: {
+      platform_label: "Platform",
+      platform_aria: "Select download platform",
+      arch_label: "Architecture",
+      arch_aria: "Select CPU architecture",
+      format_label: "Package format",
+      format_aria: "Select Linux package format",
+    },
+    platforms: {
+      macos: "macOS",
+      macos_meta: ".dmg · unsigned .app",
+      windows: "Windows",
+      windows_meta: ".msix + .cer bundle",
+      linux: "Linux",
+      linux_meta: "x64 only",
+    },
+    arch: {
+      macos: {
+        arm64: "Apple Silicon",
+        x64: "Intel",
+      },
+      windows: {
+        arm64: "ARM64",
+        x64: "x64",
+      },
+    },
+    format: {
+      appimage: "AppImage",
+      deb: "Debian package",
+    },
+    download_cta: "Download for",
+    file_note:
+      "Hosted on GitHub Releases. macOS and Windows builds are not notarized or commercially signed yet — see the install guide below.",
+    alternate_format: "Also available as",
+    requirements_aria: "System requirements",
+    requirements: {
+      macos: [
+        "macOS 12 Monterey or later",
+        "Apple Silicon or Intel processor",
+        "Gatekeeper may block the unsigned .app until you trust it locally",
+        "~400 MB disk space",
+      ],
+      windows: [
+        "Windows 10 version 1809 or later",
+        "ARM64 or x64 processor",
+        "MSIX sideload bundle includes msix-signing.cer — trust it before install",
+        "~400 MB disk space",
+      ],
+      linux: [
+        "Ubuntu 22.04, Fedora 38, or equivalent",
+        "x64 processor",
+        "AppImage: FUSE recommended · deb: apt install",
+      ],
+    },
+    checksums: "SHA256 checksums",
+    all_releases: "All releases on GitHub",
+    unsigned: {
+      macos: {
+        title: "Unsigned macOS build",
+        note:
+          "The .app inside the DMG is not Apple-notarized or Developer ID signed yet. macOS may refuse to open it until you remove quarantine attributes and apply a local ad-hoc signature.",
+        steps: [
+          "Download and open the .dmg, then drag Blackbox Editor.app to Applications.",
+          "Run the commands below in Terminal (adjust the path if you installed elsewhere).",
+          "Open the app from Applications or Spotlight.",
+        ],
+        shell_filename: "trust-app.sh",
+        commands: `# trust the unsigned app locally
+APP="/Applications/Blackbox Editor.app"
+
+xattr -dr com.apple.quarantine "$APP"
+codesign --force --deep --sign - "$APP"`,
+      },
+      windows: {
+        title: "Self-signed MSIX sideload",
+        note:
+          "The MSIX package is signed with a development certificate that Windows does not trust by default. Each release bundle ships msix-signing.cer — install that certificate before Add-AppxPackage will succeed.",
+        steps: [
+          "Download and extract the sideload .zip (contains the .msix, msix-signing.cer, and helper scripts).",
+          "Open PowerShell as Administrator in that folder.",
+          "Trust the certificate, then install the MSIX package.",
+        ],
+        bundled_hint:
+          "Prefer the bundled install-msix-sideload.cmd in the zip — it runs the same steps with UAC elevation.",
+        shell_filename: "install-msix-sideload.ps1",
+        commands: `# run in elevated PowerShell from the extracted bundle folder
+Import-Certificate \`
+  -FilePath .\\msix-signing.cer \`
+  -CertStoreLocation Cert:\\LocalMachine\\TrustedPeople
+
+Import-Certificate \`
+  -FilePath .\\msix-signing.cer \`
+  -CertStoreLocation Cert:\\LocalMachine\\Root
+
+$msix = Get-ChildItem -Path .\\*.msix | Select-Object -First 1
+Add-AppxPackage -Path $msix.FullName`,
+      },
     },
   },
 } as const;
