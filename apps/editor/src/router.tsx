@@ -22,7 +22,6 @@ import { BuildEditor } from "./components/builder/BuildEditor.js";
 import { PreviewPanel } from "./components/preview/PreviewPanel.js";
 import { ProjectDashboard } from "./components/dashboard/ProjectDashboard.js";
 import { AboutScreen } from "./components/about/AboutScreen.js";
-import { Page } from "./lib/pages.js";
 import { parseMediaCategory } from "./lib/mediaLibrary.js";
 import { tryRestoreProject } from "./lib/projectRestore.js";
 
@@ -37,9 +36,8 @@ const indexRoute = createRoute({
     const state = useScenarioStore.getState();
     if (state.bundle && state.projectId) {
       throw redirect({
-        to: Page.EditorDashboard,
+        to: "/editor/$projectId/dashboard",
         params: { projectId: state.projectId },
-        search: {},
       });
     }
   },
@@ -53,17 +51,15 @@ const resumeRoute = createRoute({
     const state = useScenarioStore.getState();
     if (state.bundle && state.projectId === params.projectId) {
       throw redirect({
-        to: Page.EditorDashboard,
+        to: "/editor/$projectId/dashboard",
         params: { projectId: params.projectId },
-        search: {},
       });
     }
     const restored = await tryRestoreProject(params.projectId);
     if (restored) {
       throw redirect({
-        to: Page.EditorDashboard,
+        to: "/editor/$projectId/dashboard",
         params: { projectId: params.projectId },
-        search: {},
       });
     }
   },
@@ -81,9 +77,8 @@ const editorProjectRoute = createRoute({
     const restored = await tryRestoreProject(params.projectId);
     if (!restored) {
       throw redirect({
-        to: Page.Resume,
+        to: "/resume/$projectId",
         params: { projectId: params.projectId },
-        search: {},
       });
     }
   },
@@ -95,9 +90,8 @@ const editorIndexRoute = createRoute({
   path: "/",
   beforeLoad: ({ params }) => {
     throw redirect({
-      to: Page.EditorDashboard,
+      to: "/editor/$projectId/dashboard",
       params: { projectId: params.projectId },
-      search: {},
     });
   },
 });

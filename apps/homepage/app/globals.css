@@ -1801,6 +1801,19 @@ a {
 .tok-punct {
   color: #584838;
 }
+.tok-comment {
+  color: #5a7050;
+  font-style: italic;
+}
+.tok-cmd {
+  color: #7eb8d8;
+}
+.tok-flag {
+  color: #d4a070;
+}
+.tok-var {
+  color: #c9a878;
+}
 
 /* ─── Footer ───────────────────────────────────────────────────── */
 

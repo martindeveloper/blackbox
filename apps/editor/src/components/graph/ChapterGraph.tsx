@@ -395,7 +395,7 @@ function ChapterGraphInner() {
         case "H":
           if (!heatAvailable) return;
           event.preventDefault();
-          setShowHeat((value) => !value);
+          setHeatmapEnabled((value) => !value);
           break;
         default:
           break;

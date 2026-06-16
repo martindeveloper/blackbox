@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import type { DownloadPlatform } from "../lib/releaseAssets";
+import { highlightShell } from "../lib/shellHighlight";
 
 function MacWindowChrome({ filename }: { filename: string }) {
   return (
@@ -50,7 +51,7 @@ function InstallCodeBlock({
         )}
       </div>
       <pre className="snippet-code">
-        <code>{commands}</code>
+        <code>{highlightShell(commands, isWindows ? "powershell" : "bash")}</code>
       </pre>
     </div>
   );

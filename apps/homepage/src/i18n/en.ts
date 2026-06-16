@@ -774,12 +774,7 @@ Import-Certificate \`
   -FilePath .\\msix-signing.cer \`
   -CertStoreLocation Cert:\\LocalMachine\\TrustedPeople
 
-Import-Certificate \`
-  -FilePath .\\msix-signing.cer \`
-  -CertStoreLocation Cert:\\LocalMachine\\Root
-
-$msix = Get-ChildItem -Path .\\*.msix | Select-Object -First 1
-Add-AppxPackage -Path $msix.FullName`,
+Add-AppxPackage -Path (Get-ChildItem .\\*.msix | Select-Object -First 1).FullName`,
       },
     },
   },
