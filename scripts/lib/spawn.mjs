@@ -42,6 +42,19 @@ function npmCliCandidates(cwd, cliFile) {
   return [...roots].map((root) => path.join(root, "node_modules", "npm", "bin", cliFile));
 }
 
+function whereFirst(command) {
+  if (process.platform !== "win32") return null;
+  const result = spawnSync("where.exe", [command], {
+    stdio: ["ignore", "pipe", "ignore"],
+    encoding: "utf8",
+    ...windowsSpawnOptions(),
+  });
+  if (result.status !== 0) return null;
+  const out = String(result.stdout ?? "").trim();
+  if (!out) return null;
+  return out.split(/\r?\n/)[0].trim();
+}
+
 function resolveNpmSpawn(command, args, { cwd } = {}) {
   if (process.platform !== "win32") return null;
   const name = String(command).toLowerCase();
@@ -52,6 +65,22 @@ function resolveNpmSpawn(command, args, { cwd } = {}) {
       return { command: process.execPath, args: [cli, ...args], shell: false };
     }
   }
+
+  // When running from a packaged MSIX environment the next-to-node npm layout
+  // is sometimes not present, which would force us to fall back to spawning
+  // `npm` through cmd.exe. That cmd splitting breaks absolute paths containing
+  // spaces (e.g. "C:\\Program Files\\..."), leading npm to try to read
+  // "C:\\Program\\package.json".
+  //
+  // Prefer resolving the npm shim from PATH and calling its adjacent
+  // `*-cli.js` with a direct node invocation (shell disabled).
+  const shim = whereFirst(name);
+  if (shim) {
+    const dir = path.dirname(shim);
+    const adjacentCli = path.join(dir, cliFile);
+    if (existsSync(adjacentCli)) return { command: process.execPath, args: [adjacentCli, ...args], shell: false };
+  }
+
   return null;
 }
 
