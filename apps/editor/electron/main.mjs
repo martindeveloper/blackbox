@@ -62,6 +62,36 @@ function resetCloseGuard() {
   isQuitting = false;
 }
 
+// Engine binaries shipped beside the editor. Names without the platform suffix;
+// `.exe` is appended at copy time on Windows (the only platform that stages).
+const ENGINE_TOOLS = ["blackbox-bundler", "blackbox-lint", "blackbox-simulator"];
+
+// Copy the packaged engine binaries into a writable per-user dir, refreshing when a
+// binary is missing or differs from the packaged copy (e.g. after an app upgrade).
+// Returns the staged dir, or falls back to the source dir if staging fails so the
+// editor still functions for the identity-preserving direct-spawn paths.
+async function stagePackagedTools(sourceDir, userDataDir) {
+  const stagedDir = path.join(userDataDir, "bin");
+  try {
+    await fs.mkdir(stagedDir, { recursive: true });
+    for (const base of ENGINE_TOOLS) {
+      const name = `${base}.exe`;
+      const src = path.join(sourceDir, name);
+      const dest = path.join(stagedDir, name);
+      const srcStat = await fs.stat(src).catch(() => null);
+      if (!srcStat) continue; // tool not present in this build
+      const destStat = await fs.stat(dest).catch(() => null);
+      const stale =
+        !destStat || srcStat.size !== destStat.size || srcStat.mtimeMs > destStat.mtimeMs;
+      if (stale) await fs.copyFile(src, dest);
+    }
+    return stagedDir;
+  } catch (error) {
+    console.error(`[editor] failed to stage engine tools: ${error.message}`);
+    return sourceDir;
+  }
+}
+
 async function configureRuntimePaths() {
   applyDarwinShellPath();
 
@@ -79,9 +109,18 @@ async function configureRuntimePaths() {
     path.delimiter,
   );
 
-  const toolsDir = usePackagedResources
+  const packagedBinDir = usePackagedResources
     ? path.join(process.resourcesPath, "bin")
     : path.join(CLIENT_ROOT, "resources", "bin");
+  // On Windows MSIX the package's resources live under C:\Program Files\WindowsApps,
+  // whose ACL only lets processes carrying the package identity execute the binaries.
+  // The web build pipeline runs the bundler from a plain system `node` (spawned by
+  // npm's lifecycle runner), which lacks that identity and is denied with EPERM.
+  // Stage the engine tools into a writable per-user dir so any descendant can run them.
+  const toolsDir =
+    usePackagedResources && process.platform === "win32"
+      ? await stagePackagedTools(packagedBinDir, process.env.BLACKBOX_USER_DATA)
+      : packagedBinDir;
   process.env.BLACKBOX_TOOLS_DIR = toolsDir;
 
   const cliDir = usePackagedResources
