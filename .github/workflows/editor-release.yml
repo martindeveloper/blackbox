@@ -59,6 +59,7 @@ jobs:
     permissions:
       contents: read
     uses: ./.github/workflows/editor-windows.yml
+    secrets: inherit
     with:
       architecture: arm64
       package_format: msix
@@ -68,6 +69,7 @@ jobs:
     permissions:
       contents: read
     uses: ./.github/workflows/editor-windows.yml
+    secrets: inherit
     with:
       architecture: x64
       package_format: msix

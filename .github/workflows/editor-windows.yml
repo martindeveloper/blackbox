@@ -32,6 +32,11 @@ on:
         required: false
         default: msix
         type: string
+    secrets:
+      BBX_WINDOWS_SIGNING_CERTIFICATE:
+        required: false
+      BBX_WINDOWS_SIGNING_PASSWORD:
+        required: false
 
 permissions:
   contents: read
