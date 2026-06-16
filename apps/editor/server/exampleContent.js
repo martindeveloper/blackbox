@@ -264,6 +264,12 @@ export function exampleCharactersDoc() {
         subtitle: "Orientation",
         color: "#6da9ff",
       },
+      player: {
+        id: "player",
+        name: "You",
+        subtitle: "Protagonist",
+        color: "#a8b0c0",
+      },
     },
   };
 }

@@ -19,7 +19,6 @@ import { applyDarwinShellPath } from "./shellPath.mjs";
 const ELECTRON_ROOT = path.dirname(fileURLToPath(import.meta.url));
 const CLIENT_ROOT = path.resolve(ELECTRON_ROOT, "..");
 const APP_NAME = "Blackbox Editor";
-const SHUTDOWN_TIMEOUT_MS = 1500;
 
 protocol.registerSchemesAsPrivileged([
   {
@@ -47,7 +46,6 @@ app.setName(APP_NAME);
 let mainWindow = null;
 let editorServer = null;
 let editorSocketPath = null;
-let shutdownPromise = null;
 // Set on before-quit so confirm-close can call app.quit() vs window.close().
 let isQuitting = false;
 let shutdownDone = false;
@@ -155,6 +153,8 @@ async function createWindow() {
     void shell.openExternal(url);
     return { action: "deny" };
   });
+  // Direct window close (red traffic-light / Alt+F4). App-level quit (Cmd+Q,
+  // dock Quit, menu) is handled by the before-quit listener instead.
   mainWindow.on("close", (event) => {
     if (closeGuard.allowClose || !closeGuard.dirty) return;
     event.preventDefault();
@@ -163,46 +163,45 @@ async function createWindow() {
   mainWindow.on("closed", () => {
     mainWindow = null;
     closeGuard.dirty = false;
-    if (isQuitting) {
-      void exitAfterShutdown();
-    }
+    // On Windows this is followed by window-all-closed, which calls forceExit.
+    // On macOS the app intentionally stays resident until an explicit quit
+    // (Cmd+Q / dock / menu), which is handled by the before-quit listener.
   });
 
   await mainWindow.loadURL(EDITOR_ORIGIN);
 }
 
-async function shutdown() {
-  if (protocol.isProtocolHandled(EDITOR_SCHEME)) {
-    protocol.unhandle(EDITOR_SCHEME);
-  }
-  if (editorServer) {
-    const closing = editorServer.close();
-    await Promise.race([
-      closing,
-      new Promise((resolve) => setTimeout(resolve, SHUTDOWN_TIMEOUT_MS)),
-    ]);
-    editorServer = null;
-  }
-  if (editorSocketPath) {
-    await removeEditorSocket(editorSocketPath);
-    editorSocketPath = null;
-  }
-}
-
-function beginShutdown() {
-  shutdownPromise ??= shutdown();
-  return shutdownPromise;
-}
-
-async function exitAfterShutdown() {
+// Terminate the process. The catch on macOS/Linux: a normal exit (app.exit /
+// process.exit) runs Node's environment teardown, which synchronously finalizes
+// the still-open node:sqlite DatabaseSync handle. That close performs a blocking
+// WAL checkpoint and wedges the main thread — and once the thread is blocked in
+// native code no timer or further JS can rescue it. That is the macOS Cmd+Q
+// freeze (the window closes, then the process hangs in teardown).
+//
+// SIGKILL is delivered by the kernel and terminates immediately without running
+// any teardown, so the blocking close never executes. This is safe here: SQLite
+// WAL is crash-consistent (all writes autocommit and the DB recovers on next
+// open) and the unix socket is removed at the start of the next launch
+// (startServer -> removeEditorSocket). We destroy the windows first so the
+// renderer/GPU helper processes shut down cleanly before the browser process
+// disappears. Windows never exhibited the freeze, so it keeps the normal exit.
+function forceExit() {
   if (shutdownDone) return;
   shutdownDone = true;
-  try {
-    await beginShutdown();
-  } catch (error) {
-    console.error("[editor] shutdown failed:", error instanceof Error ? error.message : error);
+
+  if (process.platform === "win32") {
+    app.exit(0);
+    return;
   }
-  setImmediate(() => app.exit(0));
+
+  for (const win of BrowserWindow.getAllWindows()) {
+    try {
+      win.destroy();
+    } catch {
+      /* window already gone */
+    }
+  }
+  process.kill(process.pid, "SIGKILL");
 }
 
 function confirmCloseFromRenderer() {
@@ -329,13 +328,27 @@ if (cliArgs !== null) {
     });
 }
 
-app.on("before-quit", () => {
+// Authoritative quit path for Cmd+Q, dock Quit, and the app menu. macOS never
+// quits from window-all-closed, so we take over the quit here: prompt for
+// unsaved work if needed, then exit the process directly via forceExit().
+app.on("before-quit", (event) => {
   isQuitting = true;
+  if (shutdownDone) return;
+
+  // Prompt for unsaved work before exiting. The renderer answers via
+  // confirm-close / cancel-close, which re-enters this handler (now clean).
+  if (closeGuard.dirty && !closeGuard.allowClose && mainWindow && !mainWindow.isDestroyed()) {
+    event.preventDefault();
+    mainWindow.webContents.send("editor:request-close");
+    return;
+  }
+
+  forceExit();
 });
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
     isQuitting = true;
-    void exitAfterShutdown();
+    forceExit();
   }
 });

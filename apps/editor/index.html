@@ -25,10 +25,16 @@
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
+    <link rel="stylesheet" href="/boot-splash.css" />
     <link rel="stylesheet" href="/xyflow.css" />
     <link rel="stylesheet" href="/style.css" />
   </head>
   <body>
+    <div id="boot-splash" class="boot-splash" aria-hidden="true">
+      <div class="boot-loader" role="status" aria-label="Starting editor">
+        <div class="boot-loader-ring"></div>
+      </div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/app.js"></script>
   </body>

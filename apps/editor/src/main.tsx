@@ -7,6 +7,7 @@ import { ThemeProvider } from "./context/ThemeContext.js";
 import { UserPrefsProvider } from "./hooks/useUserPrefs.js";
 import { router } from "./router.js";
 import i18n from "./i18n/index.js";
+import { dismissBootSplash } from "./lib/dismissBootSplash.js";
 
 const root = document.getElementById("root");
 if (root) {
@@ -23,4 +24,8 @@ if (root) {
       </I18nextProvider>
     </StrictMode>,
   );
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(dismissBootSplash);
+  });
 }

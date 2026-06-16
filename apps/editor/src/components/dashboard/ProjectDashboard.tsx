@@ -230,9 +230,11 @@ export function ProjectDashboard() {
               <span>{startChapter ?? t("dashboard.noChapter")}</span>
             </span>
             <span className="dashboard-map" aria-hidden>
-              <i className="dashboard-map-line dashboard-map-line--a" />
-              <i className="dashboard-map-line dashboard-map-line--b" />
-              <i className="dashboard-map-line dashboard-map-line--c" />
+              <svg className="dashboard-map-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <line className="dashboard-map-edge" x1="20" y1="40" x2="56" y2="27" />
+                <line className="dashboard-map-edge" x1="56" y1="27" x2="84" y2="54" />
+                <line className="dashboard-map-edge" x1="56" y1="27" x2="44" y2="71" />
+              </svg>
               <i className="dashboard-map-node dashboard-map-node--a" />
               <i className="dashboard-map-node dashboard-map-node--b" />
               <i className="dashboard-map-node dashboard-map-node--c" />

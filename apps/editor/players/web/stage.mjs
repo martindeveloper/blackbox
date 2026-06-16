@@ -10,6 +10,10 @@ import {
 import path from "node:path";
 import { devEngineRoot, PROTOCOL_PATH, REPO_ROOT, STAGED_WORKSPACE_DIR } from "./manifest.mjs";
 
+// Roots of the dependency closure staged for the in-editor preview build. The preview is
+// bundled by rolldown (which transpiles TS via oxc), so the `typescript` package and the
+// type-only `@types/*` packages are intentionally excluded — they are not needed to bundle and
+// would add ~25M. Re-add them here if the preview build ever reports a missing module.
 const ROOTS = [
   "rolldown",
   "@tailwindcss/cli",
@@ -20,9 +24,6 @@ const ROOTS = [
   "i18next",
   "react-i18next",
   "fzstd",
-  "typescript",
-  "@types/react",
-  "@types/react-dom",
 ];
 
 const NATIVE_GLOBS = [

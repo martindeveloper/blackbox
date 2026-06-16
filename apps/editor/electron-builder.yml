@@ -33,17 +33,20 @@ extraResources:
     filter:
       - "**/*"
   # Web player workspace (engine sources + rolldown/tailwind toolchain).
-  # Staged by players/web/stage.mjs.
+  # Staged by players/web/stage.mjs. Source maps are dev-only and not shipped.
   - from: resources/players/web/workspace
     to: players/web/workspace
     filter:
       - "**/*"
+      - "!**/*.map"
   # Build CLI: web/iOS/Android orchestration + Capacitor + prebuilt WASM.
   # Staged by scripts/stage-cli.mjs; selected at runtime via BLACKBOX_CLI_DIR.
+  # Source maps are dev-only and not shipped.
   - from: resources/cli
     to: cli
     filter:
       - "**/*"
+      - "!**/*.map"
 mac:
   category: public.app-category.developer-tools
   target:

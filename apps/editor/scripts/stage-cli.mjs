@@ -47,6 +47,29 @@ const TSCONFIGS = [
   "tsconfig.game.json",
 ];
 
+// Dev-only tooling pulled in by the verbatim node_modules copy above but never invoked by an
+// export build (build.mjs runs only rolldown/tailwind/sharp/babel). Pruned after copy to keep
+// the packaged editor slim. rolldown transpiles TS via oxc, so the `typescript` package is not
+// needed for bundling. If one of these turns out to be required at export time it surfaces as a
+// missing-module error from build.mjs — drop it from this list to restore.
+const PRUNE_DEV_PACKAGES = [
+  "typescript",
+  "oxlint",
+  "@oxlint",
+  "oxfmt",
+  "@oxfmt",
+  "eslint",
+  "eslint-plugin-react-hooks",
+  "@typescript-eslint",
+  "@types",
+];
+
+// node_modules dirs (relative to outDir) to prune dev-only packages from.
+const PRUNE_NODE_MODULES = [
+  "apps/web/node_modules",
+  "apps/mobile/node_modules",
+];
+
 function copyInto(rel) {
   const from = path.join(repoRoot, rel);
   if (!existsSync(from)) {
@@ -82,5 +105,20 @@ for (const name of TSCONFIGS) copyInto(`apps/web/${name}`);
 // BLACKBOX_WASM_PREBUILT_DIR pointing here, skips the wasm-pack step entirely.
 console.log("==> CLI staging: copying prebuilt WASM glue…");
 copyInto(".cache/wasm/clients-web");
+
+console.log("==> CLI staging: pruning dev-only tooling from staged node_modules…");
+let prunedCount = 0;
+for (const nm of PRUNE_NODE_MODULES) {
+  const nmDir = path.join(outDir, nm);
+  if (!existsSync(nmDir)) continue;
+  for (const name of PRUNE_DEV_PACKAGES) {
+    const target = path.join(nmDir, name);
+    if (existsSync(target)) {
+      rmSync(target, { recursive: true, force: true });
+      prunedCount += 1;
+    }
+  }
+}
+console.log(`  pruned ${prunedCount} package dir(s)`);
 
 console.log(`==> CLI staged to ${outDir}`);

@@ -32,6 +32,12 @@ import { EDITOR_VERSION } from "../shared/editorVersion.js";
 
 const MEDIA_ROOTS = new Set(["textures", "music", "sfx"]);
 const HEATMAP_SCHEMA_VERSION = 2;
+// node:sqlite defaults busy_timeout to 0; bound lock waits so close-time WAL
+// checkpoints cannot hang indefinitely on stale -shm locks.
+const SQLITE_BUSY_TIMEOUT_MS = 500;
+// Keep the WAL small while the editor is open so the automatic checkpoint on
+// close is trivial and stale-lock buildup does not accumulate across force-quits.
+const WAL_CHECKPOINT_INTERVAL_MS = 60_000;
 
 export class ProjectError extends Error {
   constructor(code, message, details = {}) {
@@ -239,6 +245,7 @@ export class ProjectService {
     this.listeners = new Map();
     this.suppressed = new Map();
     this.db = null;
+    this.walCheckpointTimer = null;
   }
 
   async start() {
@@ -255,6 +262,7 @@ export class ProjectService {
     ).filter(Boolean);
     await fs.mkdir(path.dirname(this.dbPath), { recursive: true });
     this.db = new DatabaseSync(this.dbPath);
+    this.db.exec(`PRAGMA busy_timeout = ${SQLITE_BUSY_TIMEOUT_MS};`);
     this.db.exec(`
       PRAGMA journal_mode = WAL;
       CREATE TABLE IF NOT EXISTS projects (
@@ -284,6 +292,16 @@ export class ProjectService {
     }
     await this.loadPersistedProjects();
     if (!PACKAGED) await this.discover();
+    this.walCheckpointTimer = setInterval(() => this.checkpointWal(), WAL_CHECKPOINT_INTERVAL_MS);
+  }
+
+  checkpointWal() {
+    if (!this.db) return;
+    try {
+      this.db.exec("PRAGMA wal_checkpoint(TRUNCATE)");
+    } catch (error) {
+      console.warn(`WAL checkpoint failed: ${error?.message ?? error}`);
+    }
   }
 
   async loadPersistedProjects() {
@@ -301,9 +319,14 @@ export class ProjectService {
   }
 
   async close() {
+    if (this.walCheckpointTimer) {
+      clearInterval(this.walCheckpointTimer);
+      this.walCheckpointTimer = null;
+    }
     await Promise.all([...this.watchers.values()].map((watcher) => watcher.close()));
     this.watchers.clear();
     this.db?.close();
+    this.db = null;
   }
 
   async discover() {
