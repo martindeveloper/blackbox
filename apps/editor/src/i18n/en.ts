@@ -420,6 +420,17 @@ export const en = {
       codex: "Implementation passes & tooling",
     },
   },
+  update: {
+    available: "A new version is available",
+    versionDetail: "Version {{version}} is ready to install — you have {{current}}.",
+    updateButton: "Update",
+    updateToVersion: "Update to {{version}}",
+    dismiss: "Dismiss",
+    checkButton: "Check for updates",
+    checking: "Checking for updates…",
+    upToDate: "You're on the latest version",
+    checkFailed: "Could not check for updates",
+  },
   build: {
     title: "Build",
     ready: "Ready",

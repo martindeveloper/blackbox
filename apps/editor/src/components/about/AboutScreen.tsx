@@ -1,5 +1,8 @@
+import { ArrowUpCircle, CheckCircle2, Download, Loader2, RefreshCw } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { EDITOR_VERSION } from "../../lib/version.js";
+import { useUpdateCheck } from "../../hooks/useUpdateCheck.js";
+import { Icon } from "../icons/Icon.js";
 
 interface DepEntry {
   name: string;
@@ -122,6 +125,61 @@ function DepCard({ entry }: { entry: DepEntry }) {
   return <div className="about-dep-card">{inner}</div>;
 }
 
+function UpdateCheck() {
+  const { t } = useTranslation();
+  const { status, result, error, check } = useUpdateCheck();
+  const checking = status === "checking";
+
+  return (
+    <div className="about-update">
+      {status === "available" && result ? (
+        <a
+          className="editor-btn editor-btn-sm editor-btn-primary about-update-button"
+          href={result.latest.downloadUrl}
+          target="_blank"
+          rel="noreferrer"
+        >
+          <Icon icon={Download} size={13} />
+          {t("update.updateToVersion", { version: result.latest.version })}
+        </a>
+      ) : (
+        <button
+          type="button"
+          className="editor-btn editor-btn-sm about-update-button"
+          onClick={() => void check()}
+          disabled={checking}
+        >
+          <Icon
+            icon={checking ? Loader2 : RefreshCw}
+            size={13}
+            className={checking ? "spin" : ""}
+          />
+          {t("update.checkButton")}
+        </button>
+      )}
+
+      {status === "checking" && <span className="about-update-status">{t("update.checking")}</span>}
+      {status === "current" && (
+        <span className="about-update-status about-update-status--ok">
+          <Icon icon={CheckCircle2} size={13} />
+          {t("update.upToDate")}
+        </span>
+      )}
+      {status === "available" && (
+        <span className="about-update-status about-update-status--available">
+          <Icon icon={ArrowUpCircle} size={13} />
+          {t("update.available")}
+        </span>
+      )}
+      {status === "error" && (
+        <span className="about-update-status about-update-status--error">
+          {error ?? t("update.checkFailed")}
+        </span>
+      )}
+    </div>
+  );
+}
+
 export function AboutScreen() {
   const { t } = useTranslation();
 
@@ -135,6 +193,7 @@ export function AboutScreen() {
         <p className="about-tagline">{t("about.tagline")}</p>
         <p className="about-lead">{t("about.lead")}</p>
         <span className="about-version">v{EDITOR_VERSION}</span>
+        <UpdateCheck />
       </header>
 
       <div className="about-sections">
