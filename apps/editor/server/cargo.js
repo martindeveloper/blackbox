@@ -38,6 +38,7 @@ export function runProcess(command, args, cwd, extraEnv = {}) {
       cwd,
       env: { ...process.env, ...extraEnv },
       stdio: ["ignore", "pipe", "pipe"],
+      ...(process.platform === "win32" ? { windowsHide: true } : {}),
     });
 
     let stdout = "";
@@ -82,6 +83,7 @@ export function probeBin(binPath, source) {
       cwd: spawnCwd(),
       env: process.env,
       stdio: ["ignore", "pipe", "pipe"],
+      ...(process.platform === "win32" ? { windowsHide: true } : {}),
     });
     let stdout = "";
     child.stdout.on("data", (d) => {

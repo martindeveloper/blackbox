@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { wasmProfileForConfiguration } from "../../lib/adventure.mjs";
-import { runSync } from "../../lib/spawn.mjs";
+import { needsShell, runSync, windowsSpawnOptions } from "../../lib/spawn.mjs";
 import { playerBuildEnv } from "./buildEnv.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -114,6 +114,7 @@ export function exec(command, args, { cwd = REPO_ROOT, env = process.env } = {})
     stdio: "inherit",
     cwd,
     env,
-    shell: process.platform === "win32",
+    shell: needsShell(command),
+    ...windowsSpawnOptions(),
   });
 }

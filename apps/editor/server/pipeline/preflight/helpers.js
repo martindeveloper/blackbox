@@ -8,6 +8,7 @@ function readFfmpegEncoders() {
   const result = spawnSync("ffmpeg", ["-hide_banner", "-encoders"], {
     encoding: "utf8",
     shell: process.platform === "win32",
+    ...(process.platform === "win32" ? { windowsHide: true } : {}),
   });
   if (result.status !== 0) return "";
   return result.stdout.toLowerCase();

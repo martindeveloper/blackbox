@@ -72,6 +72,7 @@ export async function buildGameCss({
         NODE_PATH: path.join(depsRoot, "node_modules"),
       },
       stdio: watch ? "inherit" : "pipe",
+      ...(process.platform === "win32" ? { windowsHide: true } : {}),
     });
     let stderr = "";
     if (!watch) child.stderr?.on("data", (chunk) => (stderr += chunk));

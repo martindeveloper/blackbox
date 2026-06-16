@@ -86,6 +86,7 @@ function cliSpawnOptions({ inheritStdio = false, extraEnv = {} } = {}) {
     cwd: getCliDir(),
     env: { ...process.env, ELECTRON_RUN_AS_NODE: "1", ...prebuiltToolEnv(), ...extraEnv },
     stdio: inheritStdio ? "inherit" : ["ignore", "pipe", "pipe"],
+    ...(process.platform === "win32" ? { windowsHide: true } : {}),
   };
 }
 
