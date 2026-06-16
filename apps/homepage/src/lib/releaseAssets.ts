@@ -1,7 +1,7 @@
 export const GITHUB_REPO = "martindeveloper/blackbox";
 
-/** GitHub release tag or `latest` once releases are published. */
-export const RELEASE_TAG = "latest";
+/** Fallback when the GitHub releases API is unavailable. */
+export const FALLBACK_RELEASE_TAG = "v0.1.0";
 
 export const GITHUB_RELEASES_URL = `https://github.com/${GITHUB_REPO}/releases`;
 
@@ -48,12 +48,12 @@ export function releaseDownloadUrl(
   platform: DownloadPlatform,
   arch: DownloadArch,
   linuxFormat: LinuxFormat = "appimage",
-  tag: string = RELEASE_TAG,
+  tag: string = FALLBACK_RELEASE_TAG,
 ): string {
   const filename = releaseAssetFilename(platform, arch, linuxFormat);
   return `https://github.com/${GITHUB_REPO}/releases/download/${tag}/${filename}`;
 }
 
-export function releaseChecksumUrl(tag: string = RELEASE_TAG): string {
+export function releaseChecksumUrl(tag: string = FALLBACK_RELEASE_TAG): string {
   return `https://github.com/${GITHUB_REPO}/releases/download/${tag}/SHA256SUMS`;
 }

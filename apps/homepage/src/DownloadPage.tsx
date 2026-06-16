@@ -48,7 +48,7 @@ function ExternalIcon() {
   );
 }
 
-export function DownloadPage() {
+export function DownloadPage({ releaseTag }: { releaseTag: string }) {
   const { t } = useTranslation();
   const [platform, setPlatform] = useState<DownloadPlatform>("macos");
   const [arch, setArch] = useState<DownloadArch>("arm64");
@@ -80,12 +80,12 @@ export function DownloadPage() {
     : (availableArches[0] ?? "x64");
 
   const downloadUrl = useMemo(
-    () => releaseDownloadUrl(platform, activeArch, linuxFormat),
-    [platform, activeArch, linuxFormat],
+    () => releaseDownloadUrl(platform, activeArch, linuxFormat, releaseTag),
+    [platform, activeArch, linuxFormat, releaseTag],
   );
 
   const alternateLinuxFormat: LinuxFormat = linuxFormat === "appimage" ? "deb" : "appimage";
-  const alternateLinuxUrl = releaseDownloadUrl(platform, activeArch, alternateLinuxFormat);
+  const alternateLinuxUrl = releaseDownloadUrl(platform, activeArch, alternateLinuxFormat, releaseTag);
 
   const requirements = t(`downloadPage.requirements.${platform}`, {
     returnObjects: true,
@@ -233,7 +233,7 @@ export function DownloadPage() {
               <DownloadTrustGuide platform={platform} />
 
               <footer className="download-panel-footer">
-                <a href={releaseChecksumUrl()} target="_blank" rel="noopener noreferrer">
+                <a href={releaseChecksumUrl(releaseTag)} target="_blank" rel="noopener noreferrer">
                   {t("downloadPage.checksums")}
                   <ExternalIcon />
                 </a>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DownloadPage } from "../../src/DownloadPage";
 import { en } from "../../src/i18n/en";
+import { fetchLatestReleaseTag } from "../../src/lib/fetchLatestReleaseTag";
 
 export const metadata: Metadata = {
   title: en.metadata.download.title,
@@ -23,6 +24,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function Page() {
-  return <DownloadPage />;
+export default async function Page() {
+  const releaseTag = await fetchLatestReleaseTag();
+  return <DownloadPage releaseTag={releaseTag} />;
 }
