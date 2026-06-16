@@ -31,9 +31,9 @@ jobs:
     name: Build macOS ${{ inputs.architecture }}
     # Build each arch on a matching host so apps/web/node_modules carries the right
     # native bindings (rolldown/tailwind-oxide/lightningcss/sharp), which the packaged
-    # build loads in place at runtime. macos-13 is the last Intel (x64) runner; macos-15
-    # is arm64. A cross-built package would ship wrong-arch bindings (MODULE_NOT_FOUND).
-    runs-on: ${{ inputs.architecture == 'x64' && 'macos-13' || 'macos-15' }}
+    # build loads in place at runtime. macos-26-intel is Intel (x64); macos-26 is arm64.
+    # A cross-built package would ship wrong-arch bindings (MODULE_NOT_FOUND).
+    runs-on: ${{ inputs.architecture == 'x64' && 'macos-26-intel' || 'macos-26' }}
     timeout-minutes: 60
     env:
       CSC_IDENTITY_AUTO_DISCOVERY: "false"
