@@ -22,6 +22,12 @@ const profile = parseProfile(argv);
 const preview = argv.includes("--preview");
 const pkgDir = path.join(repoRoot, ".cache/wasm", preview ? "editor-preview" : "clients-web");
 
+// wasm-pack's release build runs binaryen's wasm-opt as a post-step, but binaryen ships
+// no arm64-windows prebuilt, so it fails on a Win ARM host. The .wasm is still optimized
+// by the Rust release profile; skip only the extra wasm-opt pass on that one platform.
+// TEMPORARY: drop this once binaryen publishes an arm64-windows wasm-opt build.
+const skipWasmOpt = process.platform === "win32" && process.arch === "arm64";
+
 if (!commandExists("wasm-pack")) {
   console.error("error: wasm-pack not found; install with: cargo install wasm-pack");
   process.exit(1);
@@ -35,6 +41,10 @@ if (profile === "release") {
   packFlags.push("--release");
 } else {
   packFlags.push("--dev");
+}
+if (skipWasmOpt) {
+  console.log("==> skipping wasm-opt (no binaryen arm64-windows prebuilt)");
+  packFlags.push("--no-opt");
 }
 if (preview) {
   packFlags.push("--features", "preview-json");
