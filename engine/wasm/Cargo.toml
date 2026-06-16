@@ -9,6 +9,14 @@ repository.workspace = true
 [lints.rust]
 unsafe_code = "allow"
 
+# wasm-pack downloads a prebuilt wasm-opt (binaryen) as a post-build step, but binaryen
+# ships no win32-arm64 build, so the arm64 Windows runner fails with "no prebuilt wasm-opt
+# binaries are available for this platform". Disable wasm-pack's wasm-opt; the .wasm is
+# already optimized by the Rust release profile. (To re-enable size optimization later,
+# build the arch-independent wasm once on an x64 host and reuse it across all packages.)
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = false
+
 [lib]
 crate-type = ["cdylib"]
 name = "blackbox_wasm"
