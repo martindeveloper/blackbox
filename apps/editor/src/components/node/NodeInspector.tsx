@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ArrowUpRight, BookOpenText, GitFork, SlidersHorizontal } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
@@ -36,11 +36,14 @@ export function NodeInspector({ chapterId, nodeId }: Props) {
 
   const [renameValue, setRenameValue] = useState("");
   const [workspace, setWorkspace] = useState<"scene" | "choices" | "setup">("scene");
+  const nodeKey = `${chapterId}:${nodeId}`;
+  const [trackedNodeKey, setTrackedNodeKey] = useState(nodeKey);
 
-  useEffect(() => {
+  if (trackedNodeKey !== nodeKey) {
+    setTrackedNodeKey(nodeKey);
     setRenameValue("");
     setWorkspace("scene");
-  }, [chapterId, nodeId]);
+  }
 
   if (!bundle || !chapterId || !nodeId) return null;
 

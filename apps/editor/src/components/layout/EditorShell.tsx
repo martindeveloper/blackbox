@@ -96,16 +96,19 @@ export function EditorShell() {
 
   const prevLeftWidth = useRef(leftWidth);
   const prevRightWidth = useRef(rightWidth);
+  const prefsKey = `${prefs.leftColumnWidth ?? ""}:${prefs.rightColumnWidth ?? ""}`;
+  const [syncedPrefsKey, setSyncedPrefsKey] = useState<string | null>(null);
+
+  if (ready && syncedPrefsKey !== prefsKey) {
+    setSyncedPrefsKey(prefsKey);
+    setLeftWidth(clampLeftPanelWidth(prefs.leftColumnWidth ?? DEFAULT_LEFT_PANEL));
+    setRightWidth(clampRightPanelWidth(prefs.rightColumnWidth ?? DEFAULT_RIGHT_PANEL));
+  }
 
   useEffect(() => {
-    if (!ready) return;
-    const nextLeft = clampLeftPanelWidth(prefs.leftColumnWidth ?? DEFAULT_LEFT_PANEL);
-    const nextRight = clampRightPanelWidth(prefs.rightColumnWidth ?? DEFAULT_RIGHT_PANEL);
-    setLeftWidth(nextLeft);
-    setRightWidth(nextRight);
-    prevLeftWidth.current = nextLeft;
-    prevRightWidth.current = nextRight;
-  }, [ready, prefs.leftColumnWidth, prefs.rightColumnWidth]);
+    prevLeftWidth.current = leftWidth;
+    prevRightWidth.current = rightWidth;
+  }, [leftWidth, rightWidth]);
 
   const activity = useActivityView();
   const isMedia = activity === "media";

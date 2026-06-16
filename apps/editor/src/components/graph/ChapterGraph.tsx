@@ -155,7 +155,7 @@ function ChapterGraphInner() {
   const analyticsNarrativeVersion = useAnalyticsStore((s) => s.narrativeVersion);
   const analyticsCapturedAt = useAnalyticsStore((s) => s.capturedAt);
   const analyticsMeta = useAnalyticsStore((s) => s.meta);
-  const [showHeat, setShowHeat] = useState(false);
+  const [heatmapEnabled, setHeatmapEnabled] = useState(false);
   const [analyticsMode, setAnalyticsMode] = useState<GraphAnalyticsMode>("reach");
   const [selectedEnding, setSelectedEnding] = useState<string | null>(null);
 
@@ -172,28 +172,21 @@ function ChapterGraphInner() {
       })),
     [analytics],
   );
+  const showHeat = heatmapEnabled && heatAvailable;
+  const activeEnding =
+    selectedEnding && endings.some((ending) => ending.id === selectedEnding)
+      ? selectedEnding
+      : (endings[0]?.id ?? null);
+
+  if (endings.length === 0 && analyticsMode === "route") {
+    setAnalyticsMode("reach");
+  }
+
   const insights = useMemo(
     () =>
-      showHeat && analytics
-        ? buildGraphInsights(analytics, analyticsMode, selectedEnding ?? endings[0]?.id ?? null)
-        : null,
-    [showHeat, analytics, analyticsMode, selectedEnding, endings],
+      showHeat && analytics ? buildGraphInsights(analytics, analyticsMode, activeEnding) : null,
+    [showHeat, analytics, analyticsMode, activeEnding],
   );
-
-  useEffect(() => {
-    if (showHeat && !heatAvailable) setShowHeat(false);
-  }, [showHeat, heatAvailable]);
-
-  useEffect(() => {
-    if (endings.length === 0) {
-      setSelectedEnding(null);
-      if (analyticsMode === "route") setAnalyticsMode("reach");
-      return;
-    }
-    if (!selectedEnding || !endings.some((ending) => ending.id === selectedEnding)) {
-      setSelectedEnding(endings[0]!.id);
-    }
-  }, [analyticsMode, endings, selectedEnding]);
 
   const chapter = chapterId && bundle ? bundle.chapters[chapterId] : null;
 
@@ -445,11 +438,11 @@ function ChapterGraphInner() {
         onAutoLayout={handleAutoLayout}
         heatAvailable={heatAvailable}
         showHeat={showHeat}
-        onToggleHeat={() => setShowHeat((v) => !v)}
+        onToggleHeat={() => setHeatmapEnabled((value) => !value)}
         analyticsMode={analyticsMode}
         onAnalyticsModeChange={setAnalyticsMode}
         endings={endings}
-        selectedEnding={selectedEnding}
+        selectedEnding={activeEnding}
         onEndingChange={setSelectedEnding}
         analyticsStale={analyticsStale}
       />

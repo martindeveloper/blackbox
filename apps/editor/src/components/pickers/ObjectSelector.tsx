@@ -110,8 +110,10 @@ export function ObjectSelector({ mode, value, title, onSelect, onClose }: Object
 
   const [query, setQuery] = useState("");
   const [filterCat, setFilterCat] = useState<string>("all");
+  const filterKey = `${query}\0${filterCat}`;
   const [cursor, setCursor] = useState(0);
-  const [selected, setSelected] = useState(value ?? "");
+  const [trackedFilterKey, setTrackedFilterKey] = useState(filterKey);
+  const [initializedSelection, setInitializedSelection] = useState(false);
 
   const searchRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -248,29 +250,30 @@ export function ObjectSelector({ mode, value, title, onSelect, onClose }: Object
     [displayRows],
   );
 
-  useEffect(() => {
-    if (flatItems.length === 0) return;
-    setCursor((c) => Math.min(c, flatItems.length - 1));
-  }, [flatItems.length]);
-
-  useEffect(() => {
+  if (trackedFilterKey !== filterKey) {
+    setTrackedFilterKey(filterKey);
     setCursor(0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query, filterCat]);
+    setInitializedSelection(false);
+  }
+
+  if (!initializedSelection && flatItems.length > 0) {
+    const valueIndex = value ? flatItems.findIndex((item) => itemValue(item) === value) : -1;
+    setInitializedSelection(true);
+    if (valueIndex >= 0) setCursor(valueIndex);
+  }
+
+  const safeCursor = flatItems.length === 0 ? 0 : Math.min(cursor, flatItems.length - 1);
+  if (safeCursor !== cursor) {
+    setCursor(safeCursor);
+  }
 
   useEffect(() => {
-    const el = listRef.current?.querySelector<HTMLElement>(`[data-item-index="${cursor}"]`);
+    const el = listRef.current?.querySelector<HTMLElement>(`[data-item-index="${safeCursor}"]`);
     el?.scrollIntoView({ block: "nearest" });
-  }, [cursor]);
+  }, [safeCursor]);
 
-  const selectedItem =
-    flatItems.find((i) => itemValue(i) === selected) ?? flatItems[cursor] ?? null;
+  const selectedItem = flatItems[safeCursor] ?? null;
   const selectedPath = selectedItem ? itemValue(selectedItem) : "";
-
-  useEffect(() => {
-    const item = flatItems[cursor];
-    if (item) setSelected(itemValue(item));
-  }, [cursor, flatItems]);
 
   const previewPath =
     selectedItem?.kind === "media"
@@ -404,7 +407,7 @@ export function ObjectSelector({ mode, value, title, onSelect, onClose }: Object
                 }
 
                 const item = row.item;
-                const isActive = row.itemIndex === cursor;
+                const isActive = row.itemIndex === safeCursor;
 
                 return (
                   <div

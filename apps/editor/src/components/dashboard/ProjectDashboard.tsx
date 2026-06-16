@@ -72,11 +72,15 @@ export function ProjectDashboard() {
   const validationIssues = useScenarioStore((s) => s.validationIssues);
   const dirty = useScenarioStore((s) => s.dirty);
   const [lintRun, setLintRun] = useState<ToolRun | null>(null);
+  const [lintProjectId, setLintProjectId] = useState(projectId);
+  if (lintProjectId !== projectId) {
+    setLintProjectId(projectId);
+    setLintRun(null);
+  }
 
   useEffect(() => {
     let cancelled = false;
     let timeout: number | null = null;
-    setLintRun(null);
 
     const load = async () => {
       if (!projectId) {

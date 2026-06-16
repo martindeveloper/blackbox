@@ -38,13 +38,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   );
   const [systemTheme, setSystemTheme] = useState<ThemeMode>(getSystemTheme);
 
-  useEffect(() => {
-    if (!ready) return;
+  if (ready) {
     const pref = prefs.theme;
-    if (pref === "light" || pref === "dark" || pref === "device") {
+    if ((pref === "light" || pref === "dark" || pref === "device") && pref !== themePreference) {
       setThemePreferenceState(pref);
     }
-  }, [ready]); // eslint-disable-line react-hooks/exhaustive-deps
+  }
 
   useEffect(() => {
     const media = window.matchMedia("(prefers-color-scheme: dark)");

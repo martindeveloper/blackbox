@@ -4,7 +4,7 @@ import {
   use,
   useCallback,
   useEffect,
-  useRef,
+  useMemo,
   useState,
   type ReactNode,
 } from "react";
@@ -23,8 +23,7 @@ const UserPrefsContext = createContext<UserPrefsContextValue | null>(null);
 export function UserPrefsProvider({ children }: { children: ReactNode }) {
   const [prefs, setPrefs] = useState<UserPrefs>({});
   const [ready, setReady] = useState(false);
-  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const pendingPatch = useRef<Partial<UserPrefs>>({});
+  const [pendingSave, setPendingSave] = useState<Partial<UserPrefs> | null>(null);
 
   useEffect(() => {
     fetchUserPrefs().then((loaded) => {
@@ -33,24 +32,23 @@ export function UserPrefsProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  useEffect(() => {
+    if (!pendingSave) return;
+    const timer = setTimeout(() => {
+      void saveUserPrefs(pendingSave);
+      setPendingSave(null);
+    }, DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [pendingSave]);
+
   const updatePrefs = useCallback((patch: Partial<UserPrefs>) => {
     setPrefs((prev) => ({ ...prev, ...patch }));
-
-    pendingPatch.current = { ...pendingPatch.current, ...patch };
-
-    if (debounceTimer.current !== null) clearTimeout(debounceTimer.current);
-    debounceTimer.current = setTimeout(() => {
-      void saveUserPrefs(pendingPatch.current);
-      pendingPatch.current = {};
-      debounceTimer.current = null;
-    }, DEBOUNCE_MS);
+    setPendingSave((prev) => ({ ...prev, ...patch }));
   }, []);
 
-  return createElement(
-    UserPrefsContext.Provider,
-    { value: { prefs, ready, updatePrefs } },
-    children,
-  );
+  const value = useMemo(() => ({ prefs, ready, updatePrefs }), [prefs, ready, updatePrefs]);
+
+  return createElement(UserPrefsContext.Provider, { value }, children);
 }
 
 export function useUserPrefs(): UserPrefsContextValue {

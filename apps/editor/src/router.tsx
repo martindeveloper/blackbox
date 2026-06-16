@@ -36,11 +36,10 @@ const indexRoute = createRoute({
   beforeLoad: () => {
     const state = useScenarioStore.getState();
     if (state.bundle && state.projectId) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       throw redirect({
         to: Page.EditorDashboard,
-        params: { projectId: state.projectId } as any,
-        search: {} as any,
+        params: { projectId: state.projectId },
+        search: {},
       });
     }
   },
@@ -53,20 +52,18 @@ const resumeRoute = createRoute({
   beforeLoad: async ({ params }) => {
     const state = useScenarioStore.getState();
     if (state.bundle && state.projectId === params.projectId) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       throw redirect({
         to: Page.EditorDashboard,
-        params: { projectId: params.projectId } as any,
-        search: {} as any,
+        params: { projectId: params.projectId },
+        search: {},
       });
     }
     const restored = await tryRestoreProject(params.projectId);
     if (restored) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       throw redirect({
         to: Page.EditorDashboard,
-        params: { projectId: params.projectId } as any,
-        search: {} as any,
+        params: { projectId: params.projectId },
+        search: {},
       });
     }
   },
@@ -83,11 +80,10 @@ const editorProjectRoute = createRoute({
     }
     const restored = await tryRestoreProject(params.projectId);
     if (!restored) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       throw redirect({
         to: Page.Resume,
-        params: { projectId: params.projectId } as any,
-        search: {} as any,
+        params: { projectId: params.projectId },
+        search: {},
       });
     }
   },
@@ -98,11 +94,10 @@ const editorIndexRoute = createRoute({
   getParentRoute: () => editorProjectRoute,
   path: "/",
   beforeLoad: ({ params }) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     throw redirect({
       to: Page.EditorDashboard,
-      params: { projectId: params.projectId } as any,
-      search: {} as any,
+      params: { projectId: params.projectId },
+      search: {},
     });
   },
 });
