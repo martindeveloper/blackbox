@@ -1,4 +1,4 @@
-import { createContext, useContext, useLayoutEffect, useState } from "react";
+import { createContext, useCallback, useContext, useLayoutEffect, useMemo, useState } from "react";
 import { analytics } from "@analytics";
 import { clampVolume } from "../lib/math.js";
 import { getLogLevel, setLogLevel, type LogLevel } from "../lib/logger.js";
@@ -114,47 +114,74 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
     return () => clearTimeout(timer);
   }, [masterVolume, musicVolume, sfxVolume]);
 
-  const toggleTheme = () =>
-    setTheme((current) => {
-      if (!canToggleTheme) return current;
-      const index = availableThemes.indexOf(current);
-      return availableThemes[(index + 1) % availableThemes.length]!;
-    });
-  const toggleAnalytics = () => {
-    if (analyticsAvailable) setAnalyticsEnabled((enabled) => !enabled);
-  };
-  const cycleLogLevel = () =>
-    setLogLevelState((l) => {
-      const idx = LOG_LEVEL_CYCLE.indexOf(l);
-      return LOG_LEVEL_CYCLE[(idx + 1) % LOG_LEVEL_CYCLE.length]!;
-    });
-  const setMasterVolume = (volume: number) => setMasterVolumeState(clampVolume(volume));
-  const setMusicVolume = (volume: number) => setMusicVolumeState(clampVolume(volume));
-  const setSfxVolume = (volume: number) => setSfxVolumeState(clampVolume(volume));
-
-  return (
-    <AppSettingsContext.Provider
-      value={{
-        theme,
-        availableThemes,
-        canToggleTheme,
-        logLevel,
-        masterVolume,
-        musicVolume,
-        sfxVolume,
-        analyticsEnabled,
-        analyticsAvailable,
-        toggleTheme,
-        toggleAnalytics,
-        cycleLogLevel,
-        setMasterVolume,
-        setMusicVolume,
-        setSfxVolume,
-      }}
-    >
-      {children}
-    </AppSettingsContext.Provider>
+  const toggleTheme = useCallback(
+    () =>
+      setTheme((current) => {
+        if (!canToggleTheme) return current;
+        const index = availableThemes.indexOf(current);
+        return availableThemes[(index + 1) % availableThemes.length]!;
+      }),
+    [availableThemes, canToggleTheme],
   );
+  const toggleAnalytics = useCallback(() => {
+    if (analyticsAvailable) setAnalyticsEnabled((enabled) => !enabled);
+  }, [analyticsAvailable]);
+  const cycleLogLevel = useCallback(
+    () =>
+      setLogLevelState((l) => {
+        const idx = LOG_LEVEL_CYCLE.indexOf(l);
+        return LOG_LEVEL_CYCLE[(idx + 1) % LOG_LEVEL_CYCLE.length]!;
+      }),
+    [],
+  );
+  const setMasterVolume = useCallback(
+    (volume: number) => setMasterVolumeState(clampVolume(volume)),
+    [],
+  );
+  const setMusicVolume = useCallback(
+    (volume: number) => setMusicVolumeState(clampVolume(volume)),
+    [],
+  );
+  const setSfxVolume = useCallback((volume: number) => setSfxVolumeState(clampVolume(volume)), []);
+
+  const value = useMemo<AppSettings>(
+    () => ({
+      theme,
+      availableThemes,
+      canToggleTheme,
+      logLevel,
+      masterVolume,
+      musicVolume,
+      sfxVolume,
+      analyticsEnabled,
+      analyticsAvailable,
+      toggleTheme,
+      toggleAnalytics,
+      cycleLogLevel,
+      setMasterVolume,
+      setMusicVolume,
+      setSfxVolume,
+    }),
+    [
+      theme,
+      availableThemes,
+      canToggleTheme,
+      logLevel,
+      masterVolume,
+      musicVolume,
+      sfxVolume,
+      analyticsEnabled,
+      analyticsAvailable,
+      toggleTheme,
+      toggleAnalytics,
+      cycleLogLevel,
+      setMasterVolume,
+      setMusicVolume,
+      setSfxVolume,
+    ],
+  );
+
+  return <AppSettingsContext.Provider value={value}>{children}</AppSettingsContext.Provider>;
 }
 
 export function useAppSettings(): AppSettings {

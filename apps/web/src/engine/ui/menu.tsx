@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react";
+import { memo, type CSSProperties, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useAppSettings } from "../context/AppSettings.js";
 
@@ -54,7 +54,7 @@ export function MenuButton({
   );
 }
 
-export function VolumeRow({
+export const VolumeRow = memo(function VolumeRow({
   label,
   value,
   onChange,
@@ -82,7 +82,7 @@ export function VolumeRow({
       <span className="mm-volume-value">{String(percent).padStart(3, "0")}%</span>
     </label>
   );
-}
+});
 
 export function SettingsPanel() {
   const { t } = useTranslation();
