@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Hammer, Play, RotateCcw, Square } from "lucide-react";
+import { Play, RotateCcw, Square } from "lucide-react";
 import { Icon } from "../icons/Icon.js";
 import { Button } from "../ui/Button.js";
 import { useScenarioStore } from "../../store/useScenarioStore.js";
@@ -14,11 +14,18 @@ import {
   startBuild,
   stagesForPlatform,
   subscribeBuild,
+  type BuildRunState,
 } from "../../lib/buildApi.js";
 import { subscribeProject } from "../../lib/projectApi.js";
 import { PlatformConfigPicker } from "./PlatformConfigPicker.js";
 import { BuildPipeline } from "./BuildPipeline.js";
 import { BuildLog } from "./BuildLog.js";
+
+const RUN_STATUS_KEY: Record<Exclude<BuildRunState, "running">, string> = {
+  done: "build.succeeded",
+  error: "build.failed",
+  canceled: "build.canceled",
+};
 
 function scenarioPreflightChanged(changedPaths: string[]) {
   return changedPaths.some(
@@ -124,14 +131,27 @@ export function BuildEditor() {
       ? t("build.runAll")
       : t("build.runSelected");
   const canClear = Boolean(run && !running);
+  const runStatus = run?.state;
 
   return (
     <div className="build-screen">
-      <header className="build-header">
-        <span className="build-header-icon">
-          <Icon icon={Hammer} size={15} strokeWidth={2} />
-        </span>
-        <h1 className="build-header-title">{t("build.title")}</h1>
+      <header className="build-head">
+        <div className="build-head-copy">
+          <h1>{t("build.title")}</h1>
+          <span className="build-head-meta">
+            {projectName}
+            <span aria-hidden>·</span>
+            {t("build.targetSummary", {
+              platform: t(PLATFORM_LABEL_KEYS[platform]),
+              configuration: t(CONFIGURATION_LABEL_KEYS[configuration]),
+            })}
+          </span>
+        </div>
+        {runStatus && runStatus !== "running" ? (
+          <span className={`build-status-pill build-status-pill--${runStatus}`}>
+            {t(RUN_STATUS_KEY[runStatus])}
+          </span>
+        ) : null}
       </header>
 
       <div className="build-command-bar">
@@ -150,40 +170,39 @@ export function BuildEditor() {
           </Button>
         ) : null}
         <span className="build-command-separator" />
-        <span className="build-command-target">
-          <span className="build-command-project">{projectName}</span>
-          <span className="build-command-summary">
-            {t("build.targetSummary", {
-              platform: t(PLATFORM_LABEL_KEYS[platform]),
-              configuration: t(CONFIGURATION_LABEL_KEYS[configuration]),
-            })}
+        {running ? (
+          <span className="build-status-pill build-status-pill--running">
+            <Icon icon={Play} size={10} />
+            {t("build.running")}
           </span>
-        </span>
+        ) : null}
         <span className="build-command-spacer" />
         {error ? <span className="build-result build-result--error">{error}</span> : null}
       </div>
 
-      <div className="build-options">
-        <PlatformConfigPicker
-          platform={platform}
-          configuration={configuration}
-          reactCompiler={reactCompiler}
-          capabilities={capabilities}
-          disabled={running}
-          onPlatform={setPlatform}
-          onConfiguration={setConfiguration}
-          onReactCompiler={setReactCompiler}
-        />
-        <BuildPipeline
-          platform={platform}
-          selectedStages={selectedStages}
-          stageRuns={run?.stages ?? []}
-          disabled={running}
-          onToggle={toggleStage}
-        />
-      </div>
+      <div className="build-body">
+        <div className="build-options-panel">
+          <PlatformConfigPicker
+            platform={platform}
+            configuration={configuration}
+            reactCompiler={reactCompiler}
+            capabilities={capabilities}
+            disabled={running}
+            onPlatform={setPlatform}
+            onConfiguration={setConfiguration}
+            onReactCompiler={setReactCompiler}
+          />
+          <BuildPipeline
+            platform={platform}
+            selectedStages={selectedStages}
+            stageRuns={run?.stages ?? []}
+            disabled={running}
+            onToggle={toggleStage}
+          />
+        </div>
 
-      <BuildLog log={log} running={running} />
+        <BuildLog log={log} running={running} projectName={projectName} />
+      </div>
     </div>
   );
 }

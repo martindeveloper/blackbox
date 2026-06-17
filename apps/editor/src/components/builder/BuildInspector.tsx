@@ -93,7 +93,7 @@ export function BuildInspector() {
   };
 
   return (
-    <div className="space-y-3">
+    <div className="build-inspector">
       <FormField label={t("build.status")}>
         <div className={statusClass}>
           <Icon
