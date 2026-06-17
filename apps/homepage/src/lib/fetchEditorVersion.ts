@@ -33,7 +33,7 @@ function fallbackEditorVersion(): EditorVersionInfo {
 
 export async function fetchEditorVersion(): Promise<EditorVersionInfo> {
   "use cache";
-  cacheLife("hours");
+  cacheLife("minutes");
 
   try {
     const response = await fetch(

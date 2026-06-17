@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { DownloadPage } from "@/DownloadPage";
 import { en } from "@/i18n/en";
-import { fetchLatestReleaseTag } from "@/lib/fetchLatestReleaseTag";
+import { fetchEditorVersion } from "@/lib/fetchEditorVersion";
 
 export const metadata: Metadata = {
   title: en.metadata.download.title,
@@ -25,6 +25,6 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-  const releaseTag = await fetchLatestReleaseTag();
+  const { version: releaseTag } = await fetchEditorVersion();
   return <DownloadPage releaseTag={releaseTag} />;
 }
