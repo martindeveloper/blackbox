@@ -16,6 +16,23 @@ name = "blackbox_wasm"
 [features]
 preview-json = ["dep:serde", "dep:serde_json"]
 
+# wasm-pack runs binaryen's wasm-opt as a release post-step. Modern rustc (1.87+) emits
+# bulk-memory (memory.copy/fill) and related ops by default for wasm32, but wasm-opt validates
+# the input against an MVP feature set and rejects them. Enable the features current rustc emits
+# so wasm-opt accepts and optimizes the module — all are supported by browsers since ~2020. The
+# leading "-O" preserves wasm-pack's default release optimization level (metadata fully replaces
+# wasm-pack's default args, so the opt level must be restated here).
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = [
+  "-O",
+  "--enable-bulk-memory",
+  "--enable-nontrapping-float-to-int",
+  "--enable-sign-ext",
+  "--enable-mutable-globals",
+  "--enable-reference-types",
+  "--enable-multivalue",
+]
+
 [dependencies]
 blackbox-engine = { package = "blackbox", path = "../core" }
 blackbox-format = { path = "../format" }
