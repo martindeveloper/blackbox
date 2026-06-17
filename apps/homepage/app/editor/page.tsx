@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { EditorPage } from "../../src/EditorPage";
-import { en } from "../../src/i18n/en";
+import { EditorPage } from "@/EditorPage";
+import { en } from "@/i18n/en";
 
 export const metadata: Metadata = {
   title: en.metadata.editorPage.title,

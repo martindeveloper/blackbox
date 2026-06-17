@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
-import type { DownloadPlatform } from "../lib/releaseAssets";
-import { highlightShell } from "../lib/shellHighlight";
+import type { DownloadPlatform } from "@/lib/releaseAssets";
+import { highlightShell } from "@/lib/shellHighlight";
 
 function MacWindowChrome({ filename }: { filename: string }) {
   return (

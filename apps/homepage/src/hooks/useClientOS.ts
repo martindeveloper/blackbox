@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { detectClientOS, type ClientOS } from "../lib/detectClientOS";
+import { detectClientOS, type ClientOS } from "@/lib/detectClientOS";
 
 export function useClientOS(): ClientOS {
   const [os, setOs] = useState<ClientOS>("macos");

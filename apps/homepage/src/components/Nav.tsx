@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { useEffect, useState, type ReactElement, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { cycleTheme, type ThemeMode } from "../hooks/useTheme";
+import { cycleTheme, type ThemeMode } from "@/hooks/useTheme";
 import { LogoMark } from "./LogoMark";
 
 const SunIcon = () => (

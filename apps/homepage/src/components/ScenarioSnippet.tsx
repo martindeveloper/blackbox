@@ -1,6 +1,6 @@
 import type { ReactElement } from "react";
 import { useTranslation } from "react-i18next";
-import { useClientOS } from "../hooks/useClientOS";
+import { useClientOS } from "@/hooks/useClientOS";
 
 function tokenize(code: string): ReactElement[] {
   const elements: ReactElement[] = [];

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { DownloadPage } from "../../src/DownloadPage";
-import { en } from "../../src/i18n/en";
-import { fetchLatestReleaseTag } from "../../src/lib/fetchLatestReleaseTag";
+import { DownloadPage } from "@/DownloadPage";
+import { en } from "@/i18n/en";
+import { fetchLatestReleaseTag } from "@/lib/fetchLatestReleaseTag";
 
 export const metadata: Metadata = {
   title: en.metadata.download.title,

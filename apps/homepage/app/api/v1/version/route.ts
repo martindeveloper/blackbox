@@ -1,5 +1,5 @@
-import { editorApiCorsHeaders } from "../../../../src/lib/editorApiCors";
-import { fetchEditorVersion } from "../../../../src/lib/fetchEditorVersion";
+import { editorApiCorsHeaders } from "@/lib/editorApiCors";
+import { fetchEditorVersion } from "@/lib/fetchEditorVersion";
 
 export async function GET(request: Request) {
   const editor = await fetchEditorVersion();

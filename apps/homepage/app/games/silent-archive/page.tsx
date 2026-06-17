@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { SilentArchivePage } from "../../../src/SilentArchivePage";
-import { en } from "../../../src/i18n/en";
+import { SilentArchivePage } from "@/SilentArchivePage";
+import { en } from "@/i18n/en";
 
 export const metadata: Metadata = {
   title: en.metadata.silentArchive.title,

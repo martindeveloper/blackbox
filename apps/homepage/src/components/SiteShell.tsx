@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { Nav, type NavItem } from "./Nav";
-import { useTheme } from "../hooks/useTheme";
+import { useTheme } from "@/hooks/useTheme";
 import { LogoPulseController } from "./LogoPulseController";
 import "../i18n/index";
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { ThemeProvider } from "next-themes";
-import { SiteShell } from "../src/components/SiteShell";
+import { SiteShell } from "@/components/SiteShell";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (

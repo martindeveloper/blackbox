@@ -1,4 +1,4 @@
-import { App } from "../src/App";
+import { App } from "@/App";
 
 export default function Page() {
   return <App />;

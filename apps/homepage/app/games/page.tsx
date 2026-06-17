@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { GamesIndexPage } from "../../src/GamesIndexPage";
-import { en } from "../../src/i18n/en";
+import { GamesIndexPage } from "@/GamesIndexPage";
+import { en } from "@/i18n/en";
 
 export const metadata: Metadata = {
   title: en.metadata.games.title,

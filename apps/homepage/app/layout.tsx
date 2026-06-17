@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "./providers";
-import { en } from "../src/i18n/en";
+import { en } from "@/i18n/en";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.onbbx.com"),
