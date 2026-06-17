@@ -272,25 +272,25 @@ export function ScenarioSettingsForm({ expanded = false }: ScenarioSettingsFormP
                   ))}
                 </div>
                 <FieldRow className="mt-2">
-                <Input
-                  mono
-                  placeholder={t("scenario.newStatKey")}
-                  value={newStatKey}
-                  onChange={(e) => setNewStatKey(e.target.value)}
-                />
-                <Button
-                  size="sm"
-                  leadingIcon={Plus}
-                  onClick={() => {
-                    const key = newStatKey.trim();
-                    if (!key || stats[key] !== undefined) return;
-                    updateStat(key, "0");
-                    setNewStatKey("");
-                  }}
-                >
-                  {t("scenario.addStat")}
-                </Button>
-              </FieldRow>
+                  <Input
+                    mono
+                    placeholder={t("scenario.newStatKey")}
+                    value={newStatKey}
+                    onChange={(e) => setNewStatKey(e.target.value)}
+                  />
+                  <Button
+                    size="sm"
+                    leadingIcon={Plus}
+                    onClick={() => {
+                      const key = newStatKey.trim();
+                      if (!key || stats[key] !== undefined) return;
+                      updateStat(key, "0");
+                      setNewStatKey("");
+                    }}
+                  >
+                    {t("scenario.addStat")}
+                  </Button>
+                </FieldRow>
               </SectionBody>
             </Section>
 
@@ -478,7 +478,9 @@ export function ScenarioSettingsForm({ expanded = false }: ScenarioSettingsFormP
                     />
                     <datalist id="relationship-override-characters">
                       {Object.values(bundle.characters.characters)
-                        .filter((character) => Object.keys(character.relationships ?? {}).length > 0)
+                        .filter(
+                          (character) => Object.keys(character.relationships ?? {}).length > 0,
+                        )
                         .map((character) => (
                           <option key={character.id} value={character.id} />
                         ))}

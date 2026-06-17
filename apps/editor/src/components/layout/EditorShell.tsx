@@ -271,13 +271,7 @@ export function EditorShell() {
               style={{ width: leftCollapsed ? 0 : leftWidth }}
             >
               {!leftCollapsed &&
-                (isTools ? (
-                  <ToolsSidebar />
-                ) : isPreview ? (
-                  <PreviewEventsSidebar />
-                ) : (
-                  <FileTree />
-                ))}
+                (isTools ? <ToolsSidebar /> : isPreview ? <PreviewEventsSidebar /> : <FileTree />)}
             </aside>
             <PanelHandle
               side="left"

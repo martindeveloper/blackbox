@@ -78,10 +78,7 @@ const PRUNE_DEV_PACKAGES = [
 ];
 
 // node_modules dirs (relative to outDir) to prune dev-only packages from.
-const PRUNE_NODE_MODULES = [
-  "apps/web/node_modules",
-  "apps/mobile/node_modules",
-];
+const PRUNE_NODE_MODULES = ["apps/web/node_modules", "apps/mobile/node_modules"];
 
 function copyInto(rel) {
   const from = path.join(repoRoot, rel);

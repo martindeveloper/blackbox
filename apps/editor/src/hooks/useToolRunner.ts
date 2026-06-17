@@ -31,7 +31,7 @@ export function useToolRunner(
   const [result, setResult] = useState<ToolResult | BundleToolResult | null>(null);
   const [runStartedAt, setRunStartedAt] = useState<number | null>(null);
   const [toolRun, setToolRun] = useState<ToolRun | null>(null);
-  const [hydrated, setHydrated] = useState(false);
+  const [hydrated, setHydrated] = useState(() => !projectId);
   const [configError, setConfigError] = useState<string | null>(null);
   const latestStartedAt = useRef(0);
 
@@ -59,20 +59,24 @@ export function useToolRunner(
     }
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
-    latestStartedAt.current = 0;
-    setHydrated(false);
+  const scopeKey = `${projectId ?? ""}:${toolId}`;
+  const [trackedScopeKey, setTrackedScopeKey] = useState(scopeKey);
+
+  if (trackedScopeKey !== scopeKey) {
+    setTrackedScopeKey(scopeKey);
+    setHydrated(!projectId);
     setConfigError(null);
     setRunState("idle");
     setElapsedMs(0);
     setResult(null);
     setRunStartedAt(null);
     setToolRun(null);
-    if (!projectId) {
-      setHydrated(true);
-      return;
-    }
+  }
+
+  useEffect(() => {
+    latestStartedAt.current = 0;
+    if (!projectId) return;
+    let cancelled = false;
 
     void getToolRun(projectId, toolId)
       .then((toolRun) => {

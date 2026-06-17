@@ -111,87 +111,87 @@ export function GlobalDeathNodeInspector() {
           />
         </FormField>
 
-      <CatalogRefField
-        label={t("node.background")}
-        ids={catalogAssetIds(bundle.assets, "textures")}
-        value={deathNode.backgroundRef}
-        onChange={(backgroundRef) => patch({ ...deathNode, backgroundRef })}
-        category="textures"
-      />
-
-      <FormField label={t("node.mode")}>
-        <Select
-          options={[
-            { value: "normal", label: t("node.modes.normal") },
-            { value: "game_over", label: t("node.modes.game_over") },
-            { value: "ending", label: t("node.modes.ending") },
-          ]}
-          value={deathNode.mode ?? "game_over"}
-          onChange={(e) =>
-            patch({ ...deathNode, mode: e.target.value as "normal" | "game_over" | "ending" })
-          }
+        <CatalogRefField
+          label={t("node.background")}
+          ids={catalogAssetIds(bundle.assets, "textures")}
+          value={deathNode.backgroundRef}
+          onChange={(backgroundRef) => patch({ ...deathNode, backgroundRef })}
+          category="textures"
         />
-      </FormField>
 
-      <FormField label={t("node.extends")} hint={t("node.extendsHint")}>
-        <Select
-          options={[
-            { value: "", label: t("common.none") },
-            ...templateIds.map((id) => ({ value: id, label: id })),
-          ]}
-          value={deathNode.$extends ?? ""}
-          onChange={(e) => patch({ ...deathNode, $extends: e.target.value || undefined })}
-        />
+        <FormField label={t("node.mode")}>
+          <Select
+            options={[
+              { value: "normal", label: t("node.modes.normal") },
+              { value: "game_over", label: t("node.modes.game_over") },
+              { value: "ending", label: t("node.modes.ending") },
+            ]}
+            value={deathNode.mode ?? "game_over"}
+            onChange={(e) =>
+              patch({ ...deathNode, mode: e.target.value as "normal" | "game_over" | "ending" })
+            }
+          />
+        </FormField>
+
+        <FormField label={t("node.extends")} hint={t("node.extendsHint")}>
+          <Select
+            options={[
+              { value: "", label: t("common.none") },
+              ...templateIds.map((id) => ({ value: id, label: id })),
+            ]}
+            value={deathNode.$extends ?? ""}
+            onChange={(e) => patch({ ...deathNode, $extends: e.target.value || undefined })}
+          />
+          {deathNode.$extends ? (
+            <Button
+              size="sm"
+              variant="ghost"
+              icon
+              title={t("library.openTemplate")}
+              onClick={() => void navigateToLibraryEntry(navigate, "template", deathNode.$extends!)}
+            >
+              ↗
+            </Button>
+          ) : null}
+        </FormField>
+
         {deathNode.$extends ? (
-          <Button
-            size="sm"
-            variant="ghost"
-            icon
-            title={t("library.openTemplate")}
-            onClick={() => void navigateToLibraryEntry(navigate, "template", deathNode.$extends!)}
-          >
-            ↗
-          </Button>
+          <MergeConfigEditor
+            merge={deathNode.$merge ?? {}}
+            onChange={($merge) => patch({ ...deathNode, $merge })}
+          />
         ) : null}
-      </FormField>
 
-      {deathNode.$extends ? (
-        <MergeConfigEditor
-          merge={deathNode.$merge ?? {}}
-          onChange={($merge) => patch({ ...deathNode, $merge })}
-        />
-      ) : null}
+        <Section>
+          <SectionHeader>{t("node.textBlocks")}</SectionHeader>
+          <SectionBody>
+            <TextBlockEditor
+              entries={deathNode.text ?? []}
+              onChange={(text) => patch({ ...deathNode, text })}
+            />
+          </SectionBody>
+        </Section>
 
-      <Section>
-        <SectionHeader>{t("node.textBlocks")}</SectionHeader>
-        <SectionBody>
-          <TextBlockEditor
-            entries={deathNode.text ?? []}
-            onChange={(text) => patch({ ...deathNode, text })}
-          />
-        </SectionBody>
-      </Section>
+        <Section>
+          <SectionHeader>{t("node.onEnter")}</SectionHeader>
+          <SectionBody>
+            <EffectEditor
+              effects={deathNode.onEnter ?? []}
+              onChange={(onEnter) => patch({ ...deathNode, onEnter })}
+            />
+          </SectionBody>
+        </Section>
 
-      <Section>
-        <SectionHeader>{t("node.onEnter")}</SectionHeader>
-        <SectionBody>
-          <EffectEditor
-            effects={deathNode.onEnter ?? []}
-            onChange={(onEnter) => patch({ ...deathNode, onEnter })}
-          />
-        </SectionBody>
-      </Section>
-
-      <Section>
-        <SectionHeader>{t("node.choices")}</SectionHeader>
-        <SectionBody>
-          <ChoiceListEditor
-            choices={deathNode.choices ?? []}
-            chapterIds={chapterIds}
-            onChange={(choices) => patch({ ...deathNode, choices })}
-          />
-        </SectionBody>
-      </Section>
+        <Section>
+          <SectionHeader>{t("node.choices")}</SectionHeader>
+          <SectionBody>
+            <ChoiceListEditor
+              choices={deathNode.choices ?? []}
+              chapterIds={chapterIds}
+              onChange={(choices) => patch({ ...deathNode, choices })}
+            />
+          </SectionBody>
+        </Section>
       </div>
     </div>
   );

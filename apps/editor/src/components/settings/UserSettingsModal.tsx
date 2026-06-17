@@ -29,7 +29,15 @@ export function UserSettingsModal({ onClose }: UserSettingsModalProps) {
   const customIdePath = prefs.customIdePath ?? "";
 
   const [probe, setProbe] = useState<IdeProbeResult | null>(null);
-  const [probing, setProbing] = useState(false);
+  const [probing, setProbing] = useState(isElectron);
+  const [probeNonce, setProbeNonce] = useState(0);
+  const [trackedIdePath, setTrackedIdePath] = useState(customIdePath);
+
+  if (isElectron && trackedIdePath !== customIdePath) {
+    setTrackedIdePath(customIdePath);
+    setProbing(true);
+    setProbeNonce((nonce) => nonce + 1);
+  }
 
   const refreshProbe = useCallback(
     async (path = customIdePath) => {
@@ -46,8 +54,19 @@ export function UserSettingsModal({ onClose }: UserSettingsModalProps) {
 
   useEffect(() => {
     if (!isElectron) return;
-    void refreshProbe();
-  }, [isElectron, refreshProbe]);
+    let cancelled = false;
+    void window.electronAPI!
+      .probeIdes(customIdePath || undefined)
+      .then((result) => {
+        if (!cancelled) setProbe(result);
+      })
+      .finally(() => {
+        if (!cancelled) setProbing(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isElectron, customIdePath, probeNonce]);
 
   const pluginAvailability = new Map(
     probe?.plugins.map((entry) => [entry.id, entry.available]) ?? [],

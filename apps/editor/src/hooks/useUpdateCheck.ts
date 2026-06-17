@@ -16,7 +16,7 @@ export interface UseUpdateCheck {
  */
 export function useUpdateCheck(options?: { auto?: boolean }): UseUpdateCheck {
   const auto = options?.auto ?? false;
-  const [status, setStatus] = useState<UpdateStatus>("idle");
+  const [status, setStatus] = useState<UpdateStatus>(auto ? "checking" : "idle");
   const [result, setResult] = useState<UpdateCheckResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const inFlight = useRef(false);
@@ -39,8 +39,27 @@ export function useUpdateCheck(options?: { auto?: boolean }): UseUpdateCheck {
   }, []);
 
   useEffect(() => {
-    if (auto) void check();
-  }, [auto, check]);
+    if (!auto) return;
+    let cancelled = false;
+    inFlight.current = true;
+    void checkForUpdate()
+      .then((res) => {
+        if (cancelled) return;
+        setResult(res);
+        setStatus(res.updateAvailable ? "available" : "current");
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : String(err));
+        setStatus("error");
+      })
+      .finally(() => {
+        inFlight.current = false;
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [auto]);
 
   return { status, result, error, check };
 }

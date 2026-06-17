@@ -1,5 +1,5 @@
 import { ExternalLink, FolderOpen, Pencil, Trash2, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
 import {
@@ -44,11 +44,13 @@ export function CatalogEntryDetail({ category, assetKey, onDeleted }: Props) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [renameOpen, setRenameOpen] = useState(assetKey.startsWith("new_"));
   const [renameValue, setRenameValue] = useState(assetKey);
+  const [trackedAssetKey, setTrackedAssetKey] = useState(assetKey);
 
-  useEffect(() => {
+  if (trackedAssetKey !== assetKey) {
+    setTrackedAssetKey(assetKey);
     setRenameValue(assetKey);
     setRenameOpen(assetKey.startsWith("new_"));
-  }, [assetKey]);
+  }
 
   const mediaPaths = useMemo(() => mediaPathSet(mediaFiles), [mediaFiles]);
   const entry = bundle ? getCatalogEntry(bundle.assets, category, assetKey) : undefined;

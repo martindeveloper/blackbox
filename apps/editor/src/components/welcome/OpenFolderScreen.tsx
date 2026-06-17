@@ -60,7 +60,20 @@ export function OpenFolderScreen() {
   };
 
   useEffect(() => {
-    void refresh();
+    let cancelled = false;
+    void (async () => {
+      try {
+        const list = await listProjects();
+        if (!cancelled) setProjects(list);
+      } catch (error) {
+        if (!cancelled) notifyFromError(error);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const handleOpen = async (projectId: string) => {

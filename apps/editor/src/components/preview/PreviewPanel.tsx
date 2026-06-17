@@ -54,6 +54,12 @@ export function PreviewPanel() {
   const [device, setDevice] = useState<PreviewDevice>("desktop");
   const [stageSize, setStageSize] = useState({ width: 0, height: 0 });
   const [preparedProject, setPreparedProject] = useState<string | null>(null);
+  const [preparingProjectId, setPreparingProjectId] = useState(projectId);
+
+  if (preparingProjectId !== projectId) {
+    setPreparingProjectId(projectId);
+    setPreparedProject(null);
+  }
   const connected = usePreviewStore((state) => state.connected);
   const setConnected = usePreviewStore((state) => state.setConnected);
   const setRuntimeState = usePreviewStore((state) => state.setRuntimeState);
@@ -76,17 +82,24 @@ export function PreviewPanel() {
   }, [sendCommand, setCommandSender]);
 
   useEffect(() => {
+    if (!projectId || preparedProject === projectId) return;
     let active = true;
-    setPreparedProject(null);
-    if (projectId) {
-      void saveProject().then((saved) => {
-        if (active && saved) setPreparedProject(projectId);
-      });
-    }
+    void (async () => {
+      const saved = await saveProject();
+      if (!active || !saved) return;
+      setPreparedProject(projectId);
+      setBuilding(true);
+      try {
+        await fetch(`${projectApiUrl(projectId, ProjectRoutes.PreviewBuild)}`);
+      } catch {
+      } finally {
+        if (active) setBuilding(false);
+      }
+    })();
     return () => {
       active = false;
     };
-  }, [projectId, saveProject]);
+  }, [projectId, saveProject, preparedProject]);
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -147,6 +160,7 @@ export function PreviewPanel() {
   ]);
 
   const previewReady = preparedProject === projectId;
+  const effectiveStageSize = previewReady ? stageSize : { width: 0, height: 0 };
 
   const runBuild = useCallback(
     async (force: boolean) => {
@@ -165,14 +179,7 @@ export function PreviewPanel() {
   );
 
   useEffect(() => {
-    if (previewReady) void runBuild(false);
-  }, [previewReady, runBuild]);
-
-  useEffect(() => {
-    if (!previewReady) {
-      setStageSize({ width: 0, height: 0 });
-      return;
-    }
+    if (!previewReady) return;
     const stage = stageRef.current;
     if (!stage) return;
     const observer = new ResizeObserver(([entry]) => {
@@ -205,8 +212,12 @@ export function PreviewPanel() {
   const src = `/preview?project=${encodeURIComponent(projectId)}&api=${API_PREFIX}`;
   const preset = DEVICE_PRESETS.find((candidate) => candidate.id === device)!;
   const scale =
-    preset.width && preset.height && stageSize.width > 0 && stageSize.height > 0
-      ? Math.min((stageSize.width - 32) / preset.width, (stageSize.height - 32) / preset.height, 1)
+    preset.width && preset.height && effectiveStageSize.width > 0 && effectiveStageSize.height > 0
+      ? Math.min(
+          (effectiveStageSize.width - 32) / preset.width,
+          (effectiveStageSize.height - 32) / preset.height,
+          1,
+        )
       : 1;
 
   return (

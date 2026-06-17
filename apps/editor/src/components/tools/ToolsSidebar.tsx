@@ -45,25 +45,36 @@ export function ToolsSidebar() {
   const projectId = useScenarioStore((s) => s.projectId);
   const discovery = useToolRunnerStore((s) => s.discovery);
   const setDiscovery = useToolRunnerStore((s) => s.setDiscovery);
-  const [discovering, setDiscovering] = useState(false);
+  const [discovering, setDiscovering] = useState(Boolean(projectId));
+  const [discoveryNonce, setDiscoveryNonce] = useState(0);
+  const [trackedProjectId, setTrackedProjectId] = useState(projectId);
 
-  const runDiscovery = useCallback(
-    async (id: string | null) => {
-      if (!id) return;
-      setDiscovering(true);
-      try {
-        const d = await discoverTools(id);
-        setDiscovery(d);
-      } finally {
-        setDiscovering(false);
-      }
-    },
-    [setDiscovery],
-  );
+  if (trackedProjectId !== projectId) {
+    setTrackedProjectId(projectId);
+    setDiscovering(Boolean(projectId));
+    setDiscoveryNonce((nonce) => nonce + 1);
+  }
 
   useEffect(() => {
-    void runDiscovery(projectId);
-  }, [projectId, runDiscovery]);
+    if (!projectId) return;
+    let cancelled = false;
+    void discoverTools(projectId)
+      .then((d) => {
+        if (!cancelled) setDiscovery(d);
+      })
+      .finally(() => {
+        if (!cancelled) setDiscovering(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId, discoveryNonce, setDiscovery]);
+
+  const runDiscovery = useCallback(() => {
+    if (!projectId) return;
+    setDiscovering(true);
+    setDiscoveryNonce((nonce) => nonce + 1);
+  }, [projectId]);
 
   return (
     <Panel className="tools-sidebar">
@@ -75,7 +86,7 @@ export function ToolsSidebar() {
             className={`tools-sidebar-refresh${discovering ? " tools-sidebar-refresh--spin" : ""}`}
             disabled={discovering}
             title={t("tools.refreshDiscovery")}
-            onClick={() => void runDiscovery(projectId)}
+            onClick={() => runDiscovery()}
           >
             <Icon icon={RefreshCw} size={10} strokeWidth={2.5} />
           </button>

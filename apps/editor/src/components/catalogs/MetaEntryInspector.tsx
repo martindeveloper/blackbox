@@ -1,5 +1,5 @@
 import { ArrowUpRight, Pencil, Trash2, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
 import { useScenarioStore } from "../../store/useScenarioStore.js";
@@ -32,13 +32,15 @@ export function MetaEntryInspector({ kind, entryId }: Props) {
   const renameMetaEntry = useScenarioStore((s) => s.renameMetaEntry);
   const deleteMetaEntry = useScenarioStore((s) => s.deleteMetaEntry);
 
-  const [renameOpen, setRenameOpen] = useState(false);
+  const [renameOpen, setRenameOpen] = useState(entryId.startsWith("new_"));
   const [renameValue, setRenameValue] = useState(entryId);
+  const [trackedEntryId, setTrackedEntryId] = useState(entryId);
 
-  useEffect(() => {
+  if (trackedEntryId !== entryId) {
+    setTrackedEntryId(entryId);
     setRenameValue(entryId);
     setRenameOpen(entryId.startsWith("new_"));
-  }, [entryId]);
+  }
 
   const usageIndex = useMemo(() => (bundle ? buildMetaUsageIndex(bundle) : new Map()), [bundle]);
 

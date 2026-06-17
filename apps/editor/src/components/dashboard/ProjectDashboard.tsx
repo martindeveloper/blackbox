@@ -188,7 +188,11 @@ export function ProjectDashboard() {
               })}
               <span aria-hidden>·</span>
               <span className={`dashboard-health dashboard-health--${healthTone}`}>
-                <Icon icon={healthTone === "ok" ? Check : CircleAlert} size={10} strokeWidth={2.4} />
+                <Icon
+                  icon={healthTone === "ok" ? Check : CircleAlert}
+                  size={10}
+                  strokeWidth={2.4}
+                />
                 {issueCount === 0
                   ? t("dashboard.health.clean")
                   : t("dashboard.health.issues", { count: issueCount })}
@@ -265,7 +269,10 @@ export function ProjectDashboard() {
           </section>
         </div>
 
-        <section className="dashboard-panel dashboard-panel--metrics" aria-label={t("dashboard.metricsTitle")}>
+        <section
+          className="dashboard-panel dashboard-panel--metrics"
+          aria-label={t("dashboard.metricsTitle")}
+        >
           <div className="dashboard-panel-header">{t("dashboard.metricsTitle")}</div>
           <div className="dashboard-stats-row">
             <StatItem value={stats.chapters} label={t("dashboard.stat.chapters")} />
