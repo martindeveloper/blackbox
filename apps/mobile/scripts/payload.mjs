@@ -5,7 +5,8 @@
  *   BLACKBOX_ADVENTURE='/abs/path' npm run payload
  *   node scripts/payload.mjs --adventure /abs/path [--no-build] [--platform=ios|android]
  */
-import { resolveAdventure, buildPayload, log, REPO_ROOT } from "./lib/workspace.mjs";
+import { resolveAdventure, buildPayload, log } from "./lib/workspace.mjs";
+import { displayPath } from "../../../scripts/lib/paths.mjs";
 import path from "node:path";
 
 const argv = process.argv.slice(2);
@@ -16,4 +17,4 @@ const platform =
   "ios";
 
 buildPayload(adv, { noBuild: argv.includes("--no-build"), platform });
-log(`done -> ${path.relative(REPO_ROOT, path.join(adv.buildDir, "www"))}`);
+log(`done -> ${displayPath(path.join(adv.buildDir, "www"))}`);

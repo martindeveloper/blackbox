@@ -8,10 +8,10 @@ import { requireStageReady } from "../../lib/preflight/index.mjs";
 import { deployWwwToVercel } from "../../lib/vercelDeploy.mjs";
 import { playerBuildEnv } from "../lib/buildEnv.mjs";
 import {
+  displayPath,
   exec,
   fail,
   log,
-  REPO_ROOT,
   runBundler,
   runLint,
   runScriptsLint,
@@ -68,7 +68,7 @@ export function stageBuild(project, { configuration = project.configuration ?? "
   if (!existsSync(project.webWwwDir)) {
     fail("web", `missing build output at ${project.webWwwDir}`);
   }
-  log("build", `ok -> ${path.relative(REPO_ROOT, project.webWwwDir)}`);
+  log("build", `ok -> ${displayPath(project.webWwwDir)}`);
 }
 
 export async function stageBundle(
@@ -116,13 +116,13 @@ export async function stagePackage(
       "-Command",
       `Compress-Archive -Path '${payloadDir.replace(/'/g, "''")}\\*' -DestinationPath '${zipPath.replace(/'/g, "''")}' -Force`,
     ]);
-    log("package", `created ${path.relative(REPO_ROOT, zipPath)}`);
+    log("package", `created ${displayPath(zipPath)}`);
     return zipPath;
   }
 
   const tarPath = `${archiveBase}.tar.gz`;
   exec("tar", ["-czf", tarPath, "-C", payloadDir, "."]);
-  log("package", `created ${path.relative(REPO_ROOT, tarPath)}`);
+  log("package", `created ${displayPath(tarPath)}`);
   return tarPath;
 }
 
@@ -142,7 +142,7 @@ export function stageDeploy(
     );
   }
 
-  log("deploy", `vercel production deploy from ${path.relative(REPO_ROOT, project.webWwwDir)}`);
+  log("deploy", `vercel production deploy from ${displayPath(project.webWwwDir)}`);
   deployWwwToVercel(project.webWwwDir, {
     templatePath: path.join(WEB_ROOT, "vercel.json"),
   });
@@ -157,14 +157,14 @@ export function spawnWebServer(
   if (!existsSync(path.join(wwwDir, "index.html"))) {
     fail(
       "web",
-      `nothing to serve at ${path.relative(REPO_ROOT, wwwDir)} — run \`node cli.js build\` first`,
+      `nothing to serve at ${displayPath(wwwDir)} — run \`node cli.js build\` first`,
     );
   }
 
   const port = process.env.PORT ?? "8080";
   log(
     "server",
-    `starting http://localhost:${port} (${configuration}) -> ${path.relative(REPO_ROOT, wwwDir)}`,
+    `starting http://localhost:${port} (${configuration}) -> ${displayPath(wwwDir)}`,
   );
 
   return new Promise((resolve, reject) => {

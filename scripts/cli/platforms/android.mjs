@@ -4,8 +4,7 @@ import { sharedBundleChecks } from "../../lib/preflight/bundleCommon.mjs";
 import { capacitorBin } from "../../lib/preflight/context.mjs";
 import { requireStageReady, requireStagesReady } from "../../lib/preflight/index.mjs";
 import { toMobileAdv } from "../lib/mobileAdv.mjs";
-import { log, REPO_ROOT, runBundler, runLint, runScriptsLint } from "../lib/run.mjs";
-import path from "node:path";
+import { log, displayPath, runBundler, runLint, runScriptsLint } from "../lib/run.mjs";
 import {
   androidRootFor,
   buildPayload,
@@ -82,7 +81,7 @@ export async function stageBuild(project, { noBuild = false, skipPreflight = fal
   const adv = toMobileAdv(project, "android");
   buildPayload(adv, { noBuild, platform: "android" });
   await capSyncAndroid(adv);
-  log("build", `ok -> ${path.relative(REPO_ROOT, androidRootFor(adv))}`);
+  log("build", `ok -> ${displayPath(androidRootFor(adv))}`);
 }
 
 export async function stageBundle(

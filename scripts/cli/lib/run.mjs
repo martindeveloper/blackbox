@@ -3,8 +3,11 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { wasmProfileForConfiguration } from "../../lib/adventure.mjs";
+import { displayPath } from "../../lib/paths.mjs";
 import { needsShell, runSync, windowsSpawnOptions } from "../../lib/spawn.mjs";
 import { playerBuildEnv } from "./buildEnv.mjs";
+
+export { displayPath };
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const REPO_ROOT = path.resolve(HERE, "..", "..", "..");
@@ -35,7 +38,7 @@ function bundleCacheDir() {
 }
 
 export function runLint(project) {
-  log("lint", `validating ${path.relative(REPO_ROOT, project.scenarioPath)}`);
+  log("lint", `validating ${displayPath(project.scenarioPath)}`);
   const lintBin = prebuiltBin("BLACKBOX_LINT_BIN");
   if (lintBin) {
     runSync(lintBin, [project.scenarioPath], { cwd: REPO_ROOT });
@@ -59,7 +62,7 @@ export function runBundler(
   const compress = archiveCompress ?? (configuration === "debug" ? "none" : "zstd");
   log(
     "bundle",
-    `building ${platform} content bundle (${configuration}) -> ${path.relative(REPO_ROOT, outDir)}`,
+    `building ${platform} content bundle (${configuration}) -> ${displayPath(outDir)}`,
   );
   const bundlerArgs = [
     project.scenarioPath,

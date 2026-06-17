@@ -17,6 +17,7 @@
  *
  * Nothing adventure-specific is ever written under apps/mobile.
  */
+import { displayPath } from "../../../../scripts/lib/paths.mjs";
 import { runSync } from "../../../../scripts/lib/spawn.mjs";
 import {
   cpSync,
@@ -111,7 +112,7 @@ export function buildPayload(adv, { noBuild = false, platform } = {}) {
   const configuration = adv.configuration ?? process.env.BLACKBOX_CONFIGURATION ?? "release";
 
   if (!noBuild) {
-    log(`building web player (adventure: ${path.relative(REPO_ROOT, adv.scenario)}, platform=${platform})`);
+    log(`building web player (adventure: ${displayPath(adv.scenario)}, platform=${platform})`);
     runSync("npm", ["run", "build"], {
       cwd: WEB_ROOT,
       env: {
@@ -124,7 +125,7 @@ export function buildPayload(adv, { noBuild = false, platform } = {}) {
     fail(`missing ${webDist} — run without --no-build first.`);
   }
 
-  log(`assembling payload -> ${path.relative(REPO_ROOT, www)}`);
+  log(`assembling payload -> ${displayPath(www)}`);
   mkdirSync(adv.buildDir, { recursive: true });
   writeFileSync(path.join(adv.buildDir, ".gitignore"), "*\n"); // make build dir self-ignoring
   rmSync(www, { recursive: true, force: true });
@@ -182,7 +183,7 @@ function migrateLegacyAndroidLayout(adv) {
     if (ent === slug) continue;
     renameSync(path.join(parent, ent), path.join(targetRoot, ent));
   }
-  log(`relocated Android project -> ${path.relative(REPO_ROOT, targetRoot)}`);
+  log(`relocated Android project -> ${displayPath(targetRoot)}`);
 }
 
 /** Write the disposable Capacitor workspace (config, package.json, node_modules symlink). */
@@ -514,7 +515,7 @@ export function packageIos(adv, platformConfig) {
     if (existsSync(legacy)) return legacy;
     fail(`expected ipa at ${ipa}`);
   }
-  log(`created ${path.relative(REPO_ROOT, ipa)}`);
+  log(`created ${displayPath(ipa)}`);
   return ipa;
 }
 
@@ -553,6 +554,6 @@ export function packageAndroid(adv, platformConfig) {
 
   const dest = path.join(packageDir, `${adv.gameId}-release.aab`);
   cpSync(aab, dest);
-  log(`created ${path.relative(REPO_ROOT, dest)}`);
+  log(`created ${displayPath(dest)}`);
   return dest;
 }
