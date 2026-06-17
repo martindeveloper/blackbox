@@ -4,15 +4,13 @@
 
 .activity-bar {
   background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.055), transparent 60%),
-    radial-gradient(circle at 0% 22%, var(--editor-glass-orange), transparent 28%),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04), transparent 58%),
+    radial-gradient(circle at 0% 22%, var(--editor-glass-orange), transparent 30%),
     var(--editor-glass);
   border-right: 1px solid var(--editor-glass-border);
-  box-shadow:
-    inset -1px 0 0 rgba(255, 255, 255, 0.045),
-    4px 0 16px rgba(0, 0, 0, 0.16);
-  backdrop-filter: blur(32px) saturate(1.4);
-  -webkit-backdrop-filter: blur(32px) saturate(1.4);
+  box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(28px) saturate(1.7);
+  -webkit-backdrop-filter: blur(28px) saturate(1.7);
 }
 
 .activity-bar-spacer {
@@ -43,11 +41,7 @@
 }
 
 .activity-btn-active {
-  background: linear-gradient(
-    90deg,
-    color-mix(in srgb, var(--editor-primary) 17%, transparent),
-    color-mix(in srgb, var(--editor-primary) 4%, transparent)
-  );
+  background: rgba(240, 122, 18, 0.1);
   color: var(--editor-primary);
 }
 
@@ -99,10 +93,9 @@
   flex-direction: column;
   gap: 7px;
   padding: 9px 10px 10px;
-  border: 1px solid var(--editor-border-subtle);
-  border-left: 2px solid color-mix(in srgb, var(--editor-primary) 45%, var(--editor-border));
-  border-radius: 3px;
-  background: color-mix(in srgb, var(--editor-surface-2) 48%, transparent);
+  border: 1px solid color-mix(in srgb, var(--editor-primary) 18%, var(--editor-border-subtle));
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--editor-primary) 5%, var(--editor-surface-2));
 }
 
 .file-tree-bootstrap-heading {

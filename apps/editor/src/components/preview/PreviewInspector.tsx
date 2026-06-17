@@ -1,5 +1,4 @@
 import { usePreviewStore } from "../../store/usePreviewStore.js";
-import { PreviewInspectorProfiler } from "./PreviewInspectorProfiler.js";
 import { PreviewInspectorRuntime } from "./PreviewInspectorRuntime.js";
 import { PreviewInspectorStorage } from "./PreviewInspectorStorage.js";
 
@@ -10,7 +9,6 @@ export function PreviewInspector() {
   return (
     <div className="preview-inspector">
       <PreviewInspectorRuntime state={runtimeState} />
-      <PreviewInspectorProfiler />
       <PreviewInspectorStorage state={storageState} />
     </div>
   );

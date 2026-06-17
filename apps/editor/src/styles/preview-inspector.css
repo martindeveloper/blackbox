@@ -520,6 +520,28 @@
   overflow: auto;
 }
 
+.preview-events-sidebar {
+  min-height: 0;
+}
+
+.preview-profiler--dock {
+  flex: 1;
+  min-height: 0;
+}
+
+.preview-profiler--dock .preview-profiler-card {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
+.preview-profiler--dock .preview-profiler-list {
+  max-height: none;
+  min-height: 0;
+  flex: 1;
+}
+
 .preview-profiler-event {
   --profiler-accent: var(--editor-text-subtle);
   display: grid;

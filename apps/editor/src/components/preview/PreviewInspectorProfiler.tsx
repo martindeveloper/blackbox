@@ -22,7 +22,7 @@ function profilerEventMatchesQuery(event: PreviewProfilerEvent, query: string): 
   );
 }
 
-export function PreviewInspectorProfiler() {
+export function PreviewInspectorProfiler({ dock = false }: { dock?: boolean }) {
   const { t } = useTranslation();
   const [filter, setFilter] = useState<ProfilerFilter>("all");
   const [query, setQuery] = useState("");
@@ -43,7 +43,11 @@ export function PreviewInspectorProfiler() {
       : t("preview.noProfilerEvents");
 
   return (
-    <section className="preview-inspector-section">
+    <section
+      className={
+        dock ? "preview-inspector-section preview-profiler--dock" : "preview-inspector-section"
+      }
+    >
       <div className="preview-inspector-title-row">
         <SectionTitle icon={Activity} title={t("preview.profiler")} count={filtered.length} />
         <button

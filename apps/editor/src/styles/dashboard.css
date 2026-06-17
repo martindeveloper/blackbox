@@ -5,14 +5,8 @@
   background:
     radial-gradient(
       ellipse 62% 50% at 8% -8%,
-      color-mix(in srgb, var(--editor-accent) 11%, transparent),
+      color-mix(in srgb, var(--editor-accent) 8%, transparent),
       transparent 58%
-    ),
-    repeating-linear-gradient(
-      90deg,
-      transparent 0,
-      transparent 79px,
-      color-mix(in srgb, var(--editor-border) 32%, transparent) 80px
     ),
     var(--editor-surface);
 }

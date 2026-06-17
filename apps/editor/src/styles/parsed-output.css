@@ -211,15 +211,15 @@
 }
 
 .parsed-sim-finish--ok {
-  border-left: 3px solid var(--editor-success);
+  background: color-mix(in srgb, var(--editor-success) 6%, var(--editor-surface));
 }
 
 .parsed-sim-finish--warn {
-  border-left: 3px solid var(--editor-warning);
+  background: color-mix(in srgb, var(--editor-warning) 6%, var(--editor-surface));
 }
 
 .parsed-sim-finish--error {
-  border-left: 3px solid var(--editor-danger);
+  background: color-mix(in srgb, var(--editor-danger) 6%, var(--editor-surface));
 }
 
 .parsed-sim-finish-banner {

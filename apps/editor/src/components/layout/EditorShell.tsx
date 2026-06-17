@@ -10,6 +10,7 @@ import { useHeatmapHydration } from "../../hooks/useHeatmapHydration.js";
 import { confirmModal } from "../../lib/modalApi.js";
 import { ActivityBar } from "./ActivityBar.js";
 import { FileTree } from "./FileTree.js";
+import { PreviewEventsSidebar } from "../preview/PreviewEventsSidebar.js";
 import { ToolsSidebar } from "../tools/ToolsSidebar.js";
 import { InspectorPanel } from "./InspectorPanel.js";
 import { TopBar } from "./TopBar.js";
@@ -116,6 +117,7 @@ export function EditorShell() {
   const isDashboard = activity === "dashboard";
   const isTools = activity === "tools";
   const isBuild = activity === "build";
+  const isPreview = activity === "preview";
   const hideLeftDock = isMedia || isAbout || isDashboard || isBuild;
 
   useEffect(() => {
@@ -268,7 +270,14 @@ export function EditorShell() {
               className="editor-dock editor-dock-left flex shrink-0 flex-col"
               style={{ width: leftCollapsed ? 0 : leftWidth }}
             >
-              {!leftCollapsed && (isTools ? <ToolsSidebar /> : <FileTree />)}
+              {!leftCollapsed &&
+                (isTools ? (
+                  <ToolsSidebar />
+                ) : isPreview ? (
+                  <PreviewEventsSidebar />
+                ) : (
+                  <FileTree />
+                ))}
             </aside>
             <PanelHandle
               side="left"

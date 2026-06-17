@@ -1,33 +1,33 @@
 :root[data-theme="dark"] {
-  --boot-bg: #050505;
-  --boot-surface: #0d0d0d;
+  --boot-bg: #000000;
+  --boot-surface: #0a0a0a;
   --boot-primary: #f07a12;
-  --boot-glow: rgba(240, 122, 18, 0.22);
+  --boot-glow: rgba(240, 122, 18, 0.2);
   --boot-welcome-bg: radial-gradient(
     ellipse 90% 80% at 50% 50%,
-    color-mix(in srgb, var(--boot-surface) 85%, var(--boot-primary) 5%),
+    color-mix(in srgb, var(--boot-surface) 88%, var(--boot-primary) 4%),
     var(--boot-bg)
   );
   --boot-body-bg:
-    radial-gradient(ellipse 90% 58% at 50% -18%, rgba(255, 255, 255, 0.025), transparent 62%),
-    radial-gradient(ellipse 55% 48% at 100% 100%, rgba(240, 122, 18, 0.035), transparent 65%),
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(255, 255, 255, 0.03), transparent 58%),
+    radial-gradient(ellipse 45% 40% at 100% 100%, rgba(240, 122, 18, 0.04), transparent 62%),
     var(--boot-bg);
 }
 
 :root[data-theme="light"] {
-  --boot-bg: #e2e1de;
-  --boot-surface: #fdfdfc;
-  --boot-primary: #df6c00;
-  --boot-glow: rgba(223, 108, 0, 0.14);
+  --boot-bg: #f2f2f7;
+  --boot-surface: #ffffff;
+  --boot-primary: #e86a00;
+  --boot-glow: rgba(232, 106, 0, 0.12);
   --boot-welcome-bg: radial-gradient(
     ellipse 90% 80% at 50% 50%,
-    color-mix(in srgb, var(--boot-surface) 85%, var(--boot-primary) 5%),
+    color-mix(in srgb, var(--boot-surface) 90%, var(--boot-primary) 3%),
     var(--boot-bg)
   );
   --boot-body-bg:
-    radial-gradient(ellipse 120% 70% at 100% -10%, rgba(223, 108, 0, 0.04), transparent 55%),
-    radial-gradient(ellipse 90% 55% at -5% 105%, rgba(59, 127, 212, 0.03), transparent 50%),
-    linear-gradient(180deg, #eae9e6 0%, #deddd9 100%);
+    radial-gradient(ellipse 90% 60% at 50% -15%, rgba(255, 255, 255, 0.9), transparent 55%),
+    radial-gradient(ellipse 50% 45% at 100% 100%, rgba(232, 106, 0, 0.03), transparent 60%),
+    var(--boot-bg);
 }
 
 html,

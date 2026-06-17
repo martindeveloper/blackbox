@@ -1,104 +1,96 @@
 :root,
 :root[data-theme="dark"] {
-  --editor-bg: #050505;
-  --editor-stage: #080808;
-  --editor-surface: #0d0d0d;
-  --editor-surface-2: #141414;
-  --editor-surface-3: #1a1a1a;
-  --editor-toolbar: rgba(8, 8, 8, 0.68);
-  --editor-inspector: rgba(7, 7, 7, 0.76);
-  --editor-border: #020202;
-  --editor-border-subtle: rgba(255, 255, 255, 0.03);
-  --editor-border-2: rgba(255, 255, 255, 0.048);
-  --editor-text: #efefed;
-  --editor-text-muted: #9d9b97;
-  --editor-text-subtle: #62605c;
+  --editor-bg: #000000;
+  --editor-stage: #050505;
+  --editor-surface: #0a0a0a;
+  --editor-surface-2: #111111;
+  --editor-surface-3: #181818;
+  --editor-toolbar: rgba(10, 10, 10, 0.72);
+  --editor-inspector: rgba(8, 8, 8, 0.78);
+  --editor-border: rgba(255, 255, 255, 0.06);
+  --editor-border-subtle: rgba(255, 255, 255, 0.04);
+  --editor-border-2: rgba(255, 255, 255, 0.1);
+  --editor-text: #f5f5f5;
+  --editor-text-muted: #a3a3a3;
+  --editor-text-subtle: #737373;
   --editor-primary: #f07a12;
   --editor-accent: var(--editor-primary);
-  --editor-primary-hover: #ff9a3d;
-  --editor-selection: rgba(240, 122, 18, 0.12);
+  --editor-primary-hover: #ff922e;
+  --editor-selection: rgba(240, 122, 18, 0.14);
   --editor-selection-border: #f07a12;
-  --editor-secondary: #6b9cf0;
-  --editor-danger: #f07070;
-  --editor-success: #6fcf97;
+  --editor-secondary: #64b5f6;
+  --editor-danger: #ff6b6b;
+  --editor-success: #5fd68a;
   --editor-warning: #e8c468;
-  --sim-ending-1: #df6c00;
-  --sim-ending-2: #6b9cf0;
-  --sim-ending-3: #6fcf97;
+  --sim-ending-1: #f07a12;
+  --sim-ending-2: #64b5f6;
+  --sim-ending-3: #5fd68a;
   --sim-ending-4: #e8c468;
   --sim-ending-5: #c084fc;
-  --sim-ending-6: #f07070;
-  --editor-input-bg: rgba(2, 2, 2, 0.78);
-  --editor-input-border: rgba(255, 255, 255, 0.04);
+  --sim-ending-6: #ff6b6b;
+  --editor-input-bg: rgba(0, 0, 0, 0.55);
+  --editor-input-border: rgba(255, 255, 255, 0.08);
   --editor-input-focus: #f07a12;
-  --editor-btn-bg: rgba(38, 38, 38, 0.58);
-  --editor-btn-bg-hover: rgba(52, 52, 52, 0.76);
-  --editor-btn-text: #e8eaed;
-  --editor-btn-primary-bg: #b85406;
-  --editor-btn-primary-bg-hover: #d5660c;
+  --editor-btn-bg: rgba(255, 255, 255, 0.06);
+  --editor-btn-bg-hover: rgba(255, 255, 255, 0.1);
+  --editor-btn-text: #f5f5f5;
+  --editor-btn-primary-bg: #e86a00;
+  --editor-btn-primary-bg-hover: #f07a12;
   --editor-btn-primary-text: #ffffff;
-  --editor-glass: rgba(9, 9, 9, 0.64);
-  --editor-glass-strong: rgba(13, 13, 13, 0.78);
-  --editor-highlight: rgba(255, 255, 255, 0.055);
-  --editor-glass-border: rgba(255, 255, 255, 0.06);
-  --editor-glass-orange: rgba(240, 122, 18, 0.07);
-  --editor-shadow:
-    0 0.5px 0 rgba(255, 255, 255, 0.028) inset, 0 1px 1px rgba(0, 0, 0, 0.45),
-    0 5px 16px rgba(0, 0, 0, 0.24);
-  --editor-shadow-lg:
-    0 0.5px 0 rgba(255, 255, 255, 0.032) inset, 0 1px 2px rgba(0, 0, 0, 0.5),
-    0 16px 42px rgba(0, 0, 0, 0.42);
-  --editor-grid: rgba(255, 255, 255, 0.03);
-  --editor-glow: rgba(240, 122, 18, 0.22);
-  --editor-row-alt: rgba(255, 255, 255, 0.018);
+  --editor-glass: rgba(12, 12, 12, 0.58);
+  --editor-glass-strong: rgba(16, 16, 16, 0.74);
+  --editor-highlight: rgba(255, 255, 255, 0.06);
+  --editor-glass-border: rgba(255, 255, 255, 0.08);
+  --editor-glass-orange: rgba(240, 122, 18, 0.06);
+  --editor-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 4px 12px rgba(0, 0, 0, 0.32);
+  --editor-shadow-lg: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 24px rgba(0, 0, 0, 0.4);
+  --editor-grid: rgba(255, 255, 255, 0.035);
+  --editor-glow: rgba(240, 122, 18, 0.2);
+  --editor-row-alt: rgba(255, 255, 255, 0.02);
 }
 
 :root[data-theme="light"] {
-  --editor-bg: #e2e1de;
-  --editor-stage: #ebeae7;
-  --editor-surface: #fdfdfc;
-  --editor-surface-2: #f8f8f7;
+  --editor-bg: #f2f2f7;
+  --editor-stage: #ffffff;
+  --editor-surface: #ffffff;
+  --editor-surface-2: #fafafa;
   --editor-surface-3: #ffffff;
-  --editor-toolbar: #fafaf9;
-  --editor-inspector: #fdfdfc;
-  --editor-border: rgba(12, 12, 11, 0.07);
-  --editor-border-subtle: rgba(12, 12, 11, 0.04);
-  --editor-border-2: rgba(12, 12, 11, 0.11);
-  --editor-text: #0c0c0b;
-  --editor-text-muted: #52524e;
-  --editor-text-subtle: #94948f;
-  --editor-primary: #df6c00;
+  --editor-toolbar: rgba(255, 255, 255, 0.72);
+  --editor-inspector: rgba(255, 255, 255, 0.82);
+  --editor-border: rgba(0, 0, 0, 0.08);
+  --editor-border-subtle: rgba(0, 0, 0, 0.05);
+  --editor-border-2: rgba(0, 0, 0, 0.12);
+  --editor-text: #1d1d1f;
+  --editor-text-muted: #6e6e73;
+  --editor-text-subtle: #86868b;
+  --editor-primary: #e86a00;
   --editor-accent: var(--editor-primary);
-  --editor-primary-hover: #c45f00;
-  --editor-selection: rgba(223, 108, 0, 0.06);
-  --editor-selection-border: #df6c00;
-  --editor-secondary: #3b7fd4;
-  --editor-danger: #dc4545;
-  --editor-success: #239b56;
-  --editor-warning: #c48a20;
+  --editor-primary-hover: #d45f00;
+  --editor-selection: rgba(232, 106, 0, 0.08);
+  --editor-selection-border: #e86a00;
+  --editor-secondary: #007aff;
+  --editor-danger: #ff3b30;
+  --editor-success: #34c759;
+  --editor-warning: #ff9500;
   --editor-input-bg: #ffffff;
-  --editor-input-border: rgba(12, 12, 11, 0.1);
-  --editor-input-focus: #df6c00;
-  --editor-btn-bg: #f3f3f1;
-  --editor-btn-bg-hover: #eaeae7;
-  --editor-btn-text: #0c0c0b;
-  --editor-btn-primary-bg: #c85400;
-  --editor-btn-primary-bg-hover: #df6c00;
+  --editor-input-border: rgba(0, 0, 0, 0.1);
+  --editor-input-focus: #e86a00;
+  --editor-btn-bg: rgba(0, 0, 0, 0.04);
+  --editor-btn-bg-hover: rgba(0, 0, 0, 0.07);
+  --editor-btn-text: #1d1d1f;
+  --editor-btn-primary-bg: #e86a00;
+  --editor-btn-primary-bg-hover: #f07a12;
   --editor-btn-primary-text: #ffffff;
-  --editor-glass: rgba(253, 253, 252, 0.76);
-  --editor-glass-strong: rgba(253, 253, 252, 0.92);
-  --editor-highlight: rgba(255, 255, 255, 0.82);
-  --editor-glass-border: rgba(255, 255, 255, 0.92);
-  --editor-glass-orange: rgba(223, 108, 0, 0.035);
-  --editor-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.9) inset, 0 1px 2px rgba(0, 0, 0, 0.04),
-    0 4px 14px rgba(0, 0, 0, 0.045);
-  --editor-shadow-lg:
-    0 0 0 1px rgba(255, 255, 255, 0.95) inset, 0 1px 2px rgba(0, 0, 0, 0.03),
-    0 8px 28px rgba(0, 0, 0, 0.07), 0 24px 48px rgba(0, 0, 0, 0.04);
-  --editor-grid: rgba(0, 0, 0, 0.028);
-  --editor-glow: rgba(223, 108, 0, 0.14);
-  --editor-row-alt: rgba(0, 0, 0, 0.014);
+  --editor-glass: rgba(255, 255, 255, 0.72);
+  --editor-glass-strong: rgba(255, 255, 255, 0.88);
+  --editor-highlight: rgba(255, 255, 255, 0.95);
+  --editor-glass-border: rgba(255, 255, 255, 0.9);
+  --editor-glass-orange: rgba(232, 106, 0, 0.04);
+  --editor-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 2px 8px rgba(0, 0, 0, 0.06);
+  --editor-shadow-lg: inset 0 1px 0 #ffffff, 0 8px 20px rgba(0, 0, 0, 0.08);
+  --editor-grid: rgba(0, 0, 0, 0.04);
+  --editor-glow: rgba(232, 106, 0, 0.12);
+  --editor-row-alt: rgba(0, 0, 0, 0.02);
 }
 
 * {
@@ -125,19 +117,9 @@ body {
 
 :root[data-theme="dark"] body {
   background:
-    radial-gradient(ellipse 90% 58% at 50% -18%, rgba(255, 255, 255, 0.025), transparent 62%),
-    radial-gradient(ellipse 55% 48% at 100% 100%, rgba(240, 122, 18, 0.035), transparent 65%),
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(255, 255, 255, 0.03), transparent 58%),
+    radial-gradient(ellipse 45% 40% at 100% 100%, rgba(240, 122, 18, 0.04), transparent 62%),
     var(--editor-bg);
-}
-
-:root[data-theme="dark"] #root::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 99999;
-  pointer-events: none;
-  opacity: 0.018;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 input,
@@ -168,125 +150,101 @@ button {
 }
 
 :root[data-theme="light"] body {
-  background-color: var(--editor-bg);
-  background-image:
-    radial-gradient(ellipse 120% 70% at 100% -10%, rgba(223, 108, 0, 0.04), transparent 55%),
-    radial-gradient(ellipse 90% 55% at -5% 105%, rgba(59, 127, 212, 0.03), transparent 50%),
-    linear-gradient(180deg, #eae9e6 0%, #deddd9 100%);
-}
-
-:root[data-theme="light"] #root::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 99999;
-  pointer-events: none;
-  opacity: 0.024;
-  mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background:
+    radial-gradient(ellipse 90% 60% at 50% -15%, rgba(255, 255, 255, 0.9), transparent 55%),
+    radial-gradient(ellipse 50% 45% at 100% 100%, rgba(232, 106, 0, 0.03), transparent 60%),
+    var(--editor-bg);
 }
 
 :root[data-theme="light"] .editor-topbar {
-  background: rgba(253, 253, 252, 0.76);
-  backdrop-filter: blur(24px) saturate(1.65);
-  -webkit-backdrop-filter: blur(24px) saturate(1.65);
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(28px) saturate(1.75);
+  -webkit-backdrop-filter: blur(28px) saturate(1.75);
   border-top: none;
-  border-bottom: 1px solid rgba(12, 12, 11, 0.07);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.92),
-    0 4px 20px rgba(0, 0, 0, 0.045);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95);
 }
 
 :root[data-theme="light"] .editor-play-toolbar {
-  background: rgba(253, 253, 252, 0.68);
-  backdrop-filter: blur(16px) saturate(1.4);
-  -webkit-backdrop-filter: blur(16px) saturate(1.4);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    0 1px 4px rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(20px) saturate(1.6);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92);
 }
 
 :root[data-theme="light"] .editor-footer {
-  background: rgba(253, 253, 252, 0.82);
-  backdrop-filter: blur(16px) saturate(1.4);
-  -webkit-backdrop-filter: blur(16px) saturate(1.4);
-  border-top-color: rgba(12, 12, 11, 0.06);
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(20px) saturate(1.6);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  border-top-color: rgba(0, 0, 0, 0.06);
 }
 
 :root[data-theme="light"] .editor-stage {
   background:
-    radial-gradient(ellipse 100% 55% at 50% -5%, rgba(255, 255, 255, 0.55), transparent 65%),
+    radial-gradient(ellipse 100% 50% at 50% 0%, rgba(255, 255, 255, 0.7), transparent 62%),
     var(--editor-stage);
-  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.035);
 }
 
 :root[data-theme="light"] .editor-dock-left,
 :root[data-theme="light"] .editor-dock-right {
-  box-shadow: 0 0 24px rgba(0, 0, 0, 0.04);
+  box-shadow: none;
 }
 
 :root[data-theme="light"] .activity-bar {
-  background: var(--editor-surface);
-  box-shadow: 1px 0 0 rgba(12, 12, 11, 0.05);
+  background: rgba(255, 255, 255, 0.68);
+  backdrop-filter: blur(28px) saturate(1.7);
+  -webkit-backdrop-filter: blur(28px) saturate(1.7);
+  box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.05);
 }
 
 :root[data-theme="light"] .panel-header {
-  background: transparent;
+  background: rgba(255, 255, 255, 0.5);
   color: var(--editor-text-subtle);
   border-bottom-color: var(--editor-border-subtle);
 }
 
 :root[data-theme="light"] .editor-input {
-  border-radius: 3px;
-  border-color: rgba(12, 12, 11, 0.09);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) inset;
+  border-radius: 4px;
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow: none;
 }
 
 :root[data-theme="light"] .editor-input:focus {
   border-color: var(--editor-input-focus);
-  box-shadow:
-    0 0 0 3px rgba(223, 108, 0, 0.11),
-    0 1px 2px rgba(0, 0, 0, 0.03) inset;
+  box-shadow: 0 0 0 3px rgba(232, 106, 0, 0.14);
 }
 
 :root[data-theme="light"] .editor-btn {
-  border-radius: 3px;
-  border-color: rgba(12, 12, 11, 0.09);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.95) inset,
-    0 1px 2px rgba(0, 0, 0, 0.04);
+  border-radius: 4px;
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 :root[data-theme="light"] .editor-btn-primary {
-  border-color: color-mix(in srgb, var(--editor-btn-primary-bg) 88%, #000);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.18) inset,
-    0 2px 8px rgba(200, 84, 0, 0.28);
+  border-color: color-mix(in srgb, var(--editor-btn-primary-bg) 90%, #000);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 :root[data-theme="light"] .list-item-selected {
-  background: linear-gradient(90deg, rgba(223, 108, 0, 0.09), rgba(223, 108, 0, 0.02));
+  background: rgba(232, 106, 0, 0.08);
   color: var(--editor-text);
   font-weight: 500;
 }
 
 :root[data-theme="light"] .graph-node {
-  border-radius: 7px;
-  border-color: rgba(12, 12, 11, 0.08);
+  border-radius: 6px;
+  border-color: rgba(0, 0, 0, 0.08);
   box-shadow: var(--editor-shadow-lg);
 }
 
 :root[data-theme="light"] .graph-node:hover {
-  border-color: color-mix(in srgb, var(--editor-primary) 35%, rgba(12, 12, 11, 0.08));
-  box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--editor-primary) 10%, transparent),
-    var(--editor-shadow-lg);
+  border-color: color-mix(in srgb, var(--editor-primary) 30%, rgba(0, 0, 0, 0.08));
 }
 
 :root[data-theme="light"] .graph-node-selected {
   box-shadow:
     0 0 0 1px var(--editor-selection-border),
-    0 0 28px rgba(223, 108, 0, 0.12),
+    0 0 20px rgba(232, 106, 0, 0.1),
     var(--editor-shadow-lg);
 }
 
@@ -294,24 +252,24 @@ button {
   background:
     radial-gradient(
       circle at 50% 0%,
-      color-mix(in srgb, var(--editor-primary) 1.8%, transparent),
+      color-mix(in srgb, var(--editor-primary) 1.5%, transparent),
       transparent 48%
     ),
-    linear-gradient(to bottom, color-mix(in srgb, #ffffff 42%, transparent), transparent 100px);
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.5), transparent 100px);
 }
 
 :root[data-theme="light"] .react-flow__edge-path {
-  opacity: 0.58;
+  opacity: 0.55;
 }
 
 :root[data-theme="light"] .react-flow__edge:hover .react-flow__edge-path,
 :root[data-theme="light"] .react-flow__edge.selected .react-flow__edge-path {
-  opacity: 0.92;
+  opacity: 0.9;
 }
 
 :root[data-theme="light"] .react-flow__handle {
   border-color: #ffffff !important;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.14);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
 }
 
 :root[data-theme="light"] .react-flow__controls button,
@@ -320,46 +278,40 @@ button {
 }
 
 :root[data-theme="light"] .editor-theme-switch {
-  background: rgba(255, 255, 255, 0.72);
-  border-color: rgba(12, 12, 11, 0.08);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  background: rgba(255, 255, 255, 0.75);
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95);
 }
 
 :root[data-theme="light"] .editor-theme-switch-btn--active {
   background: #ffffff;
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.95) inset,
-    0 1px 3px rgba(0, 0, 0, 0.07);
+  box-shadow: inset 0 1px 0 #ffffff, 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
 :root[data-theme="light"] .scenario-screen {
   background:
     radial-gradient(
       ellipse 60% 40% at 8% 0%,
-      color-mix(in srgb, var(--editor-primary) 3.5%, transparent),
+      color-mix(in srgb, var(--editor-primary) 2.5%, transparent),
       transparent 62%
     ),
     var(--editor-stage);
 }
 
 :root[data-theme="light"] .activity-btn-active {
-  background: linear-gradient(90deg, rgba(223, 108, 0, 0.1), rgba(223, 108, 0, 0.03));
+  background: rgba(232, 106, 0, 0.08);
 }
 
 :root[data-theme="light"] .tools-sidebar-icon--active {
   background: #ffffff;
   box-shadow:
-    0 0 0 1px rgba(223, 108, 0, 0.18),
-    0 2px 10px rgba(223, 108, 0, 0.1);
+    0 0 0 1px rgba(232, 106, 0, 0.16),
+    0 2px 8px rgba(232, 106, 0, 0.08);
 }
 
 :root[data-theme="light"] .editor-play-btn--play {
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--editor-primary) 12%, #ffffff),
-    color-mix(in srgb, var(--editor-primary) 7%, #ffffff)
-  );
-  border-left-color: rgba(223, 108, 0, 0.16);
+  background: color-mix(in srgb, var(--editor-primary) 9%, #ffffff);
+  border-left-color: rgba(232, 106, 0, 0.14);
 }
 
 .editor-input.font-mono,
