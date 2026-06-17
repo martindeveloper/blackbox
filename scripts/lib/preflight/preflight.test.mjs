@@ -3,14 +3,19 @@ import { mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { detectBuildCapabilities } from "./index.js";
-import { createHostCache } from "./helpers.js";
+import { BUILD_PLATFORMS, BUILD_STAGES } from "../buildStages.mjs";
+import { resolveProject } from "../adventure.mjs";
+import {
+  assertStageReady,
+  createHostCache,
+  detectBuildCapabilities,
+} from "./index.mjs";
 
-test("detectBuildCapabilities exposes stage hooks for every platform", () => {
-  const caps = detectBuildCapabilities();
+test("detectBuildCapabilities exposes stage hooks for every platform", async () => {
+  const caps = await detectBuildCapabilities();
 
-  for (const platform of ["web", "ios", "android"]) {
-    for (const stage of ["bundle", "build", "package"]) {
+  for (const platform of BUILD_PLATFORMS) {
+    for (const stage of BUILD_STAGES) {
       const entry = caps[platform].stages[stage];
       assert.ok(entry, `${platform}.${stage} should exist`);
       assert.equal(typeof entry.available, "boolean");
@@ -23,10 +28,18 @@ test("detectBuildCapabilities exposes stage hooks for every platform", () => {
   }
 });
 
-test("host cache reuses command and ffmpeg probe results within one request", () => {
+test("host cache reuses command and ffmpeg probe results within one request", async () => {
   const host = createHostCache();
-  assert.equal(host.commandExists("ffmpeg"), host.commandExists("ffmpeg"));
-  assert.equal(host.ffmpegEncoders(), host.ffmpegEncoders());
+  const [first, second] = await Promise.all([
+    host.commandExists("ffmpeg"),
+    host.commandExists("ffmpeg"),
+  ]);
+  assert.equal(first, second);
+  const [encodersA, encodersB] = await Promise.all([
+    host.ffmpegEncoders(),
+    host.ffmpegEncoders(),
+  ]);
+  assert.equal(encodersA, encodersB);
 });
 
 test("android package preflight reads keystore settings from scenario.json", async () => {
@@ -48,7 +61,7 @@ test("android package preflight reads keystore settings from scenario.json", asy
     }),
   );
 
-  const caps = detectBuildCapabilities(root);
+  const caps = await detectBuildCapabilities(root);
   const packageChecks = caps.android.stages.package.checks.map((check) => check.message);
   assert.ok(
     packageChecks.some((message) => message.includes("release keystore not found")),
@@ -75,7 +88,7 @@ test("ios package preflight reports missing signing team from scenario.json", as
   const previousTeam = process.env.APPLE_TEAM_ID;
   delete process.env.APPLE_TEAM_ID;
   try {
-    const caps = detectBuildCapabilities(root);
+    const caps = await detectBuildCapabilities(root);
     const packageChecks = caps.ios.stages.package.checks.map((check) => check.message);
     assert.ok(
       packageChecks.some((message) => message.includes("missing signing team")),
@@ -86,4 +99,31 @@ test("ios package preflight reports missing signing team from scenario.json", as
     if (previousTeam === undefined) delete process.env.APPLE_TEAM_ID;
     else process.env.APPLE_TEAM_ID = previousTeam;
   }
+});
+
+test("assertStageReady throws the first package error for android", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "bb-preflight-"));
+  await writeFile(
+    path.join(root, "scenario.json"),
+    JSON.stringify({
+      spec: "com.blackbox.scenario",
+      title: "Test",
+      platforms: {
+        android: {
+          keystore: {
+            path: "missing.keystore",
+            storePassword: "secret",
+            keyPassword: "secret",
+          },
+        },
+      },
+    }),
+  );
+
+  const project = resolveProject(root, { configuration: "release" });
+
+  await assert.rejects(
+    () => assertStageReady("android", "package", project),
+    /release keystore not found/,
+  );
 });

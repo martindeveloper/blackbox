@@ -124,6 +124,19 @@ export function commandExists(command) {
   return result.status === 0;
 }
 
+export function commandExistsAsync(command) {
+  const checker = process.platform === "win32" ? "where.exe" : "which";
+  return new Promise((resolve) => {
+    const child = spawn(checker, [command], {
+      stdio: "ignore",
+      shell: false,
+      ...windowsSpawnOptions(),
+    });
+    child.on("error", () => resolve(false));
+    child.on("close", (code) => resolve(code === 0));
+  });
+}
+
 export function runSync(command, args, options = {}) {
   const { command: cmd, args: spawnArgs, options: spawnOpts } = spawnOptions(command, args, options);
   const result = spawnSync(cmd, spawnArgs, spawnOpts);

@@ -1,12 +1,13 @@
 import { existsSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
+import { BUILD_CONFIGURATIONS as BUILD_CONFIGURATION_LIST, BUILD_PLATFORMS as BUILD_PLATFORM_LIST } from "./buildStages.mjs";
 import { resolveAndroidScreenOrientation } from "./platformAndroid.mjs";
 import { resolveIosCategory, resolveIosOrientations } from "./platformIos.mjs";
 
 const DEFAULT_APP_ID_BASE = "dev.blackbox";
 export const DEFAULT_BG = "#070503";
-export const BUILD_CONFIGURATIONS = new Set(["debug", "release"]);
-export const BUILD_PLATFORMS = new Set(["web", "ios", "android"]);
+export const BUILD_CONFIGURATIONS = new Set(BUILD_CONFIGURATION_LIST);
+export const BUILD_PLATFORMS = new Set(BUILD_PLATFORM_LIST);
 
 export function slugifyGameId(gameId) {
   return gameId.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();

@@ -423,7 +423,7 @@ export async function registerRoutes(app, service) {
 
   app.get(
     serverProjectRoute(ProjectRoutes.BuildCapabilities),
-    projectRequest(service, async (project) => detectBuildCapabilities(project.path)),
+    projectRequest(service, async (project) => await detectBuildCapabilities(project.path)),
   );
 
   app.post(

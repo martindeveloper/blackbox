@@ -27,7 +27,7 @@
     "lint:react-compiler": "eslint src/",
     "postinstall": "node ./scripts/ensure-electron.mjs",
     "start": "node server.js",
-    "test": "node --test server/*.test.js server/pipeline/**/*.test.js electron/*.test.mjs",
+    "test": "node --test server/*.test.js server/pipeline/**/*.test.js electron/*.test.mjs ../../scripts/lib/preflight/preflight.test.mjs",
     "watch:css": "tailwindcss -i ./src/app.css -o ./dist/style.css --watch",
     "watch:js": "rolldown -c rolldown.config.ts --watch"
   },

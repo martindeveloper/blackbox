@@ -3,6 +3,8 @@ import { cpSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { windowsSpawnOptions } from "../../lib/spawn.mjs";
 import { resolvePlatformConfig } from "../../lib/adventure.mjs";
+import { sharedBundleChecks } from "../../lib/preflight/bundleCommon.mjs";
+import { requireStageReady } from "../../lib/preflight/index.mjs";
 import { deployWwwToVercel } from "../../lib/vercelDeploy.mjs";
 import { playerBuildEnv } from "../lib/buildEnv.mjs";
 import {
@@ -17,6 +19,17 @@ import {
   runWebPlayerBuild,
   WEB_ROOT,
 } from "../lib/run.mjs";
+
+/** @typedef {import("../../lib/preflight/types.mjs").PreflightContext} PreflightContext */
+
+export const preflight = {
+  /** @param {PreflightContext} ctx */
+  bundle: (ctx) => sharedBundleChecks(ctx),
+  /** @param {PreflightContext} _ctx */
+  build: async (_ctx) => [],
+  /** @param {PreflightContext} _ctx */
+  package: async (_ctx) => [],
+};
 
 function ensureDir(dir) {
   mkdirSync(dir, { recursive: true });
@@ -58,14 +71,24 @@ export function stageBuild(project, { configuration = project.configuration ?? "
   log("build", `ok -> ${path.relative(REPO_ROOT, project.webWwwDir)}`);
 }
 
-export function stageBundle(project, { configuration = project.configuration ?? "release" } = {}) {
+export async function stageBundle(
+  project,
+  { configuration = project.configuration ?? "release", skipPreflight = false } = {},
+) {
+  if (!skipPreflight) {
+    await requireStageReady("web", "bundle", project);
+  }
   return runBundler(project, "web", { configuration });
 }
 
-export function stagePackage(
+export async function stagePackage(
   project,
-  { noBuild = false, configuration = project.configuration ?? "release" } = {},
+  { noBuild = false, configuration = project.configuration ?? "release", skipPreflight = false } = {},
 ) {
+  if (!skipPreflight) {
+    await requireStageReady("web", "bundle", project);
+  }
+
   const platformConfig = resolvePlatformConfig(project, "web");
   if (!noBuild) {
     stageBuild(project, { configuration });
@@ -75,7 +98,7 @@ export function stagePackage(
       `missing build output at ${project.webWwwDir} — run build first or drop --no-build`,
     );
   }
-  const bundleOut = stageBundle(project, { configuration });
+  const bundleOut = await stageBundle(project, { configuration, skipPreflight: true });
 
   const outDir = project.packageDir("web");
   const payloadDir = path.join(outDir, "payload");
