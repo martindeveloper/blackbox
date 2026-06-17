@@ -97,7 +97,9 @@ Options:
   --deploy <target>    Publish after build/package (web only; currently: vercel)
   --configuration <name>
                        debug | release (default: release)
-  --no-build           Reuse the last web player build where applicable
+  --no-build           Reuse prior stage outputs where applicable. For web package this skips
+                       the player compile and content bundle, assembling from the existing
+                       build/ and bundle/ outputs (run build + bundle first).
   --web-spawn-server   After a web build, start the static player server (web only)
   --react-compiler=<bool>
                        Compile the player UI with the React Compiler (default: on).

@@ -1,5 +1,6 @@
 import { spawn } from "node:child_process";
-import { existsSync, readdirSync, rmSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
+import { rm } from "node:fs/promises";
 import path from "node:path";
 import {
   BUILD_CONFIGURATIONS,
@@ -27,12 +28,21 @@ function buildDir(projectPath, configuration) {
 /**
  * Remove the project's build output for a configuration so the next build runs from scratch.
  * This is the `.blackbox/build/<configuration>` tree (bundle/web/package artifacts and any
- * incremental output the stages wrote there). Returns the directory that was cleaned.
+ * incremental output the stages wrote there). Returns the root directory that was cleaned and
+ * the immediate child folders that existed inside it (collected before deletion so the build
+ * log can report exactly what was removed).
  */
-export function cleanBuildOutput(projectPath, configuration) {
+export async function cleanBuildOutput(projectPath, configuration) {
   const dir = buildDir(projectPath, configuration);
-  rmSync(dir, { recursive: true, force: true });
-  return dir;
+  // The top-level listing is tiny (bundle/web/package), so a sync stat is fine; the heavy part
+  // is the recursive delete, which runs async so it never blocks the server's event loop.
+  const removed = existsSync(dir)
+    ? readdirSync(dir, { withFileTypes: true })
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => entry.name)
+    : [];
+  await rm(dir, { recursive: true, force: true });
+  return { dir, removed };
 }
 
 function stageOutputDir(projectPath, platform, stage, configuration) {
@@ -125,7 +135,11 @@ export function runCli(cliArgs, { inheritStdio = false } = {}) {
  * Spawn the build CLI for a single stage, streaming merged stdout/stderr lines to `onLine`.
  * Returns a handle whose `done` resolves to `{ exitCode, canceled, artifact }`.
  */
-export function spawnStage(projectPath, { platform, configuration, stage, reactCompiler }, onLine) {
+export function spawnStage(
+  projectPath,
+  { platform, configuration, stage, reactCompiler, reusePriorStages = false },
+  onLine,
+) {
   const args = [
     cliEntry(),
     stage,
@@ -133,6 +147,12 @@ export function spawnStage(projectPath, { platform, configuration, stage, reactC
     `--platform=${platform}`,
     `--configuration=${configuration}`,
   ];
+
+  // When the same pipeline already ran build + bundle, tell package to reuse their outputs
+  // instead of re-running the wasm/rolldown compile and content bundle from scratch.
+  if (stage === "package" && reusePriorStages) {
+    args.push("--no-build");
+  }
 
   // Forwarded to the web bundler (apps/web rolldown config) through the CLI's
   // playerBuildEnv, which spreads process.env. Set explicitly either way so the

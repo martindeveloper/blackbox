@@ -90,15 +90,29 @@ export async function stagePackage(
   }
 
   const platformConfig = resolvePlatformConfig(project, "web");
+  // noBuild reuses the outputs the `build` and `bundle` stages already produced (the common
+  // case when the editor runs all stages in one pipeline), so package only assembles + archives
+  // instead of re-running the wasm/rolldown compile and the content bundle.
+  let bundleOut;
   if (!noBuild) {
     stageBuild(project, { configuration });
-  } else if (!existsSync(project.webWwwDir)) {
-    fail(
-      "web",
-      `missing build output at ${project.webWwwDir} — run build first or drop --no-build`,
-    );
+    bundleOut = await stageBundle(project, { configuration, skipPreflight: true });
+  } else {
+    if (!existsSync(project.webWwwDir)) {
+      fail(
+        "web",
+        `missing build output at ${project.webWwwDir} — run build first or drop --no-build`,
+      );
+    }
+    bundleOut = project.bundleDir("web");
+    if (!existsSync(bundleOut)) {
+      fail(
+        "web",
+        `missing content bundle at ${bundleOut} — run bundle first or drop --no-build`,
+      );
+    }
+    log("package", `reusing existing build + bundle (--no-build)`);
   }
-  const bundleOut = await stageBundle(project, { configuration, skipPreflight: true });
 
   const outDir = project.packageDir("web");
   const payloadDir = path.join(outDir, "payload");

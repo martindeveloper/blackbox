@@ -81,6 +81,24 @@ export function PreviewPanel() {
     return () => setCommandSender(null);
   }, [sendCommand, setCommandSender]);
 
+  const previewReady = preparedProject === projectId;
+
+  const runBuild = useCallback(
+    async (force: boolean) => {
+      if (!projectId) return;
+      setBuilding(true);
+      try {
+        const query = force ? "?force=1" : "";
+        await fetch(`${projectApiUrl(projectId, ProjectRoutes.PreviewBuild)}${query}`);
+      } catch {
+      } finally {
+        setBuilding(false);
+        if (force) setReloadKey((key) => key + 1);
+      }
+    },
+    [projectId],
+  );
+
   useEffect(() => {
     if (!projectId || preparedProject === projectId) return;
     let active = true;
@@ -88,18 +106,24 @@ export function PreviewPanel() {
       const saved = await saveProject();
       if (!active || !saved) return;
       setPreparedProject(projectId);
-      setBuilding(true);
-      try {
-        await fetch(`${projectApiUrl(projectId, ProjectRoutes.PreviewBuild)}`);
-      } catch {
-      } finally {
-        if (active) setBuilding(false);
-      }
     })();
     return () => {
       active = false;
     };
   }, [projectId, saveProject, preparedProject]);
+
+  useEffect(() => {
+    if (!previewReady || !projectId) return;
+    void (async () => {
+      setBuilding(true);
+      try {
+        await fetch(`${projectApiUrl(projectId, ProjectRoutes.PreviewBuild)}`);
+      } catch {
+      } finally {
+        setBuilding(false);
+      }
+    })();
+  }, [previewReady, projectId]);
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -159,24 +183,7 @@ export function PreviewPanel() {
     setStorageState,
   ]);
 
-  const previewReady = preparedProject === projectId;
   const effectiveStageSize = previewReady ? stageSize : { width: 0, height: 0 };
-
-  const runBuild = useCallback(
-    async (force: boolean) => {
-      if (!projectId) return;
-      setBuilding(true);
-      try {
-        const query = force ? "?force=1" : "";
-        await fetch(`${projectApiUrl(projectId, ProjectRoutes.PreviewBuild)}${query}`);
-      } catch {
-      } finally {
-        setBuilding(false);
-        if (force) setReloadKey((key) => key + 1);
-      }
-    },
-    [projectId],
-  );
 
   useEffect(() => {
     if (!previewReady) return;

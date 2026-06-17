@@ -150,7 +150,10 @@ export class BuildRunRegistry {
       : null;
   }
 
-  async start(projectRoot, { platform, configuration, stages, reactCompiler = true, clean = false }) {
+  async start(
+    projectRoot,
+    { platform, configuration, stages, reactCompiler = true, clean = false },
+  ) {
     const root = path.resolve(projectRoot);
     const project = await this.load(root);
     if (project.current?.state === "running") {
@@ -165,14 +168,6 @@ export class BuildRunRegistry {
       (stage) => stages.includes(stage) && isStageAllowed(stage, platform),
     );
 
-    // Clean removes prior build output for this configuration so every stage runs from
-    // scratch. Done only after the already-running guard so we never wipe a live build.
-    const cleanLog = [];
-    if (clean) {
-      cleanBuildOutput(root, configuration);
-      cleanLog.push("[build] cleaned build cache (fresh build)");
-    }
-
     const record = {
       id: randomUUID(),
       platform,
@@ -182,9 +177,7 @@ export class BuildRunRegistry {
       state: "running",
       startedAt: Date.now(),
       completedAt: null,
-      stages: ordered.map((stage, index) =>
-        index === 0 ? { ...createStage(stage), log: [...cleanLog] } : createStage(stage),
-      ),
+      stages: ordered.map((stage) => createStage(stage)),
       artifact: null,
       error: null,
     };
@@ -192,14 +185,35 @@ export class BuildRunRegistry {
     await this.persist(root, project);
     this.emit(project, { type: "started", run: snapshot(record) });
 
-    project.executing = this.execute(root, project, record).finally(() => {
+    // Clean (delete prior output) runs inside execute() as the build's first step, not here, so
+    // the request returns immediately and the recursive delete never blocks the event loop or
+    // delays the "started" event. Guarded already by the running check above.
+    project.executing = this.execute(root, project, record, { clean }).finally(() => {
       project.executing = null;
     });
 
     return { run: snapshot(record), log: [], alreadyRunning: false };
   }
 
-  async execute(root, project, record) {
+  async execute(root, project, record, { clean = false } = {}) {
+    // Fresh build: delete prior output before the first stage runs. Streamed as a log line on the
+    // first stage so the UI shows exactly what was removed.
+    if (clean && record.state === "running" && record.stages[0]) {
+      const { dir, removed } = await cleanBuildOutput(root, record.configuration);
+      this.appendStageLog(
+        project,
+        record.stages[0],
+        removed.length > 0
+          ? `[build] clean: removed ${dir} (${removed.join(", ")})`
+          : `[build] clean: no existing build output at ${dir}`,
+      );
+    }
+
+    // package can reuse build + bundle outputs only when both ran earlier in this same pipeline
+    // (they execute before package), avoiding a redundant wasm/rolldown compile and re-bundle.
+    const selectedStages = new Set(record.stages.map((stageRecord) => stageRecord.stage));
+    const packageCanReuse = selectedStages.has("build") && selectedStages.has("bundle");
+
     for (const stageRecord of record.stages) {
       if (record.state !== "running") break;
       stageRecord.state = "running";
@@ -212,6 +226,7 @@ export class BuildRunRegistry {
           configuration: record.configuration,
           stage: stageRecord.stage,
           reactCompiler: record.reactCompiler,
+          reusePriorStages: stageRecord.stage === "package" && packageCanReuse,
         },
         (line) => this.appendStageLog(project, stageRecord, line),
       );
