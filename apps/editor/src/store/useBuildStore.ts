@@ -14,6 +14,7 @@ interface BuildStore {
   platform: BuildPlatform;
   configuration: BuildConfiguration;
   reactCompiler: boolean;
+  clean: boolean;
   selectedStages: BuildStage[];
   run: BuildRunSnapshot | null;
   log: string[];
@@ -23,6 +24,7 @@ interface BuildStore {
   setPlatform: (platform: BuildPlatform) => void;
   setConfiguration: (configuration: BuildConfiguration) => void;
   setReactCompiler: (enabled: boolean) => void;
+  setClean: (enabled: boolean) => void;
   toggleStage: (stage: BuildStage) => void;
   refreshPreflight: (projectId: string) => Promise<void>;
   applyEvent: (event: BuildEvent) => void;
@@ -36,6 +38,7 @@ export const useBuildStore = create<BuildStore>((set, get) => ({
   platform: "web",
   configuration: "release",
   reactCompiler: true,
+  clean: false,
   selectedStages: stagesForPlatform("web"),
   run: null,
   log: [],
@@ -52,6 +55,8 @@ export const useBuildStore = create<BuildStore>((set, get) => ({
   setConfiguration: (configuration) => set({ configuration }),
 
   setReactCompiler: (reactCompiler) => set({ reactCompiler }),
+
+  setClean: (clean) => set({ clean }),
 
   toggleStage: (stage) => {
     const current = get().selectedStages;

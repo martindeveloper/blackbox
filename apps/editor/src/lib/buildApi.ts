@@ -131,6 +131,7 @@ export async function startBuild(
     configuration: BuildConfiguration;
     stages: BuildStage[];
     reactCompiler: boolean;
+    clean: boolean;
   },
 ): Promise<StartBuildResult> {
   return postJson<StartBuildResult>(projectApiUrl(projectId, ProjectRoutes.BuildRuns), request);

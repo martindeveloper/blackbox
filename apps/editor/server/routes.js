@@ -435,6 +435,8 @@ export async function registerRoutes(app, service) {
       const stages = Array.isArray(body.stages) ? body.stages : [];
       // Player-bundle option; defaults on unless explicitly false.
       const reactCompiler = body.reactCompiler !== false;
+      // Fresh build; defaults off. Wipes the configuration's build cache before stages run.
+      const clean = body.clean === true;
 
       if (!isValidPlatform(platform)) {
         return reply
@@ -466,6 +468,7 @@ export async function registerRoutes(app, service) {
         configuration,
         stages: selected,
         reactCompiler,
+        clean,
       });
       return reply.code(result.alreadyRunning ? 409 : 202).send(result);
     }),

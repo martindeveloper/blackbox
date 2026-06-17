@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { existsSync, readdirSync } from "node:fs";
+import { existsSync, readdirSync, rmSync } from "node:fs";
 import path from "node:path";
 import {
   BUILD_CONFIGURATIONS,
@@ -22,6 +22,17 @@ export function isStageAllowed(stage, platform) {
 
 function buildDir(projectPath, configuration) {
   return path.join(projectPath, ".blackbox", "build", configuration);
+}
+
+/**
+ * Remove the project's build output for a configuration so the next build runs from scratch.
+ * This is the `.blackbox/build/<configuration>` tree (bundle/web/package artifacts and any
+ * incremental output the stages wrote there). Returns the directory that was cleaned.
+ */
+export function cleanBuildOutput(projectPath, configuration) {
+  const dir = buildDir(projectPath, configuration);
+  rmSync(dir, { recursive: true, force: true });
+  return dir;
 }
 
 function stageOutputDir(projectPath, platform, stage, configuration) {

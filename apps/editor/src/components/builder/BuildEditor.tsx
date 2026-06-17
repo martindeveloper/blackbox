@@ -40,6 +40,7 @@ export function BuildEditor() {
   const platform = useBuildStore((s) => s.platform);
   const configuration = useBuildStore((s) => s.configuration);
   const reactCompiler = useBuildStore((s) => s.reactCompiler);
+  const clean = useBuildStore((s) => s.clean);
   const selectedStages = useBuildStore((s) => s.selectedStages);
   const run = useBuildStore((s) => s.run);
   const log = useBuildStore((s) => s.log);
@@ -47,6 +48,7 @@ export function BuildEditor() {
   const setPlatform = useBuildStore((s) => s.setPlatform);
   const setConfiguration = useBuildStore((s) => s.setConfiguration);
   const setReactCompiler = useBuildStore((s) => s.setReactCompiler);
+  const setClean = useBuildStore((s) => s.setClean);
   const toggleStage = useBuildStore((s) => s.toggleStage);
   const refreshPreflight = useBuildStore((s) => s.refreshPreflight);
   const applyEvent = useBuildStore((s) => s.applyEvent);
@@ -97,11 +99,12 @@ export function BuildEditor() {
         configuration,
         stages: selectedStages,
         reactCompiler,
+        clean,
       });
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     }
-  }, [projectId, platform, configuration, selectedStages, reactCompiler]);
+  }, [projectId, platform, configuration, selectedStages, reactCompiler, clean]);
 
   const onCancel = useCallback(async () => {
     if (!projectId || !run) return;
@@ -186,11 +189,13 @@ export function BuildEditor() {
             platform={platform}
             configuration={configuration}
             reactCompiler={reactCompiler}
+            clean={clean}
             capabilities={capabilities}
             disabled={running}
             onPlatform={setPlatform}
             onConfiguration={setConfiguration}
             onReactCompiler={setReactCompiler}
+            onClean={setClean}
           />
           <BuildPipeline
             platform={platform}

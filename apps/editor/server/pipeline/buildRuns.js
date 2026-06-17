@@ -5,7 +5,7 @@ import path from "node:path";
 import { BUILD_RUNS_PATH } from "../../shared/blackboxPaths.js";
 import { appendLogLine } from "../../shared/logBuffer.js";
 import { stagesForPlatform } from "../../shared/buildStages.js";
-import { isStageAllowed, spawnStage } from "./cli.js";
+import { cleanBuildOutput, isStageAllowed, spawnStage } from "./cli.js";
 
 const SCHEMA_VERSION = 2;
 
@@ -150,7 +150,7 @@ export class BuildRunRegistry {
       : null;
   }
 
-  async start(projectRoot, { platform, configuration, stages, reactCompiler = true }) {
+  async start(projectRoot, { platform, configuration, stages, reactCompiler = true, clean = false }) {
     const root = path.resolve(projectRoot);
     const project = await this.load(root);
     if (project.current?.state === "running") {
@@ -165,6 +165,14 @@ export class BuildRunRegistry {
       (stage) => stages.includes(stage) && isStageAllowed(stage, platform),
     );
 
+    // Clean removes prior build output for this configuration so every stage runs from
+    // scratch. Done only after the already-running guard so we never wipe a live build.
+    const cleanLog = [];
+    if (clean) {
+      cleanBuildOutput(root, configuration);
+      cleanLog.push("[build] cleaned build cache (fresh build)");
+    }
+
     const record = {
       id: randomUUID(),
       platform,
@@ -174,7 +182,9 @@ export class BuildRunRegistry {
       state: "running",
       startedAt: Date.now(),
       completedAt: null,
-      stages: ordered.map((stage) => createStage(stage)),
+      stages: ordered.map((stage, index) =>
+        index === 0 ? { ...createStage(stage), log: [...cleanLog] } : createStage(stage),
+      ),
       artifact: null,
       error: null,
     };
