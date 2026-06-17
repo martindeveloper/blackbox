@@ -48,17 +48,6 @@ export function OpenFolderScreen() {
   const [deleteTarget, setDeleteTarget] = useState<ProjectSummary | null>(null);
   const isElectron = typeof window !== "undefined" && !!window.electronAPI;
 
-  const refresh = async () => {
-    setLoading(true);
-    try {
-      setProjects(await listProjects());
-    } catch (error) {
-      notifyFromError(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
     let cancelled = false;
     void (async () => {

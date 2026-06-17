@@ -33,11 +33,15 @@ interface UseBlackboxSessionOptions {
 export function useBlackboxSession({ onSfx, presentation }: UseBlackboxSessionOptions) {
   const { t } = useTranslation();
   const onSfxRef = useRef(onSfx);
-  onSfxRef.current = onSfx;
+  useEffect(() => {
+    onSfxRef.current = onSfx;
+  }, [onSfx]);
 
   const [session, setSession] = useState<SessionPhase>({ phase: "loading" });
   const sessionRef = useRef<SessionPhase>(session);
-  sessionRef.current = session;
+  useEffect(() => {
+    sessionRef.current = session;
+  }, [session]);
 
   const [status, setStatus] = useState(() => t("status.loading"));
   const [statusKind, setStatusKind] = useState<StatusKind>("info");

@@ -21,6 +21,7 @@ import {
   UserSettingsButton,
   UserSettingsModal,
 } from "../settings/UserSettingsModal.js";
+import { BugReportButton, BugReportModal } from "../support/BugReportModal.js";
 import { useScenarioStore } from "../../store/useScenarioStore.js";
 import { transitionToHome } from "../../lib/projectTransition.js";
 import { editorNavigate, navigateToTool } from "../../lib/routeHelpers.js";
@@ -112,6 +113,7 @@ export function TopBar() {
   const previewActive = isActiveEditorPage(pathname, Page.EditorPreview);
   const [openingIde, setOpeningIde] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [bugReportOpen, setBugReportOpen] = useState(false);
   const { prefs } = useUserPrefs();
 
   const errorCount = validationIssues.filter((i) => i.severity === "error").length;
@@ -301,6 +303,8 @@ export function TopBar() {
         <span className="editor-topbar-divider" aria-hidden />
 
         <div className="editor-topbar-actions">
+          <BugReportButton onClick={() => setBugReportOpen(true)} />
+          {bugReportOpen ? <BugReportModal onClose={() => setBugReportOpen(false)} /> : null}
           <UserSettingsButton onClick={() => setSettingsOpen(true)} />
           {settingsOpen ? <UserSettingsModal onClose={() => setSettingsOpen(false)} /> : null}
           {projectPath && window.electronAPI ? (

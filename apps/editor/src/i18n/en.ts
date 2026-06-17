@@ -149,6 +149,16 @@ export const en = {
     preview: "Preview",
     runTools: "Run engine tools",
   },
+  bugReport: {
+    title: "Bug report",
+    lead: "Describe what went wrong. We’ll bundle editor diagnostics into a ZIP you can save or attach to an issue.",
+    commentLabel: "What happened?",
+    commentPlaceholder: "Steps to reproduce, what you expected, what you saw instead…",
+    includes:
+      "Includes editor version, OS, route, project info, validation issues, build log, and preview console history. No project file contents.",
+    generate: "Generate ZIP",
+    generating: "Generating…",
+  },
   settings: {
     title: "Settings",
     appearanceKicker: "Appearance",

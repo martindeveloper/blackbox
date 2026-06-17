@@ -3,11 +3,9 @@
 import http from "node:http";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import livereload from "livereload";
 import { resolveWebWwwDir } from "./scripts/lib/adventureDev.mjs";
 
-const CLIENT_ROOT = path.dirname(fileURLToPath(import.meta.url));
 const DIST = resolveWebWwwDir(process.env);
 const DEV_MODE = process.argv.includes("--dev");
 

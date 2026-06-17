@@ -55,8 +55,8 @@ export function UserSettingsModal({ onClose }: UserSettingsModalProps) {
   useEffect(() => {
     if (!isElectron) return;
     let cancelled = false;
-    void window.electronAPI!
-      .probeIdes(customIdePath || undefined)
+    void window
+      .electronAPI!.probeIdes(customIdePath || undefined)
       .then((result) => {
         if (!cancelled) setProbe(result);
       })

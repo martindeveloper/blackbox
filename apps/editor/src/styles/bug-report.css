@@ -1,0 +1,47 @@
+.modal-panel:has(.bug-report) {
+  width: min(420px, calc(100vw - 32px));
+}
+
+.bug-report {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bug-report-lead {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--editor-text-muted);
+}
+
+.bug-report-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.bug-report-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--editor-text);
+}
+
+.bug-report-textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+
+.bug-report-meta {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.45;
+  color: var(--editor-text-subtle);
+}
+
+.bug-report-error {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.45;
+  color: var(--editor-danger);
+}
