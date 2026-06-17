@@ -35,25 +35,23 @@ function WorkspaceLink({ title, meta, icon, onClick }: WorkspaceLinkProps) {
   return (
     <button type="button" className="dashboard-workspace" onClick={onClick}>
       <span className="dashboard-workspace-icon" aria-hidden>
-        <Icon icon={icon} size={15} strokeWidth={2} />
+        <Icon icon={icon} size={14} strokeWidth={2} />
       </span>
-      <span className="dashboard-workspace-copy">
-        <span className="dashboard-workspace-title">{title}</span>
-        <span className="dashboard-workspace-meta">{meta}</span>
-      </span>
-      <ArrowUpRight size={13} className="dashboard-workspace-arrow" aria-hidden />
+      <span className="dashboard-workspace-title">{title}</span>
+      <span className="dashboard-workspace-meta">{meta}</span>
+      <ArrowUpRight size={12} className="dashboard-workspace-arrow" aria-hidden />
     </button>
   );
 }
 
-interface PulseMetricProps {
+interface StatItemProps {
   value: number;
   label: string;
 }
 
-function PulseMetric({ value, label }: PulseMetricProps) {
+function StatItem({ value, label, featured = false }: StatItemProps & { featured?: boolean }) {
   return (
-    <div className="dashboard-pulse-metric">
+    <div className={`dashboard-stat${featured ? " dashboard-stat--featured" : ""}`}>
       <strong>{value.toLocaleString()}</strong>
       <span>{label}</span>
     </div>
@@ -179,55 +177,39 @@ export function ProjectDashboard() {
   return (
     <div className="dashboard-screen">
       <div className="dashboard-frame">
-        <header className="dashboard-hero">
-          <div className="dashboard-hero-copy">
-            <p className="dashboard-eyebrow">{t("dashboard.eyebrow")}</p>
-            <h1 className="dashboard-title">{projectTitle}</h1>
-            <p className="dashboard-lead">{t("dashboard.briefing")}</p>
+        <header className="dashboard-head">
+          <div>
+            <h1>{projectTitle}</h1>
+            <span className="dashboard-meta">
+              {t("dashboard.summary", {
+                chapters: stats.chapters,
+                nodes: stats.nodes,
+                choices: stats.choices,
+              })}
+              <span aria-hidden>·</span>
+              <span className={`dashboard-health dashboard-health--${healthTone}`}>
+                <Icon icon={healthTone === "ok" ? Check : CircleAlert} size={10} strokeWidth={2.4} />
+                {issueCount === 0
+                  ? t("dashboard.health.clean")
+                  : t("dashboard.health.issues", { count: issueCount })}
+              </span>
+            </span>
           </div>
-          <div className="dashboard-project-id">
-            <span>{projectName}</span>
-            {projectPath ? <code title={projectPath}>{projectPath}</code> : null}
-          </div>
+          {projectPath ? (
+            <code className="dashboard-path" title={projectPath}>
+              {projectPath}
+            </code>
+          ) : null}
         </header>
 
-        <section className="dashboard-pulse" aria-label={t("dashboard.pulseTitle")}>
-          <div className="dashboard-pulse-label">
-            <span>{t("dashboard.pulseTitle")}</span>
-            <span className={`dashboard-health dashboard-health--${healthTone}`}>
-              <Icon icon={healthTone === "ok" ? Check : CircleAlert} size={11} strokeWidth={2.4} />
-              {issueCount === 0
-                ? t("dashboard.health.clean")
-                : t("dashboard.health.issues", { count: issueCount })}
-            </span>
-          </div>
-          <div className="dashboard-pulse-metrics">
-            <PulseMetric value={stats.chapters} label={t("dashboard.stat.chapters")} />
-            <PulseMetric value={stats.nodes} label={t("dashboard.stat.nodes")} />
-            <PulseMetric value={stats.choices} label={t("dashboard.stat.choices")} />
-            <PulseMetric value={stats.characters} label={t("dashboard.stat.characters")} />
-            <PulseMetric value={stats.items} label={t("dashboard.stat.items")} />
-          </div>
-          <div className="dashboard-pulse-state">
-            <span>
-              <Icon icon={Files} size={12} />
-              {t("dashboard.health.media", { count: stats.mediaFiles })}
-            </span>
-            <span className={stats.unsavedDocs > 0 ? "is-warn" : undefined}>
-              <Icon icon={Save} size={12} />
-              {stats.unsavedDocs > 0
-                ? t("dashboard.health.unsaved", { count: stats.unsavedDocs })
-                : t("dashboard.health.saved")}
-            </span>
-          </div>
-        </section>
-
-        <main className="dashboard-main">
+        <div className="dashboard-hero-row">
           <button type="button" className="dashboard-continue" onClick={openGraph}>
             <span className="dashboard-continue-copy">
-              <span className="dashboard-kicker">{t("dashboard.continueLabel")}</span>
+              <span className="dashboard-continue-label">{t("dashboard.continueLabel")}</span>
               <strong>{t("dashboard.continueGraph")}</strong>
-              <span>{startChapter ?? t("dashboard.noChapter")}</span>
+              <span className="dashboard-continue-chapter">
+                {startChapter ?? t("dashboard.noChapter")}
+              </span>
             </span>
             <span className="dashboard-map" aria-hidden>
               <svg className="dashboard-map-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -240,53 +222,77 @@ export function ProjectDashboard() {
               <i className="dashboard-map-node dashboard-map-node--c" />
               <i className="dashboard-map-node dashboard-map-node--d" />
             </span>
-            <span className="dashboard-continue-arrow">
-              <ArrowUpRight size={17} />
+            <span className="dashboard-continue-arrow" aria-hidden>
+              <ArrowUpRight size={15} />
             </span>
           </button>
 
-          <section className="dashboard-readiness" aria-labelledby="dashboard-readiness-title">
-            <div className="dashboard-panel-heading">
-              <div>
-                <span className="dashboard-kicker">{t("dashboard.readinessLabel")}</span>
-                <h2 id="dashboard-readiness-title">{t("dashboard.readinessTitle")}</h2>
+          <section
+            className={`dashboard-panel dashboard-panel--lint dashboard-panel--lint-${lintTone}`}
+            aria-labelledby="dashboard-lint-title"
+          >
+            <div className="dashboard-panel-header" id="dashboard-lint-title">
+              <span>{t("dashboard.readinessTitle")}</span>
+              <Icon icon={ShieldCheck} size={14} />
+            </div>
+            <div className="dashboard-panel-body dashboard-lint-body">
+              <div className="dashboard-lint-status">
+                <strong className={`dashboard-lint-count is-${lintTone}`}>{lintCount}</strong>
+                <span className="dashboard-lint-label">
+                  {lintRun?.state === "running"
+                    ? t("dashboard.lint.inProgress")
+                    : t("dashboard.readinessIssues")}
+                </span>
               </div>
-              <Icon icon={ShieldCheck} size={17} />
+              <p className="dashboard-lint-detail">{lintDetail}</p>
+              <div className="dashboard-lint-meta">
+                {lintDatetime ? (
+                  <span>{t("dashboard.lint.lastRun", { datetime: lintDatetime })}</span>
+                ) : (
+                  <span>{t("dashboard.lint.noHistory")}</span>
+                )}
+                {lintStale && <strong>{t("dashboard.lint.stale")}</strong>}
+              </div>
+              <button
+                type="button"
+                className="dashboard-inline-action"
+                onClick={() => void navigateToTool(navigate, "linter", { run: true })}
+              >
+                {t("dashboard.action.lint.title")}
+                <ArrowUpRight size={12} />
+              </button>
             </div>
-            <div className="dashboard-readiness-body">
-              <strong className={`dashboard-readiness-count is-${lintTone}`}>{lintCount}</strong>
-              <span>
-                {lintRun?.state === "running"
-                  ? t("dashboard.lint.inProgress")
-                  : t("dashboard.readinessIssues")}
-              </span>
-              <small>{lintDetail}</small>
-            </div>
-            <div className="dashboard-lint-meta">
-              {lintDatetime ? (
-                <span>{t("dashboard.lint.lastRun", { datetime: lintDatetime })}</span>
-              ) : (
-                <span>{t("dashboard.lint.noHistory")}</span>
-              )}
-              {lintStale && <strong>{t("dashboard.lint.stale")}</strong>}
-            </div>
-            <button
-              type="button"
-              className="dashboard-inline-action"
-              onClick={() => void navigateToTool(navigate, "linter", { run: true })}
-            >
-              {t("dashboard.action.lint.title")}
-              <ArrowUpRight size={12} />
-            </button>
           </section>
-        </main>
+        </div>
 
-        <section className="dashboard-workspaces-section" aria-labelledby="dashboard-workspaces">
-          <div className="dashboard-section-heading">
-            <span className="dashboard-kicker">{t("dashboard.workspacesLabel")}</span>
-            <h2 id="dashboard-workspaces">{t("dashboard.workspacesTitle")}</h2>
+        <section className="dashboard-panel dashboard-panel--metrics" aria-label={t("dashboard.metricsTitle")}>
+          <div className="dashboard-panel-header">{t("dashboard.metricsTitle")}</div>
+          <div className="dashboard-stats-row">
+            <StatItem value={stats.chapters} label={t("dashboard.stat.chapters")} />
+            <StatItem value={stats.nodes} label={t("dashboard.stat.nodes")} featured />
+            <StatItem value={stats.choices} label={t("dashboard.stat.choices")} />
+            <StatItem value={stats.characters} label={t("dashboard.stat.characters")} />
+            <StatItem value={stats.items} label={t("dashboard.stat.items")} />
           </div>
-          <div className="dashboard-workspaces">
+          <div className="dashboard-status-row">
+            <span>
+              <Icon icon={Files} size={11} />
+              {t("dashboard.health.media", { count: stats.mediaFiles })}
+            </span>
+            <span className={stats.unsavedDocs > 0 ? "is-warn" : undefined}>
+              <Icon icon={Save} size={11} />
+              {stats.unsavedDocs > 0
+                ? t("dashboard.health.unsaved", { count: stats.unsavedDocs })
+                : t("dashboard.health.saved")}
+            </span>
+          </div>
+        </section>
+
+        <section className="dashboard-panel" aria-labelledby="dashboard-workspaces">
+          <div className="dashboard-panel-header" id="dashboard-workspaces">
+            {t("dashboard.workspacesTitle")}
+          </div>
+          <div className="dashboard-workspace-list">
             <WorkspaceLink
               title={t("dashboard.action.manifest.title")}
               meta={t("dashboard.workspace.chapters", { count: stats.chapters })}

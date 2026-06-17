@@ -84,11 +84,33 @@ export function NodeInspector({ chapterId, nodeId }: Props) {
 
   const merge = node.$merge ?? {};
 
+  const isStart = chapter.startNodeId === nodeId;
+  const isDeath = chapter.deathNodeId === nodeId;
+  const mode = node.mode ?? "normal";
+
   return (
     <div className="node-authoring">
       <header className="node-authoring-header">
-        <InspectorTitle>{node.title || t("node.untitledScene")}</InspectorTitle>
-        <span className="node-authoring-id">{nodeId}</span>
+        <div className="node-authoring-header-copy">
+          <InspectorTitle>{node.title || t("node.untitledScene")}</InspectorTitle>
+          <div className="node-authoring-meta">
+            <span className="node-authoring-chapter">{chapterId}</span>
+            <span className="node-authoring-id">{nodeId}</span>
+            {isStart ? (
+              <span className="node-authoring-badge node-authoring-badge--start">
+                {t("node.isStart")}
+              </span>
+            ) : null}
+            {isDeath ? (
+              <span className="node-authoring-badge node-authoring-badge--death">
+                {t("node.isDeath")}
+              </span>
+            ) : null}
+            {mode !== "normal" ? (
+              <span className="node-authoring-badge node-authoring-badge--mode">{mode}</span>
+            ) : null}
+          </div>
+        </div>
       </header>
 
       <nav className="node-authoring-tabs" aria-label={t("node.workspaceLabel")}>
@@ -157,10 +179,7 @@ export function NodeInspector({ chapterId, nodeId }: Props) {
 
       {workspace === "choices" ? (
         <div className="node-authoring-body">
-          <div className="node-authoring-section-heading">
-            <strong>{t("node.choicePrompt")}</strong>
-            <p>{t("node.choicePromptHint")}</p>
-          </div>
+          <div className="author-section-title">{t("node.choicePrompt")}</div>
           <ChoiceListEditor
             choices={node.choices ?? []}
             chapterIds={chapterIds}
@@ -171,10 +190,7 @@ export function NodeInspector({ chapterId, nodeId }: Props) {
 
       {workspace === "setup" ? (
         <div className="node-authoring-body">
-          <div className="node-authoring-section-heading">
-            <strong>{t("node.sceneSetup")}</strong>
-            <p>{t("node.sceneSetupHint")}</p>
-          </div>
+          <div className="author-section-title">{t("node.sceneSetup")}</div>
           <CatalogRefField
             label={t("node.background")}
             ids={catalogAssetIds(bundle.assets, "textures")}

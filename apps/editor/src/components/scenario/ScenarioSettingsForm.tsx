@@ -1,4 +1,4 @@
-import { BookOpen, Boxes, Dices, FileJson2, Plus, X } from "lucide-react";
+import { Dices, Plus, X } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
@@ -71,36 +71,19 @@ export function ScenarioSettingsForm({ expanded = false }: ScenarioSettingsFormP
 
   return (
     <div className="scenario-manifest">
-      <header className="scenario-manifest-hero">
-        <div className="scenario-manifest-heading">
-          <span className="scenario-manifest-kicker">{t("scenario.kicker")}</span>
-          <h1>{scenario.title || t("scenario.untitled")}</h1>
-          <p>{t("scenario.description")}</p>
-        </div>
-        <div className="scenario-manifest-pulse">
-          <span>
-            <Icon icon={BookOpen} size={12} />
-            <strong>{scenario.chapters.length}</strong>
-            {t("scenario.chapters")}
-          </span>
-          <span>
-            <Icon icon={Boxes} size={12} />
-            <strong>{Object.keys(stats).length}</strong>
-            {t("scenario.statsConfigured")}
-          </span>
-          <span>
-            <Icon icon={FileJson2} size={12} />
-            scenario.json
-          </span>
-        </div>
+      <header className="scenario-manifest-head">
+        <h1>{t("scenario.title")}</h1>
+        <span className="scenario-manifest-meta">
+          {t("scenario.summary", {
+            chapters: scenario.chapters.length,
+            stats: Object.keys(stats).length,
+          })}
+          {scenario.revision ? ` · rev ${scenario.revision}` : ""}
+        </span>
       </header>
 
-      <section className="scenario-identity">
-        <div className="scenario-card-heading">
-          <span>{t("scenario.identity")}</span>
-          <small>{t("scenario.identityHint")}</small>
-        </div>
-        <div className="scenario-identity-fields">
+      <section className="scenario-panel">
+        <div className="scenario-panel-body scenario-core-fields">
           <FormField label={t("common.title")}>
             <Input
               value={scenario.title ?? ""}
@@ -136,196 +119,6 @@ export function ScenarioSettingsForm({ expanded = false }: ScenarioSettingsFormP
           />
 
           <div className="scenario-manifest-grid">
-            <Section className="scenario-card scenario-card--stats">
-              <SectionHeader>{t("scenario.defaultStats")}</SectionHeader>
-              <SectionBody className="grid grid-cols-2 gap-2">
-                {statKeys.map((stat) => (
-                  <FormField key={stat} label={stat}>
-                    <Input
-                      type="number"
-                      placeholder={t("scenario.statUnset")}
-                      value={stats[stat] ?? ""}
-                      onChange={(e) => updateStat(stat, e.target.value)}
-                    />
-                  </FormField>
-                ))}
-              </SectionBody>
-              <FieldRow className="mt-2">
-                <Input
-                  mono
-                  placeholder={t("scenario.newStatKey")}
-                  value={newStatKey}
-                  onChange={(e) => setNewStatKey(e.target.value)}
-                />
-                <Button
-                  size="sm"
-                  leadingIcon={Plus}
-                  onClick={() => {
-                    const key = newStatKey.trim();
-                    if (!key || stats[key] !== undefined) return;
-                    updateStat(key, "0");
-                    setNewStatKey("");
-                  }}
-                >
-                  {t("scenario.addStat")}
-                </Button>
-              </FieldRow>
-            </Section>
-
-            <Section className="scenario-card scenario-card--sidecars">
-              <SectionHeader>{t("scenario.sidecarRefs")}</SectionHeader>
-              <SectionBody className="space-y-2">
-                <FormField label={t("scenario.itemsRef")}>
-                  <FieldRow>
-                    <Input
-                      mono
-                      value={scenario.itemsRef ?? "items.json"}
-                      onChange={(e) => updateScenario({ itemsRef: e.target.value })}
-                    />
-                    <Button
-                      size="sm"
-                      icon
-                      title={t("objectSelector.browse")}
-                      onClick={() => setPicker("items")}
-                    >
-                      <Icon icon={Plus} size={14} />
-                    </Button>
-                  </FieldRow>
-                </FormField>
-                <FormField label={t("scenario.charactersRef")}>
-                  <FieldRow>
-                    <Input
-                      mono
-                      value={scenario.charactersRef ?? "characters.json"}
-                      onChange={(e) => updateScenario({ charactersRef: e.target.value })}
-                    />
-                    <Button
-                      size="sm"
-                      icon
-                      title={t("objectSelector.browse")}
-                      onClick={() => setPicker("characters")}
-                    >
-                      <Icon icon={Plus} size={14} />
-                    </Button>
-                  </FieldRow>
-                </FormField>
-                <FormField label={t("scenario.assetsRef")}>
-                  <FieldRow>
-                    <Input
-                      mono
-                      value={scenario.assetsRef ?? "assets.json"}
-                      onChange={(e) => updateScenario({ assetsRef: e.target.value })}
-                    />
-                    <Button
-                      size="sm"
-                      icon
-                      title={t("objectSelector.browse")}
-                      onClick={() => setPicker("assets")}
-                    >
-                      <Icon icon={Plus} size={14} />
-                    </Button>
-                  </FieldRow>
-                </FormField>
-                <FormField label={t("scenario.catalogRef")}>
-                  <FieldRow>
-                    <Input
-                      mono
-                      value={scenario.catalogRef ?? ""}
-                      placeholder={t("scenario.defaultCatalogFile")}
-                      onChange={(e) => updateScenario({ catalogRef: e.target.value || undefined })}
-                    />
-                    <Button
-                      size="sm"
-                      icon
-                      title={t("objectSelector.browse")}
-                      onClick={() => setPicker("catalog")}
-                    >
-                      <Icon icon={Plus} size={14} />
-                    </Button>
-                  </FieldRow>
-                </FormField>
-                <FormField label={t("scenario.libraryRef")}>
-                  <FieldRow>
-                    <Input
-                      mono
-                      value={scenario.libraryRef ?? ""}
-                      placeholder={t("scenario.defaultLibraryFile")}
-                      onChange={(e) => updateScenario({ libraryRef: e.target.value || undefined })}
-                    />
-                    <Button
-                      size="sm"
-                      icon
-                      title={t("objectSelector.browse")}
-                      onClick={() => setPicker("library")}
-                    >
-                      <Icon icon={Plus} size={14} />
-                    </Button>
-                  </FieldRow>
-                </FormField>
-              </SectionBody>
-            </Section>
-
-            {picker === "items" && (
-              <ObjectSelector
-                mode={{ kind: "sidecar", specs: [ITEMS_SPEC] }}
-                value={scenario.itemsRef ?? "items.json"}
-                title={t("scenario.itemsRef")}
-                onSelect={(v) => {
-                  updateScenario({ itemsRef: v });
-                  setPicker(null);
-                }}
-                onClose={() => setPicker(null)}
-              />
-            )}
-            {picker === "characters" && (
-              <ObjectSelector
-                mode={{ kind: "sidecar", specs: [CHARACTERS_SPEC] }}
-                value={scenario.charactersRef ?? "characters.json"}
-                title={t("scenario.charactersRef")}
-                onSelect={(v) => {
-                  updateScenario({ charactersRef: v });
-                  setPicker(null);
-                }}
-                onClose={() => setPicker(null)}
-              />
-            )}
-            {picker === "assets" && (
-              <ObjectSelector
-                mode={{ kind: "sidecar", specs: [ASSETS_BUNDLE_SPEC] }}
-                value={scenario.assetsRef ?? "assets.json"}
-                title={t("scenario.assetsRef")}
-                onSelect={(v) => {
-                  updateScenario({ assetsRef: v });
-                  setPicker(null);
-                }}
-                onClose={() => setPicker(null)}
-              />
-            )}
-            {picker === "catalog" && (
-              <ObjectSelector
-                mode={{ kind: "sidecar", specs: [CATALOG_SPEC] }}
-                value={scenario.catalogRef ?? "catalog.json"}
-                title={t("scenario.catalogRef")}
-                onSelect={(v) => {
-                  updateScenario({ catalogRef: v });
-                  setPicker(null);
-                }}
-                onClose={() => setPicker(null)}
-              />
-            )}
-            {picker === "library" && (
-              <ObjectSelector
-                mode={{ kind: "sidecar", specs: [LIBRARY_SPEC] }}
-                value={scenario.libraryRef ?? "library.json"}
-                title={t("scenario.libraryRef")}
-                onSelect={(v) => {
-                  updateScenario({ libraryRef: v });
-                  setPicker(null);
-                }}
-                onClose={() => setPicker(null)}
-              />
-            )}
-
             <Section className="scenario-card scenario-card--chapters">
               <SectionHeader>{t("scenario.chapters")}</SectionHeader>
               <SectionBody className="space-y-2">
@@ -463,51 +256,229 @@ export function ScenarioSettingsForm({ expanded = false }: ScenarioSettingsFormP
               </SectionBody>
             </Section>
 
-            {Object.keys(scenario.relationshipOverrides ?? {}).length > 0 ? (
-              <Section className="scenario-card">
-                <SectionHeader>{t("scenario.relationshipOverrides")}</SectionHeader>
-                <SectionBody className="space-y-3">
-                  {Object.entries(scenario.relationshipOverrides ?? {}).map(([charId, scores]) => {
-                    const declared = bundle.characters.characters[charId]?.relationships ?? {};
-                    return (
-                      <div key={charId} className="space-y-2">
-                        <span className="graph-node-id">{charId}</span>
-                        <div className="grid grid-cols-2 gap-2">
-                          {Object.keys(declared).map((metric) => (
-                            <FormField key={metric} label={metric}>
-                              <Input
-                                type="number"
-                                value={scores[metric] ?? declared[metric] ?? 0}
-                                onChange={(e) =>
-                                  updateRelationshipOverride(charId, metric, Number(e.target.value))
-                                }
-                              />
-                            </FormField>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </SectionBody>
-              </Section>
-            ) : null}
-
-            <Section className="scenario-card">
-              <SectionHeader>{t("scenario.addRelationshipOverride")}</SectionHeader>
+            <Section className="scenario-card scenario-card--stats">
+              <SectionHeader>{t("scenario.defaultStats")}</SectionHeader>
               <SectionBody>
-                <FieldRow>
-                  <FormField label={t("effect.characterId")} className="flex-1">
+                <div className="grid grid-cols-2 gap-2">
+                  {statKeys.map((stat) => (
+                    <FormField key={stat} label={stat}>
+                      <Input
+                        type="number"
+                        placeholder={t("scenario.statUnset")}
+                        value={stats[stat] ?? ""}
+                        onChange={(e) => updateStat(stat, e.target.value)}
+                      />
+                    </FormField>
+                  ))}
+                </div>
+                <FieldRow className="mt-2">
+                <Input
+                  mono
+                  placeholder={t("scenario.newStatKey")}
+                  value={newStatKey}
+                  onChange={(e) => setNewStatKey(e.target.value)}
+                />
+                <Button
+                  size="sm"
+                  leadingIcon={Plus}
+                  onClick={() => {
+                    const key = newStatKey.trim();
+                    if (!key || stats[key] !== undefined) return;
+                    updateStat(key, "0");
+                    setNewStatKey("");
+                  }}
+                >
+                  {t("scenario.addStat")}
+                </Button>
+              </FieldRow>
+              </SectionBody>
+            </Section>
+
+            <Section className="scenario-card scenario-card--sidecars">
+              <SectionHeader>{t("scenario.sidecarRefs")}</SectionHeader>
+              <SectionBody>
+                <div className="scenario-sidecar-row">
+                  <span className="scenario-sidecar-label">{t("scenario.itemsRef")}</span>
+                  <Input
+                    mono
+                    value={scenario.itemsRef ?? "items.json"}
+                    onChange={(e) => updateScenario({ itemsRef: e.target.value })}
+                  />
+                  <Button
+                    size="sm"
+                    icon
+                    title={t("objectSelector.browse")}
+                    onClick={() => setPicker("items")}
+                  >
+                    <Icon icon={Plus} size={14} />
+                  </Button>
+                </div>
+                <div className="scenario-sidecar-row">
+                  <span className="scenario-sidecar-label">{t("scenario.charactersRef")}</span>
+                  <Input
+                    mono
+                    value={scenario.charactersRef ?? "characters.json"}
+                    onChange={(e) => updateScenario({ charactersRef: e.target.value })}
+                  />
+                  <Button
+                    size="sm"
+                    icon
+                    title={t("objectSelector.browse")}
+                    onClick={() => setPicker("characters")}
+                  >
+                    <Icon icon={Plus} size={14} />
+                  </Button>
+                </div>
+                <div className="scenario-sidecar-row">
+                  <span className="scenario-sidecar-label">{t("scenario.assetsRef")}</span>
+                  <Input
+                    mono
+                    value={scenario.assetsRef ?? "assets.json"}
+                    onChange={(e) => updateScenario({ assetsRef: e.target.value })}
+                  />
+                  <Button
+                    size="sm"
+                    icon
+                    title={t("objectSelector.browse")}
+                    onClick={() => setPicker("assets")}
+                  >
+                    <Icon icon={Plus} size={14} />
+                  </Button>
+                </div>
+                <div className="scenario-sidecar-row">
+                  <span className="scenario-sidecar-label">{t("scenario.catalogRef")}</span>
+                  <Input
+                    mono
+                    value={scenario.catalogRef ?? ""}
+                    placeholder={t("scenario.defaultCatalogFile")}
+                    onChange={(e) => updateScenario({ catalogRef: e.target.value || undefined })}
+                  />
+                  <Button
+                    size="sm"
+                    icon
+                    title={t("objectSelector.browse")}
+                    onClick={() => setPicker("catalog")}
+                  >
+                    <Icon icon={Plus} size={14} />
+                  </Button>
+                </div>
+                <div className="scenario-sidecar-row">
+                  <span className="scenario-sidecar-label">{t("scenario.libraryRef")}</span>
+                  <Input
+                    mono
+                    value={scenario.libraryRef ?? ""}
+                    placeholder={t("scenario.defaultLibraryFile")}
+                    onChange={(e) => updateScenario({ libraryRef: e.target.value || undefined })}
+                  />
+                  <Button
+                    size="sm"
+                    icon
+                    title={t("objectSelector.browse")}
+                    onClick={() => setPicker("library")}
+                  >
+                    <Icon icon={Plus} size={14} />
+                  </Button>
+                </div>
+              </SectionBody>
+            </Section>
+
+            {picker === "items" && (
+              <ObjectSelector
+                mode={{ kind: "sidecar", specs: [ITEMS_SPEC] }}
+                value={scenario.itemsRef ?? "items.json"}
+                title={t("scenario.itemsRef")}
+                onSelect={(v) => {
+                  updateScenario({ itemsRef: v });
+                  setPicker(null);
+                }}
+                onClose={() => setPicker(null)}
+              />
+            )}
+            {picker === "characters" && (
+              <ObjectSelector
+                mode={{ kind: "sidecar", specs: [CHARACTERS_SPEC] }}
+                value={scenario.charactersRef ?? "characters.json"}
+                title={t("scenario.charactersRef")}
+                onSelect={(v) => {
+                  updateScenario({ charactersRef: v });
+                  setPicker(null);
+                }}
+                onClose={() => setPicker(null)}
+              />
+            )}
+            {picker === "assets" && (
+              <ObjectSelector
+                mode={{ kind: "sidecar", specs: [ASSETS_BUNDLE_SPEC] }}
+                value={scenario.assetsRef ?? "assets.json"}
+                title={t("scenario.assetsRef")}
+                onSelect={(v) => {
+                  updateScenario({ assetsRef: v });
+                  setPicker(null);
+                }}
+                onClose={() => setPicker(null)}
+              />
+            )}
+            {picker === "catalog" && (
+              <ObjectSelector
+                mode={{ kind: "sidecar", specs: [CATALOG_SPEC] }}
+                value={scenario.catalogRef ?? "catalog.json"}
+                title={t("scenario.catalogRef")}
+                onSelect={(v) => {
+                  updateScenario({ catalogRef: v });
+                  setPicker(null);
+                }}
+                onClose={() => setPicker(null)}
+              />
+            )}
+            {picker === "library" && (
+              <ObjectSelector
+                mode={{ kind: "sidecar", specs: [LIBRARY_SPEC] }}
+                value={scenario.libraryRef ?? "library.json"}
+                title={t("scenario.libraryRef")}
+                onSelect={(v) => {
+                  updateScenario({ libraryRef: v });
+                  setPicker(null);
+                }}
+                onClose={() => setPicker(null)}
+              />
+            )}
+
+            <Section className="scenario-card scenario-card--advanced">
+              <SectionHeader>{t("scenario.relationshipOverrides")}</SectionHeader>
+              <SectionBody className="space-y-3">
+                {Object.entries(scenario.relationshipOverrides ?? {}).map(([charId, scores]) => {
+                  const declared = bundle.characters.characters[charId]?.relationships ?? {};
+                  return (
+                    <div key={charId} className="space-y-2">
+                      <span className="graph-node-id">{charId}</span>
+                      <div className="grid grid-cols-2 gap-2">
+                        {Object.keys(declared).map((metric) => (
+                          <FormField key={metric} label={metric}>
+                            <Input
+                              type="number"
+                              value={scores[metric] ?? declared[metric] ?? 0}
+                              onChange={(e) =>
+                                updateRelationshipOverride(charId, metric, Number(e.target.value))
+                              }
+                            />
+                          </FormField>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+                <div className="scenario-advanced-row">
+                  <FormField label={t("effect.characterId")}>
                     <Input
                       mono
                       list="relationship-override-characters"
+                      placeholder={t("scenario.addRelationshipOverride")}
                       value={overrideCharId}
                       onChange={(e) => setOverrideCharId(e.target.value)}
                     />
                     <datalist id="relationship-override-characters">
                       {Object.values(bundle.characters.characters)
-                        .filter(
-                          (character) => Object.keys(character.relationships ?? {}).length > 0,
-                        )
+                        .filter((character) => Object.keys(character.relationships ?? {}).length > 0)
                         .map((character) => (
                           <option key={character.id} value={character.id} />
                         ))}
@@ -525,7 +496,7 @@ export function ScenarioSettingsForm({ expanded = false }: ScenarioSettingsFormP
                   >
                     {t("common.add")}
                   </Button>
-                </FieldRow>
+                </div>
               </SectionBody>
             </Section>
 

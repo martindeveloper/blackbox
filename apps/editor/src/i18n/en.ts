@@ -247,6 +247,8 @@ export const en = {
     noProject: "Open a project to preview it.",
   },
   dashboard: {
+    summary: "{{chapters}} chapters · {{nodes}} nodes · {{choices}} choices",
+    metricsTitle: "Story metrics",
     eyebrow: "Project briefing",
     lead: "Your story at a glance — stats, shortcuts, and a path through the editor.",
     briefing: "Narrative structure, project health, and the next place to work.",
@@ -970,6 +972,7 @@ export const en = {
   },
   scenario: {
     title: "Manifest",
+    summary: "{{chapters}} chapters · {{stats}} stats",
     kicker: "Scenario manifest",
     untitled: "Untitled scenario",
     description:

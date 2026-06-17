@@ -318,38 +318,13 @@ select.editor-input {
   -webkit-backdrop-filter: blur(14px) saturate(1.18);
 }
 
-.scenario-identity .form-field {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 0;
-  border: 0;
-}
-
-.scenario-identity .form-field-label {
+.scenario-core-fields .form-field-label {
   padding: 0;
   font-family: var(--font-mono);
   font-size: 8px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-}
-
-.scenario-manifest-grid .editor-section {
-  margin: 0;
-  border-radius: 4px;
-  box-shadow: var(--editor-shadow);
-}
-
-.scenario-manifest-grid .editor-section-header {
-  min-height: 30px;
-  display: flex;
-  align-items: center;
-  padding: 5px 10px;
-}
-
-.scenario-manifest-grid .editor-section-body {
-  padding: 9px 10px;
 }
 
 .scenario-chapter-row .editor-input {

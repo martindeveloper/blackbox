@@ -1,125 +1,107 @@
 .scenario-screen {
   height: 100%;
   overflow-y: auto;
-  padding: 26px 30px 44px;
+  padding: 24px 28px 40px;
   background:
-    radial-gradient(
-      ellipse 55% 34% at 5% 0%,
-      color-mix(in srgb, var(--editor-primary) 8%, transparent),
-      transparent 62%
-    ),
+    radial-gradient(ellipse 70% 50% at 0% 0%, rgba(240, 122, 18, 0.06), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 100% 100%, rgba(255, 255, 255, 0.02), transparent 50%),
     var(--editor-stage);
 }
 
 .scenario-manifest {
-  width: min(1120px, 100%);
+  width: min(1080px, 100%);
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.scenario-manifest-hero {
+.scenario-manifest-head {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 28px;
-  margin-bottom: 14px;
-  padding: 0 0 18px;
-  border-bottom: 1px solid var(--editor-border);
+  gap: 16px;
+  padding: 2px 2px 6px;
 }
 
-.scenario-manifest-heading {
-  min-width: 0;
-}
-
-.scenario-manifest-kicker,
-.scenario-card-heading > span {
-  font-family: var(--font-mono);
-  font-size: 8.5px;
-  font-weight: 700;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-  color: var(--editor-primary);
-}
-
-.scenario-manifest-heading h1 {
-  margin: 6px 0 7px;
-  overflow: hidden;
-  font-size: clamp(24px, 3vw, 36px);
+.scenario-manifest-head h1 {
+  margin: 0;
+  font-size: 18px;
   font-weight: 650;
-  line-height: 1;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.02em;
   color: var(--editor-text);
-  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+.scenario-manifest-meta {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--editor-text-subtle);
   white-space: nowrap;
 }
 
-.scenario-manifest-heading p {
-  max-width: 62ch;
-  margin: 0;
-  font-size: 10.5px;
-  line-height: 1.5;
+.scenario-panel {
+  border: 1px solid var(--editor-glass-border);
+  border-radius: 6px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 36%),
+    var(--editor-glass-strong);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(28px) saturate(1.65);
+  -webkit-backdrop-filter: blur(28px) saturate(1.65);
+  overflow: hidden;
+}
+
+.scenario-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 32px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--editor-border-subtle);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--editor-text-muted);
 }
 
-.scenario-manifest-pulse {
-  display: flex;
-  flex-shrink: 0;
-  border: 1px solid var(--editor-border);
-  background: color-mix(in srgb, var(--editor-bg) 28%, var(--editor-surface-2));
+.scenario-panel-body {
+  padding: 12px;
 }
 
-.scenario-manifest-pulse span {
+.scenario-core-fields {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.8fr) minmax(88px, 0.55fr) minmax(108px, 0.65fr);
+  gap: 12px;
+}
+
+.scenario-core-fields .form-field {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 5px;
-  min-height: 42px;
-  padding: 0 11px;
-  border-right: 1px solid var(--editor-border);
+  padding: 0;
+  border: 0;
+}
+
+.scenario-core-fields .form-field-label {
+  padding: 0;
   font-family: var(--font-mono);
   font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--editor-text-subtle);
 }
 
-.scenario-manifest-pulse span:last-child {
-  border-right: 0;
-}
-
-.scenario-manifest-pulse svg {
-  color: var(--editor-primary);
-}
-
-.scenario-manifest-pulse strong {
+.scenario-core-fields .form-field:first-child .editor-input {
   font-size: 13px;
-  color: var(--editor-text);
-}
-
-.scenario-identity {
-  display: grid;
-  grid-template-columns: minmax(150px, 0.36fr) minmax(0, 1.64fr);
-  gap: 20px;
-  margin-bottom: 12px;
-  padding: 13px 14px;
-  border: 1px solid color-mix(in srgb, var(--editor-primary) 28%, var(--editor-border));
-  background: color-mix(in srgb, var(--editor-primary) 5%, var(--editor-surface));
-  box-shadow: inset 3px 0 0 var(--editor-primary);
-}
-
-.scenario-card-heading {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 4px;
-}
-
-.scenario-card-heading small {
-  font-size: 9px;
-  color: var(--editor-text-subtle);
-}
-
-.scenario-identity-fields {
-  display: grid;
-  grid-template-columns: minmax(180px, 1.7fr) minmax(110px, 0.65fr) minmax(130px, 0.75fr);
-  gap: 12px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
 .scenario-seed-field {
@@ -139,16 +121,6 @@
   padding-right: 26px;
 }
 
-.scenario-platforms {
-  display: grid;
-  grid-template-columns: minmax(150px, 0.36fr) minmax(0, 1.64fr);
-  gap: 20px;
-  margin-bottom: 12px;
-  padding: 13px 14px;
-  border: 1px solid var(--editor-border);
-  background: color-mix(in srgb, var(--editor-bg) 22%, var(--editor-surface));
-}
-
 .scenario-platform-body {
   display: flex;
   flex-direction: column;
@@ -163,7 +135,7 @@
 .scenario-platform-fields {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 10px 12px;
 }
 
 .scenario-manifest-grid {
@@ -173,9 +145,40 @@
   align-items: start;
 }
 
+.scenario-manifest-grid .editor-section {
+  margin: 0;
+  border: 1px solid var(--editor-glass-border);
+  border-radius: 6px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 32%),
+    color-mix(in srgb, var(--editor-glass-strong) 88%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(24px) saturate(1.6);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  overflow: hidden;
+}
+
+.scenario-manifest-grid .editor-section-header {
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--editor-border-subtle);
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.scenario-manifest-grid .editor-section-body {
+  padding: 10px 12px 12px;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
 .scenario-card--chapters {
   grid-column: 1 / -1;
-  grid-row: 1;
 }
 
 .scenario-card--stats {
@@ -186,32 +189,44 @@
   grid-column: 2;
 }
 
-.scenario-chapter-row {
-  display: grid;
-  grid-template-columns: 28px minmax(90px, 0.55fr) minmax(150px, 1fr) minmax(180px, 1.2fr) 22px 22px;
-  align-items: center;
-  gap: 7px;
-  min-width: 0;
-  padding: 7px 0;
-  border-bottom: 1px solid var(--editor-border-subtle);
-}
-
-.scenario-chapter-row > * {
-  min-width: 0;
+.scenario-card--advanced {
+  grid-column: 1 / -1;
 }
 
 .scenario-chapter-columns {
   display: grid;
   grid-template-columns: 28px minmax(90px, 0.55fr) minmax(150px, 1fr) minmax(180px, 1.2fr) 51px;
   gap: 7px;
-  padding: 0 0 3px;
-  border-bottom: 1px solid var(--editor-border);
+  padding: 0 0 4px;
+  margin-bottom: 2px;
+  border-bottom: 1px solid var(--editor-border-subtle);
   font-family: var(--font-mono);
   font-size: 7.5px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--editor-text-subtle);
+}
+
+.scenario-chapter-row {
+  display: grid;
+  grid-template-columns: 28px minmax(90px, 0.55fr) minmax(150px, 1fr) minmax(180px, 1.2fr) 22px 22px;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  padding: 6px 4px;
+  margin: 0 -4px;
+  border-radius: 4px;
+  border-bottom: 1px solid transparent;
+  transition: background 120ms ease;
+}
+
+.scenario-chapter-row:hover {
+  background: color-mix(in srgb, var(--editor-primary) 5%, transparent);
+}
+
+.scenario-chapter-row > * {
+  min-width: 0;
 }
 
 .scenario-chapter-row:last-of-type {
@@ -222,35 +237,80 @@
   height: 22px;
   display: flex;
   align-items: center;
+  justify-content: center;
   font-family: var(--font-mono);
   font-size: 9px;
   font-weight: 700;
+  color: var(--editor-text-subtle);
+}
+
+.scenario-chapter-row:hover .scenario-chapter-index {
   color: var(--editor-primary);
 }
 
+.scenario-sidecar-row {
+  display: grid;
+  grid-template-columns: minmax(88px, 0.42fr) minmax(0, 1fr) 28px;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--editor-border-subtle);
+}
+
+.scenario-sidecar-row:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.scenario-sidecar-label {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--editor-text-subtle);
+}
+
+.scenario-advanced-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.scenario-advanced-row .form-field {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+}
+
+.scenario-card--provision .editor-section-body {
+  min-height: 72px;
+}
+
+:root[data-theme="light"] .scenario-screen {
+  background:
+    radial-gradient(ellipse 70% 50% at 0% 0%, rgba(232, 106, 0, 0.04), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 100% 100%, rgba(255, 255, 255, 0.7), transparent 50%),
+    var(--editor-stage);
+}
+
+:root[data-theme="light"] .scenario-manifest-grid .editor-section,
+:root[data-theme="light"] .scenario-panel {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.78)),
+    var(--editor-glass-strong);
+}
+
 @media (max-width: 900px) {
-  .scenario-manifest-hero {
+  .scenario-manifest-head {
     align-items: flex-start;
     flex-direction: column;
-    gap: 14px;
+    gap: 6px;
   }
 
-  .scenario-manifest-pulse {
-    width: 100%;
-  }
-
-  .scenario-manifest-pulse span {
-    flex: 1;
-  }
-
-  .scenario-identity {
+  .scenario-core-fields {
     grid-template-columns: 1fr;
-    gap: 10px;
-  }
-
-  .scenario-platforms {
-    grid-template-columns: 1fr;
-    gap: 10px;
   }
 
   .scenario-platform-fields {
@@ -263,18 +323,15 @@
 
   .scenario-card--chapters,
   .scenario-card--stats,
-  .scenario-card--sidecars {
+  .scenario-card--sidecars,
+  .scenario-card--advanced {
     grid-column: 1;
   }
 }
 
 @media (max-width: 680px) {
   .scenario-screen {
-    padding: 20px 18px 34px;
-  }
-
-  .scenario-identity-fields {
-    grid-template-columns: 1fr;
+    padding: 18px 16px 32px;
   }
 
   .scenario-chapter-row {

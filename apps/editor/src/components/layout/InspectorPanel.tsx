@@ -176,15 +176,22 @@ export function InspectorPanel() {
       break;
   }
 
+  const isGraphAuthoring =
+    activity === "graph" && (Boolean(search.node) || search.globalNode === "death");
+
   return (
     <Panel>
-      <PanelHeader className="flex items-center justify-between gap-2 truncate">
-        <span className="truncate font-mono text-[10px] text-primary">{title}</span>
-        <span className="shrink-0 text-[8px] font-bold uppercase tracking-widest text-muted-2">
-          {activity ? t(`activity.${activity}`) : "—"}
-        </span>
-      </PanelHeader>
-      <PanelBody className="inspector-body p-2">{body}</PanelBody>
+      {!isGraphAuthoring ? (
+        <PanelHeader className="flex items-center justify-between gap-2 truncate">
+          <span className="truncate font-mono text-[10px] text-primary">{title}</span>
+          <span className="shrink-0 text-[9px] font-medium text-muted-2">
+            {activity ? t(`activity.${activity}`) : "—"}
+          </span>
+        </PanelHeader>
+      ) : null}
+      <PanelBody className={isGraphAuthoring ? "inspector-body p-0" : "inspector-body p-2"}>
+        {body}
+      </PanelBody>
       <ValidationPanel />
     </Panel>
   );

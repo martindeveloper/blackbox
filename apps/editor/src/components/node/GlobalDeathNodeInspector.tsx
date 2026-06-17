@@ -56,44 +56,60 @@ export function GlobalDeathNodeInspector() {
 
   if (!deathNode) {
     return (
-      <div className="space-y-3 p-1">
-        <div className="flex items-center gap-2">
-          <Skull size={14} className="text-danger shrink-0" strokeWidth={1.5} />
-          <InspectorTitle>{t("globalDeath.title")}</InspectorTitle>
+      <div className="node-authoring">
+        <header className="node-authoring-header">
+          <div className="node-authoring-header-copy">
+            <div className="flex items-center gap-2">
+              <Skull size={14} className="shrink-0 text-danger" strokeWidth={1.5} />
+              <InspectorTitle>{t("globalDeath.title")}</InspectorTitle>
+            </div>
+          </div>
+        </header>
+        <div className="node-authoring-body">
+          <p className="text-[11px] leading-relaxed text-muted">{t("globalDeath.notDefined")}</p>
+          <Button size="sm" onClick={handleCreate}>
+            {t("globalDeath.create")}
+          </Button>
         </div>
-        <p className="text-[11px] text-muted">{t("globalDeath.notDefined")}</p>
-        <Button size="sm" onClick={handleCreate}>
-          {t("globalDeath.create")}
-        </Button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Skull size={14} className="text-danger shrink-0" strokeWidth={1.5} />
-          <InspectorTitle>{t("globalDeath.title")}</InspectorTitle>
+    <div className="node-authoring">
+      <header className="node-authoring-header">
+        <div className="node-authoring-header-copy">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex min-w-0 items-center gap-2">
+              <Skull size={14} className="shrink-0 text-danger" strokeWidth={1.5} />
+              <InspectorTitle>{deathNode.title || t("globalDeath.title")}</InspectorTitle>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              icon
+              leadingIcon={Trash2}
+              className="catalog-detail-action catalog-detail-action--danger"
+              aria-label={t("common.delete")}
+              title={t("common.delete")}
+              onClick={() => void handleDelete()}
+            />
+          </div>
+          <div className="node-authoring-meta">
+            <span className="node-authoring-id">{t("globalDeath.title")}</span>
+            <span className="node-authoring-badge node-authoring-badge--death">
+              {t("node.isDeath")}
+            </span>
+          </div>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          icon
-          leadingIcon={Trash2}
-          className="catalog-detail-action catalog-detail-action--danger"
-          aria-label={t("common.delete")}
-          title={t("common.delete")}
-          onClick={() => void handleDelete()}
-        />
-      </div>
-
-      <FormField label={t("common.title")}>
-        <Input
-          value={deathNode.title ?? ""}
-          onChange={(e) => patch({ ...deathNode, title: e.target.value || undefined })}
-        />
-      </FormField>
+      </header>
+      <div className="node-authoring-body space-y-3">
+        <FormField label={t("common.title")}>
+          <Input
+            value={deathNode.title ?? ""}
+            onChange={(e) => patch({ ...deathNode, title: e.target.value || undefined })}
+          />
+        </FormField>
 
       <CatalogRefField
         label={t("node.background")}
@@ -176,6 +192,7 @@ export function GlobalDeathNodeInspector() {
           />
         </SectionBody>
       </Section>
+      </div>
     </div>
   );
 }

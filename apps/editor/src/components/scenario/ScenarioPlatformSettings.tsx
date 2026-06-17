@@ -126,13 +126,9 @@ export function ScenarioPlatformSettings({ scenario, onChange }: Props) {
   ];
 
   return (
-    <section className="scenario-platforms">
-      <div className="scenario-card-heading">
-        <span>{t("scenario.platforms")}</span>
-        <small>{t("scenario.platformsHint")}</small>
-      </div>
-
-      <div className="scenario-platform-body">
+    <section className="scenario-panel">
+      <div className="scenario-panel-header">{t("scenario.platforms")}</div>
+      <div className="scenario-panel-body scenario-platform-body">
         <div
           className="build-segment scenario-platform-tabs"
           role="group"
