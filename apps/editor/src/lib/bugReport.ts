@@ -147,7 +147,7 @@ export function collectBugReportEntries(context: BugReportContext): ZipEntry[] {
 
 export function createBugReportBlob(context: BugReportContext): Blob {
   const zipBytes = createStoreZip(collectBugReportEntries(context));
-  return new Blob([zipBytes], { type: "application/zip" });
+  return new Blob([new Uint8Array(zipBytes)], { type: "application/zip" });
 }
 
 export function downloadBugReport(context: BugReportContext): void {

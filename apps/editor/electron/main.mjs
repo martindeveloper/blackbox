@@ -15,6 +15,7 @@ import { setupMacApplicationMenu } from "./menu.mjs";
 import { openInIde, probeIdes } from "./ideHost.mjs";
 import { parseCliMode, printEditorCliHelp } from "./cliMode.mjs";
 import { applyDarwinShellPath } from "./shellPath.mjs";
+import { VERSION_API } from "../shared/versionApi.js";
 
 const ELECTRON_ROOT = path.dirname(fileURLToPath(import.meta.url));
 const CLIENT_ROOT = path.resolve(ELECTRON_ROOT, "..");
@@ -253,6 +254,18 @@ if (cliArgs !== null) {
 
       setupMacApplicationMenu(APP_NAME, CLIENT_ROOT);
 
+      ipcMain.handle("editor:fetch-version", async (event) => {
+        if (event.sender !== mainWindow?.webContents) {
+          throw new Error("Version check is only available from the editor window");
+        }
+        const response = await fetch(VERSION_API, {
+          headers: { Accept: "application/json" },
+        });
+        if (!response.ok) {
+          throw new Error(`Version check failed (${response.status})`);
+        }
+        return response.json();
+      });
       ipcMain.handle("editor:pick-project-folder", async () => {
         const result = await dialog.showOpenDialog(mainWindow, {
           properties: ["openDirectory"],

@@ -1,6 +1,5 @@
+import { VERSION_API } from "../../shared/versionApi.js";
 import { EDITOR_VERSION } from "./version.js";
-
-const VERSION_API = "https://www.onbbx.com/api/v1/version";
 
 export interface EditorVersionInfo {
   version: string;
@@ -36,13 +35,23 @@ export function isNewerVersion(latest: string, current: string): boolean {
   return false;
 }
 
-export async function checkForUpdate(signal?: AbortSignal): Promise<UpdateCheckResult> {
+async function fetchVersionPayload(signal?: AbortSignal): Promise<{
+  editor?: Partial<EditorVersionInfo>;
+}> {
+  if (window.electronAPI?.fetchEditorVersion) {
+    return window.electronAPI.fetchEditorVersion(signal);
+  }
+
   const response = await fetch(VERSION_API, { signal, headers: { Accept: "application/json" } });
   if (!response.ok) {
     throw new Error(`Version check failed (${response.status})`);
   }
 
-  const data = (await response.json()) as { editor?: Partial<EditorVersionInfo> };
+  return (await response.json()) as { editor?: Partial<EditorVersionInfo> };
+}
+
+export async function checkForUpdate(signal?: AbortSignal): Promise<UpdateCheckResult> {
+  const data = await fetchVersionPayload(signal);
   const editor = data.editor;
   if (!editor?.version || !editor.downloadUrl) {
     throw new Error("Version response missing editor information");

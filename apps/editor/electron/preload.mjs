@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer } from "electron";
 
 contextBridge.exposeInMainWorld("electronAPI", {
   isElectron: true,
+  fetchEditorVersion: () => ipcRenderer.invoke("editor:fetch-version"),
   pickProjectFolder: () => ipcRenderer.invoke("editor:pick-project-folder"),
   probeIdes: (customPath) => ipcRenderer.invoke("editor:probe-ides", customPath),
   pickIdeBinary: () => ipcRenderer.invoke("editor:pick-ide-binary"),

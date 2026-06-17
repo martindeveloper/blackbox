@@ -3,8 +3,17 @@ export interface IdeProbeResult {
   customAvailable: boolean;
 }
 
+export interface EditorVersionPayload {
+  editor?: {
+    version?: string;
+    releaseUrl?: string;
+    downloadUrl?: string;
+  };
+}
+
 export interface ElectronAPI {
   isElectron: true;
+  fetchEditorVersion: (signal?: AbortSignal) => Promise<EditorVersionPayload>;
   pickProjectFolder: () => Promise<string | null>;
   probeIdes: (customPath?: string) => Promise<IdeProbeResult>;
   pickIdeBinary: () => Promise<string | null>;
