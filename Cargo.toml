@@ -18,6 +18,11 @@ description = "Build branching story games visually, then ship them anywhere."
 license = "MIT"
 repository = "https://github.com/martindeveloper/blackbox"
 
+# Strip symbols from release binaries. The packaged editor ships blackbox-bundler/lint/
+# simulator (~12M unstripped); stripping cuts each ~30% with no runtime impact.
+[profile.release]
+strip = true
+
 [workspace.lints.rust]
 unsafe_code = "forbid"
 

@@ -59,6 +59,10 @@ async function maxMtimeMs(roots) {
 }
 
 async function previewRequireFrom(web) {
+  // Packaged builds resolve the preview's npm deps from the staged build CLI's web install
+  // (set by configureWebRuntime) instead of a duplicate node_modules under the workspace.
+  const depsRoot = process.env.BLACKBOX_PLAYER_WEB_DEPS_ROOT;
+  if (depsRoot) return path.join(depsRoot, "package.json");
   const nested = path.join(web, "pkg", "package.json");
   if (existsSync(nested)) return nested;
   return path.join(web, "package.json");

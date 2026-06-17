@@ -62,6 +62,19 @@ const PRUNE_DEV_PACKAGES = [
   "eslint-plugin-react-hooks",
   "@typescript-eslint",
   "@types",
+  // Hoisted transitives of the eslint packages above — orphaned once eslint is removed, but they
+  // sit at the top level of node_modules so they survive the package-level prune. ESLint-only,
+  // never reached by an export build.
+  "@eslint",
+  "@eslint-community",
+  "@humanwhocodes",
+  "@humanfs",
+  "eslint-scope",
+  "eslint-visitor-keys",
+  // concurrently is only used by the `dev` npm script (parallel watchers), never by an export
+  // build. rxjs (~11M) is pulled in solely as its dependency, so both go together.
+  "concurrently",
+  "rxjs",
 ];
 
 // node_modules dirs (relative to outDir) to prune dev-only packages from.

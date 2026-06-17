@@ -3,6 +3,10 @@ productName: Blackbox Editor
 copyright: Copyright © Blackbox
 icon: icon.png
 
+# Maximum compression on the produced installers (dmg/zip/AppImage). Shrinks the download users
+# fetch; the installed app size is unaffected.
+compression: maximum
+
 directories:
   output: release
   buildResources: resources
