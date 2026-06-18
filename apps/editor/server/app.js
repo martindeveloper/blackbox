@@ -4,7 +4,6 @@ import path from "node:path";
 import Fastify from "fastify";
 import multipart from "@fastify/multipart";
 import {
-  BUNDLE_CACHE,
   PORT,
   LIVERELOAD_PORT,
   DEV_MODE,
@@ -57,7 +56,6 @@ async function sendPreviewAsset(reply, game, fileName, contentType) {
 
 export async function createEditorServer(options = {}) {
   await fs.mkdir(USER_DATA_ROOT, { recursive: true });
-  await fs.mkdir(BUNDLE_CACHE, { recursive: true });
   const projectService =
     options.projectService ?? new ProjectService(options.projectServiceOptions);
   if (!options.projectService) await projectService.start();

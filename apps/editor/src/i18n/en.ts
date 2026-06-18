@@ -465,7 +465,7 @@ export const en = {
       "Auto-memoizes the player UI for fewer re-renders. Larger bundle and slower build. Recommended on.",
     clean: "Clean build",
     cleanHint:
-      "Deletes this configuration's build cache before starting, so every stage runs from scratch. Slower; use to rule out stale output.",
+      "Deletes this project's build output and reusable caches (content bundle, tailwind) before starting, so the build is genuinely fresh. Only affects this project. Slower; use to rule out stale output.",
     stages: "Pipeline",
     preflightTitle: "Pre-flight checks",
     preflightRefresh: "Refresh",

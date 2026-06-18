@@ -5,7 +5,7 @@ import path from "node:path";
 import { BUILD_RUNS_PATH } from "../../shared/blackboxPaths.js";
 import { appendLogLine } from "../../shared/logBuffer.js";
 import { stagesForPlatform } from "../../shared/buildStages.js";
-import { cleanBuildOutput, isStageAllowed, spawnStage } from "./cli.js";
+import { cleanBuildCaches, cleanBuildOutput, isStageAllowed, spawnStage } from "./cli.js";
 
 const SCHEMA_VERSION = 2;
 
@@ -199,13 +199,24 @@ export class BuildRunRegistry {
     // Fresh build: delete prior output before the first stage runs. Streamed as a log line on the
     // first stage so the UI shows exactly what was removed.
     if (clean && record.state === "running" && record.stages[0]) {
+      const stage0 = record.stages[0];
       const { dir, removed } = await cleanBuildOutput(root, record.configuration);
       this.appendStageLog(
         project,
-        record.stages[0],
+        stage0,
         removed.length > 0
           ? `[build] clean: removed ${dir} (${removed.join(", ")})`
           : `[build] clean: no existing build output at ${dir}`,
+      );
+      // Also clear this project's reusable build cache (bundler transcode + tailwind) so the
+      // rebuild is genuinely fresh. Project-scoped, so other projects' caches are untouched.
+      const cacheDir = await cleanBuildCaches(root);
+      this.appendStageLog(
+        project,
+        stage0,
+        cacheDir
+          ? `[build] clean: removed cache ${cacheDir}`
+          : "[build] clean: no build cache present",
       );
     }
 

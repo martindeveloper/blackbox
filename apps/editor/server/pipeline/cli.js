@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { existsSync, readdirSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, writeFileSync } from "node:fs";
 import { rm } from "node:fs/promises";
 import path from "node:path";
 import {
@@ -43,6 +43,43 @@ export async function cleanBuildOutput(projectPath, configuration) {
     : [];
   await rm(dir, { recursive: true, force: true });
   return { dir, removed };
+}
+
+/**
+ * Project-scoped build scratch cache. The spawned build CLI reads BLACKBOX_BUILD_CACHE_DIR for its
+ * bundler transcode cache (scripts/cli/lib/run.mjs, apps/web build-bundle) and tailwind wrapper
+ * cache (apps/web build-game-css). Anchoring it inside the project's `.blackbox` keeps each
+ * project's reusable caches independent, so a clean build of one never re-transcodes another.
+ *
+ * The engine WASM glue and cargo target are deliberately not project caches: for packaged users
+ * the WASM is read-only prebuilt and there is no cargo at all, so neither is touched by a clean.
+ */
+export function buildCacheDir(projectPath) {
+  return path.join(projectPath, ".blackbox", "cache");
+}
+
+/**
+ * Ensure the project's build cache dir exists and is self-ignoring, so the (potentially large)
+ * transcode/tailwind scratch is never committed even if the project's root .gitignore doesn't
+ * know about it. Mirrors the build dir's self-ignore convention.
+ */
+export function ensureBuildCacheDir(projectPath) {
+  const dir = buildCacheDir(projectPath);
+  mkdirSync(dir, { recursive: true });
+  const ignore = path.join(dir, ".gitignore");
+  if (!existsSync(ignore)) writeFileSync(ignore, "*\n");
+  return dir;
+}
+
+/**
+ * Remove the project's reusable build cache so the next build regenerates it from scratch. Returns
+ * the directory if it existed and was removed (for the build log), else null.
+ */
+export async function cleanBuildCaches(projectPath) {
+  const dir = buildCacheDir(projectPath);
+  const existed = existsSync(dir);
+  await rm(dir, { recursive: true, force: true });
+  return existed ? dir : null;
 }
 
 function stageOutputDir(projectPath, platform, stage, configuration) {
@@ -159,6 +196,10 @@ export function spawnStage(
   // build reflects the Build-tab checkbox regardless of any ambient env value.
   const extraEnv = {
     BLACKBOX_REACT_COMPILER: reactCompiler === false ? "false" : "true",
+    // Project-scoped build scratch cache (bundler transcode + tailwind), so a clean build of one
+    // project never invalidates another's cache. The project folder is always writable — unlike
+    // the read-only app resources that originally forced this cache into shared user-data.
+    BLACKBOX_BUILD_CACHE_DIR: ensureBuildCacheDir(projectPath),
   };
 
   const child = spawn(process.execPath, args, cliSpawnOptions({ extraEnv }));

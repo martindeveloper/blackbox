@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { BUNDLE_CACHE, WORK_DIR, bundledToolsEnabled, toolBinPath } from "./config.js";
+import { WORK_DIR, bundledToolsEnabled, toolBinPath } from "./config.js";
 import { getCargoTargetDir, runProcess, runCargo, platformBin, discoverOneTool } from "./cargo.js";
 import { nullTools } from "./editorConfig.js";
 import { commandResult, parseLint, parseSimulator } from "./parsers.js";
@@ -17,7 +17,12 @@ import {
   serverProjectRoute,
   serverToolsRunRoute,
 } from "../shared/apiPaths.js";
-import { isValidConfiguration, isValidPlatform, isStageAllowed } from "./pipeline/cli.js";
+import {
+  ensureBuildCacheDir,
+  isValidConfiguration,
+  isValidPlatform,
+  isStageAllowed,
+} from "./pipeline/cli.js";
 import { detectBuildCapabilities } from "./pipeline/preflight/index.js";
 import { getPlayer, listPlayers, playersWith } from "../players/registry.mjs";
 import { runPlayerBundle } from "./tools/bundle.mjs";
@@ -593,7 +598,10 @@ function executeBundle(service, projectId, body) {
       projectPath: locked.path,
       tools: locked.tools ?? nullTools(),
       workDir: WORK_DIR,
-      bundleCache: BUNDLE_CACHE,
+      // Share the build pipeline's project-scoped transcode cache so the same media isn't
+      // re-transcoded for the diagnostic, and a clean build clears this too. ensureBuildCacheDir
+      // also drops the self-ignoring .gitignore in case the Bundle tool runs before any build.
+      bundleCache: path.join(ensureBuildCacheDir(locked.path), "bundle"),
       ignoreMissing: body.ignoreMissing === true,
     });
   });
