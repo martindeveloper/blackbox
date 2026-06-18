@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Footer } from "./components/Footer";
+import { DownloadOutdatedNotice } from "./components/DownloadOutdatedNotice";
 import { DownloadTrustGuide } from "./components/DownloadTrustGuide";
 import { PlatformIcon } from "./components/PlatformIcon";
 import { detectClientArch } from "./lib/detectClientArch";
@@ -48,8 +49,17 @@ function ExternalIcon() {
   );
 }
 
-export function DownloadPage({ releaseTag }: { releaseTag: string }) {
+export function DownloadPage({
+  latestVersion,
+  requestedVersion,
+  isOutdated,
+}: {
+  latestVersion: string;
+  requestedVersion: string | null;
+  isOutdated: boolean;
+}) {
   const { t } = useTranslation();
+  const activeReleaseTag = requestedVersion ?? latestVersion;
   const [platform, setPlatform] = useState<DownloadPlatform>("macos");
   const [arch, setArch] = useState<DownloadArch>("arm64");
   const [linuxFormat, setLinuxFormat] = useState<LinuxFormat>("appimage");
@@ -79,13 +89,14 @@ export function DownloadPage({ releaseTag }: { releaseTag: string }) {
     ? arch
     : (availableArches[0] ?? "x64");
 
-  const downloadUrl = useMemo(
-    () => releaseDownloadUrl(platform, activeArch, linuxFormat, releaseTag),
-    [platform, activeArch, linuxFormat, releaseTag],
-  );
-
+  const downloadUrl = releaseDownloadUrl(platform, activeArch, linuxFormat, activeReleaseTag);
   const alternateLinuxFormat: LinuxFormat = linuxFormat === "appimage" ? "deb" : "appimage";
-  const alternateLinuxUrl = releaseDownloadUrl(platform, activeArch, alternateLinuxFormat, releaseTag);
+  const alternateLinuxUrl = releaseDownloadUrl(
+    platform,
+    activeArch,
+    alternateLinuxFormat,
+    activeReleaseTag,
+  );
 
   const requirements = t(`downloadPage.requirements.${platform}`, {
     returnObjects: true,
@@ -100,7 +111,11 @@ export function DownloadPage({ releaseTag }: { releaseTag: string }) {
           <div className="container download-hero-inner">
             <div className="download-hero-kicker">
               <span>{t("downloadPage.hero.kicker.product")}</span>
-              <span>{t("downloadPage.hero.kicker.channel")}</span>
+              <span>
+                {requestedVersion
+                  ? t("downloadPage.hero.kicker.pinned", { version: requestedVersion })
+                  : t("downloadPage.hero.kicker.channel")}
+              </span>
             </div>
             <div className="download-hero-copy">
               <h1>
@@ -119,7 +134,13 @@ export function DownloadPage({ releaseTag }: { releaseTag: string }) {
         </section>
 
         <section className="download-panel" id="download">
-          <div className="container">
+          <div className="container download-panel-stack">
+            {isOutdated && requestedVersion ? (
+              <DownloadOutdatedNotice
+                requestedVersion={requestedVersion}
+                latestVersion={latestVersion}
+              />
+            ) : null}
             <div className="download-panel-shell">
               <header className="download-panel-head">
                 <span>{t("downloadPage.selector.platform_label")}</span>
@@ -233,7 +254,7 @@ export function DownloadPage({ releaseTag }: { releaseTag: string }) {
               <DownloadTrustGuide platform={platform} />
 
               <footer className="download-panel-footer">
-                <a href={releaseChecksumUrl(releaseTag)} target="_blank" rel="noopener noreferrer">
+                <a href={releaseChecksumUrl(activeReleaseTag)} target="_blank" rel="noopener noreferrer">
                   {t("downloadPage.checksums")}
                   <ExternalIcon />
                 </a>

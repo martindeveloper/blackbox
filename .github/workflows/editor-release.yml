@@ -137,3 +137,16 @@ jobs:
           fi
 
           gh release create "${args[@]}"
+
+      - name: Bust homepage version cache
+        if: ${{ inputs.draft != true }}
+        env:
+          EDITOR_VERSION_CACHE_REVALIDATE_SECRET: ${{ secrets.BBX_EDITOR_VERSION_CACHE_REVALIDATE_SECRET }}
+        run: |
+          if [[ -z "$EDITOR_VERSION_CACHE_REVALIDATE_SECRET" ]]; then
+            echo "BBX_EDITOR_VERSION_CACHE_REVALIDATE_SECRET not set — skipping version cache bust"
+            exit 0
+          fi
+
+          curl -fsS -X POST "https://www.onbbx.com/api/v1/version/revalidate" \
+            -H "Authorization: Bearer $EDITOR_VERSION_CACHE_REVALIDATE_SECRET"

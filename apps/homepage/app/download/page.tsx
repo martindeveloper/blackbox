@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { DownloadPage } from "@/DownloadPage";
 import { en } from "@/i18n/en";
 import { fetchEditorVersion } from "@/lib/fetchEditorVersion";
+import { isNewerVersion, normalizeReleaseTag } from "@/lib/releaseVersion";
 
 export const metadata: Metadata = {
   title: en.metadata.download.title,
@@ -24,7 +26,38 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function Page() {
-  const { version: releaseTag } = await fetchEditorVersion();
-  return <DownloadPage releaseTag={releaseTag} />;
+function DownloadPageFallback() {
+  return <main className="download-page download-page--loading" aria-busy="true" />;
+}
+
+async function DownloadPageLoader({
+  searchParams,
+}: {
+  searchParams: Promise<{ version?: string }>;
+}) {
+  const { version: rawVersion } = await searchParams;
+  const { version: latestVersion } = await fetchEditorVersion();
+  const requestedVersion = normalizeReleaseTag(rawVersion);
+  const isOutdated =
+    requestedVersion !== null && isNewerVersion(latestVersion, requestedVersion);
+
+  return (
+    <DownloadPage
+      latestVersion={latestVersion}
+      requestedVersion={requestedVersion}
+      isOutdated={isOutdated}
+    />
+  );
+}
+
+export default function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ version?: string }>;
+}) {
+  return (
+    <Suspense fallback={<DownloadPageFallback />}>
+      <DownloadPageLoader searchParams={searchParams} />
+    </Suspense>
+  );
 }

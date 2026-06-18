@@ -5884,6 +5884,79 @@ a {
   line-height: 1.75;
 }
 
+.download-page--loading {
+  min-height: 70vh;
+}
+
+.download-panel-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.download-outdated {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(1rem, 3vw, 2rem);
+  padding: 1rem 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--download-rust) 38%, var(--download-line));
+  border-left: 3px solid var(--download-rust);
+  background: color-mix(in srgb, var(--download-rust) 7%, var(--download-paper));
+}
+
+.download-outdated-label {
+  margin-bottom: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--download-rust);
+}
+
+.download-outdated-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.15rem, 2.4vw, 1.55rem);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+
+.download-outdated-body {
+  margin-top: 0.45rem;
+  max-width: 36rem;
+  color: var(--download-muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.download-outdated-cta {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.58rem 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--download-rust) 50%, var(--download-line));
+  background: var(--download-panel);
+  color: var(--download-ink);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.download-outdated-cta:hover {
+  border-color: var(--download-rust);
+  background: color-mix(in srgb, var(--download-rust) 10%, var(--download-panel));
+  transform: translateY(-1px);
+}
+
 .download-panel {
   padding-block: clamp(3rem, 8vw, 5.5rem) clamp(4rem, 10vw, 7rem);
 }
@@ -6253,6 +6326,15 @@ a {
 
   .download-hero-copy p {
     max-width: 32rem;
+  }
+
+  .download-outdated {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .download-outdated-cta {
+    justify-content: center;
   }
 
   .download-platforms {

@@ -1,5 +1,7 @@
-import { cacheLife } from "next/cache";
+import { cacheLife, cacheTag } from "next/cache";
 import { FALLBACK_RELEASE_TAG, GITHUB_REPO } from "./releaseAssets";
+
+export const EDITOR_VERSION_CACHE_TAG = "editor-version";
 
 const SITE_URL = "https://www.onbbx.com";
 
@@ -34,6 +36,7 @@ function fallbackEditorVersion(): EditorVersionInfo {
 export async function fetchEditorVersion(): Promise<EditorVersionInfo> {
   "use cache";
   cacheLife("minutes");
+  cacheTag(EDITOR_VERSION_CACHE_TAG);
 
   try {
     const response = await fetch(

@@ -679,6 +679,7 @@ export const en = {
       kicker: {
         product: "Blackbox Editor",
         channel: "Release channel",
+        pinned: "Pinned · {{version}}",
       },
       headline: "Pick your\nbuild.",
       description:
@@ -740,6 +741,13 @@ export const en = {
     },
     checksums: "SHA256 checksums",
     all_releases: "All releases on GitHub",
+    outdated_notice: {
+      label: "Stale build",
+      title: "{{latest}} is out — you're still on {{requested}}",
+      body:
+        "Download links below point to {{requested}}. Switch to the latest build unless you need this specific release.",
+      cta: "Get {{latest}}",
+    },
     unsigned: {
       macos: {
         title: "Unsigned macOS build",
