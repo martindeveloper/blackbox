@@ -35,6 +35,7 @@
       "bundleId": "dev.blackbox.samplescenario",
       "appName": "Sample Scenario",
       "backgroundColor": "#070503",
+      "safeStatusBarMargin": true,
       "signing": {
         "teamId": "env:APPLE_TEAM_ID",
         "method": "app-store"
@@ -44,6 +45,7 @@
       "applicationId": "dev.blackbox.samplescenario",
       "appName": "Sample Scenario",
       "backgroundColor": "#070503",
+      "safeStatusBarMargin": true,
       "keystore": {
         "path": "release.keystore",
         "storePasswordEnv": "ANDROID_KEYSTORE_PASSWORD",

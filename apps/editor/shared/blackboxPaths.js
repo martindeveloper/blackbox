@@ -14,6 +14,11 @@ export const USER_PREFS_BASENAME = "user.preferences.json";
 
 export const PROJECT_CONFIG_PATH = `${EDITOR_SIDECAR_DIR}/${PROJECT_CONFIG_BASENAME}`;
 export const USER_DIR = `${EDITOR_SIDECAR_DIR}/${USER_DIRNAME}`;
+// Generated, disposable, git-ignored sidecar trees. Platform builds (Gradle,
+// Capacitor, web staging) churn thousands of files under these — the project
+// watcher and indexer must skip them or every build floods the change stream.
+export const BUILD_DIR = `${EDITOR_SIDECAR_DIR}/build`;
+export const CACHE_DIR = `${EDITOR_SIDECAR_DIR}/cache`;
 export const USER_TOOLS_PATH = `${USER_DIR}/${USER_TOOLS_BASENAME}`;
 export const LAYOUT_PATH = `${EDITOR_SIDECAR_DIR}/${LAYOUT_BASENAME}`;
 export const HEATMAP_PATH = `${EDITOR_SIDECAR_DIR}/${HEATMAP_BASENAME}`;

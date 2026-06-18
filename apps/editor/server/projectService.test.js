@@ -7,6 +7,8 @@ import Fastify from "fastify";
 import {
   EDITOR_SIDECAR_DIR,
   HEATMAP_PATH,
+  BUILD_DIR,
+  CACHE_DIR,
   LAYOUT_PATH,
   PROJECT_CONFIG_BASENAME,
   PROJECT_CONFIG_PATH,
@@ -158,6 +160,40 @@ test("ignores persisted tool runs during project watching and indexing", async (
       .prepare("SELECT path FROM files WHERE project_id = ? AND path LIKE ?")
       .all(project.id, `${TOOL_RUNS_DIR}/%`);
     assert.deepEqual(indexedSidecars, []);
+  } finally {
+    await env.close();
+  }
+});
+
+test("ignores generated build/cache output during watching and indexing", async () => {
+  const env = await fixture();
+  try {
+    const [summary] = env.service.listProjects();
+    const project = env.service.requireProject(summary.id);
+    await env.service.watchers.get(project.id)?.close();
+    env.service.watchers.delete(project.id);
+    const initialRevision = project.revision;
+
+    // A clean Android build wipes and regenerates the whole Gradle project under
+    // .blackbox/build/<config>; none of those writes (nor .git churn) are
+    // authored content.
+    const buildFile = path.join(project.path, BUILD_DIR, "debug", "android", "gradlew");
+    const cacheFile = path.join(project.path, CACHE_DIR, "wasm", "client.wasm");
+    const gitFile = path.join(project.path, ".git", "objects", "ab", "cdef");
+    for (const target of [buildFile, cacheFile, gitFile]) {
+      await fs.mkdir(path.dirname(target), { recursive: true });
+      await fs.writeFile(target, "x");
+      await env.service.onExternalChange(project, target);
+    }
+    await env.service.indexProject(project);
+
+    assert.equal(project.revision, initialRevision);
+    const indexedGenerated = env.service.db
+      .prepare(
+        "SELECT path FROM files WHERE project_id = ? AND (path LIKE ? OR path LIKE ? OR path LIKE ?)",
+      )
+      .all(project.id, `${BUILD_DIR}/%`, `${CACHE_DIR}/%`, ".git/%");
+    assert.deepEqual(indexedGenerated, []);
   } finally {
     await env.close();
   }

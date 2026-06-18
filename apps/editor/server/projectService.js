@@ -19,6 +19,8 @@ import {
 } from "./projectScaffold.js";
 import { projectHasCustomCode } from "./sharedLib.mjs";
 import {
+  BUILD_DIR,
+  CACHE_DIR,
   EDITOR_DB_BASENAME,
   EDITOR_SIDECAR_DIR,
   HEATMAP_PATH,
@@ -117,8 +119,13 @@ async function walkFiles(root, relative = "") {
   for (const entry of entries) {
     if (entry.name === ".DS_Store") continue;
     const child = relative ? `${relative}/${entry.name}` : entry.name;
-    if (entry.isDirectory()) files.push(...(await walkFiles(root, child)));
-    else if (entry.isFile()) files.push(child);
+    if (entry.isDirectory()) {
+      // Prune ignored subtrees (.git, generated build/cache, user sidecar) here
+      // rather than after the fact, so we never readdir thousands of git objects
+      // or Gradle outputs.
+      if (isIgnoredProjectPath(child)) continue;
+      files.push(...(await walkFiles(root, child)));
+    } else if (entry.isFile()) files.push(child);
   }
   return files;
 }
@@ -130,6 +137,32 @@ function projectRelativePath(projectPath, filePath) {
 
 function isUserSidecar(relativePath) {
   return relativePath === USER_DIR || relativePath.startsWith(`${USER_DIR}/`);
+}
+
+// Disposable build/cache output (see BUILD_DIR/CACHE_DIR). Platform builds churn
+// these constantly; treating their writes as authored changes bumps the project
+// revision and triggers a reload-per-file storm — the editor's main process spins
+// at 100%+ CPU during and after a (clean) Android/iOS build.
+function isGeneratedSidecar(relativePath) {
+  for (const dir of [BUILD_DIR, CACHE_DIR]) {
+    if (relativePath === dir || relativePath.startsWith(`${dir}/`)) return true;
+  }
+  return false;
+}
+
+// The version-control dir is not authored content and churns on every commit,
+// checkout, or status — never watch or index it.
+function isVersionControlPath(relativePath) {
+  return relativePath === ".git" || relativePath.startsWith(".git/");
+}
+
+// Paths the project watcher and indexer must ignore entirely.
+function isIgnoredProjectPath(relativePath) {
+  return (
+    isUserSidecar(relativePath) ||
+    isGeneratedSidecar(relativePath) ||
+    isVersionControlPath(relativePath)
+  );
 }
 
 function isAnalyticsRow(value) {
@@ -1039,7 +1072,9 @@ export class ProjectService {
 
   async indexProject(project) {
     if (!this.db) return;
-    const files = (await walkFiles(project.path)).filter((relative) => !isUserSidecar(relative));
+    const files = (await walkFiles(project.path)).filter(
+      (relative) => !isIgnoredProjectPath(relative),
+    );
     const replace = this.db.prepare(`
       INSERT INTO files (project_id, path, size, modified_ms)
       VALUES (?, ?, ?, ?)
@@ -1068,7 +1103,7 @@ export class ProjectService {
       ignoreInitial: true,
       awaitWriteFinish: { stabilityThreshold: 150, pollInterval: 25 },
       ignored: (filePath) =>
-        isUserSidecar(projectRelativePath(project.path, filePath)) ||
+        isIgnoredProjectPath(projectRelativePath(project.path, filePath)) ||
         /\.blackbox-[a-f0-9]+\.(tmp|bak)$/.test(filePath),
     });
     const onChange = (filePath) => {
@@ -1085,7 +1120,7 @@ export class ProjectService {
       ? path.resolve(filePath)
       : path.resolve(project.path, filePath);
     const relative = projectRelativePath(project.path, absolute);
-    if (isUserSidecar(relative)) return;
+    if (isIgnoredProjectPath(relative)) return;
 
     const suppressedUntil = this.suppressed.get(absolute) ?? 0;
     if (suppressedUntil >= Date.now()) {

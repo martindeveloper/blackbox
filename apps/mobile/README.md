@@ -102,11 +102,13 @@ npm run ios:sync:fast
 - **Haptics** — Medium tap on story choices, Light on other controls.
 - **No web tells** — pinch-zoom, tap highlight, text selection, and the
   long-press callout are all suppressed (inputs stay selectable).
-- **Clears the Dynamic Island / camera cutout** — Capacitor 8 `SystemBars` with
-  `insetsHandling: "css"` injects `--safe-area-inset-*` on Android (status bar +
-  display cutout). `native.css` pads the game header and menus with those insets
-  (and `env(safe-area-inset-*)` on iOS) so titles never collide with the clock,
-  notch, or punch-hole. Full-bleed background art is unchanged.
+- **Clears the Dynamic Island / camera cutout** — when `platforms.ios` /
+  `platforms.android` `safeStatusBarMargin` is true (the default), Capacitor 8
+  `SystemBars` with `insetsHandling: "css"` injects `--safe-area-inset-*` on Android
+  (status bar + display cutout). `native.css` pads the game header and menus with those
+  insets (and `env(safe-area-inset-*)` on iOS) so titles never collide with the clock,
+  notch, or punch-hole. Full-bleed background art is unchanged. Set
+  `safeStatusBarMargin: false` in scenario.json to disable.
 - **Game audio, not "media"** — `AppDelegate.swift` sets the `AVAudioSession`
   category to `.ambient` (`.mixWithOthers`). Without it, WKWebView's WebAudio is
   treated as `.playback` media and hijacks the Now Playing / Dynamic Island

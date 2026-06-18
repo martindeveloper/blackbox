@@ -1,30 +1,43 @@
 /*
  * Native-feel overrides for the Capacitor shell. Loaded AFTER the player's
- * style.css. Scoped under html.bb-native (set by native.js gate via the body
- * class below is not available early, so we key off the capacitor platform class
- * Capacitor adds to <html>: `.ios` / `.md` plus `capacitor`-served origin).
+ * style.css.
  *
- * Everything here is cosmetic hardening — safe to ship even if a rule is a no-op
- * on the web, because these selectors only bite inside the native webview.
+ * IMPORTANT: plain Capacitor (unlike Ionic Framework) does NOT add `.ios`/`.md`
+ * classes to <html>. These rules therefore key off classes native.js sets itself:
+ * `bb-native` (added on every native platform) and `bb-safe-status-bar` (added
+ * when platforms.<platform>.safeStatusBarMargin is enabled). Both are only set
+ * inside Capacitor.isNativePlatform(), so every rule is a hard no-op on the web.
  */
 
-/* Capacitor adds platform classes to <html>; `.ios` only exists in the app. */
-html.ios,
-html.md {
+html.bb-native {
   /* Kill the whole-document rubber-band scroll. The player's own panels still
      scroll internally (they are nested overflow containers, not the root). */
   overscroll-behavior: none;
-
-  /* env() on iOS / modern WebView; --safe-area-inset-* from Capacitor SystemBars
-     on Android (status bar + display cutout / punch-hole / Dynamic Island). */
-  --bb-safe-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
-  --bb-safe-right: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
-  --bb-safe-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
-  --bb-safe-left: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
 }
 
-html.ios body,
-html.md body {
+html.bb-safe-status-bar {
+  /* Override the engine's 0 defaults (base.css :root) with real native insets.
+     env() on iOS / modern WebView; --safe-area-inset-* injected by Capacitor core
+     SystemBars on Android (status bar + display cutout / punch-hole / Dynamic Island).
+     --bb-safe-area-top-fallback is set in native.js when Android omits inset vars. */
+  --bb-safe-area-raw-top: max(
+    var(--safe-area-inset-top, env(safe-area-inset-top, 0px)),
+    var(--bb-safe-area-top-fallback, 0px)
+  );
+  --bb-safe-area-right: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
+  --bb-safe-area-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+  --bb-safe-area-left: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
+  /* Content-level top inset that chrome (headers) self-applies via base.css.
+     0 in band mode (#root pads the top instead, so headers must NOT double it);
+     the real inset in bleed mode (header bleeds under the bar, pads its own text). */
+  --bb-safe-area-top: 0px;
+}
+
+html.bb-safe-status-bar.bb-safe-bleed {
+  --bb-safe-area-top: var(--bb-safe-area-raw-top);
+}
+
+html.bb-native body {
   position: fixed;
   inset: 0;
   overflow: hidden;
@@ -39,78 +52,55 @@ html.md body {
   user-select: none;
 }
 
-/* Keep chrome clear of status bar, notch, punch-hole camera, and home indicator.
-   Background art stays full-bleed; only interactive UI is inset. */
-html.ios .text-game-player-app > header,
-html.md .text-game-player-app > header,
-html.ios .text-game-player-header,
-html.md .text-game-player-header {
+/* #root is the shell wrapper we own (apps/web/index.html). It always pads the
+   bottom and side insets so content clears the gesture bar / landscape cutouts
+   automatically for every game, and paints those bands with the configured fill.
+   box-sizing: border-box keeps the inner app's height:100% resolving to the padded
+   content box, so it fills exactly with no overflow.
+   Enabled per-scenario via platforms.<platform>.safeStatusBarMargin (default: true);
+   band color from platforms.<platform>.safeAreaColor (default: backgroundColor). */
+html.bb-safe-status-bar #root {
   box-sizing: border-box;
-  padding-top: max(0.5rem, var(--bb-safe-top));
-  padding-right: max(1rem, var(--bb-safe-right));
-  padding-left: max(1rem, var(--bb-safe-left));
-  height: auto;
-  min-height: calc(2.5rem + var(--bb-safe-top));
+  padding-right: var(--bb-safe-area-right);
+  padding-bottom: var(--bb-safe-area-bottom);
+  padding-left: var(--bb-safe-area-left);
+  background: var(--bb-safe-fill, #070503);
 }
 
-html.ios .text-game-player-main,
-html.md .text-game-player-main {
-  padding-bottom: var(--bb-safe-bottom);
+/* Band mode (default): #root also insets the TOP, so the whole UI sits below the
+   status bar regardless of the game's shell — safe for any game with zero work.
+   In bleed mode the top is omitted here; the header bleeds under the bar instead
+   and pads its own content via var(--bb-safe-area-top). */
+html.bb-safe-status-bar.bb-safe-band #root {
+  padding-top: var(--bb-safe-area-raw-top);
 }
 
-html.ios .bb-default-main-menu,
-html.md .bb-default-main-menu {
-  padding-top: max(3rem, calc(3rem + var(--bb-safe-top)));
-  padding-bottom: max(3rem, calc(3rem + var(--bb-safe-bottom)));
-}
-
-/* Custom main menus using mm-* layout (e.g. non-default slot picker chrome). */
-html.ios .mm-root,
-html.md .mm-root {
-  padding-top: var(--bb-safe-top);
-  padding-bottom: max(1rem, var(--bb-safe-bottom));
-}
-
-html.ios .mm-root--menu,
-html.md .mm-root--menu {
-  padding-bottom: max(2.5rem, calc(2.5rem + var(--bb-safe-bottom)));
-}
-
-html.ios .mm-footer-meta,
-html.md .mm-footer-meta {
-  bottom: max(0.5rem, var(--bb-safe-bottom));
-}
-
-html.ios .dev-console,
-html.md .dev-console {
-  padding-top: var(--bb-safe-top);
+/* Fixed-position overlays are relative to the viewport, so they escape #root's
+   padding and must carry their own insets (top included, both modes → raw-top). */
+html.bb-safe-status-bar .dev-console {
+  padding-top: var(--bb-safe-area-raw-top);
 }
 
 @media (max-width: 639px) {
-  html.ios .modal-backdrop,
-  html.md .modal-backdrop {
-    padding-top: max(0.75rem, var(--bb-safe-top));
-    padding-right: max(0.75rem, var(--bb-safe-right));
-    padding-bottom: max(0.75rem, var(--bb-safe-bottom));
-    padding-left: max(0.75rem, var(--bb-safe-left));
+  html.bb-safe-status-bar .modal-backdrop {
+    padding-top: max(0.75rem, var(--bb-safe-area-raw-top));
+    padding-right: max(0.75rem, var(--bb-safe-area-right));
+    padding-bottom: max(0.75rem, var(--bb-safe-area-bottom));
+    padding-left: max(0.75rem, var(--bb-safe-area-left));
   }
 
-  html.ios .modal-panel:has(.save-panel) .modal-header,
-  html.md .modal-panel:has(.save-panel) .modal-header {
-    padding-top: max(0.8rem, var(--bb-safe-top));
+  html.bb-safe-status-bar .modal-panel:has(.save-panel) .modal-header {
+    padding-top: max(0.8rem, var(--bb-safe-area-raw-top));
   }
 
-  html.ios .save-panel,
-  html.md .save-panel {
-    padding-bottom: max(1rem, var(--bb-safe-bottom));
+  html.bb-safe-status-bar .save-panel {
+    padding-bottom: max(1rem, var(--bb-safe-area-bottom));
   }
 }
 
 /* Keep real inputs usable (save-slot names, dev console, etc.). */
-html.ios input,
-html.ios textarea,
-html.md input,
-html.md textarea {
+html.bb-native input,
+html.bb-native textarea {
   -webkit-user-select: text;
   user-select: text;
 }

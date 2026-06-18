@@ -118,6 +118,12 @@ export function ScenarioPlatformSettings({ scenario, onChange }: Props) {
     { value: "all", label: t("scenario.platformOrientationAll") },
   ];
 
+  const safeAreaModeOptions = [
+    { value: "band", label: t("scenario.platformSafeAreaModeBand") },
+    { value: "bleed", label: t("scenario.platformSafeAreaModeBleed") },
+    { value: "none", label: t("scenario.platformSafeAreaModeNone") },
+  ];
+
   const signingMethodOptions = [
     { value: "app-store", label: t("scenario.platformSigningAppStore") },
     { value: "ad-hoc", label: t("scenario.platformSigningAdHoc") },
@@ -280,6 +286,27 @@ export function ScenarioPlatformSettings({ scenario, onChange }: Props) {
                 }
               />
             </FormField>
+            <FormField label={t("scenario.platformSafeAreaColor")}>
+              <Input
+                mono
+                value={ios.safeAreaColor ?? ""}
+                placeholder={ios.backgroundColor ?? "#070503"}
+                onChange={(e) =>
+                  patchPlatform("ios", { safeAreaColor: optionalString(e.target.value) })
+                }
+              />
+            </FormField>
+            <FormField label={t("scenario.platformSafeAreaMode")}>
+              <Select
+                options={safeAreaModeOptions}
+                value={ios.safeAreaMode ?? "band"}
+                onChange={(e) =>
+                  patchPlatform("ios", {
+                    safeAreaMode: e.target.value as "band" | "bleed" | "none",
+                  })
+                }
+              />
+            </FormField>
             <FormField label={t("scenario.platformSigningTeamId")}>
               <Input
                 mono
@@ -380,6 +407,27 @@ export function ScenarioPlatformSettings({ scenario, onChange }: Props) {
                 placeholder="#070503"
                 onChange={(e) =>
                   patchPlatform("android", { backgroundColor: optionalString(e.target.value) })
+                }
+              />
+            </FormField>
+            <FormField label={t("scenario.platformSafeAreaColor")}>
+              <Input
+                mono
+                value={android.safeAreaColor ?? ""}
+                placeholder={android.backgroundColor ?? "#070503"}
+                onChange={(e) =>
+                  patchPlatform("android", { safeAreaColor: optionalString(e.target.value) })
+                }
+              />
+            </FormField>
+            <FormField label={t("scenario.platformSafeAreaMode")}>
+              <Select
+                options={safeAreaModeOptions}
+                value={android.safeAreaMode ?? "band"}
+                onChange={(e) =>
+                  patchPlatform("android", {
+                    safeAreaMode: e.target.value as "band" | "bleed" | "none",
+                  })
                 }
               />
             </FormField>

@@ -6,6 +6,18 @@ body,
   margin: 0;
 }
 
+:root {
+  /* Safe-area insets consumed by chrome (header/menus). 0 by default — on web,
+     desktop, and when platforms.<platform>.safeStatusBarMargin is off. The native
+     Capacitor shell (apps/mobile/src/native.css) overrides these with the real
+     status-bar / camera-cutout / gesture-bar values. Headers pad their CONTENT by
+     the top inset while their background bleeds full-bleed under the bar. */
+  --bb-safe-area-top: 0px;
+  --bb-safe-area-right: 0px;
+  --bb-safe-area-bottom: 0px;
+  --bb-safe-area-left: 0px;
+}
+
 body {
   overflow: hidden;
 }
@@ -128,7 +140,10 @@ body {
   align-items: center;
   gap: 1rem;
   min-height: 3rem;
-  padding: 0.5rem 1rem;
+  /* Background bleeds under the status bar / camera cutout; content is padded down
+     by the safe-area inset so the title and controls stay readable below it. */
+  padding: calc(0.5rem + var(--bb-safe-area-top)) calc(1rem + var(--bb-safe-area-right)) 0.5rem
+    calc(1rem + var(--bb-safe-area-left));
   border-bottom: 1px solid var(--bb-ui-border);
 }
 

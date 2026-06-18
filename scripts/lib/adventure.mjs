@@ -125,6 +125,14 @@ export function resolveProject(raw, { configuration, env = process.env } = {}) {
 }
 
 /** Platform-specific publish config from scenario.json `platforms` (with sane defaults). */
+/** Resolve platforms.<platform>.safeAreaMode → "band" | "bleed" | "none". */
+function resolveSafeAreaMode(raw) {
+  if (raw.safeAreaMode === "bleed" || raw.safeAreaMode === "none") {
+    return raw.safeAreaMode;
+  }
+  return "band";
+}
+
 export function resolvePlatformConfig(project, platform) {
   const platforms = project.scenario.platforms ?? {};
   const raw = platforms[platform] ?? {};
@@ -137,6 +145,17 @@ export function resolvePlatformConfig(project, platform) {
     displayName: raw.displayName ?? raw.appName ?? project.title,
     version: raw.version ?? project.revision,
     backgroundColor: raw.backgroundColor ?? DEFAULT_BG,
+    // Fill painted in the safe-area band (status bar / cutout / gesture bar).
+    // Defaults to the app background so the inset is invisible unless customized.
+    safeAreaColor: raw.safeAreaColor ?? raw.backgroundColor ?? DEFAULT_BG,
+    // Safe-area strategy (status bar / cutout / gesture bar):
+    //   "band" (default) — inset the whole UI below every system bar; safe for any
+    //                      game/shell with zero work.
+    //   "bleed"          — header background runs full-bleed under the status bar
+    //                      while its content stays inset (immersive; the shell's
+    //                      header must consume var(--bb-safe-area-top)).
+    //   "none"           — no inset; full-bleed everywhere.
+    safeAreaMode: resolveSafeAreaMode(raw),
     icon: raw.icon ? path.resolve(project.root, raw.icon) : null,
     splash: raw.splash
       ? {

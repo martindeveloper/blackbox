@@ -67,6 +67,13 @@ export interface IosPlatformConfig {
   orientations?: PlatformOrientations | string[];
   icon?: string;
   backgroundColor?: string;
+  /** Fill painted in the safe-area band. Defaults to backgroundColor. */
+  safeAreaColor?: string;
+  /**
+   * Safe-area strategy on native builds. "band" (default): inset whole UI below
+   * system bars. "bleed": header runs full-bleed under the status bar. "none": no inset.
+   */
+  safeAreaMode?: "band" | "bleed" | "none";
   signing?: PlatformSigningConfig;
 }
 
@@ -81,6 +88,13 @@ export interface AndroidPlatformConfig {
   orientations?: string[] | PlatformOrientations;
   icon?: string;
   backgroundColor?: string;
+  /** Fill painted in the safe-area band. Defaults to backgroundColor. */
+  safeAreaColor?: string;
+  /**
+   * Safe-area strategy on native builds. "band" (default): inset whole UI below
+   * system bars. "bleed": header runs full-bleed under the status bar. "none": no inset.
+   */
+  safeAreaMode?: "band" | "bleed" | "none";
   keystore?: PlatformKeystoreConfig;
 }
 

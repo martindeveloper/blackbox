@@ -28,7 +28,6 @@ import {
   readdirSync,
   renameSync,
   rmSync,
-  statSync,
   symlinkSync,
   writeFileSync,
 } from "node:fs";
@@ -136,8 +135,31 @@ export function buildPayload(adv, { noBuild = false, platform } = {}) {
   cpSync(path.join(NATIVE_SRC, "native.css"), path.join(www, "native.css"));
   cpSync(path.join(NATIVE_SRC, "native.js"), path.join(www, "native.js"));
 
+  const shellConfig = loadPlatformConfig(adv, platform);
+  const nativeShell = {
+    safeAreaColor: shellConfig.safeAreaColor ?? shellConfig.backgroundColor ?? DEFAULT_BG,
+    safeAreaMode: shellConfig.safeAreaMode ?? "band",
+  };
+
   const indexPath = path.join(www, "index.html");
   let html = readFileSync(indexPath, "utf8");
+  const shellScript = `<script>window.__BB_NATIVE_SHELL__=${JSON.stringify(nativeShell)};</script>`;
+  if (html.includes("__BB_NATIVE_SHELL__")) {
+    html = html.replace(
+      /<script>window\.__BB_NATIVE_SHELL__=.*?<\/script>\n?/,
+      `${shellScript}\n    `,
+    );
+  } else if (!html.includes("native.js")) {
+    html = html.replace(
+      '<script type="module" src="/app.js"></script>',
+      `${shellScript}\n    <script src="/native.js"></script>\n    <script type="module" src="/app.js"></script>`,
+    );
+  } else {
+    html = html.replace(
+      '<script src="/native.js"></script>',
+      `${shellScript}\n    <script src="/native.js"></script>`,
+    );
+  }
   if (!html.includes("native.css")) {
     html = html.replace(
       '<link rel="stylesheet" href="/style.css" />',
@@ -147,7 +169,7 @@ export function buildPayload(adv, { noBuild = false, platform } = {}) {
   if (!html.includes("native.js")) {
     html = html.replace(
       '<script type="module" src="/app.js"></script>',
-      '<script src="/native.js"></script>\n    <script type="module" src="/app.js"></script>',
+      `${shellScript}\n    <script src="/native.js"></script>\n    <script type="module" src="/app.js"></script>`,
     );
   }
   writeFileSync(indexPath, html);
@@ -194,6 +216,7 @@ export function ensureWorkspace(adv, platform = "ios") {
   const platformConfig = loadPlatformConfig(adv, platform);
   const iosConfig = loadPlatformConfig(adv, "ios");
   const androidConfig = loadPlatformConfig(adv, "android");
+  const safeAreaEnabled = (platformConfig.safeAreaMode ?? "band") !== "none";
   const iosScheme = iosXcodeSchemeName(iosConfig.displayName ?? iosConfig.appName);
   const config = {
     appId: platformConfig.bundleId ?? platformConfig.applicationId,
@@ -223,11 +246,15 @@ export function ensureWorkspace(adv, platform = "ios") {
       },
       StatusBar: {
         style: "DARK",
-        overlaysWebView: false,
+        // setOverlaysWebView is an Android-only API. On pre-15 devices it makes the
+        // WebView draw full-bleed so core SystemBars can inject --safe-area-inset-*;
+        // on Android 15+ edge-to-edge is forced and this is a no-op. iOS uses
+        // viewport-fit=cover + env(safe-area-inset-*) and ignores this flag.
+        overlaysWebView: platform === "android" && safeAreaEnabled,
         backgroundColor: platformConfig.backgroundColor ?? DEFAULT_BG,
       },
       SystemBars: {
-        insetsHandling: "css",
+        insetsHandling: safeAreaEnabled ? "css" : "disable",
         style: "DARK",
         hidden: false,
         animation: "NONE",

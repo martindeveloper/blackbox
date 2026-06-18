@@ -17,8 +17,8 @@ import {
 export const preflight = {
   /** @param {PreflightContext} ctx */
   bundle: (ctx) => sharedBundleChecks(ctx),
-  /** @param {PreflightContext} ctx */
-  async build(ctx) {
+  /** @param {PreflightContext} _ctx */
+  async build(_ctx) {
     const checks = [];
     if (!existsSync(capacitorBin())) {
       checks.push({ severity: "error", message: "Capacitor workspace is missing" });
