@@ -2,7 +2,14 @@ import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { CLIENT_ROOT, REPO_ROOT, WORK_DIR } from "./config.js";
+import {
+  CLIENT_ROOT,
+  PACKAGED,
+  REPO_ROOT,
+  WORK_DIR,
+  getToolsDir,
+  toolBinPath,
+} from "./config.js";
 
 let cargoTargetDirPromise = null;
 
@@ -67,6 +74,34 @@ export function platformBin(name) {
   if (process.platform !== "win32") return name;
   if (path.extname(name) === "" && !path.isAbsolute(name)) return `${name}.exe`;
   return name;
+}
+
+/**
+ * Run an engine tool (lint/bundle/simulator), always preferring a prebuilt binary: an explicit
+ * configured path, otherwise the bundled tools dir (BLACKBOX_TOOLS_DIR), re-resolved at call time
+ * so a value missing from the project's tools doc still finds the shipped binary.
+ *
+ * cargo is only ever used in a dev checkout. A packaged editor must NEVER invoke cargo — on a
+ * machine that happens to have cargo (e.g. a developer's box) `cargo run` would compile from
+ * source and appear to hang forever. When packaged with no prebuilt binary we reject with a clear
+ * error instead, so the tool run fails visibly rather than spinning indefinitely.
+ */
+export function runEngineTool(
+  configuredPath,
+  packageName,
+  args,
+  { cwd = WORK_DIR, release = false } = {},
+) {
+  const bin = configuredPath ?? toolBinPath(packageName);
+  if (bin) return runProcess(platformBin(bin), args, cwd);
+  if (PACKAGED) {
+    return Promise.reject(
+      new Error(
+        `Bundled ${packageName} binary not found under ${getToolsDir() ?? "(BLACKBOX_TOOLS_DIR unset)"}`,
+      ),
+    );
+  }
+  return runCargo(packageName, args, { release });
 }
 
 function spawnCwd() {

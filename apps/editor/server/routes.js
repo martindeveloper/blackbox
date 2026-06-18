@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { WORK_DIR, bundledToolsEnabled, toolBinPath } from "./config.js";
-import { getCargoTargetDir, runProcess, runCargo, platformBin, discoverOneTool } from "./cargo.js";
+import { getCargoTargetDir, runProcess, runEngineTool, discoverOneTool } from "./cargo.js";
 import { nullTools } from "./editorConfig.js";
 import { commandResult, parseLint, parseSimulator } from "./parsers.js";
 import { readUserPrefs, writeUserPrefs, sanitizePrefs } from "./prefs.js";
@@ -536,9 +536,7 @@ function executeLinter(service, projectId, body) {
     const only = Array.isArray(body.only) ? body.only : [];
     for (const id of ignore) if (typeof id === "string") args.push("--ignore", id);
     for (const id of only) if (typeof id === "string") args.push("--only", id);
-    const result = tools.linter
-      ? await runProcess(platformBin(tools.linter), args, WORK_DIR)
-      : await runCargo("blackbox-lint", args);
+    const result = await runEngineTool(tools.linter, "blackbox-lint", args);
     return { ...commandResult(result), parsed: parseLint(result.stdout) };
   });
 }
@@ -575,9 +573,7 @@ function executeSimulator(service, projectId, body) {
     if (body.analytics === true) args.push("--analytics");
     args.push("--json");
 
-    const result = tools.simulator
-      ? await runProcess(platformBin(tools.simulator), args, WORK_DIR)
-      : await runCargo("blackbox-simulator", args);
+    const result = await runEngineTool(tools.simulator, "blackbox-simulator", args);
     return { ...commandResult(result), parsed: parseSimulator(result.stdout) };
   });
 }

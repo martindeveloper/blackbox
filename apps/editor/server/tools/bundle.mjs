@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { runProcess, runCargo, platformBin } from "../cargo.js";
+import { runEngineTool } from "../cargo.js";
 import { appendOutput, commandResult, parseBundle } from "../parsers.js";
 
 export async function runPlayerBundle({
@@ -27,9 +27,10 @@ export async function runPlayerBundle({
       "--json",
     ];
     if (ignoreMissing) args.push("--ignore-missing");
-    const bundle = tools.bundler
-      ? await runProcess(platformBin(tools.bundler), args, workDir)
-      : await runCargo("blackbox-bundler", args, { release: true });
+    const bundle = await runEngineTool(tools.bundler, "blackbox-bundler", args, {
+      cwd: workDir,
+      release: true,
+    });
     const stdout = [];
     const stderr = [];
     appendOutput(stdout, "bundle", bundle);
@@ -37,9 +38,10 @@ export async function runPlayerBundle({
     let inspect = { exitCode: bundle.exitCode, stdout: "", stderr: "" };
     if (bundle.exitCode === 0) {
       const inspectArgs = ["inspect", outputDir, "--json"];
-      inspect = tools.bundler
-        ? await runProcess(platformBin(tools.bundler), inspectArgs, workDir)
-        : await runCargo("blackbox-bundler", inspectArgs, { release: true });
+      inspect = await runEngineTool(tools.bundler, "blackbox-bundler", inspectArgs, {
+        cwd: workDir,
+        release: true,
+      });
       appendOutput(stdout, "inspect", inspect);
       if (inspect.stderr) stderr.push(inspect.stderr);
     }
