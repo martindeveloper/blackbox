@@ -17,6 +17,7 @@
  *
  * Nothing adventure-specific is ever written under apps/mobile.
  */
+import { execFileSync } from "node:child_process";
 import { displayPath } from "../../../../scripts/lib/paths.mjs";
 import { runSync } from "../../../../scripts/lib/spawn.mjs";
 import {

@@ -4,10 +4,13 @@
   "categories": {
     "correctness": "error"
   },
-  "rules": {},
+  "rules": {
+    "no-undef": "error"
+  },
   "ignorePatterns": ["node_modules/**"],
   "env": {
     "builtin": true,
-    "node": true
+    "node": true,
+    "es2024": true
   }
 }

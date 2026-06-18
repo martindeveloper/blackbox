@@ -13,7 +13,9 @@
     "ios:run": "node ./scripts/ios.mjs run",
     "android:sync": "node ./scripts/android.mjs sync",
     "android:sync:fast": "node ./scripts/android.mjs sync --no-build",
-    "android:run": "node ./scripts/android.mjs run"
+    "android:run": "node ./scripts/android.mjs run",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint --fix ."
   },
   "dependencies": {
     "@capacitor/android": "^8.4.0",
@@ -25,6 +27,7 @@
     "@capacitor/status-bar": "^8.0.2"
   },
   "devDependencies": {
-    "@capacitor/cli": "^8.4.0"
+    "@capacitor/cli": "^8.4.0",
+    "oxlint": "^1.70.0"
   }
 }

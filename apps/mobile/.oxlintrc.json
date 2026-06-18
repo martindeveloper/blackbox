@@ -1,0 +1,33 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["unicorn", "oxc"],
+  "categories": {
+    "correctness": "error"
+  },
+  "rules": {},
+  "ignorePatterns": ["node_modules/**"],
+  "overrides": [
+    {
+      "files": ["scripts/**/*.{js,mjs}"],
+      "env": {
+        "builtin": true,
+        "node": true,
+        "es2024": true
+      },
+      "rules": {
+        "no-undef": "error"
+      }
+    },
+    {
+      "files": ["src/**/*.{js,mjs}"],
+      "env": {
+        "builtin": true,
+        "browser": true,
+        "es2024": true
+      },
+      "rules": {
+        "no-undef": "error"
+      }
+    }
+  ]
+}

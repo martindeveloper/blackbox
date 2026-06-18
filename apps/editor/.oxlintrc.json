@@ -8,5 +8,18 @@
   "ignorePatterns": ["dist/**", "node_modules/**"],
   "env": {
     "builtin": true
-  }
+  },
+  "overrides": [
+    {
+      "files": ["**/*.{js,mjs}"],
+      "env": {
+        "builtin": true,
+        "node": true,
+        "es2024": true
+      },
+      "rules": {
+        "no-undef": "error"
+      }
+    }
+  ]
 }
