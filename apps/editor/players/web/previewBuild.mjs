@@ -100,10 +100,12 @@ async function buildJs(web, gameSrc, outDir) {
 async function buildGame(web, uiKey, gameSrc, force) {
   const outDir = path.join(PREVIEW_CACHE, uiKey);
   const fingerprintFile = path.join(outDir, ".fingerprint");
+  const protocolPath = await resolvePreviewProtocol(web);
   const fingerprintRoots = [
     ...SHARED_SRC.map((rel) => path.join(web, rel)),
     BUILD_GAME_CSS_PATH,
     gameSrc,
+    protocolPath,
   ];
   const fingerprint = String(await maxMtimeMs(fingerprintRoots));
 

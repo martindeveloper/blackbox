@@ -25,6 +25,7 @@ export const ProjectRoutes: {
   readonly TrashEmpty: "/trash/empty";
   readonly PreviewDocs: "/preview-docs";
   readonly PreviewBuild: "/preview-build";
+  readonly PreviewCheckpoints: "/preview-checkpoints";
   readonly ToolsDiscover: "/tools/discover";
   readonly ToolsBuild: "/tools/build";
   readonly ToolsRuns: "/tools/runs";
@@ -43,6 +44,7 @@ export function serverProjectRoute(suffix: string): string;
 export function serverProjectMediaRoute(): string;
 export function serverToolsRunRoute(): string;
 export function serverBuildRunCancelRoute(): string;
+export function serverPreviewCheckpointRoute(): string;
 
 export const Api: {
   readonly Prefs: string;

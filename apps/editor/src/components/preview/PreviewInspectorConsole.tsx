@@ -70,8 +70,8 @@ export function PreviewInspectorConsole() {
           onClick={() => setOpen((current) => !current)}
         >
           <span className="preview-console-summary-label">
-            <Icon icon={ChevronRight} size={12} />
-            <Icon icon={Terminal} size={13} />
+            <Icon icon={ChevronRight} size={10} />
+            <Icon icon={Terminal} size={11} />
             {t("preview.console")}
           </span>
           <span className="preview-console-summary-counts">
@@ -95,7 +95,7 @@ export function PreviewInspectorConsole() {
             setOpen(true);
           }}
         >
-          <Icon icon={pinned ? PinOff : Pin} size={12} />
+          <Icon icon={pinned ? PinOff : Pin} size={11} />
         </button>
       </div>
 

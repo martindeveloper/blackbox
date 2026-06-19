@@ -7,13 +7,12 @@ import {
   RotateCw,
   Smartphone,
   Terminal,
-  Trash2,
   type LucideIcon,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { isPreviewPlayerMessage, postPreviewHostMessage } from "../../../players/web/protocol.js";
 import { useScenarioStore } from "../../store/useScenarioStore.js";
-import { usePreviewStore, type PreviewCommandSender } from "../../store/usePreviewStore.js";
+import { finishPreviewRpcResult, usePreviewStore, type PreviewCommandSender } from "../../store/usePreviewStore.js";
 import { API_PREFIX, ProjectRoutes, projectApiUrl } from "../../../shared/apiPaths.js";
 import { notifyError, notifySuccess } from "../../lib/notifyApi.js";
 import { Icon } from "../icons/Icon.js";
@@ -164,6 +163,10 @@ export function PreviewPanel() {
             notifyError(event.data.message);
           }
           break;
+        case "checkpoint-capture-result":
+        case "checkpoint-restore-result":
+          finishPreviewRpcResult(event.data);
+          break;
       }
     };
     globalThis.addEventListener("message", handleMessage);
@@ -263,15 +266,6 @@ export function PreviewPanel() {
           >
             <Icon icon={Terminal} size={14} />
             <span>{t("preview.openConsole")}</span>
-          </button>
-          <button
-            type="button"
-            className="preview-control"
-            disabled={!connected}
-            onClick={() => sendCommand({ type: "clear-saves" })}
-          >
-            <Icon icon={Trash2} size={14} />
-            <span>{t("preview.clearSaves")}</span>
           </button>
           <button
             type="button"

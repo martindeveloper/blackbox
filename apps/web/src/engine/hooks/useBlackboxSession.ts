@@ -7,11 +7,20 @@ import {
   isWasmRuntimeFailure,
   makeBootError,
   retryUnknownNodeCommand,
+  serializeEngineState,
   submitCommand,
   toErrorMessage,
   type StatusKind,
 } from "../lib/engine.js";
 import { logger } from "../lib/logger.js";
+import {
+  importPlayerStorageSnapshot,
+  readPlayerStorageSnapshot,
+} from "../lib/playerStorageAdmin.js";
+import { PREVIEW_ENABLED } from "@preview-mode";
+import { setPreviewCheckpointHandlers } from "../../preview/checkpointBridge.js";
+import { flushPreviewStorage } from "../../preview/hostCommands.js";
+import { publishPreviewRuntimeState } from "../../preview/runtimeStatePublisher.js";
 import type { ItemExamineView, RollRecord, SfxCue, UiNotification } from "../types/game.js";
 import { useApplyCommandResult } from "./session/useApplyCommandResult.js";
 import { finalizeChapterChange } from "./session/finalizeChapterChange.js";
@@ -186,6 +195,30 @@ export function useBlackboxSession({ onSfx, presentation }: UseBlackboxSessionOp
   const executeDevCommand = useSessionDevConsole(runtime, presentation);
   const { continueSlot, restartSlot, restart, returnToChapterStart, goToMainMenu, save, restore } =
     useSlotNavigation(runtime);
+
+  useEffect(() => {
+    if (!PREVIEW_ENABLED) return;
+    setPreviewCheckpointHandlers({
+      capture: () => {
+        const s = sessionRef.current;
+        if (s.phase !== "ready") return null;
+        return {
+          storage: readPlayerStorageSnapshot(),
+          engineState: serializeEngineState(s.engine),
+          nodeId: s.view.node_id,
+          chapterId: s.view.chapter_id,
+          location: presentationLocation,
+        };
+      },
+      restore: (checkpoint) => {
+        importPlayerStorageSnapshot(checkpoint.storage);
+        restore(checkpoint.engineState);
+        flushPreviewStorage();
+        publishPreviewRuntimeState();
+      },
+    });
+    return () => setPreviewCheckpointHandlers(null);
+  }, [presentationLocation, restore]);
 
   const runCommand = useCallback(
     (

@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { Clock3, Database, Download, Settings2, Upload } from "lucide-react";
+import { Clock3, Database, Download, Settings2, Trash2, Upload } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { PREVIEW_STORAGE_EXPORT_FORMAT } from "../../../players/web/protocol.js";
 import { usePreviewStore, type PreviewStorageState } from "../../store/usePreviewStore.js";
@@ -161,6 +161,22 @@ export function PreviewInspectorStorage({ state }: { state: PreviewStorageState 
           </div>
         </div>
       )}
+
+      <div className="preview-slot-toolbar">
+        <span className="preview-slot-toolbar-label">
+          {t("preview.saveSlots")}
+          {slots.length > 0 ? <em>{slots.length}</em> : null}
+        </span>
+        <button
+          type="button"
+          className="preview-slot-toolbar-clear"
+          disabled={!canTransfer}
+          onClick={() => commandSender?.({ type: "clear-saves" })}
+        >
+          <Icon icon={Trash2} size={11} />
+          <span>{t("preview.clearSaves")}</span>
+        </button>
+      </div>
 
       <div className="preview-slot-list">
         {slots.length ? (

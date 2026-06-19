@@ -8,6 +8,10 @@ import {
   importPlayerStorageSnapshot,
   readPlayerStorageSnapshot,
 } from "../engine/lib/playerStorageAdmin.js";
+import {
+  capturePreviewCheckpoint,
+  restorePreviewCheckpoint,
+} from "./checkpointBridge.js";
 import { publishPreviewRuntimeState } from "./runtimeStatePublisher.js";
 
 const STORAGE_PUBLISH_DEBOUNCE_MS = 200;
@@ -92,6 +96,55 @@ function handlePreviewHostCommand(
       clearAllPlayerStorage();
       flushPreviewStorage();
       postPreviewMessage({ type: "storage-cleared", scope: "all" });
+      break;
+    case "capture-checkpoint": {
+      try {
+        const checkpoint = capturePreviewCheckpoint();
+        if (!checkpoint) {
+          postPreviewMessage({
+            type: "checkpoint-capture-result",
+            ok: false,
+            message: "Play the game before creating a checkpoint.",
+          });
+          break;
+        }
+        postPreviewMessage({
+          type: "checkpoint-capture-result",
+          ok: true,
+          checkpoint,
+        });
+      } catch (error) {
+        postPreviewMessage({
+          type: "checkpoint-capture-result",
+          ok: false,
+          message: error instanceof Error ? error.message : "Checkpoint could not be captured.",
+        });
+      }
+      break;
+    }
+    case "restore-checkpoint":
+      try {
+        const restored = restorePreviewCheckpoint(message.checkpoint);
+        if (!restored) {
+          postPreviewMessage({
+            type: "checkpoint-restore-result",
+            ok: false,
+            message: "Play the game before restoring a checkpoint.",
+          });
+          break;
+        }
+        postPreviewMessage({
+          type: "checkpoint-restore-result",
+          ok: true,
+          message: "Checkpoint restored.",
+        });
+      } catch (error) {
+        postPreviewMessage({
+          type: "checkpoint-restore-result",
+          ok: false,
+          message: error instanceof Error ? error.message : "Checkpoint could not be restored.",
+        });
+      }
       break;
   }
 }

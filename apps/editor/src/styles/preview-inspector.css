@@ -217,6 +217,73 @@
   gap: 6px;
 }
 
+.preview-slot-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 22px;
+  padding: 0 1px 2px;
+}
+
+.preview-slot-toolbar-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--editor-text-subtle);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.preview-slot-toolbar-label em {
+  min-width: 16px;
+  padding: 1px 4px;
+  border-radius: 999px;
+  background: var(--editor-surface-3);
+  color: var(--editor-text-subtle);
+  font-family: var(--font-mono);
+  font-size: 7px;
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.preview-slot-toolbar-clear {
+  display: inline-flex;
+  height: 22px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 6px;
+  border: 1px solid var(--editor-border-2);
+  border-radius: 3px;
+  background: var(--editor-btn-bg);
+  color: var(--editor-text-muted);
+  cursor: pointer;
+  font-size: 8px;
+  font-weight: 650;
+}
+
+.preview-slot-toolbar-clear:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--editor-danger) 35%, var(--editor-border));
+  background: color-mix(in srgb, var(--editor-danger) 8%, var(--editor-btn-bg));
+  color: var(--editor-danger);
+}
+
+.preview-slot-toolbar-clear:disabled {
+  cursor: not-allowed;
+  opacity: 0.38;
+}
+
+.preview-slot-toolbar-clear:focus-visible {
+  outline: 1px solid var(--editor-primary);
+  outline-offset: 1px;
+}
+
 .preview-slot-card > header {
   display: flex;
   align-items: center;
@@ -434,6 +501,126 @@
   color: var(--editor-text-subtle);
   font-size: 9px;
   text-align: center;
+}
+
+.preview-checkpoint-hint {
+  padding: 4px 6px;
+  border: 1px solid var(--editor-border-subtle);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--editor-warning) 6%, transparent);
+  color: var(--editor-text-muted);
+  font-size: 8px;
+  line-height: 1.35;
+}
+
+.preview-checkpoint-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.preview-checkpoint-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px;
+  align-items: center;
+  min-width: 0;
+  min-height: 22px;
+  padding: 2px 4px 2px 6px;
+  border: 1px solid var(--editor-border-subtle);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--editor-surface-3) 52%, transparent);
+}
+
+.preview-checkpoint-line {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  gap: 5px;
+  margin: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.preview-checkpoint-line strong {
+  flex-shrink: 0;
+  max-width: 42%;
+  overflow: hidden;
+  color: var(--editor-secondary);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+}
+
+.preview-checkpoint-line span {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--editor-text-subtle);
+  font-family: var(--font-mono);
+  font-size: 7px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+}
+
+.preview-checkpoint-line span::before {
+  margin-right: 5px;
+  color: var(--editor-border-2);
+  content: "·";
+}
+
+.preview-checkpoint-actions {
+  display: inline-flex;
+  flex-shrink: 0;
+  isolation: isolate;
+}
+
+.preview-checkpoint-actions button {
+  display: inline-flex;
+  width: 20px;
+  height: 20px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--editor-border-2);
+  background: var(--editor-btn-bg);
+  color: var(--editor-text-subtle);
+  cursor: pointer;
+}
+
+.preview-checkpoint-actions button + button {
+  margin-left: -1px;
+}
+
+.preview-checkpoint-actions button:first-child {
+  border-radius: 3px 0 0 3px;
+}
+
+.preview-checkpoint-actions button:last-child {
+  border-radius: 0 3px 3px 0;
+}
+
+.preview-checkpoint-actions button:hover:not(:disabled) {
+  z-index: 1;
+  border-color: var(--editor-selection-border);
+  background: var(--editor-btn-bg-hover);
+  color: var(--editor-primary);
+}
+
+.preview-checkpoint-actions button:last-child:hover:not(:disabled) {
+  color: var(--editor-danger);
+}
+
+.preview-checkpoint-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.38;
+}
+
+.preview-checkpoint-actions button:focus-visible {
+  z-index: 2;
+  outline: 1px solid var(--editor-primary);
+  outline-offset: 1px;
 }
 
 .preview-profiler-clear {

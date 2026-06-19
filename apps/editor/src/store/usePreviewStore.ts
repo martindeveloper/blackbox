@@ -3,13 +3,12 @@ import {
   PREVIEW_CONSOLE_HISTORY_LIMIT,
   PREVIEW_PROFILER_HISTORY_LIMIT,
   type PreviewConsoleEntry,
-  type PreviewHostCommand,
   type PreviewProfilerEvent,
   type PreviewRuntimeState,
   type PreviewStorageState,
 } from "../../players/web/protocol.js";
-
-export type PreviewCommandSender = (command: PreviewHostCommand) => void;
+import { PreviewCommandError } from "./previewCommandErrors.js";
+import { cancelPreviewRpc, type PreviewCommandSender } from "./previewCommandRpc.js";
 
 export type {
   PreviewConsoleEntry,
@@ -17,7 +16,13 @@ export type {
   PreviewRuntimeState,
   PreviewStorageState,
   PreviewHostCommand,
-};
+  PreviewCheckpointPayload,
+} from "../../players/web/protocol.js";
+
+export type { PreviewCommandSender, PreviewRpcCommand, PreviewRpcSuccess } from "./previewCommandRpc.js";
+
+export { PreviewCommandError, previewCommandErrorMessage } from "./previewCommandErrors.js";
+export { requestPreviewCommand, finishPreviewRpcResult, cancelPreviewRpc } from "./previewCommandRpc.js";
 
 interface PreviewStore {
   connected: boolean;
@@ -60,12 +65,14 @@ export const usePreviewStore = create<PreviewStore>((set) => ({
     set({ consoleEntries: consoleEntries.slice(-PREVIEW_CONSOLE_HISTORY_LIMIT) }),
   commandSender: null,
   setCommandSender: (commandSender) => set({ commandSender }),
-  reset: () =>
+  reset: () => {
+    cancelPreviewRpc(new PreviewCommandError("cancelled"));
     set({
       connected: false,
       runtimeState: { phase: "loading" },
       storageState: {},
       profilerEvents: [],
       consoleEntries: [],
-    }),
+    });
+  },
 }));

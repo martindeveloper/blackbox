@@ -57,6 +57,14 @@ export type PreviewRuntimeState =
 
 export type PreviewStorageState = Record<string, unknown>;
 
+export interface PreviewCheckpointPayload {
+  storage: PreviewStorageState;
+  engineState: string;
+  nodeId?: string;
+  chapterId?: string;
+  location?: string;
+}
+
 export const PREVIEW_PROFILER_HISTORY_LIMIT = 200;
 export const PREVIEW_CONSOLE_HISTORY_LIMIT = 300;
 
@@ -67,7 +75,9 @@ export type PreviewHostCommand =
   | { type: "clear-console" }
   | { type: "clear-saves" }
   | { type: "clear-all" }
-  | { type: "load-storage"; state: Record<string, unknown> };
+  | { type: "load-storage"; state: Record<string, unknown> }
+  | { type: "capture-checkpoint" }
+  | { type: "restore-checkpoint"; checkpoint: PreviewCheckpointPayload };
 
 export type PreviewPlayerNotification =
   | { type: "ready" }
@@ -78,7 +88,14 @@ export type PreviewPlayerNotification =
   | { type: "profiler-event"; event: PreviewProfilerEvent }
   | { type: "profiler-history"; events: PreviewProfilerEvent[] }
   | { type: "console-entry"; entry: PreviewConsoleEntry }
-  | { type: "console-history"; entries: PreviewConsoleEntry[] };
+  | { type: "console-history"; entries: PreviewConsoleEntry[] }
+  | {
+      type: "checkpoint-capture-result";
+      ok: boolean;
+      checkpoint?: PreviewCheckpointPayload;
+      message?: string;
+    }
+  | { type: "checkpoint-restore-result"; ok: boolean; message: string };
 
 export function postPreviewHostMessage(
   target: Window,
@@ -113,6 +130,12 @@ export type PreviewHostMessage =
       source: typeof EDITOR_MESSAGE_SOURCE;
       type: "load-storage";
       state: Record<string, unknown>;
+    }
+  | { source: typeof EDITOR_MESSAGE_SOURCE; type: "capture-checkpoint" }
+  | {
+      source: typeof EDITOR_MESSAGE_SOURCE;
+      type: "restore-checkpoint";
+      checkpoint: PreviewCheckpointPayload;
     };
 
 export type PreviewPlayerMessage =
@@ -149,7 +172,32 @@ export type PreviewPlayerMessage =
       source: typeof PREVIEW_MESSAGE_SOURCE;
       type: "console-history";
       entries: PreviewConsoleEntry[];
+    }
+  | {
+      source: typeof PREVIEW_MESSAGE_SOURCE;
+      type: "checkpoint-capture-result";
+      ok: boolean;
+      checkpoint?: PreviewCheckpointPayload;
+      message?: string;
+    }
+  | {
+      source: typeof PREVIEW_MESSAGE_SOURCE;
+      type: "checkpoint-restore-result";
+      ok: boolean;
+      message: string;
     };
+
+function isPreviewCheckpointPayload(value: unknown): value is PreviewCheckpointPayload {
+  if (typeof value !== "object" || value === null) return false;
+  const record = value as Record<string, unknown>;
+  return (
+    record.storage !== null &&
+    typeof record.storage === "object" &&
+    !Array.isArray(record.storage) &&
+    typeof record.engineState === "string" &&
+    record.engineState.trim().length > 0
+  );
+}
 
 function hasPreviewSource(
   value: object,
@@ -182,6 +230,10 @@ export function isPreviewHostMessage(data: unknown): data is PreviewHostMessage 
         typeof data.state === "object" &&
         !Array.isArray(data.state)
       );
+    case "capture-checkpoint":
+      return true;
+    case "restore-checkpoint":
+      return "checkpoint" in data && isPreviewCheckpointPayload(data.checkpoint);
     default:
       return false;
   }
@@ -219,9 +271,19 @@ export function isPreviewPlayerMessage(data: unknown): data is PreviewPlayerMess
       return typeof data.entry === "object" && data.entry !== null;
     case "console-history":
       return Array.isArray(data.entries);
+    case "checkpoint-capture-result":
+      return (
+        typeof data.ok === "boolean" &&
+        (data.ok
+          ? isPreviewCheckpointPayload(data.checkpoint)
+          : typeof data.message === "string" || data.message === undefined)
+      );
+    case "checkpoint-restore-result":
+      return typeof data.message === "string" && typeof data.ok === "boolean";
     default:
       return false;
   }
 }
 
 export const PREVIEW_STORAGE_EXPORT_FORMAT = "blackbox-preview-storage" as const;
+export const PREVIEW_CHECKPOINT_FORMAT = "blackbox-preview-checkpoint" as const;

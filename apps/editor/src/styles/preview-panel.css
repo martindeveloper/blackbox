@@ -189,7 +189,7 @@
 
 .preview-console-summary {
   display: flex;
-  min-height: 31px;
+  min-height: 24px;
   align-items: center;
   transition:
     background-color 160ms ease-out,
@@ -203,19 +203,19 @@
 .preview-console-toggle {
   display: flex;
   min-width: 0;
-  min-height: 31px;
+  min-height: 24px;
   flex: 1;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 0 6px 0 10px;
+  gap: 8px;
+  padding: 0 4px 0 8px;
   border: 0;
   background: transparent;
   color: var(--editor-text-muted);
   cursor: pointer;
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 650;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   transition: color 160ms ease-out;
 }
@@ -237,12 +237,19 @@
 }
 
 .preview-console-summary-label {
-  gap: 6px;
+  gap: 4px;
 }
 
 .preview-console-summary-label > svg:first-child {
+  width: 10px;
+  height: 10px;
   color: var(--editor-text-subtle);
   transition: transform 120ms ease;
+}
+
+.preview-console-summary-label > svg:last-child {
+  width: 11px;
+  height: 11px;
 }
 
 .preview-console.is-open .preview-console-summary-label > svg:first-child {
@@ -250,17 +257,17 @@
 }
 
 .preview-console-summary-counts {
-  gap: 5px;
+  gap: 3px;
 }
 
 .preview-console-pin {
   display: inline-flex;
-  width: 29px;
-  height: 25px;
+  width: 24px;
+  height: 22px;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  margin-right: 3px;
+  margin-right: 2px;
   border: 0;
   border-radius: 3px;
   background: transparent;
@@ -271,6 +278,11 @@
     color 160ms ease-out;
 }
 
+.preview-console-pin svg {
+  width: 11px;
+  height: 11px;
+}
+
 .preview-console-pin:hover,
 .preview-console-pin.is-active {
   background: var(--editor-selection);
@@ -279,14 +291,14 @@
 
 .preview-console-count,
 .preview-console-badge {
-  min-width: 18px;
-  padding: 1px 5px;
+  min-width: 16px;
+  padding: 0 4px;
   border-radius: 999px;
   font-family: var(--font-mono);
-  font-size: 8px;
+  font-size: 7px;
   font-style: normal;
   font-weight: 650;
-  line-height: 14px;
+  line-height: 12px;
   text-align: center;
 }
 

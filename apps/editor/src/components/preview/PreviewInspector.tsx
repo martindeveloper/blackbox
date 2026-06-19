@@ -1,5 +1,6 @@
 import { usePreviewStore } from "../../store/usePreviewStore.js";
 import { PreviewInspectorRuntime } from "./PreviewInspectorRuntime.js";
+import { PreviewInspectorCheckpoints } from "./PreviewInspectorCheckpoints.js";
 import { PreviewInspectorStorage } from "./PreviewInspectorStorage.js";
 
 export function PreviewInspector() {
@@ -9,6 +10,7 @@ export function PreviewInspector() {
   return (
     <div className="preview-inspector">
       <PreviewInspectorRuntime state={runtimeState} />
+      <PreviewInspectorCheckpoints />
       <PreviewInspectorStorage state={storageState} />
     </div>
   );
