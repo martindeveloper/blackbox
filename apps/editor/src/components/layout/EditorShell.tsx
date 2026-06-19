@@ -198,18 +198,26 @@ export function EditorShell() {
 
   const startDrag = (side: "left" | "right", startX: number, startWidth: number) => {
     setDragging(side);
+    let frameId: number | null = null;
+    let pendingWidth = startWidth;
+    const applyPendingWidth = () => {
+      frameId = null;
+      if (side === "left") setLeftWidth(pendingWidth);
+      else setRightWidth(pendingWidth);
+    };
     const onMouseMove = (e: MouseEvent) => {
       if (side === "left") {
-        const w = clampLeftPanelWidth(startWidth + e.clientX - startX);
-        setLeftWidth(w);
-        prevLeftWidth.current = w;
+        pendingWidth = clampLeftPanelWidth(startWidth + e.clientX - startX);
+        prevLeftWidth.current = pendingWidth;
       } else {
-        const w = clampRightPanelWidth(startWidth - (e.clientX - startX));
-        setRightWidth(w);
-        prevRightWidth.current = w;
+        pendingWidth = clampRightPanelWidth(startWidth - (e.clientX - startX));
+        prevRightWidth.current = pendingWidth;
       }
+      if (frameId === null) frameId = requestAnimationFrame(applyPendingWidth);
     };
     const onMouseUp = () => {
+      if (frameId !== null) cancelAnimationFrame(frameId);
+      applyPendingWidth();
       setDragging(null);
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("mouseup", onMouseUp);

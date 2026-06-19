@@ -105,7 +105,7 @@ export function useToolRunner(
         if (!cancelled) applyRun(toolRun);
       } catch {}
     };
-    const id = window.setInterval(() => void poll(), 500);
+    const id = window.setInterval(() => void poll(), 750);
     void poll();
     return () => {
       cancelled = true;
@@ -117,7 +117,7 @@ export function useToolRunner(
     if (runState !== "running" || runStartedAt === null) return;
     const tick = () => setElapsedMs(Date.now() - runStartedAt);
     tick();
-    const id = window.setInterval(tick, 100);
+    const id = window.setInterval(tick, 250);
     return () => window.clearInterval(id);
   }, [runState, runStartedAt]);
 

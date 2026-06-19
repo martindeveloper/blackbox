@@ -178,9 +178,11 @@ function ChapterGraphInner() {
       ? selectedEnding
       : (endings[0]?.id ?? null);
 
-  if (endings.length === 0 && analyticsMode === "route") {
-    setAnalyticsMode("reach");
-  }
+  useEffect(() => {
+    if (endings.length === 0 && analyticsMode === "route") {
+      setAnalyticsMode("reach");
+    }
+  }, [analyticsMode, endings.length]);
 
   const insights = useMemo(
     () =>
