@@ -152,11 +152,15 @@ Platform config lives in scenario.json under "platforms":
         "displayName": "My Game",
         "category": "games",
         "orientations": { "iphone": ["portrait"], "ipad": ["portrait"] },
+        "deploymentTarget": "16.0",
         "icon": "platform/ios/icon.svg",
         "signing": { "teamId": "XXXXXXXXXX", "method": "app-store" }
       },
       "android": {
         "applicationId": "com.example.mygame",
+        "minSdk": 26,
+        "compileSdk": 36,
+        "targetSdk": 36,
         "icon": "platform/android/icon.svg",
         "keystore": {
           "path": "release.keystore",

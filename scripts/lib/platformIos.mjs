@@ -355,3 +355,71 @@ export function applyIosXcodeScheme({ iosAppDir, schemeName }) {
   syncIosSchemeNaming({ iosAppDir, schemeName, pbxproj: after });
   return schemeName !== "App" || after !== before;
 }
+
+// Capacitor 8 floor — keep in sync with @capacitor/ios and the CLI iOS template.
+export const ENGINE_IOS_MIN_DEPLOYMENT = "15.0";
+
+function parseIosVersion(value) {
+  const parsed = Number.parseFloat(String(value));
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+/** Effective iOS deployment target — defaults only when unset; floors enforced by validateIosSdkConfig. */
+export function resolveIosDeploymentTarget(raw = {}) {
+  const configured = raw.deploymentTarget;
+  if (configured == null || configured === "") {
+    return ENGINE_IOS_MIN_DEPLOYMENT;
+  }
+  return String(configured);
+}
+
+export function validateIosSdkConfig(raw = {}) {
+  const checks = [];
+  if (raw.deploymentTarget == null || raw.deploymentTarget === "") {
+    return checks;
+  }
+  const value = parseIosVersion(raw.deploymentTarget);
+  const min = parseIosVersion(ENGINE_IOS_MIN_DEPLOYMENT);
+  if (value == null) {
+    checks.push({
+      severity: "error",
+      message: `invalid platforms.ios.deploymentTarget "${raw.deploymentTarget}"`,
+    });
+    return checks;
+  }
+  if (value < min) {
+    checks.push({
+      severity: "error",
+      message: `platforms.ios.deploymentTarget must be at least ${ENGINE_IOS_MIN_DEPLOYMENT}`,
+    });
+  }
+  return checks;
+}
+
+/** Apply deployment target to the generated Capacitor iOS project. */
+export function applyIosDeploymentTarget({ iosAppDir, deploymentTarget, log = () => {} }) {
+  const target = deploymentTarget || ENGINE_IOS_MIN_DEPLOYMENT;
+
+  const podfile = path.join(iosAppDir, "Podfile");
+  if (existsSync(podfile)) {
+    const before = readFileSync(podfile, "utf8");
+    const after = before.replace(/platform :ios, '[^']+'/, `platform :ios, '${target}'`);
+    if (after !== before) {
+      writeFileSync(podfile, after);
+      log(`applied iOS deployment target in Podfile -> ${target}`);
+    }
+  }
+
+  const pbxproj = path.join(iosAppDir, "App.xcodeproj", "project.pbxproj");
+  if (existsSync(pbxproj)) {
+    const before = readFileSync(pbxproj, "utf8");
+    const after = before.replace(
+      /IPHONEOS_DEPLOYMENT_TARGET = [^;]+;/g,
+      `IPHONEOS_DEPLOYMENT_TARGET = ${target};`,
+    );
+    if (after !== before) {
+      writeFileSync(pbxproj, after);
+      log(`applied iOS deployment target in Xcode project -> ${target}`);
+    }
+  }
+}

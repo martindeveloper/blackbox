@@ -63,6 +63,8 @@ export interface IosPlatformConfig {
   version?: string;
   buildNumber?: string;
   versionCode?: string;
+  /** Minimum iOS version (Capacitor 8 floor: 15.0). */
+  deploymentTarget?: string;
   category?: string;
   orientations?: PlatformOrientations;
   icon?: string;
@@ -84,6 +86,12 @@ export interface AndroidPlatformConfig {
   version?: string;
   versionCode?: number;
   buildNumber?: string;
+  /** Minimum Android API level (Capacitor 8 floor: 24). */
+  minSdk?: number;
+  /** Compile SDK (Capacitor 8 floor: 36). */
+  compileSdk?: number;
+  /** Target SDK (Capacitor 8 floor: 36). */
+  targetSdk?: number;
   orientations?: PlatformOrientations;
   icon?: string;
   backgroundColor?: string;

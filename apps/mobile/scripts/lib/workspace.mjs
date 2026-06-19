@@ -46,10 +46,12 @@ import {
 import {
   applyAndroidPlatformSettings,
   applyAndroidReleaseConfig,
+  applyAndroidSdkSettings,
   androidProjectRelativePath,
   clearAndroidInjectedSigning,
 } from "../../../../scripts/lib/platformAndroid.mjs";
 import {
+  applyIosDeploymentTarget,
   applyIosPlatformSettings,
   iosXcodeSchemeName,
 } from "../../../../scripts/lib/platformIos.mjs";
@@ -61,10 +63,6 @@ const WEB_ROOT = path.join(REPO_ROOT, "apps", "web");
 const NATIVE_SRC = path.join(MOBILE_ROOT, "src");
 const NATIVE_IOS = path.join(MOBILE_ROOT, "native", "ios");
 const CAP_CLI = path.join(MOBILE_ROOT, "node_modules", "@capacitor", "cli", "bin", "capacitor");
-
-// Capacitor 8 requires iOS 15+. Older generated projects may still say 13.0 in
-// Podfile / pbxproj; CocoaPods fails pod install until those are bumped.
-const IOS_MIN_VERSION = "15.0";
 
 export function log(msg) {
   console.log(`[mobile] ${msg}`);
@@ -276,39 +274,6 @@ function cap(adv, args) {
   runSync(process.execPath, [CAP_CLI, ...args], { cwd: adv.buildDir });
 }
 
-/** Bump stale iOS deployment targets before CocoaPods runs. */
-function ensureIosDeploymentTarget(adv) {
-  const iosAppDir = path.join(adv.buildDir, "ios", "App");
-  const podfile = path.join(iosAppDir, "Podfile");
-  if (existsSync(podfile)) {
-    const before = readFileSync(podfile, "utf8");
-    const after = before.replace(
-      /platform :ios, '(\d+\.\d+)'/,
-      (_, ver) => `platform :ios, '${parseFloat(ver) < parseFloat(IOS_MIN_VERSION) ? IOS_MIN_VERSION : ver}'`,
-    );
-    if (after !== before) {
-      writeFileSync(podfile, after);
-      log(`raised iOS deployment target in Podfile -> ${IOS_MIN_VERSION}`);
-    }
-  }
-
-  const pbxproj = path.join(iosAppDir, "App.xcodeproj", "project.pbxproj");
-  if (existsSync(pbxproj)) {
-    const before = readFileSync(pbxproj, "utf8");
-    const after = before.replace(
-      /IPHONEOS_DEPLOYMENT_TARGET = (\d+\.\d+);/g,
-      (match, ver) =>
-        parseFloat(ver) < parseFloat(IOS_MIN_VERSION)
-          ? `IPHONEOS_DEPLOYMENT_TARGET = ${IOS_MIN_VERSION};`
-          : match,
-    );
-    if (after !== before) {
-      writeFileSync(pbxproj, after);
-      log(`raised iOS deployment target in Xcode project -> ${IOS_MIN_VERSION}`);
-    }
-  }
-}
-
 /** Copy the engine's AppDelegate override into the generated project, enforcing it every run. */
 function applyNativeOverrides(adv) {
   const dest = path.join(adv.buildDir, "ios", "App", "App", "AppDelegate.swift");
@@ -405,12 +370,10 @@ export async function capSyncIos(adv) {
   } else {
     cap(adv, ["sync", "ios"]);
   }
-  ensureIosDeploymentTarget(adv);
-  applyIosPlatformSettings({
-    iosAppDir: path.join(adv.buildDir, "ios", "App"),
-    config: loadPlatformConfig(adv, "ios"),
-    log,
-  });
+  const iosConfig = loadPlatformConfig(adv, "ios");
+  const iosAppDir = path.join(adv.buildDir, "ios", "App");
+  applyIosDeploymentTarget({ iosAppDir, deploymentTarget: iosConfig.deploymentTarget, log });
+  applyIosPlatformSettings({ iosAppDir, config: iosConfig, log });
   applyNativeOverrides(adv);
   await applyPlatformAssets(adv, "ios");
 }
@@ -425,11 +388,9 @@ export async function capSyncAndroid(adv) {
   } else {
     cap(adv, ["sync", "android"]);
   }
-  applyAndroidPlatformSettings({
-    androidRoot: androidDir,
-    config: loadPlatformConfig(adv, "android"),
-    log,
-  });
+  const androidConfig = loadPlatformConfig(adv, "android");
+  applyAndroidPlatformSettings({ androidRoot: androidDir, config: androidConfig, log });
+  applyAndroidSdkSettings({ androidRoot: androidDir, config: androidConfig, log });
   clearAndroidInjectedSigning({ androidRoot: androidDir, log });
   await applyPlatformAssets(adv, "android");
 }

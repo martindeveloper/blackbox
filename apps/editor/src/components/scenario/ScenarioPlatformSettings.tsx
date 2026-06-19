@@ -28,6 +28,13 @@ function optionalString(value: string): string | undefined {
   return trimmed || undefined;
 }
 
+function optionalNumber(value: string): number | undefined {
+  const raw = value.trim();
+  if (!raw) return undefined;
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
 function platformConfig<P extends keyof ScenarioPlatforms>(
   platforms: ScenarioPlatforms | undefined,
   platform: P,
@@ -248,6 +255,16 @@ export function ScenarioPlatformSettings({ scenario, onChange }: Props) {
                 }
               />
             </FormField>
+            <FormField label={t("scenario.platformDeploymentTarget")}>
+              <Input
+                mono
+                value={ios.deploymentTarget ?? ""}
+                placeholder={t("scenario.platformDeploymentTargetPlaceholder")}
+                onChange={(e) =>
+                  patchPlatform("ios", { deploymentTarget: optionalString(e.target.value) })
+                }
+              />
+            </FormField>
             <FormField label={t("scenario.platformCategory")}>
               <Select
                 options={categoryOptions}
@@ -369,14 +386,30 @@ export function ScenarioPlatformSettings({ scenario, onChange }: Props) {
                 type="number"
                 value={android.versionCode ?? ""}
                 placeholder="1"
-                onChange={(e) => {
-                  const raw = e.target.value.trim();
-                  patchPlatform("android", {
-                    versionCode: raw === "" ? undefined : Number(raw),
-                  });
-                }}
+                onChange={(e) =>
+                  patchPlatform("android", { versionCode: optionalNumber(e.target.value) })
+                }
               />
             </FormField>
+            {(
+              [
+                ["platformMinSdk", "minSdk"],
+                ["platformCompileSdk", "compileSdk"],
+                ["platformTargetSdk", "targetSdk"],
+              ] as const
+            ).map(([labelKey, field]) => (
+              <FormField key={field} label={t(`scenario.${labelKey}`)}>
+                <Input
+                  mono
+                  type="number"
+                  value={android[field] ?? ""}
+                  placeholder={t("scenario.platformSdkPlaceholder")}
+                  onChange={(e) =>
+                    patchPlatform("android", { [field]: optionalNumber(e.target.value) })
+                  }
+                />
+              </FormField>
+            ))}
             <FormField label={t("scenario.platformOrientations")}>
               <Select
                 options={orientationOptions}

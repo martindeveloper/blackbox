@@ -1,9 +1,16 @@
 import assert from "node:assert/strict";
+import { mkdtemp, mkdir, writeFile } from "node:fs/promises";
+import { readFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import test from "node:test";
 import {
+  applyIosDeploymentTarget,
   buildIosInfoPlistKeys,
   renameIosXcodeTarget,
+  resolveIosDeploymentTarget,
   upsertIosTargetBuildSettings,
+  validateIosSdkConfig,
 } from "./platformIos.mjs";
 
 const SAMPLE_CONFIG = {
@@ -93,4 +100,35 @@ test("renameIosXcodeTarget and upsert compose without duplicating plist metadata
   assert.match(pbxproj, /PRODUCT_BUNDLE_IDENTIFIER = com\.example\.mygame;/);
   assert.match(pbxproj, /INFOPLIST_KEY_CFBundleDisplayName = "Example Game";/);
   assert.doesNotMatch(pbxproj, /<key>CFBundleDisplayName<\/key>/);
+});
+
+test("resolveIosDeploymentTarget applies defaults only when unset", () => {
+  assert.equal(resolveIosDeploymentTarget({}), "15.0");
+  assert.equal(resolveIosDeploymentTarget({ deploymentTarget: "16.0" }), "16.0");
+  assert.equal(resolveIosDeploymentTarget({ deploymentTarget: "14.0" }), "14.0");
+});
+
+test("validateIosSdkConfig rejects deployment targets below the engine floor", () => {
+  const checks = validateIosSdkConfig({ deploymentTarget: "14.0" });
+  assert.equal(checks.length, 1);
+  assert.match(checks[0].message, /at least 15\.0/);
+});
+
+test("applyIosDeploymentTarget patches Podfile and pbxproj", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "bb-ios-apply-"));
+  const iosAppDir = path.join(root, "App");
+  await mkdir(path.join(iosAppDir, "App.xcodeproj"), { recursive: true });
+  await writeFile(path.join(iosAppDir, "Podfile"), "platform :ios, '13.0'\n");
+  await writeFile(
+    path.join(iosAppDir, "App.xcodeproj", "project.pbxproj"),
+    "IPHONEOS_DEPLOYMENT_TARGET = 13.0;\nIPHONEOS_DEPLOYMENT_TARGET = 13.0;\n",
+  );
+
+  applyIosDeploymentTarget({ iosAppDir, deploymentTarget: "16.0" });
+
+  assert.match(readFileSync(path.join(iosAppDir, "Podfile"), "utf8"), /platform :ios, '16\.0'/);
+  assert.doesNotMatch(
+    readFileSync(path.join(iosAppDir, "App.xcodeproj", "project.pbxproj"), "utf8"),
+    /13\.0/,
+  );
 });

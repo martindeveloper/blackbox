@@ -101,6 +101,63 @@ test("ios package preflight reports missing signing team from scenario.json", as
   }
 });
 
+test("android build preflight rejects minSdk below the engine floor", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "bb-preflight-sdk-"));
+  await writeFile(
+    path.join(root, "scenario.json"),
+    JSON.stringify({
+      spec: "com.blackbox.scenario",
+      title: "Test",
+      platforms: {
+        android: { minSdk: 21 },
+      },
+    }),
+  );
+
+  const caps = await detectBuildCapabilities(root);
+  const buildChecks = caps.android.stages.build.checks.map((check) => check.message);
+  assert.ok(buildChecks.some((message) => message.includes("minSdk")), buildChecks);
+  assert.equal(caps.android.stages.build.available, false);
+});
+
+test("ios build preflight rejects deploymentTarget below the engine floor", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "bb-preflight-ios-sdk-"));
+  await writeFile(
+    path.join(root, "scenario.json"),
+    JSON.stringify({
+      spec: "com.blackbox.scenario",
+      title: "Test",
+      platforms: {
+        ios: { deploymentTarget: "14.0" },
+      },
+    }),
+  );
+
+  const caps = await detectBuildCapabilities(root);
+  const buildChecks = caps.ios.stages.build.checks.map((check) => check.message);
+  assert.ok(buildChecks.some((message) => message.includes("deploymentTarget")), buildChecks);
+  assert.equal(caps.ios.stages.build.available, false);
+});
+
+test("android build preflight rejects compileSdk below the engine floor", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "bb-preflight-compile-sdk-"));
+  await writeFile(
+    path.join(root, "scenario.json"),
+    JSON.stringify({
+      spec: "com.blackbox.scenario",
+      title: "Test",
+      platforms: {
+        android: { compileSdk: 35 },
+      },
+    }),
+  );
+
+  const caps = await detectBuildCapabilities(root);
+  const buildChecks = caps.android.stages.build.checks.map((check) => check.message);
+  assert.ok(buildChecks.some((message) => message.includes("compileSdk")), buildChecks);
+  assert.equal(caps.android.stages.build.available, false);
+});
+
 test("assertStageReady throws the first package error for android", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "bb-preflight-"));
   await writeFile(

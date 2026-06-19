@@ -1,5 +1,6 @@
 import { existsSync } from "node:fs";
 import { resolvePlatformConfig } from "../../lib/adventure.mjs";
+import { validateAndroidSdkConfig } from "../../lib/platformAndroid.mjs";
 import { sharedBundleChecks } from "../../lib/preflight/bundleCommon.mjs";
 import { capacitorBin } from "../../lib/preflight/context.mjs";
 import { toMobileAdv } from "../lib/mobileAdv.mjs";
@@ -19,9 +20,15 @@ export async function preflightCheck(stage, ctx) {
   if (stage === "lint") return [];
   if (stage === "bundle") return sharedBundleChecks(ctx);
   if (stage === "build") {
-    return existsSync(capacitorBin())
+    const checks = existsSync(capacitorBin())
       ? []
       : [{ severity: "error", message: "Capacitor workspace is missing" }];
+    if (ctx.project) {
+      checks.push(
+        ...validateAndroidSdkConfig(ctx.project.scenario.platforms?.android ?? {}),
+      );
+    }
+    return checks;
   }
 
   const checks = [];

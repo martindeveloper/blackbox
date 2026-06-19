@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { resolvePlatformConfig } from "../../lib/adventure.mjs";
+import { validateIosSdkConfig } from "../../lib/platformIos.mjs";
 import { sharedBundleChecks } from "../../lib/preflight/bundleCommon.mjs";
 import { capacitorBin } from "../../lib/preflight/context.mjs";
 import { toMobileAdv } from "../lib/mobileAdv.mjs";
@@ -30,6 +31,11 @@ export async function preflightCheck(stage, ctx) {
     }
     if (process.platform === "darwin" && !(await ctx.host.commandExists("pod"))) {
       checks.push({ severity: "error", message: "CocoaPods not found (gem install cocoapods)" });
+    }
+    if (ctx.project) {
+      checks.push(
+        ...validateIosSdkConfig(ctx.project.scenario.platforms?.ios ?? {}),
+      );
     }
   }
 

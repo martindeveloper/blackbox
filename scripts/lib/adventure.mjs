@@ -1,8 +1,12 @@
 import { existsSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { BUILD_CONFIGURATIONS as BUILD_CONFIGURATION_LIST, BUILD_PLATFORMS as BUILD_PLATFORM_LIST } from "./buildStages.mjs";
-import { resolveAndroidScreenOrientation } from "./platformAndroid.mjs";
-import { resolveIosCategory, resolveIosOrientations } from "./platformIos.mjs";
+import { resolveAndroidScreenOrientation, resolveAndroidSdk } from "./platformAndroid.mjs";
+import {
+  resolveIosCategory,
+  resolveIosDeploymentTarget,
+  resolveIosOrientations,
+} from "./platformIos.mjs";
 
 const DEFAULT_APP_ID_BASE = "dev.blackbox";
 export const DEFAULT_BG = "#070503";
@@ -190,6 +194,7 @@ export function resolvePlatformConfig(project, platform) {
       ...shared,
       bundleId: raw.bundleId ?? defaultBundleId,
       buildNumber: String(raw.buildNumber ?? raw.versionCode ?? "1"),
+      deploymentTarget: resolveIosDeploymentTarget(raw),
       category: resolveIosCategory(raw.category),
       orientations: resolveIosOrientations(raw.orientations),
       signing: {
@@ -207,10 +212,14 @@ export function resolvePlatformConfig(project, platform) {
     if (keystore?.path) {
       keystore.path = path.resolve(project.root, keystore.path);
     }
+    const sdk = resolveAndroidSdk(raw);
     return {
       ...shared,
       applicationId: raw.applicationId ?? raw.bundleId ?? defaultBundleId,
       versionCode: Number(raw.versionCode ?? raw.buildNumber ?? 1),
+      minSdk: sdk.minSdk,
+      compileSdk: sdk.compileSdk,
+      targetSdk: sdk.targetSdk,
       screenOrientation: resolveAndroidScreenOrientation(raw.orientations),
       keystore,
     };
