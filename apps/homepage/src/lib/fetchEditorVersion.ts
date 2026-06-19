@@ -35,7 +35,10 @@ function fallbackEditorVersion(): EditorVersionInfo {
 
 export async function fetchEditorVersion(): Promise<EditorVersionInfo> {
   "use cache";
-  cacheLife("minutes");
+  // Releases are event-driven: the publish webhook calls revalidateTag on this
+  // tag, so we don't need a short TTL. "days" keeps the GitHub API off the
+  // request path and acts as a safety-net refresh if an invalidation is missed.
+  cacheLife("days");
   cacheTag(EDITOR_VERSION_CACHE_TAG);
 
   try {

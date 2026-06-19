@@ -1,5 +1,6 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Footer } from "./components/Footer";
@@ -8,6 +9,7 @@ import { DownloadTrustGuide } from "./components/DownloadTrustGuide";
 import { PlatformIcon } from "./components/PlatformIcon";
 import { detectClientArch } from "./lib/detectClientArch";
 import { detectClientOS } from "./lib/detectClientOS";
+import { isNewerVersion, normalizeReleaseTag } from "./lib/releaseVersion";
 import {
   GITHUB_RELEASES_URL,
   PLATFORM_ARCHES,
@@ -49,16 +51,12 @@ function ExternalIcon() {
   );
 }
 
-export function DownloadPage({
-  latestVersion,
-  requestedVersion,
-  isOutdated,
-}: {
-  latestVersion: string;
-  requestedVersion: string | null;
-  isOutdated: boolean;
-}) {
+export function DownloadPage({ latestVersion }: { latestVersion: string }) {
   const { t } = useTranslation();
+  const searchParams = useSearchParams();
+  const requestedVersion = normalizeReleaseTag(searchParams.get("version"));
+  const isOutdated =
+    requestedVersion !== null && isNewerVersion(latestVersion, requestedVersion);
   const activeReleaseTag = requestedVersion ?? latestVersion;
   const [platform, setPlatform] = useState<DownloadPlatform>("macos");
   const [arch, setArch] = useState<DownloadArch>("arm64");
