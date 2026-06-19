@@ -24,10 +24,7 @@ const APPX_PLATE_RATIO = {
 async function composeSquareAsset(source, canvasSize, plateRatio, background = TRANSPARENT) {
   const plateSize = Math.round(canvasSize * plateRatio);
   const inset = Math.floor((canvasSize - plateSize) / 2);
-  const plate = await sharp(source)
-    .resize(plateSize, plateSize, { fit: "cover" })
-    .png()
-    .toBuffer();
+  const plate = await sharp(source).resize(plateSize, plateSize, { fit: "cover" }).png().toBuffer();
 
   return sharp({
     create: {

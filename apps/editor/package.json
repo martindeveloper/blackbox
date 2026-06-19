@@ -1,6 +1,6 @@
 {
   "name": "blackbox-editor",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "description": "Desktop authoring tool for Blackbox game projects",
   "homepage": "https://github.com/martindeveloper/blackbox",
@@ -28,6 +28,7 @@
     "postinstall": "node ./scripts/ensure-electron.mjs",
     "start": "node server.js",
     "test": "node --test server/*.test.js server/pipeline/**/*.test.js electron/*.test.mjs ../../scripts/lib/preflight/preflight.test.mjs",
+    "version:bump": "node ./scripts/bump-version.mjs",
     "watch:css": "tailwindcss -i ./src/app.css -o ./dist/style.css --watch",
     "watch:js": "rolldown -c rolldown.config.ts --watch"
   },
