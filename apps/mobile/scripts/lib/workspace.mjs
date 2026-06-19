@@ -60,7 +60,7 @@ export const REPO_ROOT = path.resolve(MOBILE_ROOT, "..", "..");
 const WEB_ROOT = path.join(REPO_ROOT, "apps", "web");
 const NATIVE_SRC = path.join(MOBILE_ROOT, "src");
 const NATIVE_IOS = path.join(MOBILE_ROOT, "native", "ios");
-const CAP_BIN = path.join(MOBILE_ROOT, "node_modules", ".bin", "cap");
+const CAP_CLI = path.join(MOBILE_ROOT, "node_modules", "@capacitor", "cli", "bin", "capacitor");
 
 // Capacitor 8 requires iOS 15+. Older generated projects may still say 13.0 in
 // Podfile / pbxproj; CocoaPods fails pod install until those are bumped.
@@ -103,7 +103,10 @@ function webDistFor(adv) {
 }
 
 /** Build apps/web for the adventure and assemble <buildDir>/www with the native layer. */
-export function buildPayload(adv, { noBuild = false, platform } = {}) {
+export function buildPayload(
+  adv,
+  { noBuild = false, platform, reuseBundleDir = null } = {},
+) {
   if (!platform) {
     fail("buildPayload requires platform (ios, android, or web)");
   }
@@ -113,11 +116,14 @@ export function buildPayload(adv, { noBuild = false, platform } = {}) {
 
   if (!noBuild) {
     log(`building web player (adventure: ${displayPath(adv.scenario)}, platform=${platform})`);
-    runSync("npm", ["run", "build"], {
+    // Same as scripts/cli/lib/run.mjs runWebPlayerBuild: invoke build.mjs with the current
+    // runtime so packaged editors never depend on npm on PATH (macOS GUI apps often lack it).
+    runSync(process.execPath, [path.join(WEB_ROOT, "scripts", "build.mjs")], {
       cwd: WEB_ROOT,
       env: {
         ...playerBuildEnv({ root: adv.root, configuration }, configuration, platform),
         PROFILE: wasmProfileForConfiguration(configuration),
+        ...(reuseBundleDir ? { BLACKBOX_REUSE_BUNDLE_DIR: reuseBundleDir } : {}),
       },
     });
   }
@@ -216,7 +222,9 @@ export function ensureWorkspace(adv, platform = "ios") {
   const platformConfig = loadPlatformConfig(adv, platform);
   const iosConfig = loadPlatformConfig(adv, "ios");
   const androidConfig = loadPlatformConfig(adv, "android");
-  const safeAreaEnabled = (platformConfig.safeAreaMode ?? "band") !== "none";
+  const safeAreaMode = platformConfig.safeAreaMode ?? "band";
+  const safeAreaEnabled = safeAreaMode !== "none";
+  const overlaysWebView = safeAreaMode !== "band";
   const iosScheme = iosXcodeSchemeName(iosConfig.displayName ?? iosConfig.appName);
   const config = {
     appId: platformConfig.bundleId ?? platformConfig.applicationId,
@@ -246,11 +254,11 @@ export function ensureWorkspace(adv, platform = "ios") {
       },
       StatusBar: {
         style: "DARK",
-        // setOverlaysWebView is an Android-only API. On pre-15 devices it makes the
-        // WebView draw full-bleed so core SystemBars can inject --safe-area-inset-*;
-        // on Android 15+ edge-to-edge is forced and this is a no-op. iOS uses
-        // viewport-fit=cover + env(safe-area-inset-*) and ignores this flag.
-        overlaysWebView: platform === "android" && safeAreaEnabled,
+        // "bleed" and "none" require the webview under the status bar. In "band"
+        // mode Capacitor intentionally places it below the bar. This option is
+        // active on iOS too: false moves WKWebView down and inserts a native,
+        // solid-color status-bar view, which defeats textured header bleed.
+        overlaysWebView,
         backgroundColor: platformConfig.backgroundColor ?? DEFAULT_BG,
       },
       SystemBars: {
@@ -286,11 +294,9 @@ export function ensureWorkspace(adv, platform = "ios") {
 }
 
 function cap(adv, args) {
-  execFileSync(CAP_BIN, args, {
-    stdio: "inherit",
-    cwd: adv.buildDir,
-    shell: process.platform === "win32",
-  });
+  // Invoke the Capacitor CLI with process.execPath — the .bin/cap shim uses #!/usr/bin/env node
+  // and fails in packaged editors where `node` is not on PATH.
+  runSync(process.execPath, [CAP_CLI, ...args], { cwd: adv.buildDir });
 }
 
 /** Bump stale iOS deployment targets before CocoaPods runs. */
@@ -371,7 +377,7 @@ export async function applyPlatformSplash(adv, platform) {
     return;
   }
 
-  await installAndroidSplash({ imagePath, resDir: roots.resDir });
+  await installAndroidSplash({ imagePath, resDir: roots.resDir, backgroundColor });
   log(`installed Android splash from ${path.relative(adv.root, imagePath)}`);
 }
 
@@ -419,9 +425,10 @@ export async function capSyncIos(adv) {
   const iosDir = path.join(adv.buildDir, "ios");
   if (!existsSync(iosDir)) {
     cap(adv, ["add", "ios"]);
+  } else {
+    cap(adv, ["sync", "ios"]);
   }
   ensureIosDeploymentTarget(adv);
-  cap(adv, ["sync", "ios"]);
   applyIosPlatformSettings({
     iosAppDir: path.join(adv.buildDir, "ios", "App"),
     config: loadPlatformConfig(adv, "ios"),
@@ -438,8 +445,9 @@ export async function capSyncAndroid(adv) {
   const androidDir = androidRootFor(adv);
   if (!existsSync(path.join(androidDir, "gradlew"))) {
     cap(adv, ["add", "android"]);
+  } else {
+    cap(adv, ["sync", "android"]);
   }
-  cap(adv, ["sync", "android"]);
   applyAndroidPlatformSettings({
     androidRoot: androidDir,
     config: loadPlatformConfig(adv, "android"),

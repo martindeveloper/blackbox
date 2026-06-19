@@ -20,8 +20,10 @@ function deferred() {
 
 function fakeSpawn(results = {}) {
   const calls = [];
+  const options = [];
   const spawn = (root, opts, onLine) => {
     calls.push(opts.stage);
+    options.push(opts);
     onLine(`running ${opts.stage}`);
     const result = results[opts.stage] ?? { exitCode: 0 };
     return {
@@ -33,7 +35,7 @@ function fakeSpawn(results = {}) {
       cancel() {},
     };
   };
-  return { spawn, calls };
+  return { spawn, calls, options };
 }
 
 async function waitForSettled(registry, root) {
@@ -60,7 +62,7 @@ test("stage helpers: package is offered on every platform", () => {
 test("runs selected stages in canonical order to completion", async () => {
   const root = await tempProject();
   try {
-    const { spawn, calls } = fakeSpawn();
+    const { spawn, calls, options } = fakeSpawn();
     const registry = new BuildRunRegistry({ spawn });
     await registry.start(root, {
       platform: "web",
@@ -70,8 +72,30 @@ test("runs selected stages in canonical order to completion", async () => {
     const current = await waitForSettled(registry, root);
     assert.equal(current.run.state, "done");
     assert.deepEqual(calls, ["bundle", "build", "package"]);
+    assert.equal(options[0].reusePriorStages, false);
+    assert.equal(options[1].reusePriorStages, true);
+    assert.equal(options[2].reusePriorStages, true);
     assert.equal(current.run.artifact, "/artifact/package");
     assert.ok(current.run.stages.every((s) => s.state === "done"));
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("build-only runs remain independent and do not request bundle reuse", async () => {
+  const root = await tempProject();
+  try {
+    const { spawn, options } = fakeSpawn();
+    const registry = new BuildRunRegistry({ spawn });
+    await registry.start(root, {
+      platform: "ios",
+      configuration: "debug",
+      stages: ["build"],
+    });
+    await waitForSettled(registry, root);
+    assert.equal(options.length, 1);
+    assert.equal(options[0].stage, "build");
+    assert.equal(options[0].reusePriorStages, false);
   } finally {
     await rm(root, { recursive: true, force: true });
   }

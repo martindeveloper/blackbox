@@ -21,6 +21,7 @@ function parseArgs(argv) {
     deploy: null,
     configuration: "release",
     noBuild: false,
+    reuseBundle: false,
     webSpawnServer: false,
     // null = unspecified: inherit BLACKBOX_REACT_COMPILER from the environment
     // (e.g. set by the editor) rather than overriding it.
@@ -34,6 +35,8 @@ function parseArgs(argv) {
       options.help = true;
     } else if (arg === "--no-build") {
       options.noBuild = true;
+    } else if (arg === "--reuse-bundle") {
+      options.reuseBundle = true;
     } else if (arg === "--web-spawn-server") {
       options.webSpawnServer = true;
     } else if (arg.startsWith("--project=")) {
@@ -100,6 +103,8 @@ Options:
   --no-build           Reuse prior stage outputs where applicable. For web package this skips
                        the player compile and content bundle, assembling from the existing
                        build/ and bundle/ outputs (run build + bundle first).
+  --reuse-bundle       Internal pipeline hint: Build embeds the preceding Bundle-stage output
+                       instead of generating the same platform bundle again.
   --web-spawn-server   After a web build, start the static player server (web only)
   --react-compiler=<bool>
                        Compile the player UI with the React Compiler (default: on).
@@ -258,7 +263,11 @@ async function main() {
     fail("cli", `action "${action}" is not implemented for platform "${platform}"`);
   }
 
-  const handlerOptions = { noBuild: options.noBuild, configuration };
+  const handlerOptions = {
+    noBuild: options.noBuild,
+    reuseBundle: options.reuseBundle,
+    configuration,
+  };
 
   console.log(
     `[cli] ${action} ${project.gameId} platform=${platform} configuration=${configuration} project=${project.root}` +

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { copyFileSync, existsSync, mkdirSync } from "node:fs";
+import { copyFileSync, cpSync, existsSync, mkdirSync, rmSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -84,17 +84,27 @@ const bundleArgs =
   configuration === "debug"
     ? [path.join(scriptsDir, "build-bundle.mjs"), "--verbose", "--ignore-missing"]
     : [path.join(scriptsDir, "build-bundle.mjs"), "--ignore-missing", "--archive-compress", "zstd"];
-runSync(process.execPath, bundleArgs);
+const reuseBundleDir = process.env.BLACKBOX_REUSE_BUNDLE_DIR;
+if (reuseBundleDir) {
+  if (!existsSync(reuseBundleDir)) {
+    throw new Error(`Bundle-stage output not found: ${reuseBundleDir}`);
+  }
+  const embeddedBundleDir = path.join(dist, "bundle");
+  rmSync(embeddedBundleDir, { recursive: true, force: true });
+  cpSync(reuseBundleDir, embeddedBundleDir, { recursive: true });
+  console.log(`==> reused content bundle from ${reuseBundleDir}`);
+} else {
+  runSync(process.execPath, bundleArgs);
+}
 
-// Run the JS/CSS/favicon steps with the current runtime (process.execPath) instead of
+// Run the JS/CSS/static-sync steps with the current runtime (process.execPath) instead of
 // `npm run …`. These steps load native addons (rolldown, @tailwindcss/oxide via
-// build-game-css, sharp via build-favicon); on Windows MSIX they must run as the
+// build-game-css, sharp via sync-dist's icon build); on Windows MSIX they must run as the
 // in-package executable to keep package identity, or the loader denies the addons.
 runSync(process.execPath, [resolveRolldownCli(), "-c", "rolldown.config.mjs"], {
   cwd: clientRoot,
 });
 runSync(process.execPath, [path.join(scriptsDir, "build-game-css.mjs")], { cwd: clientRoot });
-runSync(process.execPath, [path.join(scriptsDir, "build-favicon.mjs")], { cwd: clientRoot });
 runSync(process.execPath, [path.join(scriptsDir, "sync-dist.mjs")]);
 
 writeBuildInfo(dist, { crate: "blackbox-wasm", target: TARGET, profile, configuration });

@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { DEFAULT_BG } from "./adventure.mjs";
 import { loadSharp } from "./platformSharp.mjs";
@@ -113,8 +113,65 @@ export async function installIosSplash({
   return splashSet;
 }
 
-/** Install portrait splash drawables for Android. */
-export async function installAndroidSplash({ imagePath, resDir }) {
+/**
+ * Wire the launch theme to the Android 12+ SplashScreen API.
+ *
+ * On Android 12+ the launch splash is the *system* splash drawn by
+ * `installSplashScreen()` (see @capacitor/splash-screen); it honours ONLY
+ * `windowSplashScreenBackground` (a solid color) + `windowSplashScreenAnimatedIcon`
+ * (a centered, circle-masked icon) and IGNORES `android:background`. Capacitor's
+ * default `AppTheme.NoActionBarLaunch` sets `android:background=@drawable/splash`,
+ * so the system falls back to a white window + the masked launcher icon and the
+ * full-bleed `splash.png` is never shown. A full-bleed photo splash is not
+ * possible on 12+ by design, so we brand the system splash instead: paint it the
+ * splash background color and center the launcher icon on it.
+ */
+function installAndroidSplashTheme(resDir, backgroundColor) {
+  const valuesDir = path.join(resDir, "values");
+  const stylesPath = path.join(valuesDir, "styles.xml");
+  if (!existsSync(stylesPath)) return;
+
+  // Upsert the splash background color (keeps any existing colors.xml entries).
+  const colorsPath = path.join(valuesDir, "colors.xml");
+  const colorEntry = `    <color name="splash_background">${backgroundColor}</color>`;
+  if (existsSync(colorsPath)) {
+    const colors = readFileSync(colorsPath, "utf8");
+    if (/name="splash_background"/.test(colors)) {
+      writeFileSync(
+        colorsPath,
+        colors.replace(
+          /<color name="splash_background">[^<]*<\/color>/,
+          `<color name="splash_background">${backgroundColor}</color>`,
+        ),
+      );
+    } else {
+      writeFileSync(colorsPath, colors.replace(/<\/resources>/, `${colorEntry}\n</resources>`));
+    }
+  } else {
+    writeFileSync(
+      colorsPath,
+      `<?xml version="1.0" encoding="utf-8"?>\n<resources>\n${colorEntry}\n</resources>\n`,
+    );
+  }
+
+  // Rewrite the launch theme to drive the Android 12 splash API.
+  const launchStyle = `<style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
+    </style>`;
+  const styles = readFileSync(stylesPath, "utf8");
+  const next = styles.replace(
+    /<style name="AppTheme\.NoActionBarLaunch"[\s\S]*?<\/style>/,
+    launchStyle,
+  );
+  if (next !== styles) {
+    writeFileSync(stylesPath, next);
+  }
+}
+
+/** Install portrait splash drawables for Android and wire the launch theme. */
+export async function installAndroidSplash({ imagePath, resDir, backgroundColor = DEFAULT_BG }) {
   if (!existsSync(resDir)) return null;
 
   const tasks = ANDROID_PORT_SPLASH_SIZES.map(({ folder, width, height }) =>
@@ -122,5 +179,9 @@ export async function installAndroidSplash({ imagePath, resDir }) {
   );
   tasks.push(writeCoverPng(imagePath, path.join(resDir, "drawable", "splash.png"), 1080, 1920));
   await Promise.all(tasks);
+
+  // The drawables above only serve pre-12 devices / explicit SplashScreen.show()
+  // calls; Android 12+ needs the theme wired to the system splash API.
+  installAndroidSplashTheme(resDir, backgroundColor);
   return resDir;
 }

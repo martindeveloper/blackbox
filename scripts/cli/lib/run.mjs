@@ -90,7 +90,11 @@ export function runBundler(
 
 export function runWebPlayerBuild(
   project,
-  { configuration = project.configuration ?? "release", platform = "web" } = {},
+  {
+    configuration = project.configuration ?? "release",
+    platform = "web",
+    reuseBundleDir = null,
+  } = {},
 ) {
   log("build", `compiling web player for ${project.gameId} (${configuration}, ${platform})`);
   // Invoke the build script with the current runtime (process.execPath) rather than via
@@ -104,6 +108,7 @@ export function runWebPlayerBuild(
     env: {
       ...playerBuildEnv(project, configuration, platform),
       PROFILE: wasmProfileForConfiguration(configuration),
+      ...(reuseBundleDir ? { BLACKBOX_REUSE_BUNDLE_DIR: reuseBundleDir } : {}),
     },
   });
 }

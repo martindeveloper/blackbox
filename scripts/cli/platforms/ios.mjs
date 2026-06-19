@@ -69,12 +69,19 @@ export function stageLint(project) {
   runScriptsLint();
 }
 
-export async function stageBuild(project, { noBuild = false, skipPreflight = false } = {}) {
+export async function stageBuild(
+  project,
+  { noBuild = false, reuseBundle = false, skipPreflight = false } = {},
+) {
   if (!skipPreflight) {
     await requireStageReady("ios", "build", project);
   }
   const adv = toMobileAdv(project, "ios");
-  buildPayload(adv, { noBuild, platform: "ios" });
+  buildPayload(adv, {
+    noBuild,
+    platform: "ios",
+    reuseBundleDir: reuseBundle ? project.bundleDir("ios") : null,
+  });
   await capSyncIos(adv);
   log("build", `ok -> ${displayPath(path.join(adv.buildDir, "ios"))}`);
 }
@@ -92,8 +99,10 @@ export async function stageBundle(
 export async function stagePackage(project, options = {}) {
   await requireStagesReady("ios", ["package", "build", "bundle"], project);
 
-  await stageBuild(project, { ...options, skipPreflight: true });
-  await stageBundle(project, { skipPreflight: true });
+  if (!options.noBuild) {
+    await stageBuild(project, { ...options, skipPreflight: true });
+    await stageBundle(project, { skipPreflight: true });
+  }
 
   const adv = toMobileAdv(project, "ios");
   const platformConfig = resolvePlatformConfig(project, "ios");

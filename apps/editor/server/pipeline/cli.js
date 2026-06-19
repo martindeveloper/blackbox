@@ -190,6 +190,9 @@ export function spawnStage(
   if (stage === "package" && reusePriorStages) {
     args.push("--no-build");
   }
+  if (stage === "build" && reusePriorStages) {
+    args.push("--reuse-bundle");
+  }
 
   // Forwarded to the web bundler (apps/web rolldown config) through the CLI's
   // playerBuildEnv, which spreads process.env. Set explicitly either way so the

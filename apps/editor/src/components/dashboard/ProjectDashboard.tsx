@@ -23,6 +23,7 @@ import { editorNavigate, navigateToTool } from "../../lib/routeHelpers.js";
 import { getToolRun, type ToolRun } from "../../lib/toolsApi.js";
 import { useScenarioStore } from "../../store/useScenarioStore.js";
 import { Icon } from "../icons/Icon.js";
+import { NarrativeInsightsPanel } from "./NarrativeInsightsPanel.js";
 
 interface WorkspaceLinkProps {
   title: string;
@@ -294,6 +295,8 @@ export function ProjectDashboard() {
             </span>
           </div>
         </section>
+
+        <NarrativeInsightsPanel />
 
         <section className="dashboard-panel" aria-labelledby="dashboard-workspaces">
           <div className="dashboard-panel-header" id="dashboard-workspaces">

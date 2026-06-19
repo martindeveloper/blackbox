@@ -21,13 +21,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // shows a "track playing" UI in the Dynamic Island / Control Center.
         // `.ambient` makes it behave like game audio instead: no Now Playing,
         // mixes with other apps, and obeys the hardware mute switch.
+        applyAmbientAudioSession()
+        return true
+    }
+
+    private func applyAmbientAudioSession() {
+        let session = AVAudioSession.sharedInstance()
+        guard session.category != .ambient else { return }
         do {
-            try AVAudioSession.sharedInstance().setCategory(.ambient, options: [.mixWithOthers])
-            try AVAudioSession.sharedInstance().setActive(true)
+            try session.setCategory(.ambient, options: [.mixWithOthers])
+            try session.setActive(true)
         } catch {
             print("[Blackbox] audio session setup failed: \(error)")
         }
-        return true
     }
 
     func applicationWillResignActive(_ application: UIApplication) {}
@@ -36,7 +42,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func applicationWillEnterForeground(_ application: UIApplication) {}
 
-    func applicationDidBecomeActive(_ application: UIApplication) {}
+    func applicationDidBecomeActive(_ application: UIApplication) {
+        applyAmbientAudioSession()
+    }
 
     func applicationWillTerminate(_ application: UIApplication) {}
 

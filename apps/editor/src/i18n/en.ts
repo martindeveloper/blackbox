@@ -1611,4 +1611,20 @@ export const en = {
     statFile: "File",
     statSpec: "Spec",
   },
+  insights: {
+    title: "Narrative metrics",
+    subtitle: "Pacing & structure",
+    metric: {
+      nodes: "Nodes",
+      choices: "Choices",
+      endings: "Endings",
+      branching: "Avg branching",
+    },
+    pacingTitle: "Pacing",
+    pacingChapter: "Chapter",
+    pacingNodes: "Nodes",
+    pacingChoices: "Choices",
+    pacingAvg: "Avg/node",
+    pacingEndings: "Endings",
+  },
 } as const;

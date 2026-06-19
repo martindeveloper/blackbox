@@ -220,9 +220,11 @@ export class BuildRunRegistry {
       );
     }
 
-    // package can reuse build + bundle outputs only when both ran earlier in this same pipeline
-    // (they execute before package), avoiding a redundant wasm/rolldown compile and re-bundle.
+    // Later stages can reuse outputs produced earlier in this same pipeline while every stage
+    // remains independently runnable. Bundle precedes Build, so Build can embed that exact
+    // platform bundle instead of invoking the bundler again. Package can reuse both.
     const selectedStages = new Set(record.stages.map((stageRecord) => stageRecord.stage));
+    const buildCanReuseBundle = selectedStages.has("bundle");
     const packageCanReuse = selectedStages.has("build") && selectedStages.has("bundle");
 
     for (const stageRecord of record.stages) {
@@ -237,7 +239,9 @@ export class BuildRunRegistry {
           configuration: record.configuration,
           stage: stageRecord.stage,
           reactCompiler: record.reactCompiler,
-          reusePriorStages: stageRecord.stage === "package" && packageCanReuse,
+          reusePriorStages:
+            (stageRecord.stage === "build" && buildCanReuseBundle) ||
+            (stageRecord.stage === "package" && packageCanReuse),
         },
         (line) => this.appendStageLog(project, stageRecord, line),
       );

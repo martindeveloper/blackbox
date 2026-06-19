@@ -63,8 +63,15 @@ export function stageLint(project) {
   runWebLint();
 }
 
-export function stageBuild(project, { configuration = project.configuration ?? "release" } = {}) {
-  runWebPlayerBuild(project, { configuration, platform: "web" });
+export function stageBuild(
+  project,
+  { configuration = project.configuration ?? "release", reuseBundle = false } = {},
+) {
+  runWebPlayerBuild(project, {
+    configuration,
+    platform: "web",
+    reuseBundleDir: reuseBundle ? project.bundleDir("web") : null,
+  });
   if (!existsSync(project.webWwwDir)) {
     fail("web", `missing build output at ${project.webWwwDir}`);
   }

@@ -67,17 +67,15 @@
   } else if (P.StatusBar && P.StatusBar.setStyle) {
     P.StatusBar.setStyle({ style: "DARK" }).catch(function () {});
   }
-  // setOverlaysWebView is an Android-only API. On pre-15 devices it makes the
-  // WebView full-bleed so core SystemBars injects --safe-area-inset-*; on Android
-  // 15+ edge-to-edge is forced and this is a no-op. iOS uses env(safe-area-inset-*).
+  // Capacitor's iOS implementation also resizes WKWebView here. Bleed/none must
+  // overlay so the game's own background reaches the physical top edge; band
+  // deliberately keeps the webview below the status bar. Android 15+ may ignore
+  // this because edge-to-edge is enforced, which is fine.
   if (
-    safeAreaEnabled &&
     P.StatusBar &&
-    P.StatusBar.setOverlaysWebView &&
-    Cap.getPlatform &&
-    Cap.getPlatform() === "android"
+    P.StatusBar.setOverlaysWebView
   ) {
-    P.StatusBar.setOverlaysWebView({ overlay: true }).catch(function () {});
+    P.StatusBar.setOverlaysWebView({ overlay: safeAreaMode !== "band" }).catch(function () {});
   }
 
   var ANDROID_SAFE_TOP_MIN = 28;

@@ -49,11 +49,6 @@ const RESUME_SETTLE_MS = 150;
 const PROGRESS_PROBE_MS = 100;
 const MUSIC_CACHE_MAX = 3;
 
-// Minimal silent WAV — playing any element during a user gesture upgrades iOS Safari's
-// audio session from "ambient" to "playback" so Web Audio output is audible.
-const SILENT_WAV =
-  "data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQIAAAAAAA==";
-
 function _fadeOutCurve(fromGain: number): Float32Array {
   const c = new Float32Array(FADE_CURVE_STEPS);
   for (let i = 0; i < FADE_CURVE_STEPS; i++) {
@@ -191,7 +186,10 @@ export class AudioEngine {
     try {
       const nav = navigator as Navigator & { audioSession?: { type: string } };
       if (nav.audioSession) {
-        nav.audioSession.type = "playback";
+        // This is game audio, not long-form media. "playback" opts iOS into
+        // Now Playing / Dynamic Island media controls; "ambient" keeps output
+        // inside the game audio session and respects the hardware mute switch.
+        nav.audioSession.type = "ambient";
       }
     } catch {}
 
@@ -203,12 +201,7 @@ export class AudioEngine {
       }
     } catch {}
 
-    if (!this._sessionUnlocked || this._recoveryPending || !this._isRunning()) {
-      try {
-        new Audio(SILENT_WAV).play().catch(() => {});
-        this._sessionUnlocked = true;
-      } catch {}
-    }
+    this._sessionUnlocked = true;
 
     const ctx = this._getCtx();
     if (!this._isRunning()) {
