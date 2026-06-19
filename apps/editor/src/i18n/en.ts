@@ -1,5 +1,3 @@
-import { PROJECT_CONFIG_PATH } from "../../shared/blackboxPaths.js";
-
 export const en = {
   app: {
     title: "Blackbox Editor",
@@ -243,6 +241,8 @@ export const en = {
       scenario: "Scenario",
     },
     console: "Console",
+    consolePin: "Pin console and resize preview",
+    consoleUnpin: "Unpin console and overlay preview",
     clearConsole: "Clear console",
     noConsoleEntries: "No console output yet",
     consoleFilterPlaceholder: "Filter console…",
@@ -514,12 +514,7 @@ export const en = {
     clearResult: "Clear result",
   },
   tools: {
-    projectTarget: "Project",
-    projectTargetMissing: "Open a project to run tools",
-    projectTargetPending: `Resolving via <project>/${PROJECT_CONFIG_PATH}…`,
     openProject: "Open a project to run tools.",
-    editorConfigHint:
-      "Projects are discovered by the local API from configured data roots and addressed by stable project ID.",
     run: "Run {{command}}",
     running: "Running…",
     waiting: "Waiting for engine output…",
@@ -649,10 +644,6 @@ export const en = {
     },
     inspector: {
       selectTool: "Select a tool from the sidebar.",
-      project: "Project",
-      manifestFile: "Manifest file",
-      dataRoot: "Project path",
-      serverNote: "Tools run through the local project API against the active project revision.",
       toolsHeading: "Tools",
     },
     parsed: {

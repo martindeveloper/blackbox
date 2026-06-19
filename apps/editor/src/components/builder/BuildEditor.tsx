@@ -142,8 +142,6 @@ export function BuildEditor() {
         <div className="build-head-copy">
           <h1>{t("build.title")}</h1>
           <span className="build-head-meta">
-            {projectName}
-            <span aria-hidden>·</span>
             {t("build.targetSummary", {
               platform: t(PLATFORM_LABEL_KEYS[platform]),
               configuration: t(CONFIGURATION_LABEL_KEYS[configuration]),

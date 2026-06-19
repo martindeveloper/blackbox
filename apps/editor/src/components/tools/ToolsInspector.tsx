@@ -90,9 +90,7 @@ export function ToolsInspector() {
   const { tool } = useEditorSearch();
   const activeTool = tool ?? "linter";
   const config = TOOL_ITEMS.find((item) => item.id === activeTool);
-  const projectName = useScenarioStore((s) => s.projectName);
   const projectId = useScenarioStore((s) => s.projectId);
-  const projectPath = useScenarioStore((s) => s.projectPath);
   const discovery = useToolRunnerStore((s) => s.discovery);
   const setDiscovery = useToolRunnerStore((s) => s.setDiscovery);
   const [, setTick] = useState(0);
@@ -112,23 +110,8 @@ export function ToolsInspector() {
     return <EmptyState>{t("tools.inspector.selectTool")}</EmptyState>;
   }
 
-  const scenarioFile = projectPath ? "scenario.json" : null;
-
   return (
     <div className="tools-inspector">
-      <dl className="tools-inspector-meta">
-        <div>
-          <dt>{t("tools.inspector.project")}</dt>
-          <dd>{projectName ?? t("app.noProject")}</dd>
-        </div>
-        {scenarioFile && (
-          <div>
-            <dt>{t("tools.inspector.manifestFile")}</dt>
-            <dd className="font-mono text-[10px]">{scenarioFile}</dd>
-          </div>
-        )}
-      </dl>
-
       <div className="tools-inspector-tools">
         <div className="tools-inspector-tools-header">
           <span className="tools-inspector-tools-heading">{t("tools.inspector.toolsHeading")}</span>

@@ -252,30 +252,6 @@
   flex-shrink: 0;
 }
 
-.tools-runner-target {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-
-.tools-runner-target-name {
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--editor-text);
-  white-space: nowrap;
-}
-
-.tools-runner-target-path {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--editor-text-subtle);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 360px;
-}
-
 .tools-basic-options {
   flex-shrink: 0;
   display: grid;
@@ -1087,40 +1063,10 @@
   flex-direction: column;
 }
 
-.tools-inspector-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin: 0;
-}
-
-.tools-inspector-meta div {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.tools-inspector-meta dt {
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--editor-text-subtle);
-}
-
-.tools-inspector-meta dd {
-  margin: 0;
-  font-size: 11px;
-  color: var(--editor-text);
-}
-
 .tools-inspector-tools {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  margin-top: 16px;
-  padding-top: 14px;
-  border-top: 1px solid var(--editor-border);
 }
 
 .tools-inspector-tools-header {

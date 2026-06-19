@@ -287,7 +287,6 @@
 .author-block-type .editor-input {
   width: auto;
   min-width: 128px;
-  padding-left: 0;
   color: var(--author-accent);
   background-color: transparent;
   border-color: transparent;

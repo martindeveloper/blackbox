@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ChevronRight, Terminal, Trash2 } from "lucide-react";
+import { ChevronRight, Pin, PinOff, Terminal, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { usePreviewStore, type PreviewConsoleEntry } from "../../store/usePreviewStore.js";
 import { Icon } from "../icons/Icon.js";
@@ -40,6 +40,8 @@ export function PreviewInspectorConsole() {
   const { t } = useTranslation();
   const [filter, setFilter] = useState<ConsoleFilter>("all");
   const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const [pinned, setPinned] = useState(false);
   const entries = usePreviewStore((state) => state.consoleEntries);
   const commandSender = usePreviewStore((state) => state.commandSender);
 
@@ -59,78 +61,100 @@ export function PreviewInspectorConsole() {
     entries.length > 0 ? t("preview.consoleFilterEmpty") : t("preview.noConsoleEntries");
 
   return (
-    <details className="preview-console">
-      <summary className="preview-console-summary">
-        <span className="preview-console-summary-label">
-          <Icon icon={ChevronRight} size={12} />
-          <Icon icon={Terminal} size={13} />
-          {t("preview.console")}
-        </span>
-        <span className="preview-console-summary-counts">
-          {errorCount > 0 && (
-            <em className="preview-console-badge preview-console-badge--error">{errorCount}</em>
-          )}
-          {warnCount > 0 && (
-            <em className="preview-console-badge preview-console-badge--warn">{warnCount}</em>
-          )}
-          <em className="preview-console-count">{entries.length}</em>
-        </span>
-      </summary>
-
-      <div className="preview-console-body">
-        <div className="preview-console-toolbar">
-          <div className="preview-console-filters">
-            {CONSOLE_FILTERS.map((candidate) => (
-              <button
-                key={candidate}
-                type="button"
-                className={candidate === filter ? "is-active" : undefined}
-                onClick={() => setFilter(candidate)}
-              >
-                {t(`preview.consoleFilter.${candidate}`)}
-              </button>
-            ))}
-          </div>
-          <Input
-            compact
-            mono
-            type="search"
-            value={query}
-            placeholder={t("preview.consoleFilterPlaceholder")}
-            aria-label={t("preview.consoleFilterPlaceholder")}
-            onChange={(event) => setQuery(event.target.value)}
-          />
-          <button
-            type="button"
-            className="preview-console-clear"
-            disabled={!entries.length}
-            title={t("preview.clearConsole")}
-            onClick={() => commandSender?.({ type: "clear-console" })}
-          >
-            <Icon icon={Trash2} size={12} />
-          </button>
-        </div>
-        <div className="preview-console-log" role="log">
-          {filtered.length ? (
-            filtered.map((entry) => (
-              <article key={entry.id} className={`preview-console-entry is-${entry.level}`}>
-                <time>{formatTime(entry.at)}</time>
-                <div className="preview-console-entry-body">
-                  <pre className="preview-console-text">{entry.text}</pre>
-                  {entry.stack && (
-                    <details className="preview-console-stack">
-                      <summary>{t("preview.consoleStack")}</summary>
-                      <pre>{entry.stack}</pre>
-                    </details>
-                  )}
-                </div>
-              </article>
-            ))
-          ) : (
-            <div className="preview-console-empty">{emptyMessage}</div>
-          )}
-        </div>
+    <section className={`preview-console${open ? " is-open" : ""}${pinned ? " is-pinned" : ""}`}>
+      <div className="preview-console-summary">
+        <button
+          type="button"
+          className="preview-console-toggle"
+          aria-expanded={open}
+          onClick={() => setOpen((current) => !current)}
+        >
+          <span className="preview-console-summary-label">
+            <Icon icon={ChevronRight} size={12} />
+            <Icon icon={Terminal} size={13} />
+            {t("preview.console")}
+          </span>
+          <span className="preview-console-summary-counts">
+            {errorCount > 0 && (
+              <em className="preview-console-badge preview-console-badge--error">{errorCount}</em>
+            )}
+            {warnCount > 0 && (
+              <em className="preview-console-badge preview-console-badge--warn">{warnCount}</em>
+            )}
+            <em className="preview-console-count">{entries.length}</em>
+          </span>
+        </button>
+        <button
+          type="button"
+          className={`preview-console-pin${pinned ? " is-active" : ""}`}
+          aria-pressed={pinned}
+          title={pinned ? t("preview.consoleUnpin") : t("preview.consolePin")}
+          aria-label={pinned ? t("preview.consoleUnpin") : t("preview.consolePin")}
+          onClick={() => {
+            setPinned((current) => !current);
+            setOpen(true);
+          }}
+        >
+          <Icon icon={pinned ? PinOff : Pin} size={12} />
+        </button>
       </div>
-    </details>
+
+      {open ? (
+        <div className="preview-console-body">
+          <div className="preview-console-toolbar">
+            <div className="preview-console-filters">
+              {CONSOLE_FILTERS.map((candidate) => (
+                <button
+                  key={candidate}
+                  type="button"
+                  className={candidate === filter ? "is-active" : undefined}
+                  onClick={() => setFilter(candidate)}
+                >
+                  {t(`preview.consoleFilter.${candidate}`)}
+                </button>
+              ))}
+            </div>
+            <Input
+              compact
+              mono
+              type="search"
+              value={query}
+              placeholder={t("preview.consoleFilterPlaceholder")}
+              aria-label={t("preview.consoleFilterPlaceholder")}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+            <button
+              type="button"
+              className="preview-console-clear"
+              disabled={!entries.length}
+              title={t("preview.clearConsole")}
+              onClick={() => commandSender?.({ type: "clear-console" })}
+            >
+              <Icon icon={Trash2} size={12} />
+            </button>
+          </div>
+          <div className="preview-console-log" role="log">
+            {filtered.length ? (
+              filtered.map((entry) => (
+                <article key={entry.id} className={`preview-console-entry is-${entry.level}`}>
+                  <time>{formatTime(entry.at)}</time>
+                  <div className="preview-console-entry-body">
+                    <pre className="preview-console-text">{entry.text}</pre>
+                    {entry.stack && (
+                      <details className="preview-console-stack">
+                        <summary>{t("preview.consoleStack")}</summary>
+                        <pre>{entry.stack}</pre>
+                      </details>
+                    )}
+                  </div>
+                </article>
+              ))
+            ) : (
+              <div className="preview-console-empty">{emptyMessage}</div>
+            )}
+          </div>
+        </div>
+      ) : null}
+    </section>
   );
 }

@@ -371,11 +371,7 @@ export function ToolRunnerView({ toolId, title, icon, commandLabel }: ToolRunner
           <span className="tools-run-blocker">{t("tools.openProject")}</span>
         ) : configError ? (
           <span className="tools-run-blocker">{configError}</span>
-        ) : (
-          <span className="tools-runner-target">
-            <span className="tools-runner-target-name">{projectName}</span>
-          </span>
-        )}
+        ) : null}
       </div>
 
       {(toolId === "bundle" || toolId === "linter") && (

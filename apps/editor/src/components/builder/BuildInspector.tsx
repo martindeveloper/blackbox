@@ -53,7 +53,6 @@ function PreflightCheckRow({ check }: { check: PreflightCheck }) {
 export function BuildInspector() {
   const { t } = useTranslation();
   const projectId = useScenarioStore((s) => s.projectId);
-  const projectName = useScenarioStore((s) => s.projectName);
   const platform = useBuildStore((s) => s.platform);
   const configuration = useBuildStore((s) => s.configuration);
   const selectedStages = useBuildStore((s) => s.selectedStages);
@@ -103,10 +102,6 @@ export function BuildInspector() {
           />
           <span>{statusLabel}</span>
         </div>
-      </FormField>
-
-      <FormField label={t("tools.inspector.project")}>
-        <span className="build-inspector-value">{projectName ?? t("app.noProject")}</span>
       </FormField>
 
       <FormField label={t("build.target")}>

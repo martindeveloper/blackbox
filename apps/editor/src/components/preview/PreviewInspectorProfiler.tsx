@@ -22,7 +22,13 @@ function profilerEventMatchesQuery(event: PreviewProfilerEvent, query: string): 
   );
 }
 
-export function PreviewInspectorProfiler({ dock = false }: { dock?: boolean }) {
+export function PreviewInspectorProfiler({
+  dock = false,
+  showHeader = true,
+}: {
+  dock?: boolean;
+  showHeader?: boolean;
+}) {
   const { t } = useTranslation();
   const [filter, setFilter] = useState<ProfilerFilter>("all");
   const [query, setQuery] = useState("");
@@ -48,18 +54,20 @@ export function PreviewInspectorProfiler({ dock = false }: { dock?: boolean }) {
         dock ? "preview-inspector-section preview-profiler--dock" : "preview-inspector-section"
       }
     >
-      <div className="preview-inspector-title-row">
-        <SectionTitle icon={Activity} title={t("preview.profiler")} count={filtered.length} />
-        <button
-          type="button"
-          className="preview-profiler-clear"
-          disabled={!events.length}
-          title={t("preview.clearProfiler")}
-          onClick={() => commandSender?.({ type: "clear-profiler" })}
-        >
-          <Icon icon={Trash2} size={11} />
-        </button>
-      </div>
+      {showHeader ? (
+        <div className="preview-inspector-title-row">
+          <SectionTitle icon={Activity} title={t("preview.profiler")} count={filtered.length} />
+          <button
+            type="button"
+            className="preview-profiler-clear"
+            disabled={!events.length}
+            title={t("preview.clearProfiler")}
+            onClick={() => commandSender?.({ type: "clear-profiler" })}
+          >
+            <Icon icon={Trash2} size={11} />
+          </button>
+        </div>
+      ) : null}
       <div className="preview-profiler-card">
         <div className="preview-profiler-filters">
           {PROFILER_FILTERS.map((category) => (

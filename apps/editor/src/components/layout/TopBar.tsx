@@ -131,8 +131,6 @@ export function TopBar() {
     .sort((a, b) => a.localeCompare(b));
 
   const projectTitle = bundle?.scenario.title ?? projectName;
-  const projectFolderName = projectName;
-  const showFolderName = projectTitle && projectFolderName && projectTitle !== projectFolderName;
 
   const handleClose = async () => {
     // Guard against silently discarding unsaved work. Three outcomes:
@@ -194,17 +192,7 @@ export function TopBar() {
         <span className="editor-topbar-divider" aria-hidden />
 
         <div className="editor-topbar-context">
-          <span
-            className="editor-topbar-path"
-            title={showFolderName ? (projectFolderName ?? undefined) : undefined}
-          >
-            {projectTitle ?? t("app.noProject")}
-          </span>
-          {showFolderName ? (
-            <span className="editor-topbar-scenario-name" title={projectFolderName ?? undefined}>
-              {projectFolderName}
-            </span>
-          ) : null}
+          <span className="editor-topbar-path">{projectTitle ?? t("app.noProject")}</span>
         </div>
       </div>
 
