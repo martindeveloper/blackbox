@@ -15,6 +15,7 @@ import {
   serverBuildRunCancelRoute,
   serverProjectMediaRoute,
   serverProjectRoute,
+  serverPreviewCheckpointRoute,
   serverToolsRunRoute,
 } from "../shared/apiPaths.js";
 import {
@@ -219,6 +220,29 @@ export async function registerRoutes(app, service) {
   app.delete(
     serverProjectRoute(ProjectRoutes.Heatmap),
     projectRequest(service, (project) => service.deleteHeatmap(project.id)),
+  );
+
+  app.get(
+    serverProjectRoute(ProjectRoutes.PreviewCheckpoints),
+    projectRequest(service, (project) => service.listPreviewCheckpoints(project.id)),
+  );
+  app.post(
+    serverProjectRoute(ProjectRoutes.PreviewCheckpoints),
+    projectRequest(service, (project, request) =>
+      service.createPreviewCheckpoint(project.id, request.body ?? {}),
+    ),
+  );
+  app.get(
+    serverPreviewCheckpointRoute(),
+    projectRequest(service, (project, request) =>
+      service.readPreviewCheckpoint(project.id, request.params.checkpointId),
+    ),
+  );
+  app.delete(
+    serverPreviewCheckpointRoute(),
+    projectRequest(service, (project, request) =>
+      service.deletePreviewCheckpoint(project.id, request.params.checkpointId),
+    ),
   );
 
   app.put(
@@ -438,9 +462,7 @@ export async function registerRoutes(app, service) {
       const platform = typeof body.platform === "string" ? body.platform : "";
       const configuration = typeof body.configuration === "string" ? body.configuration : "";
       const stages = Array.isArray(body.stages) ? body.stages : [];
-      // Player-bundle option; defaults on unless explicitly false.
       const reactCompiler = body.reactCompiler !== false;
-      // Fresh build; defaults off. Wipes the configuration's build cache before stages run.
       const clean = body.clean === true;
 
       if (!isValidPlatform(platform)) {

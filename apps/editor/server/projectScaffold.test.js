@@ -31,11 +31,9 @@ test("ensureProjectIdeSetup generates IDE files against the editor SDK", async (
     const game = path.join(root, "my-game");
     await fs.mkdir(game, { recursive: true });
 
-    // No SDK available (e.g. corrupt install): no-op, no file written.
     assert.equal(await ensureProjectIdeSetup(game, path.join(root, "missing-sdk")), false);
     await assert.rejects(fs.access(path.join(game, "tsconfig.json")));
 
-    // SDK present (apps/web in dev, bundled players/web/workspace when packaged).
     const sdkRoot = path.join(root, "sdk");
     const sdkTsconfig = path.join(sdkRoot, "tsconfig.game.json");
     const typescriptLib = path.join(sdkRoot, "pkg", "node_modules", "typescript", "lib");
@@ -55,7 +53,6 @@ test("ensureProjectIdeSetup generates IDE files against the editor SDK", async (
 
     assert.equal(await ensureProjectIdeSetup(game, sdkRoot), true);
     const written = await fs.readFile(path.join(game, "tsconfig.json"), "utf8");
-    // Absolute extends so it resolves wherever the project lives — no monorepo.
     assert.match(written, new RegExp(`"extends": "${sdkTsconfig.split(path.sep).join("/")}"`));
     assert.match(written, /"include"/);
     const settings = JSON.parse(
@@ -72,7 +69,6 @@ test("ensureProjectIdeSetup generates IDE files against the editor SDK", async (
     assert.match(gitignore, /^tsconfig\.json$/m);
     assert.match(gitignore, /^\.vscode\/settings\.json$/m);
 
-    // Idempotent: identical content is not rewritten.
     assert.equal(await ensureProjectIdeSetup(game, sdkRoot), false);
   } finally {
     await fs.rm(root, { recursive: true, force: true });
@@ -92,13 +88,11 @@ test("bootstrapStarterCode scaffolds a commented src/ starter without clobbering
     );
 
     const gameTs = await fs.readFile(path.join(projectPath, "src", "game.ts"), "utf8");
-    // Game id derives from the folder name, and the entry point is documented.
     assert.match(gameTs, /id: "my_game"/);
     assert.match(gameTs, /GameDefinition/);
     const appTsx = await fs.readFile(path.join(projectPath, "src", "App.tsx"), "utf8");
     assert.match(appTsx, /TextGamePlayerApp/);
 
-    // Existing files are preserved; only genuinely new files are reported.
     await fs.writeFile(path.join(projectPath, "src", "game.ts"), "// my edits\n");
     const second = await bootstrapStarterCode(projectPath);
     assert.equal(second.length, 0);
@@ -130,7 +124,6 @@ test("example content forms a fully-connected, self-consistent two-chapter tour"
     assert.ok(chapter.nodes[chapter.startNodeId], `${chapter.id} start node exists`);
   }
 
-  // Every goto / skill-check / cross-chapter target resolves.
   for (const chapter of Object.values(chapters)) {
     for (const node of Object.values(chapter.nodes)) {
       for (const choice of node.choices ?? []) {
@@ -155,12 +148,10 @@ test("example content forms a fully-connected, self-consistent two-chapter tour"
     }
   }
 
-  // The tour demonstrates a game-over node and an ending node.
   const modes = Object.values(second.nodes).map((node) => node.mode);
   assert.ok(modes.includes("game_over"));
   assert.ok(modes.includes("ending"));
 
-  // Referenced item / event / flag are defined in their catalogs.
   assert.ok(exampleItemsDoc().items.keycard);
   const meta = exampleMetaCatalogDoc();
   assert.ok(meta.events.arrived);
@@ -394,11 +385,9 @@ test("create route with withCode scaffolds starter code and trusts it", async ()
     const { project } = created.json();
     assert.equal(project.codeTrusted, true);
 
-    // Starter src/ exists on disk...
     await fs.access(path.join(projectsRoot, "coded", "src", "game.ts"));
     await fs.access(path.join(projectsRoot, "coded", "src", "App.tsx"));
 
-    // ...and the project opens without a trust prompt (auto-trusted).
     const opened = await app.inject({
       method: "POST",
       url: `/api/v1/projects/${project.id}/open`,

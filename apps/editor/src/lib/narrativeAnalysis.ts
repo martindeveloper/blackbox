@@ -16,7 +16,6 @@ export interface NarrativeMetrics {
   totalNodes: number;
   totalChoices: number;
   endings: number;
-  /** Average outgoing routes across non-terminal nodes. */
   avgBranching: number;
   chapters: ChapterPacing[];
 }
@@ -25,7 +24,6 @@ function isTerminal(node: NodeContent): boolean {
   return node.mode === "ending" || node.mode === "game_over";
 }
 
-/** Count the outgoing routes (choices, skill checks, chapter jumps) a node exposes. */
 function outgoingRouteCount(node: NodeContent): number {
   let count = 0;
   for (const choice of node.choices ?? []) {

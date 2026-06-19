@@ -110,10 +110,6 @@ function cliSpawnOptions({ inheritStdio = false, extraEnv = {} } = {}) {
   };
 }
 
-/**
- * Run the build CLI with arbitrary arguments. Resolves to the child exit code.
- * With `inheritStdio: true`, stdout/stderr are forwarded for CI / terminal use.
- */
 export function runCli(cliArgs, { inheritStdio = false } = {}) {
   const args = [cliEntry(), ...cliArgs];
 
@@ -130,10 +126,6 @@ export function runCli(cliArgs, { inheritStdio = false } = {}) {
   });
 }
 
-/**
- * Spawn the build CLI for a single stage, streaming merged stdout/stderr lines to `onLine`.
- * Returns a handle whose `done` resolves to `{ exitCode, canceled, artifact }`.
- */
 export function spawnStage(
   projectPath,
   { platform, configuration, stage, reactCompiler, bundleInput = null, buildInput = null },

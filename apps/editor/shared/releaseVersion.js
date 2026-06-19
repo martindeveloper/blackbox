@@ -6,7 +6,6 @@ function versionParts(value) {
     .map((part) => Number.parseInt(part, 10) || 0);
 }
 
-/** Returns true when `latest` is a strictly newer semantic version than `current`. */
 export function isNewerVersion(latest, current) {
   const a = versionParts(latest);
   const b = versionParts(current);

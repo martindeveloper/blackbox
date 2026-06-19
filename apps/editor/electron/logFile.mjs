@@ -19,10 +19,6 @@ function tee(target) {
   };
 }
 
-/**
- * Mirror process stdout/stderr to userData/logs/editor.log. Safe to call once;
- * subsequent calls are ignored. Returns the log path (or null if already set up).
- */
 export function initFileLogging(userDataDir) {
   if (stream) return null;
   const logsDir = path.join(userDataDir, "logs");

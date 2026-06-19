@@ -294,7 +294,6 @@ export class BuildRunRegistry {
     return true;
   }
 
-  /** Wait for queued build-runs.json writes (used by tests). */
   async flush(projectRoot) {
     const project = this.projects.get(path.resolve(projectRoot));
     if (!project) return;

@@ -10,10 +10,6 @@ export interface UseUpdateCheck {
   check: () => Promise<void>;
 }
 
-/**
- * Fetches the latest editor version and compares it against the running build.
- * Pass `{ auto: true }` to check once on mount (used for the boot-time popup).
- */
 export function useUpdateCheck(options?: { auto?: boolean }): UseUpdateCheck {
   const auto = options?.auto ?? false;
   const [status, setStatus] = useState<UpdateStatus>(auto ? "checking" : "idle");

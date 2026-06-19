@@ -175,7 +175,6 @@ function baseProjectJsonFiles({ items, characters, assets, library, cook, catalo
   ];
 }
 
-/** Scaffold starter custom-code files into `src/` without clobbering existing files. */
 export async function bootstrapStarterCode(projectPath) {
   const gameId = path.basename(projectPath);
   const files = [
@@ -193,10 +192,6 @@ export async function bootstrapStarterCode(projectPath) {
   return created;
 }
 
-/**
- * Generate machine-local IDE files via the default code player scaffold.
- * `sdkRootOverride` supports tests with a custom SDK path.
- */
 export async function ensureProjectIdeSetup(projectPath, sdkRootOverride) {
   return ensurePlayerProjectIdeSetup(DEFAULT_CODE_PLAYER_ID, projectPath, sdkRootOverride);
 }

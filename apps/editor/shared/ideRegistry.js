@@ -1,12 +1,3 @@
-/**
- * Canonical list of supported IDEs.
- *
- * To add an editor:
- * 1. Add `{ id, label }` here.
- * 2. Implement `electron/idePlugins/<id>.mjs` and register it in `electron/idePlugins/index.mjs`.
- * 3. If it needs project scaffolding, implement `server/idePlugins/<id>.js` and register it in
- *    `server/idePlugins/index.js`.
- */
 export const IDE_PLUGINS = Object.freeze([
   { id: "vscode", label: "Visual Studio Code" },
   { id: "cursor", label: "Cursor" },

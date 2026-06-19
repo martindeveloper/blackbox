@@ -18,16 +18,9 @@ function readDismissed(): string | null {
 function storeDismissed(version: string): void {
   try {
     localStorage.setItem(DISMISS_KEY, version);
-  } catch {
-    /* ignore unavailable storage */
-  }
+  } catch {}
 }
 
-/**
- * Auto-checks for a newer editor release on boot and shows a small popup with an
- * update button. Dismissals are remembered per-version so the same release does
- * not nag on every launch.
- */
 export function UpdateBanner() {
   const { t } = useTranslation();
   const { status, result } = useUpdateCheck({ auto: true });

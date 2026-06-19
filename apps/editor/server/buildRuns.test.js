@@ -116,7 +116,7 @@ test("stops on stage failure and leaves later stages pending", async () => {
     });
     const current = await waitForSettled(registry, root);
     assert.equal(current.run.state, "error");
-    assert.deepEqual(calls, ["bundle"]); // build and package never ran
+    assert.deepEqual(calls, ["bundle"]);
     const states = Object.fromEntries(current.run.stages.map((s) => [s.stage, s.state]));
     assert.deepEqual(states, { bundle: "error", build: "pending", package: "pending" });
     assert.match(current.run.error, /bundle/);

@@ -9,6 +9,7 @@ import {
   HEATMAP_PATH,
   BUILD_DIR,
   CACHE_DIR,
+  CHECKPOINTS_DIR,
   LAYOUT_PATH,
   PROJECT_CONFIG_BASENAME,
   PROJECT_CONFIG_PATH,
@@ -319,7 +320,6 @@ test("warns before opening with a different editor version and updates on accept
     const [project] = env.service.listProjects();
     env.service.setProjectCodeTrust(project.id, false);
 
-    // Unmarked existing projects are adopted without a warning.
     await env.service.openProject(project.id);
     const currentProjectDoc = JSON.parse(
       await fs.readFile(path.join(env.projectPath, PROJECT_CONFIG_PATH), "utf8"),
@@ -484,6 +484,43 @@ test("ignores malformed persisted heatmaps", async () => {
 
     const loaded = await env.service.readHeatmap(project.id);
     assert.equal(loaded.stored, null);
+  } finally {
+    await env.close();
+  }
+});
+
+test("stores preview checkpoints under .blackbox/user/checkpoints", async () => {
+  const env = await fixture();
+  try {
+    const [project] = env.service.listProjects();
+    const payload = {
+      storage: { "save-slot:0": { nodeId: "start" }, "last-used-slot": 0 },
+      engineState: JSON.stringify({ protocol: 1, view: { node_id: "start" } }),
+      nodeId: "start",
+      chapterId: "one",
+      location: "Hall",
+    };
+    const saved = await env.service.createPreviewCheckpoint(project.id, payload);
+    assert.equal(saved.checkpoint.format, "blackbox-preview-checkpoint");
+    assert.equal(saved.checkpoint.nodeId, "start");
+
+    const listed = await env.service.listPreviewCheckpoints(project.id);
+    assert.equal(listed.checkpoints.length, 1);
+    assert.equal(listed.checkpoints[0].id, saved.checkpoint.id);
+
+    const loaded = await env.service.readPreviewCheckpoint(project.id, saved.checkpoint.id);
+    assert.equal(loaded.checkpoint.engineState, payload.engineState);
+
+    await env.service.deletePreviewCheckpoint(project.id, saved.checkpoint.id);
+    const afterDelete = await env.service.listPreviewCheckpoints(project.id);
+    assert.equal(afterDelete.checkpoints.length, 0);
+
+    const checkpointFile = path.join(
+      env.projectPath,
+      CHECKPOINTS_DIR,
+      `${saved.checkpoint.id}.json`,
+    );
+    await assert.rejects(fs.access(checkpointFile));
   } finally {
     await env.close();
   }

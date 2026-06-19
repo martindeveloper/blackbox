@@ -1,8 +1,3 @@
-// Custom-code starter — minimal, heavily-commented files that show a developer
-// where to go next when they take over the engine's default web UI. These are
-// pure content builders (no filesystem); projectScaffold.js writes them to disk
-// via bootstrapStarterCode.
-
 export function starterGameTsDoc(gameId) {
   return `// game.ts — the entry point for this project's custom web UI.
 //

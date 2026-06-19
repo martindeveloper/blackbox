@@ -1,7 +1,6 @@
 export const API_VERSION = "v1";
 export const API_PREFIX = `/api/${API_VERSION}`;
 
-/** Routes mounted at API_PREFIX (no project id). */
 export const GlobalRoutes = {
   Prefs: "/prefs",
   Players: "/players",
@@ -11,7 +10,6 @@ export const GlobalRoutes = {
   ProjectsRevokeCodeTrust: "/projects/revoke-code-trust",
 };
 
-/** Path suffixes under `/projects/:id`. */
 export const ProjectRoutes = {
   Open: "/open",
   Delete: "/delete",
@@ -27,6 +25,7 @@ export const ProjectRoutes = {
   TrashEmpty: "/trash/empty",
   PreviewDocs: "/preview-docs",
   PreviewBuild: "/preview-build",
+  PreviewCheckpoints: "/preview-checkpoints",
   ToolsDiscover: "/tools/discover",
   ToolsBuild: "/tools/build",
   ToolsRuns: "/tools/runs",
@@ -57,7 +56,6 @@ export function projectBuildRunCancelUrl(projectId, runId) {
   return projectApiUrl(projectId, `${ProjectRoutes.BuildRuns}/${encodeURIComponent(runId)}/cancel`);
 }
 
-/** Fastify route paths (relative to API_PREFIX). */
 export function serverProjectRoute(suffix) {
   return `/projects/:id${suffix}`;
 }
@@ -72,6 +70,10 @@ export function serverToolsRunRoute() {
 
 export function serverBuildRunCancelRoute() {
   return `${serverProjectRoute(ProjectRoutes.BuildRuns)}/:runId/cancel`;
+}
+
+export function serverPreviewCheckpointRoute() {
+  return `${serverProjectRoute(ProjectRoutes.PreviewCheckpoints)}/:checkpointId`;
 }
 
 export const Api = {

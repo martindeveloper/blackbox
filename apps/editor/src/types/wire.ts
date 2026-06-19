@@ -67,7 +67,6 @@ export interface IosPlatformConfig {
   orientations?: PlatformOrientations;
   icon?: string;
   backgroundColor?: string;
-  /** Fill painted in the safe-area band. Defaults to backgroundColor. */
   safeAreaColor?: string;
   /**
    * Safe-area strategy on native builds. "band" (default): inset whole UI below
@@ -88,7 +87,6 @@ export interface AndroidPlatformConfig {
   orientations?: PlatformOrientations;
   icon?: string;
   backgroundColor?: string;
-  /** Fill painted in the safe-area band. Defaults to backgroundColor. */
   safeAreaColor?: string;
   /**
    * Safe-area strategy on native builds. "band" (default): inset whole UI below

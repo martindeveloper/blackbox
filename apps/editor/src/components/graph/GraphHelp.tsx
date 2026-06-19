@@ -58,7 +58,6 @@ export function GraphHelp() {
     };
   }, [open]);
 
-  // "?" toggles the shortcut reference from anywhere on the graph canvas.
   useEffect(() => {
     const toggleOnQuestionMark = (event: KeyboardEvent) => {
       if (event.metaKey || event.ctrlKey || event.altKey) return;

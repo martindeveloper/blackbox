@@ -23,6 +23,8 @@ import {
   CACHE_DIR,
   EDITOR_DB_BASENAME,
   EDITOR_SIDECAR_DIR,
+  CHECKPOINTS_DIR,
+  CHECKPOINTS_MANIFEST_PATH,
   HEATMAP_PATH,
   LAYOUT_PATH,
   PROJECT_CONFIG_PATH,
@@ -34,6 +36,8 @@ import { EDITOR_VERSION } from "../shared/editorVersion.js";
 
 const MEDIA_ROOTS = new Set(["textures", "music", "sfx"]);
 const HEATMAP_SCHEMA_VERSION = 2;
+const CHECKPOINTS_SCHEMA_VERSION = 1;
+const PREVIEW_CHECKPOINT_FORMAT = "blackbox-preview-checkpoint";
 // node:sqlite defaults busy_timeout to 0; bound lock waits so close-time WAL
 // checkpoints cannot hang indefinitely on stale -shm locks.
 const SQLITE_BUSY_TIMEOUT_MS = 500;
@@ -156,7 +160,6 @@ function isVersionControlPath(relativePath) {
   return relativePath === ".git" || relativePath.startsWith(".git/");
 }
 
-// Paths the project watcher and indexer must ignore entirely.
 function isIgnoredProjectPath(relativePath) {
   return (
     isUserSidecar(relativePath) ||
@@ -256,6 +259,57 @@ function normalizeHeatmapRecord(value) {
     sourceRevision: Number.isFinite(value.sourceRevision) ? value.sourceRevision : null,
     scenarioRevision: typeof value.scenarioRevision === "string" ? value.scenarioRevision : null,
     runId: typeof value.runId === "string" ? value.runId : null,
+  };
+}
+
+function normalizeCheckpointSummary(value) {
+  if (!value || typeof value !== "object") return null;
+  const id = typeof value.id === "string" ? value.id.trim() : "";
+  const createdAt = typeof value.createdAt === "string" ? value.createdAt : null;
+  if (!id || !createdAt) return null;
+  return {
+    id,
+    createdAt,
+    nodeId: typeof value.nodeId === "string" ? value.nodeId : null,
+    chapterId: typeof value.chapterId === "string" ? value.chapterId : null,
+    location: typeof value.location === "string" ? value.location : null,
+  };
+}
+
+function normalizeCheckpointRecord(value) {
+  if (!value || typeof value !== "object") return null;
+  if (value.format !== PREVIEW_CHECKPOINT_FORMAT) return null;
+  if (value.version !== CHECKPOINTS_SCHEMA_VERSION) return null;
+  const summary = normalizeCheckpointSummary(value);
+  if (!summary) return null;
+  const storage = value.storage;
+  const engineState = typeof value.engineState === "string" ? value.engineState.trim() : "";
+  if (
+    !storage ||
+    typeof storage !== "object" ||
+    Array.isArray(storage) ||
+    engineState.length === 0
+  ) {
+    return null;
+  }
+  return {
+    format: PREVIEW_CHECKPOINT_FORMAT,
+    version: CHECKPOINTS_SCHEMA_VERSION,
+    ...summary,
+    storage,
+    engineState,
+  };
+}
+
+function normalizeCheckpointManifest(value) {
+  if (!value || typeof value !== "object")
+    return { version: CHECKPOINTS_SCHEMA_VERSION, checkpoints: [] };
+  const checkpoints = Array.isArray(value.checkpoints)
+    ? value.checkpoints.map(normalizeCheckpointSummary).filter(Boolean)
+    : [];
+  return {
+    version: value.version === CHECKPOINTS_SCHEMA_VERSION ? CHECKPOINTS_SCHEMA_VERSION : 1,
+    checkpoints,
   };
 }
 
@@ -767,6 +821,118 @@ export class ProjectService {
     const file = this.heatmapPath(project);
     this.suppress(file);
     await fs.rm(file, { force: true });
+    return { ok: true };
+  }
+
+  checkpointsDir(project) {
+    return path.join(project.path, CHECKPOINTS_DIR);
+  }
+
+  checkpointsManifestPath(project) {
+    return path.join(project.path, CHECKPOINTS_MANIFEST_PATH);
+  }
+
+  checkpointFilePath(project, checkpointId) {
+    return path.join(this.checkpointsDir(project), `${checkpointId}.json`);
+  }
+
+  async readCheckpointManifest(project) {
+    const manifest = normalizeCheckpointManifest(
+      await readJson(this.checkpointsManifestPath(project), null),
+    );
+    const valid = [];
+    for (const entry of manifest.checkpoints) {
+      try {
+        await fs.access(this.checkpointFilePath(project, entry.id));
+        valid.push(entry);
+      } catch {}
+    }
+    if (valid.length !== manifest.checkpoints.length) {
+      await this.writeCheckpointManifest(project, valid);
+    }
+    return valid;
+  }
+
+  async writeCheckpointManifest(project, checkpoints) {
+    const file = this.checkpointsManifestPath(project);
+    this.suppress(file);
+    await fs.mkdir(this.checkpointsDir(project), { recursive: true });
+    await writeJson(file, {
+      version: CHECKPOINTS_SCHEMA_VERSION,
+      checkpoints,
+    });
+  }
+
+  async listPreviewCheckpoints(id) {
+    const project = this.requireProject(id);
+    const checkpoints = await this.readCheckpointManifest(project);
+    return { checkpoints };
+  }
+
+  async readPreviewCheckpoint(id, checkpointId) {
+    const project = this.requireProject(id);
+    const safeId = String(checkpointId ?? "").trim();
+    if (!safeId || safeId.includes("/") || safeId.includes("\\")) {
+      throw new ProjectError("invalid_request", "checkpoint id is required");
+    }
+    const record = normalizeCheckpointRecord(
+      await readJson(this.checkpointFilePath(project, safeId), null),
+    );
+    if (!record) {
+      throw new ProjectError("not_found", "Checkpoint not found");
+    }
+    return { checkpoint: record };
+  }
+
+  async createPreviewCheckpoint(id, payload) {
+    const project = this.requireProject(id);
+    const storage = payload?.storage;
+    const engineState = typeof payload?.engineState === "string" ? payload.engineState.trim() : "";
+    if (
+      !storage ||
+      typeof storage !== "object" ||
+      Array.isArray(storage) ||
+      engineState.length === 0
+    ) {
+      throw new ProjectError("invalid_request", "storage and engineState are required");
+    }
+    const checkpointId = randomBytes(16).toString("hex");
+    const createdAt = new Date().toISOString();
+    const record = {
+      format: PREVIEW_CHECKPOINT_FORMAT,
+      version: CHECKPOINTS_SCHEMA_VERSION,
+      id: checkpointId,
+      createdAt,
+      nodeId: typeof payload.nodeId === "string" ? payload.nodeId : null,
+      chapterId: typeof payload.chapterId === "string" ? payload.chapterId : null,
+      location: typeof payload.location === "string" ? payload.location : null,
+      storage,
+      engineState,
+    };
+    const file = this.checkpointFilePath(project, checkpointId);
+    this.suppress(file);
+    await fs.mkdir(this.checkpointsDir(project), { recursive: true });
+    await writeJson(file, record);
+    const summary = normalizeCheckpointSummary(record);
+    const manifest = await this.readCheckpointManifest(project);
+    manifest.unshift(summary);
+    await this.writeCheckpointManifest(project, manifest);
+    return { checkpoint: record };
+  }
+
+  async deletePreviewCheckpoint(id, checkpointId) {
+    const project = this.requireProject(id);
+    const safeId = String(checkpointId ?? "").trim();
+    if (!safeId || safeId.includes("/") || safeId.includes("\\")) {
+      throw new ProjectError("invalid_request", "checkpoint id is required");
+    }
+    const file = this.checkpointFilePath(project, safeId);
+    this.suppress(file);
+    await fs.rm(file, { force: true });
+    const manifest = (await this.readCheckpointManifest(project)).filter(
+      (entry) => entry.id !== safeId,
+    );
+    await this.writeCheckpointManifest(project, manifest);
     return { ok: true };
   }
 

@@ -50,7 +50,6 @@ export interface ZipEntry {
   data: Uint8Array;
 }
 
-/** Store-only ZIP writer for small diagnostic bundles (no compression). */
 export function createStoreZip(entries: ZipEntry[]): Uint8Array {
   const encoder = new TextEncoder();
   const localParts: Uint8Array[] = [];
