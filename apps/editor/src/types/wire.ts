@@ -64,7 +64,7 @@ export interface IosPlatformConfig {
   buildNumber?: string;
   versionCode?: string;
   category?: string;
-  orientations?: PlatformOrientations | string[];
+  orientations?: PlatformOrientations;
   icon?: string;
   backgroundColor?: string;
   /** Fill painted in the safe-area band. Defaults to backgroundColor. */
@@ -83,9 +83,9 @@ export interface AndroidPlatformConfig {
   appName?: string;
   displayName?: string;
   version?: string;
-  versionCode?: number | string;
+  versionCode?: number;
   buildNumber?: string;
-  orientations?: string[] | PlatformOrientations;
+  orientations?: PlatformOrientations;
   icon?: string;
   backgroundColor?: string;
   /** Fill painted in the safe-area band. Defaults to backgroundColor. */

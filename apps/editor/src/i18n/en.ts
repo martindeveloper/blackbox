@@ -1611,17 +1611,4 @@ export const en = {
     statFile: "File",
     statSpec: "Spec",
   },
-  loader: {
-    parseFailed: "Failed to parse {{label}}: {{detail}}",
-    specMismatch: '{{label}}: expected spec "{{expected}}", got "{{actual}}"',
-    unsupportedFormatVersion: "{{label}}: unsupported formatVersion {{version}}",
-    scenarioNotFound: "scenario.json not found in project folder {{scenarioDir}}",
-    noChaptersOrNodes: "scenario.json must have chapters or inline nodes",
-    chaptersAndNodes: "scenario.json cannot have both chapters and inline nodes",
-    fileNotFound: "{{path}} not found",
-    chapterFileNotFound: "Chapter file {{path}} not found",
-    chapterIdMismatch: 'Chapter id mismatch: manifest "{{manifestId}}" vs file "{{fileId}}"',
-    chapterTitleMismatch: "Chapter title mismatch for {{chapterId}}",
-    nodeIdMismatch: 'Node id "{{nodeId}}" does not match key "{{nodeKey}}" in {{chapterRef}}',
-  },
 } as const;

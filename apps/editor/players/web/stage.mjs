@@ -1,12 +1,4 @@
-import {
-  cpSync,
-  existsSync,
-  mkdirSync,
-  readdirSync,
-  readFileSync,
-  rmSync,
-  writeFileSync,
-} from "node:fs";
+import { cpSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { devEngineRoot, PROTOCOL_PATH, REPO_ROOT, STAGED_WORKSPACE_DIR } from "./manifest.mjs";
 
@@ -26,9 +18,6 @@ export function stageForPackaging() {
   mkdirSync(out, { recursive: true });
 
   cpSync(path.join(webRoot, "src"), path.join(out, "src"), { recursive: true });
-  const legacyGames = path.join(out, "src", "games");
-  if (existsSync(legacyGames)) rmSync(legacyGames, { recursive: true, force: true });
-
   cpSync(path.join(webRoot, "preview.html"), path.join(out, "preview.html"));
   for (const entry of readdirSync(webRoot)) {
     if (entry.startsWith("tsconfig") && entry.endsWith(".json")) {

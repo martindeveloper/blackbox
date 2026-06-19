@@ -7,13 +7,9 @@ import { getCargoTargetDir } from "./cargo.js";
 import {
   EDITOR_SIDECAR_DIR,
   PROJECT_CONFIG_BASENAME,
-  TOOL_RUNS_DIRNAME,
-  USER_DIRNAME,
   USER_TOOLS_PATH,
 } from "../shared/blackboxPaths.js";
 import { EDITOR_VERSION } from "../shared/editorVersion.js";
-
-const LEGACY_EDITOR_CONFIG_BASENAME = "editor.json";
 
 export { EDITOR_SIDECAR_DIR } from "../shared/blackboxPaths.js";
 const EDITOR_ID_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
@@ -174,44 +170,6 @@ async function writeProjectConfig(projectDir, fields) {
   return normalized;
 }
 
-async function migrateLegacySidecar(projectDir) {
-  const sidecarDir = path.join(projectDir, EDITOR_SIDECAR_DIR);
-  const legacyConfigPath = path.join(sidecarDir, LEGACY_EDITOR_CONFIG_BASENAME);
-  const configPath = projectConfigPath(projectDir);
-  const legacyToolRunsDir = path.join(sidecarDir, TOOL_RUNS_DIRNAME);
-  const userToolRunsDir = path.join(sidecarDir, USER_DIRNAME, TOOL_RUNS_DIRNAME);
-
-  const projectConfig = await readJsonFile(configPath);
-  if (projectConfig.missing) {
-    const legacy = await readJsonFile(legacyConfigPath);
-    if (legacy.ok) {
-      const { id, editorVersion } = normalizeProjectConfigFields(legacy.doc);
-      await writeProjectConfig(projectDir, { id, editorVersion });
-
-      if (legacy.doc.tools && typeof legacy.doc.tools === "object") {
-        const toolsPath = path.join(projectDir, USER_TOOLS_PATH);
-        const existingTools = await readJsonFile(toolsPath);
-        if (existingTools.missing) {
-          await writeJsonFile(toolsPath, { tools: legacy.doc.tools });
-        }
-      }
-      await fs.unlink(legacyConfigPath).catch(() => {});
-    }
-  }
-
-  try {
-    await fs.access(legacyToolRunsDir);
-    try {
-      await fs.access(userToolRunsDir);
-    } catch {
-      await fs.mkdir(path.dirname(userToolRunsDir), { recursive: true });
-      await fs.rename(legacyToolRunsDir, userToolRunsDir);
-    }
-  } catch {
-    // No legacy tool-runs directory.
-  }
-}
-
 async function readProjectTools(projectDir) {
   const toolsFile = await readJsonFile(path.join(projectDir, USER_TOOLS_PATH));
   if (!toolsFile.ok) return nullTools();
@@ -225,7 +183,6 @@ async function readProjectTools(projectDir) {
 
 export async function ensureProjectEditorConfig(projectDir) {
   const resolvedProjectDir = path.resolve(projectDir);
-  await migrateLegacySidecar(resolvedProjectDir);
   const configPath = projectConfigPath(resolvedProjectDir);
   const existing = await readJsonFile(configPath);
   if (!existing.ok && !existing.missing) return existing;

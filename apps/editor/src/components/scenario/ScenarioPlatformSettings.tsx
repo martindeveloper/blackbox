@@ -35,11 +35,9 @@ function platformConfig<P extends keyof ScenarioPlatforms>(
   return { ...platforms?.[platform] } as NonNullable<ScenarioPlatforms[P]>;
 }
 
-function detectOrientationPreset(
-  raw: PlatformOrientations | string[] | undefined,
-): OrientationPreset {
+function detectOrientationPreset(raw: PlatformOrientations | undefined): OrientationPreset {
   if (!raw) return "default";
-  const list = Array.isArray(raw) ? raw : (raw.iphone ?? raw.phone ?? []);
+  const list = raw.iphone ?? raw.phone ?? [];
   if (list.length === 0) return "default";
   const normalized = list.map((item) => item.toLowerCase());
   const hasPortrait = normalized.some((item) => item.includes("portrait"));
@@ -50,9 +48,7 @@ function detectOrientationPreset(
   return "default";
 }
 
-function orientationPresetValue(
-  preset: OrientationPreset,
-): PlatformOrientations | string[] | undefined {
+function orientationPresetValue(preset: OrientationPreset): PlatformOrientations | undefined {
   if (preset === "default") return undefined;
   if (preset === "portrait") return { iphone: ["portrait"], ipad: ["portrait"] };
   if (preset === "landscape") return { iphone: ["landscape"], ipad: ["landscape"] };
@@ -62,11 +58,11 @@ function orientationPresetValue(
   };
 }
 
-function androidOrientationPresetValue(preset: OrientationPreset): string[] | undefined {
+function androidOrientationPresetValue(preset: OrientationPreset): PlatformOrientations | undefined {
   if (preset === "default") return undefined;
-  if (preset === "portrait") return ["portrait"];
-  if (preset === "landscape") return ["landscape"];
-  return ["portrait", "landscape"];
+  if (preset === "portrait") return { phone: ["portrait"] };
+  if (preset === "landscape") return { phone: ["landscape"] };
+  return { phone: ["portrait", "landscape"] };
 }
 
 export function ScenarioPlatformSettings({ scenario, onChange }: Props) {
