@@ -177,17 +177,15 @@ function ChapterGraphInner() {
     selectedEnding && endings.some((ending) => ending.id === selectedEnding)
       ? selectedEnding
       : (endings[0]?.id ?? null);
-
-  useEffect(() => {
-    if (endings.length === 0 && analyticsMode === "route") {
-      setAnalyticsMode("reach");
-    }
-  }, [analyticsMode, endings.length]);
+  const effectiveAnalyticsMode =
+    analyticsMode === "route" && endings.length === 0 ? "reach" : analyticsMode;
 
   const insights = useMemo(
     () =>
-      showHeat && analytics ? buildGraphInsights(analytics, analyticsMode, activeEnding) : null,
-    [showHeat, analytics, analyticsMode, activeEnding],
+      showHeat && analytics
+        ? buildGraphInsights(analytics, effectiveAnalyticsMode, activeEnding)
+        : null,
+    [showHeat, analytics, effectiveAnalyticsMode, activeEnding],
   );
 
   const chapter = chapterId && bundle ? bundle.chapters[chapterId] : null;
@@ -216,8 +214,14 @@ function ChapterGraphInner() {
       nodes: graph.nodes.map((node) => {
         const insight = insights?.get(node.id);
         const analyticsActive = insights !== null;
-        const coldBadge = analyticsMode === "reach" ? "0%" : analyticsMode === "visits" ? "0x" : "";
-        const fallbackTone = analyticsMode === "structure" ? "importance" : analyticsMode;
+        const coldBadge =
+          effectiveAnalyticsMode === "reach"
+            ? "0%"
+            : effectiveAnalyticsMode === "visits"
+              ? "0x"
+              : "";
+        const fallbackTone =
+          effectiveAnalyticsMode === "structure" ? "importance" : effectiveAnalyticsMode;
         return {
           ...node,
           position: savedPositions[node.id] ?? generatedPositions[node.id] ?? node.position,
@@ -230,7 +234,7 @@ function ChapterGraphInner() {
                 analyticsBadge: insight?.badge ?? coldBadge,
                 analyticsTitle:
                   insight?.title ??
-                  (analyticsMode === "route"
+                  (effectiveAnalyticsMode === "route"
                     ? t("graph.heatmap.notDistinctive")
                     : t("graph.heatmap.notReached")),
                 analyticsTone: insight?.tone ?? fallbackTone,
@@ -245,7 +249,7 @@ function ChapterGraphInner() {
         };
       }),
     };
-  }, [bundle, chapter, chapterId, insights, analyticsMode, nodeId, t]);
+  }, [bundle, chapter, chapterId, insights, effectiveAnalyticsMode, nodeId, t]);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(graphData.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(graphData.edges);
@@ -441,7 +445,7 @@ function ChapterGraphInner() {
         heatAvailable={heatAvailable}
         showHeat={showHeat}
         onToggleHeat={() => setHeatmapEnabled((value) => !value)}
-        analyticsMode={analyticsMode}
+        analyticsMode={effectiveAnalyticsMode}
         onAnalyticsModeChange={setAnalyticsMode}
         endings={endings}
         selectedEnding={activeEnding}
@@ -480,7 +484,7 @@ function ChapterGraphInner() {
           <Controls />
           {showHeat && (
             <AnalyticsLegend
-              mode={analyticsMode}
+              mode={effectiveAnalyticsMode}
               stale={analyticsStale}
               capturedAt={analyticsCapturedAt}
               runMode={analyticsMeta?.mode ?? null}
