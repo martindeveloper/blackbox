@@ -1,7 +1,4 @@
-import type {
-  PreviewCheckpointPayload,
-  PreviewHostCommand,
-} from "../../players/web/protocol.js";
+import type { PreviewCheckpointPayload, PreviewHostCommand } from "../../players/web/protocol.js";
 import { PreviewCommandError } from "./previewCommandErrors.js";
 
 export type PreviewCommandSender = (command: PreviewHostCommand) => void;
@@ -19,12 +16,20 @@ export type PreviewRpcSuccess<T extends RpcCommandType> = T extends "capture-che
   ? PreviewCheckpointPayload
   : void;
 
-type RpcResult = {
-  type: RpcResultType;
+type RpcCaptureResult = {
+  type: "checkpoint-capture-result";
   ok: boolean;
   message?: string;
   checkpoint?: PreviewCheckpointPayload;
 };
+
+type RpcRestoreResult = {
+  type: "checkpoint-restore-result";
+  ok: boolean;
+  message?: string;
+};
+
+type RpcResult = RpcCaptureResult | RpcRestoreResult;
 
 interface PendingPreviewCommand {
   kind: RpcCommandType;
@@ -39,33 +44,23 @@ const RPC_SPECS = {
   "capture-checkpoint": {
     resultType: "checkpoint-capture-result" as const,
     failMessage: "Checkpoint could not be captured.",
-    settle(
-      pending: PendingPreviewCommand,
-      result: Extract<RpcResult, { type: "checkpoint-capture-result" }>,
-    ) {
+    settle(pending: PendingPreviewCommand, result: RpcCaptureResult) {
       if (result.ok && result.checkpoint) {
         pending.resolve(result.checkpoint);
         return;
       }
-      pending.reject(
-        new PreviewCommandError("failed", result.message ?? this.failMessage),
-      );
+      pending.reject(new PreviewCommandError("failed", result.message ?? this.failMessage));
     },
   },
   "restore-checkpoint": {
     resultType: "checkpoint-restore-result" as const,
     failMessage: "Checkpoint could not be restored.",
-    settle(
-      pending: PendingPreviewCommand,
-      result: Extract<RpcResult, { type: "checkpoint-restore-result" }>,
-    ) {
+    settle(pending: PendingPreviewCommand, result: RpcRestoreResult) {
       if (result.ok) {
         pending.resolve(undefined);
         return;
       }
-      pending.reject(
-        new PreviewCommandError("failed", result.message ?? this.failMessage),
-      );
+      pending.reject(new PreviewCommandError("failed", result.message ?? this.failMessage));
     },
   },
 } as const;
@@ -94,7 +89,7 @@ export function requestPreviewCommand<T extends RpcCommandType>(
       return;
     }
     cancelPreviewRpc(new PreviewCommandError("cancelled"));
-    const kind = command.type;
+    const kind = (command as PreviewRpcCommand).type;
     const timeoutId = globalThis.setTimeout(() => {
       if (pendingPreviewCommand?.kind !== kind) return;
       pendingPreviewCommand = null;
@@ -117,5 +112,9 @@ export function finishPreviewRpcResult(result: RpcResult) {
   if (!pending || pending.kind !== commandType) return;
   pendingPreviewCommand = null;
   globalThis.clearTimeout(pending.timeoutId);
-  RPC_SPECS[commandType].settle(pending, result as never);
+  if (result.type === "checkpoint-capture-result") {
+    RPC_SPECS["capture-checkpoint"].settle(pending, result);
+    return;
+  }
+  RPC_SPECS["restore-checkpoint"].settle(pending, result);
 }

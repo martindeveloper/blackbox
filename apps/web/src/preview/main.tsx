@@ -1,12 +1,12 @@
 import { game } from "@game/game.js";
 import { bootGame, type GameDefinition } from "../engine/boot.js";
-import { postPreviewMessage } from "@preview-mode";
+import { postPreviewMessage, publishPreviewStorage } from "@preview-mode";
 import { PREVIEW_PROFILER_HISTORY_LIMIT, type PreviewConsoleEntry } from "@preview-protocol";
 import { Profiler, setProfilerSink, type ProfilerEvent } from "../engine/lib/profiler.js";
 import { configurePreviewLoader, configurePreviewSource } from "../engine/lib/previewSource.js";
 import { fetchPreviewDocs, readPreviewParams, subscribePreviewHotReload } from "./previewLoader.js";
 import { installPreviewConsoleBridge } from "./consoleBridge.js";
-import { installPreviewHostCommands, publishPreviewStorage } from "./hostCommands.js";
+import { installPreviewHostCommands } from "./hostCommands.js";
 
 export function startPreviewPlayer(): void {
   const consoleHistory: PreviewConsoleEntry[] = [];

@@ -13,6 +13,7 @@ import {
   PREVIEW_CACHE,
 } from "./config.js";
 import { PREVIEW_KEY_PATTERN } from "./sharedLib.mjs";
+import { registerSecurityHeaders } from "./securityHeaders.js";
 import { setupLiveReload, staticFileHandler } from "./static.js";
 import { findDefaultDataRoot } from "./editorConfig.js";
 import { registerRoutes } from "./routes.js";
@@ -63,6 +64,7 @@ export async function createEditorServer(options = {}) {
   setupLiveReload();
 
   const fastify = Fastify({ logger: false, bodyLimit: 25 * 1024 * 1024 });
+  registerSecurityHeaders(fastify);
   await fastify.register(multipart);
   fastify.addHook("onRequest", async (request, reply) => {
     if (request.method === "GET" || request.method === "HEAD" || request.method === "OPTIONS") {

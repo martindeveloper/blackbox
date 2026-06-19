@@ -7,3 +7,7 @@ export function notifyStorageChanged(): void {}
 export function postPreviewMessage(_notification: PreviewPlayerNotification): void {}
 
 export function toggleDeveloperConsole(): void {}
+
+export function publishPreviewStorage(): void {}
+
+export function flushPreviewStorage(): void {}

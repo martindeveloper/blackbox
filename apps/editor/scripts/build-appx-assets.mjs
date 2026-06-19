@@ -9,13 +9,46 @@ const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const SOURCE = path.join(ROOT, "public", "icon.png");
 const APPX_DIR = path.join(ROOT, "resources", "appx");
 const TILE_BACKGROUND = { r: 0, g: 0, b: 0, alpha: 1 };
+const TRANSPARENT = { r: 0, g: 0, b: 0, alpha: 0 };
 
-async function writeSquareLogo(name, size) {
-  await sharp(SOURCE).resize(size, size, { fit: "cover" }).png().toFile(path.join(APPX_DIR, name));
+/** Windows AppX inner graphic sizes (Visual Studio / Microsoft asset guidance). */
+const APPX_PLATE_RATIO = {
+  /** StoreLogo fills the canvas. */
+  store: 1,
+  /** Square44 App List / taskbar: ~70–75% of canvas. */
+  appList: 0.72,
+  /** Square150 medium tile: ~50% of canvas. */
+  medTile: 0.5,
+};
+
+async function composeSquareAsset(source, canvasSize, plateRatio, background = TRANSPARENT) {
+  const plateSize = Math.round(canvasSize * plateRatio);
+  const inset = Math.floor((canvasSize - plateSize) / 2);
+  const plate = await sharp(source)
+    .resize(plateSize, plateSize, { fit: "cover" })
+    .png()
+    .toBuffer();
+
+  return sharp({
+    create: {
+      width: canvasSize,
+      height: canvasSize,
+      channels: 4,
+      background,
+    },
+  })
+    .composite([{ input: plate, left: inset, top: inset }])
+    .png()
+    .toBuffer();
+}
+
+async function writeSquareLogo(name, canvasSize, plateRatio) {
+  const asset = await composeSquareAsset(SOURCE, canvasSize, plateRatio);
+  await fs.writeFile(path.join(APPX_DIR, name), asset);
 }
 
 async function writeWideLogo() {
-  const icon150 = await sharp(SOURCE).resize(150, 150, { fit: "cover" }).png().toBuffer();
+  const medTile = await composeSquareAsset(SOURCE, 150, APPX_PLATE_RATIO.medTile, TILE_BACKGROUND);
 
   await sharp({
     create: {
@@ -25,7 +58,7 @@ async function writeWideLogo() {
       background: TILE_BACKGROUND,
     },
   })
-    .composite([{ input: icon150, left: 80, top: 0 }])
+    .composite([{ input: medTile, left: 0, top: 0 }])
     .png()
     .toFile(path.join(APPX_DIR, "Wide310x150Logo.png"));
 }
@@ -33,9 +66,9 @@ async function writeWideLogo() {
 await fs.mkdir(APPX_DIR, { recursive: true });
 
 await Promise.all([
-  writeSquareLogo("StoreLogo.png", 50),
-  writeSquareLogo("Square44x44Logo.png", 44),
-  writeSquareLogo("Square150x150Logo.png", 150),
+  writeSquareLogo("StoreLogo.png", 50, APPX_PLATE_RATIO.store),
+  writeSquareLogo("Square44x44Logo.png", 44, APPX_PLATE_RATIO.appList),
+  writeSquareLogo("Square150x150Logo.png", 150, APPX_PLATE_RATIO.medTile),
   writeWideLogo(),
 ]);
 

@@ -19,10 +19,18 @@ export type {
   PreviewCheckpointPayload,
 } from "../../players/web/protocol.js";
 
-export type { PreviewCommandSender, PreviewRpcCommand, PreviewRpcSuccess } from "./previewCommandRpc.js";
+export type {
+  PreviewCommandSender,
+  PreviewRpcCommand,
+  PreviewRpcSuccess,
+} from "./previewCommandRpc.js";
 
 export { PreviewCommandError, previewCommandErrorMessage } from "./previewCommandErrors.js";
-export { requestPreviewCommand, finishPreviewRpcResult, cancelPreviewRpc } from "./previewCommandRpc.js";
+export {
+  requestPreviewCommand,
+  finishPreviewRpcResult,
+  cancelPreviewRpc,
+} from "./previewCommandRpc.js";
 
 interface PreviewStore {
   connected: boolean;

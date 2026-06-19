@@ -124,6 +124,38 @@ async function startServer() {
   return server;
 }
 
+function focusMainWindow() {
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    void createWindow();
+    return;
+  }
+  if (mainWindow.isMinimized()) mainWindow.restore();
+  if (!mainWindow.isVisible()) mainWindow.show();
+  mainWindow.focus();
+}
+
+function guardRendererNavigation(webContents) {
+  const isAllowed = (url) => {
+    try {
+      const parsed = new URL(url);
+      return parsed.protocol === `${EDITOR_SCHEME}:` && parsed.host === "editor";
+    } catch {
+      return false;
+    }
+  };
+
+  const block = (event, url) => {
+    if (isAllowed(url)) return;
+    event.preventDefault();
+    if (url.startsWith("http:") || url.startsWith("https:")) {
+      void shell.openExternal(url);
+    }
+  };
+
+  webContents.on("will-navigate", (event, url) => block(event, url));
+  webContents.on("will-redirect", (event, url) => block(event, url));
+}
+
 async function createWindow() {
   if (!editorServer) {
     editorServer = await startServer();
@@ -150,6 +182,7 @@ async function createWindow() {
   });
 
   mainWindow.once("ready-to-show", () => mainWindow?.show());
+  guardRendererNavigation(mainWindow.webContents);
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     void shell.openExternal(url);
     return { action: "deny" };
@@ -220,6 +253,16 @@ function cancelCloseFromRenderer() {
 }
 
 const cliArgs = parseCliMode(process.argv);
+const isGuiApp = cliArgs === null;
+const hasGuiLock = !isGuiApp || app.requestSingleInstanceLock();
+
+if (isGuiApp && !hasGuiLock) {
+  app.quit();
+} else if (isGuiApp) {
+  app.on("second-instance", () => {
+    focusMainWindow();
+  });
+}
 
 async function runHeadlessCli(forwardedArgs) {
   if (process.platform === "darwin" && app.dock) {
@@ -245,7 +288,7 @@ if (cliArgs !== null) {
       console.error("[editor] CLI failed:", error instanceof Error ? error.message : error);
       app.exit(1);
     });
-} else {
+} else if (hasGuiLock) {
   app
     .whenReady()
     .then(async () => {

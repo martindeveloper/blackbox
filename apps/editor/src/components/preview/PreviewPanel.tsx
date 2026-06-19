@@ -12,7 +12,11 @@ import {
 import { useTranslation } from "react-i18next";
 import { isPreviewPlayerMessage, postPreviewHostMessage } from "../../../players/web/protocol.js";
 import { useScenarioStore } from "../../store/useScenarioStore.js";
-import { finishPreviewRpcResult, usePreviewStore, type PreviewCommandSender } from "../../store/usePreviewStore.js";
+import {
+  finishPreviewRpcResult,
+  usePreviewStore,
+  type PreviewCommandSender,
+} from "../../store/usePreviewStore.js";
 import { API_PREFIX, ProjectRoutes, projectApiUrl } from "../../../shared/apiPaths.js";
 import { notifyError, notifySuccess } from "../../lib/notifyApi.js";
 import { Icon } from "../icons/Icon.js";

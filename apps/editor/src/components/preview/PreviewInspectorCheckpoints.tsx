@@ -57,10 +57,9 @@ function PreviewInspectorCheckpointsLoaded({ projectId }: { projectId: string })
     if (!canUseCheckpoints || creating) return;
     setCreating(true);
     try {
-      const captured = await requestPreviewCommand(
-        () => usePreviewStore.getState().commandSender,
-        { type: "capture-checkpoint" },
-      );
+      const captured = await requestPreviewCommand(() => usePreviewStore.getState().commandSender, {
+        type: "capture-checkpoint",
+      });
       const saved = await createPreviewCheckpoint(projectId, captured);
       setCheckpoints((current) => [toCheckpointSummary(saved.checkpoint), ...current]);
       notifySuccess(t("preview.checkpoints.created"));

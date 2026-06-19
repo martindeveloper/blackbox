@@ -1,38 +1,22 @@
 import type { PreviewConsoleEntry, PreviewHostMessage } from "@preview-protocol";
 import { isPreviewHostMessage as isHostMessage } from "@preview-protocol";
-import { postPreviewMessage, toggleDeveloperConsole } from "@preview-mode";
+import {
+  flushPreviewStorage,
+  postPreviewMessage,
+  publishPreviewStorage,
+  toggleDeveloperConsole,
+} from "@preview-mode";
 import type { ProfilerEvent } from "../engine/lib/profiler.js";
 import {
   clearAllPlayerStorage,
   clearPlayerSaveSlots,
   importPlayerStorageSnapshot,
-  readPlayerStorageSnapshot,
 } from "../engine/lib/playerStorageAdmin.js";
 import {
   capturePreviewCheckpoint,
   restorePreviewCheckpoint,
 } from "./checkpointBridge.js";
 import { publishPreviewRuntimeState } from "./runtimeStatePublisher.js";
-
-const STORAGE_PUBLISH_DEBOUNCE_MS = 200;
-
-let storagePublishTimer: ReturnType<typeof setTimeout> | null = null;
-
-export function publishPreviewStorage(): void {
-  if (storagePublishTimer) clearTimeout(storagePublishTimer);
-  storagePublishTimer = setTimeout(() => {
-    storagePublishTimer = null;
-    postPreviewMessage({ type: "storage-state", state: readPlayerStorageSnapshot() });
-  }, STORAGE_PUBLISH_DEBOUNCE_MS);
-}
-
-export function flushPreviewStorage(): void {
-  if (storagePublishTimer) {
-    clearTimeout(storagePublishTimer);
-    storagePublishTimer = null;
-  }
-  postPreviewMessage({ type: "storage-state", state: readPlayerStorageSnapshot() });
-}
 
 export function installPreviewHostCommands(
   profilerHistory: ProfilerEvent[],

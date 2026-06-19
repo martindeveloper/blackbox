@@ -464,9 +464,9 @@
 .splash-recents-list {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  margin: 0 -8px;
-  padding: 0 8px;
+  gap: 1px;
+  margin: 0 -4px;
+  padding: 0 4px;
   overflow-y: auto;
   flex: 1;
   min-height: 0;
@@ -474,28 +474,24 @@
 
 .splash-recent-item {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 20px;
+  grid-template-columns: minmax(0, 1fr) 18px;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
   width: 100%;
-  min-height: 44px;
-  padding: 0 7px;
-  border: 1px solid transparent;
-  border-radius: 5px;
+  min-height: 36px;
+  padding: 3px 4px 3px 6px;
+  border: none;
+  border-radius: 4px;
   background: transparent;
   color: var(--editor-text-muted);
   transition:
     background 160ms cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 160ms cubic-bezier(0.22, 1, 0.36, 1),
-    color 160ms cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 160ms cubic-bezier(0.22, 1, 0.36, 1);
+    color 160ms cubic-bezier(0.22, 1, 0.36, 1);
   flex-shrink: 0;
 }
 
 .splash-recent-item:hover {
-  border-color: color-mix(in srgb, var(--editor-primary) 18%, transparent);
-  background: color-mix(in srgb, var(--editor-primary) 8%, rgba(255, 255, 255, 0.02));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  background: color-mix(in srgb, var(--editor-primary) 7%, transparent);
   color: var(--editor-text);
 }
 
@@ -508,9 +504,9 @@
   width: 100%;
   min-width: 0;
   display: grid;
-  grid-template-columns: 21px minmax(0, 1fr) 58px 18px;
+  grid-template-columns: 14px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   align-self: stretch;
   padding: 0;
   margin: 0;
@@ -529,61 +525,49 @@
 }
 
 .splash-recent-icon {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  width: 21px;
-  color: color-mix(in srgb, var(--editor-primary) 68%, transparent);
+  flex-shrink: 0;
+  align-self: center;
+  color: color-mix(in srgb, var(--editor-primary) 62%, transparent);
 }
 
 .splash-recent-info {
-  flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 0;
 }
 
 .splash-recent-title {
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  line-height: 1.3;
+  line-height: 1.25;
 }
 
 .splash-recent-path {
   font-family: var(--font-mono);
-  font-size: 8.5px;
+  font-size: 8px;
   color: var(--editor-text-subtle);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  line-height: 1.25;
 }
 
 .splash-recent-meta {
-  font-size: 8.5px;
+  font-size: 8px;
   color: var(--editor-text-subtle);
   text-align: right;
   white-space: nowrap;
-}
-
-.splash-recent-open > svg {
-  color: var(--editor-text-subtle);
-  transition:
-    color 120ms,
-    transform 120ms;
-}
-
-.splash-recent-item:hover .splash-recent-open > svg {
-  color: var(--editor-primary);
-  transform: translateX(1px);
+  font-variant-numeric: tabular-nums;
+  align-self: center;
 }
 
 .splash-recent-remove {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -593,7 +577,7 @@
   background: transparent;
   border-radius: 3px;
   color: var(--editor-text-subtle);
-  opacity: 0.28;
+  opacity: 0;
   transition:
     opacity 0.1s,
     background 0.1s,
@@ -601,8 +585,9 @@
   cursor: pointer;
 }
 
-.splash-recent-item:hover .splash-recent-remove {
-  opacity: 0.72;
+.splash-recent-item:hover .splash-recent-remove,
+.splash-recent-remove:focus-visible {
+  opacity: 0.55;
 }
 
 .splash-recent-remove:hover {
@@ -619,8 +604,8 @@
 .splash-actions--primary {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-top: 10px;
+  gap: 5px;
+  margin-top: 8px;
 }
 
 .splash-actions--resume {
@@ -766,43 +751,52 @@
 .splash-cta {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  justify-content: center;
+  gap: 5px;
   width: 100%;
-  min-height: 32px;
-  padding: 6px 11px;
-  border: 1px solid color-mix(in srgb, var(--editor-primary) 36%, transparent);
+  min-height: 28px;
+  padding: 4px 10px;
   border-radius: 4px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 55%),
-    color-mix(in srgb, var(--editor-primary) 6%, transparent);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  color: var(--editor-primary);
   font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  white-space: nowrap;
   cursor: pointer;
   transition:
-    border-color 0.15s,
-    background 0.15s,
-    color 0.15s,
-    box-shadow 0.15s;
-  justify-content: center;
+    background 0.12s,
+    border-color 0.12s,
+    color 0.12s;
 }
 
-.splash-cta:hover {
-  border-color: color-mix(in srgb, var(--editor-primary) 68%, transparent);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 55%),
-    color-mix(in srgb, var(--editor-primary) 12%, transparent);
-  color: var(--editor-primary-hover);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 0 20px color-mix(in srgb, var(--editor-glow) 65%, transparent);
+.splash-cta--primary {
+  border: 1px solid color-mix(in srgb, var(--editor-btn-primary-bg) 80%, #000);
+  background: var(--editor-btn-primary-bg);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  color: var(--editor-btn-primary-text);
 }
 
-.splash-cta:active {
-  background: color-mix(in srgb, var(--editor-primary) 18%, transparent);
+.splash-cta--primary:hover:not(:disabled) {
+  border-color: var(--editor-primary-hover);
+  background: var(--editor-btn-primary-bg-hover);
+}
+
+.splash-cta--primary:active:not(:disabled) {
+  background: color-mix(in srgb, var(--editor-btn-primary-bg) 88%, #000);
+}
+
+.splash-cta--secondary {
+  border: 1px solid var(--editor-border-subtle);
+  background: var(--editor-btn-bg);
+  color: var(--editor-btn-text);
+}
+
+.splash-cta--secondary:hover:not(:disabled) {
+  border-color: var(--editor-border-2);
+  background: var(--editor-btn-bg-hover);
+}
+
+.splash-cta:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
 }
 
 .splash-unsupported {
@@ -1346,8 +1340,7 @@
 }
 
 :root[data-theme="light"] .splash-recent-item:hover {
-  background: rgba(232, 106, 0, 0.06);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  background: rgba(232, 106, 0, 0.05);
 }
 
 :root[data-theme="light"] .delete-project-card {

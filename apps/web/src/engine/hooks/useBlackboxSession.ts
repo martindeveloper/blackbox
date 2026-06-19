@@ -17,9 +17,8 @@ import {
   importPlayerStorageSnapshot,
   readPlayerStorageSnapshot,
 } from "../lib/playerStorageAdmin.js";
-import { PREVIEW_ENABLED } from "@preview-mode";
+import { PREVIEW_ENABLED, flushPreviewStorage } from "@preview-mode";
 import { setPreviewCheckpointHandlers } from "../../preview/checkpointBridge.js";
-import { flushPreviewStorage } from "../../preview/hostCommands.js";
 import { publishPreviewRuntimeState } from "../../preview/runtimeStatePublisher.js";
 import type { ItemExamineView, RollRecord, SfxCue, UiNotification } from "../types/game.js";
 import { useApplyCommandResult } from "./session/useApplyCommandResult.js";

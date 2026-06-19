@@ -1,4 +1,4 @@
-import { ArrowRight, FolderOpen, Plus, ShieldOff, Trash2 } from "lucide-react";
+import { FolderOpen, Plus, ShieldOff, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "@tanstack/react-router";
@@ -175,9 +175,7 @@ export function OpenFolderScreen() {
                     disabled={busy}
                     onClick={() => void handleOpen(project.id)}
                   >
-                    <div className="splash-recent-icon">
-                      <Icon icon={FolderOpen} size={11} />
-                    </div>
+                    <Icon icon={FolderOpen} size={10} className="splash-recent-icon" />
                     <div className="splash-recent-info">
                       <span className="splash-recent-title">{project.title ?? project.name}</span>
                       <span className="splash-recent-path">{project.name}</span>
@@ -185,7 +183,6 @@ export function OpenFolderScreen() {
                     <span className="splash-recent-meta">
                       {formatRelativeDate(project.lastOpened)}
                     </span>
-                    <Icon icon={ArrowRight} size={12} />
                   </button>
                   <button
                     type="button"
@@ -198,7 +195,7 @@ export function OpenFolderScreen() {
                       setDeleteTarget(project);
                     }}
                   >
-                    <Icon icon={Trash2} size={11} />
+                    <Icon icon={Trash2} size={10} />
                   </button>
                 </div>
               ))}
@@ -212,21 +209,21 @@ export function OpenFolderScreen() {
             {isElectron && (
               <button
                 type="button"
-                className="splash-cta"
+                className="splash-cta splash-cta--primary"
                 disabled={loading || busy}
                 onClick={() => setShowNewProject(true)}
               >
-                <Icon icon={Plus} size={13} />
+                <Icon icon={Plus} size={11} />
                 {t("welcome.newProject")}
               </button>
             )}
             <button
               type="button"
-              className="splash-cta"
+              className="splash-cta splash-cta--secondary"
               disabled={loading || busy}
               onClick={() => void handlePickFolder()}
             >
-              <Icon icon={FolderOpen} size={13} />
+              <Icon icon={FolderOpen} size={11} />
               {picking ? t("welcome.openingProject") : t("welcome.openProjectFolder")}
             </button>
           </div>
