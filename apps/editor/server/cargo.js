@@ -2,14 +2,7 @@ import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
-import {
-  CLIENT_ROOT,
-  PACKAGED,
-  REPO_ROOT,
-  WORK_DIR,
-  getToolsDir,
-  toolBinPath,
-} from "./config.js";
+import { CLIENT_ROOT, PACKAGED, REPO_ROOT, WORK_DIR, getToolsDir, toolBinPath } from "./config.js";
 
 let cargoTargetDirPromise = null;
 

@@ -84,15 +84,15 @@ const bundleArgs =
   configuration === "debug"
     ? [path.join(scriptsDir, "build-bundle.mjs"), "--verbose", "--ignore-missing"]
     : [path.join(scriptsDir, "build-bundle.mjs"), "--ignore-missing", "--archive-compress", "zstd"];
-const reuseBundleDir = process.env.BLACKBOX_REUSE_BUNDLE_DIR;
-if (reuseBundleDir) {
-  if (!existsSync(reuseBundleDir)) {
-    throw new Error(`Bundle-stage output not found: ${reuseBundleDir}`);
+const bundleInput = process.env.BLACKBOX_BUNDLE_INPUT_DIR;
+if (bundleInput) {
+  if (!existsSync(bundleInput)) {
+    throw new Error(`Explicit bundle input not found: ${bundleInput}`);
   }
   const embeddedBundleDir = path.join(dist, "bundle");
   rmSync(embeddedBundleDir, { recursive: true, force: true });
-  cpSync(reuseBundleDir, embeddedBundleDir, { recursive: true });
-  console.log(`==> reused content bundle from ${reuseBundleDir}`);
+  cpSync(bundleInput, embeddedBundleDir, { recursive: true });
+  console.log(`==> embedded content bundle input from ${bundleInput}`);
 } else {
   runSync(process.execPath, bundleArgs);
 }

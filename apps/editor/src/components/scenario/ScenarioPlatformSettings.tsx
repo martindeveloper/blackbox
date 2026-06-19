@@ -58,7 +58,9 @@ function orientationPresetValue(preset: OrientationPreset): PlatformOrientations
   };
 }
 
-function androidOrientationPresetValue(preset: OrientationPreset): PlatformOrientations | undefined {
+function androidOrientationPresetValue(
+  preset: OrientationPreset,
+): PlatformOrientations | undefined {
   if (preset === "default") return undefined;
   if (preset === "portrait") return { phone: ["portrait"] };
   if (preset === "landscape") return { phone: ["landscape"] };

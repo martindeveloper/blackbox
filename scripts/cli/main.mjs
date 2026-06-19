@@ -1,14 +1,13 @@
 #!/usr/bin/env node
-import { BUILD_CONFIGURATIONS, resolveProject } from "../lib/adventure.mjs";
-import * as android from "./platforms/android.mjs";
-import * as ios from "./platforms/ios.mjs";
+import path from "node:path";
+import { BUILD_CONFIGURATIONS } from "../lib/adventure.mjs";
+import { executeResolvedStage, resolvePipeline } from "./pipeline.mjs";
 import { stagePrepare } from "./prepare.mjs";
-import * as web from "./platforms/web.mjs";
+import { STAGE_NAMES } from "./stages/index.mjs";
 import { fail } from "./lib/run.mjs";
 
-const PLATFORMS = { web, ios, android };
-const ACTIONS = new Set(["prepare", "lint", "build", "bundle", "package"]);
-const PROJECT_ACTIONS = new Set(["lint", "build", "bundle", "package"]);
+const PROJECT_ACTIONS = new Set(STAGE_NAMES);
+const ACTIONS = new Set(["prepare", ...PROJECT_ACTIONS]);
 const DEPLOY_TARGETS = new Set(["vercel"]);
 const DEPLOY_ACTIONS = new Set(["build", "package"]);
 const WEB_SERVER_ACTIONS = new Set(["build", "bundle", "package"]);
@@ -21,7 +20,8 @@ function parseArgs(argv) {
     deploy: null,
     configuration: "release",
     noBuild: false,
-    reuseBundle: false,
+    bundleInput: null,
+    buildInput: null,
     webSpawnServer: false,
     // null = unspecified: inherit BLACKBOX_REACT_COMPILER from the environment
     // (e.g. set by the editor) rather than overriding it.
@@ -35,8 +35,14 @@ function parseArgs(argv) {
       options.help = true;
     } else if (arg === "--no-build") {
       options.noBuild = true;
-    } else if (arg === "--reuse-bundle") {
-      options.reuseBundle = true;
+    } else if (arg.startsWith("--bundle-input=")) {
+      options.bundleInput = path.resolve(arg.slice("--bundle-input=".length));
+    } else if (arg === "--bundle-input" && argv[i + 1]) {
+      options.bundleInput = path.resolve(argv[++i]);
+    } else if (arg.startsWith("--build-input=")) {
+      options.buildInput = path.resolve(arg.slice("--build-input=".length));
+    } else if (arg === "--build-input" && argv[i + 1]) {
+      options.buildInput = path.resolve(argv[++i]);
     } else if (arg === "--web-spawn-server") {
       options.webSpawnServer = true;
     } else if (arg.startsWith("--project=")) {
@@ -100,11 +106,10 @@ Options:
   --deploy <target>    Publish after build/package (web only; currently: vercel)
   --configuration <name>
                        debug | release (default: release)
-  --no-build           Reuse prior stage outputs where applicable. For web package this skips
-                       the player compile and content bundle, assembling from the existing
-                       build/ and bundle/ outputs (run build + bundle first).
-  --reuse-bundle       Internal pipeline hint: Build embeds the preceding Bundle-stage output
-                       instead of generating the same platform bundle again.
+  --no-build           Build-stage fast path: reuse the previous compiled web player.
+  --bundle-input <dir> Internal pipeline input: Build embeds this explicit content bundle
+                       instead of generating one. Without it, Build remains self-contained.
+  --build-input <dir>  Internal pipeline input: Package consumes this Build-stage artifact.
   --web-spawn-server   After a web build, start the static player server (web only)
   --react-compiler=<bool>
                        Compile the player UI with the React Compiler (default: on).
@@ -246,10 +251,11 @@ async function main() {
 
   const platform = options.platform.toLowerCase();
   const configuration = normalizeConfiguration(options.configuration);
-  const handlers = PLATFORMS[platform];
-  if (!handlers) {
-    fail("cli", `unknown platform "${options.platform}" — expected web, ios, or android`);
-  }
+  const { platform: platformDefinition, project } = resolvePipeline({
+    project: options.project,
+    platform,
+    configuration,
+  });
   if (!PROJECT_ACTIONS.has(action)) {
     fail("cli", `unknown action "${options.action}" — expected lint, build, bundle, or package`);
   }
@@ -257,15 +263,10 @@ async function main() {
   validateDeploy(options, platform, action, configuration);
   validateWebSpawnServer(options, platform, action);
 
-  const project = resolveProject(options.project, { configuration });
-  const handler = handlers[`stage${action[0].toUpperCase()}${action.slice(1)}`];
-  if (!handler) {
-    fail("cli", `action "${action}" is not implemented for platform "${platform}"`);
-  }
-
   const handlerOptions = {
     noBuild: options.noBuild,
-    reuseBundle: options.reuseBundle,
+    bundleInput: options.bundleInput,
+    buildInput: options.buildInput,
     configuration,
   };
 
@@ -274,14 +275,22 @@ async function main() {
       (options.deploy ? ` deploy=${options.deploy.toLowerCase()}` : "") +
       (options.webSpawnServer ? " web-spawn-server" : ""),
   );
-  await handler(project, handlerOptions);
+  const artifact = await executeResolvedStage({
+    stage: action,
+    project,
+    platform: platformDefinition,
+    options: handlerOptions,
+  });
+  if (artifact) {
+    console.log(`::blackbox-artifact::${JSON.stringify(path.resolve(artifact))}`);
+  }
 
   if (options.deploy) {
-    await web.stageDeploy(project, { noBuild: true, configuration });
+    await platformDefinition.deploy(project, { noBuild: true, configuration });
   }
 
   if (options.webSpawnServer) {
-    await web.spawnWebServer(project, { configuration });
+    await platformDefinition.spawnServer(project, { configuration });
   }
 }
 

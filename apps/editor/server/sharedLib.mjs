@@ -1,6 +1,6 @@
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { CLIENT_ROOT, PACKAGED } from "./config.js";
+import { CLIENT_ROOT, PACKAGED, getCliDir } from "./config.js";
 
 // gamePaths / buildGameCss / webRolldownResolve are shared build infra owned by
 // the repo's scripts/lib and consumed by both the web build and this editor.
@@ -23,7 +23,9 @@ const buildCss = await load("buildGameCss.mjs");
 const rolldownResolve = await load("webRolldownResolve.mjs");
 const webBuildAliases = await load("webBuildAliases.mjs");
 const spawnLib = await load("spawn.mjs");
-const preflightLib = await load("preflight/index.mjs");
+const preflightLib = await import(
+  pathToFileURL(path.join(getCliDir(), "scripts", "lib", "preflight", "index.mjs")).href
+);
 
 export const BUILD_GAME_CSS_PATH = path.join(SHARED_LIB_ROOT, "buildGameCss.mjs");
 

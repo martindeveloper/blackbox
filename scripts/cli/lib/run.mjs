@@ -93,7 +93,7 @@ export function runWebPlayerBuild(
   {
     configuration = project.configuration ?? "release",
     platform = "web",
-    reuseBundleDir = null,
+    bundleInput = null,
   } = {},
 ) {
   log("build", `compiling web player for ${project.gameId} (${configuration}, ${platform})`);
@@ -108,7 +108,7 @@ export function runWebPlayerBuild(
     env: {
       ...playerBuildEnv(project, configuration, platform),
       PROFILE: wasmProfileForConfiguration(configuration),
-      ...(reuseBundleDir ? { BLACKBOX_REUSE_BUNDLE_DIR: reuseBundleDir } : {}),
+      ...(bundleInput ? { BLACKBOX_BUNDLE_INPUT_DIR: bundleInput } : {}),
     },
   });
 }

@@ -82,44 +82,6 @@ export async function cleanBuildCaches(projectPath) {
   return existed ? dir : null;
 }
 
-function stageOutputDir(projectPath, platform, stage, configuration) {
-  const root = buildDir(projectPath, configuration);
-  if (stage === "bundle") return path.join(root, "bundle", platform);
-  if (stage === "package") return path.join(root, "package", platform);
-  if (platform === "web") return path.join(root, "web", "www");
-  if (platform === "ios") return path.join(root, "ios");
-  return path.join(root, "android");
-}
-
-function findFirst(dir, predicate) {
-  if (!existsSync(dir)) return null;
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    const full = path.join(dir, entry.name);
-    if (entry.isFile() && predicate(entry.name)) return full;
-    if (entry.isDirectory()) {
-      const nested = findFirst(full, predicate);
-      if (nested) return nested;
-    }
-  }
-  return null;
-}
-
-function resolveArtifact(projectPath, platform, stage, configuration) {
-  const dir = stageOutputDir(projectPath, platform, stage, configuration);
-  if (stage !== "package") return dir;
-  if (platform === "web") {
-    const archive = findFirst(dir, (name) => name.endsWith(".tar.gz") || name.endsWith(".zip"));
-    if (archive) return archive;
-  } else if (platform === "ios") {
-    const ipa = findFirst(dir, (name) => name.endsWith(".ipa"));
-    if (ipa) return ipa;
-  } else if (platform === "android") {
-    const aab = findFirst(dir, (name) => name.endsWith(".aab") || name.endsWith(".apk"));
-    if (aab) return aab;
-  }
-  return dir;
-}
-
 function cliEntry() {
   return path.join(getCliDir(), "cli.js");
 }
@@ -174,7 +136,7 @@ export function runCli(cliArgs, { inheritStdio = false } = {}) {
  */
 export function spawnStage(
   projectPath,
-  { platform, configuration, stage, reactCompiler, reusePriorStages = false },
+  { platform, configuration, stage, reactCompiler, bundleInput = null, buildInput = null },
   onLine,
 ) {
   const args = [
@@ -185,13 +147,11 @@ export function spawnStage(
     `--configuration=${configuration}`,
   ];
 
-  // When the same pipeline already ran build + bundle, tell package to reuse their outputs
-  // instead of re-running the wasm/rolldown compile and content bundle from scratch.
-  if (stage === "package" && reusePriorStages) {
-    args.push("--no-build");
+  if ((stage === "build" || stage === "package") && bundleInput) {
+    args.push(`--bundle-input=${bundleInput}`);
   }
-  if (stage === "build" && reusePriorStages) {
-    args.push("--reuse-bundle");
+  if (stage === "package" && buildInput) {
+    args.push(`--build-input=${buildInput}`);
   }
 
   // Forwarded to the web bundler (apps/web rolldown config) through the CLI's
@@ -209,11 +169,24 @@ export function spawnStage(
 
   let buffer = "";
   let canceled = false;
+  let artifact = null;
+  const consumeLine = (line) => {
+    const prefix = "::blackbox-artifact::";
+    if (line.startsWith(prefix)) {
+      try {
+        artifact = JSON.parse(line.slice(prefix.length));
+      } catch {
+        onLine("[build] CLI returned an invalid artifact record");
+      }
+      return;
+    }
+    onLine(line);
+  };
   const emit = (chunk) => {
     buffer += chunk.toString();
     let index = buffer.indexOf("\n");
     while (index !== -1) {
-      onLine(buffer.slice(0, index));
+      consumeLine(buffer.slice(0, index));
       buffer = buffer.slice(index + 1);
       index = buffer.indexOf("\n");
     }
@@ -224,14 +197,13 @@ export function spawnStage(
   const done = new Promise((resolve) => {
     const finish = (exitCode) => {
       if (buffer.length) {
-        onLine(buffer);
+        consumeLine(buffer);
         buffer = "";
       }
       resolve({
         exitCode,
         canceled,
-        artifact:
-          exitCode === 0 ? resolveArtifact(projectPath, platform, stage, configuration) : null,
+        artifact: exitCode === 0 ? artifact : null,
       });
     };
     child.on("error", (error) => {

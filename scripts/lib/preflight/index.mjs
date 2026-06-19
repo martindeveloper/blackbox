@@ -1,60 +1,24 @@
-import path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
 import { BUILD_PLATFORMS, BUILD_STAGES } from "../buildStages.mjs";
+import { getPlatform } from "../../cli/platforms/index.mjs";
 import { createPreflightContext, createPreflightContextFromProject } from "./context.mjs";
 import { finalizeStage } from "./types.mjs";
-
-const HERE = path.dirname(fileURLToPath(import.meta.url));
 
 /** @type {Promise<(scope: string, msg: string) => never> | null} */
 let failPromise;
 
-function platformRoot() {
-  if (process.env.BLACKBOX_CLI_DIR) {
-    return path.join(path.resolve(process.env.BLACKBOX_CLI_DIR), "scripts", "cli", "platforms");
-  }
-  return path.resolve(HERE, "../../cli/platforms");
-}
-
-/** @returns {Promise<Record<string, { preflight: Record<string, Function> }>>} */
-async function loadPlatformModules() {
-  const root = platformRoot();
-  const entries = await Promise.all(
-    BUILD_PLATFORMS.map(async (name) => [
-      name,
-      await import(pathToFileURL(path.join(root, `${name}.mjs`)).href),
-    ]),
-  );
-  return Object.fromEntries(entries);
-}
-
-/** @type {Promise<Record<string, { preflight: Record<string, Function> }>> | null} */
-let platformsPromise;
-
-function getPlatforms() {
-  if (!platformsPromise) {
-    platformsPromise = loadPlatformModules();
-  }
-  return platformsPromise;
-}
-
 function loadFail() {
   if (!failPromise) {
-    const runPath = process.env.BLACKBOX_CLI_DIR
-      ? path.join(path.resolve(process.env.BLACKBOX_CLI_DIR), "scripts", "cli", "lib", "run.mjs")
-      : path.resolve(HERE, "../../cli/lib/run.mjs");
-    failPromise = import(pathToFileURL(runPath).href).then((mod) => mod.fail);
+    failPromise = import("../../cli/lib/run.mjs").then((mod) => mod.fail);
   }
   return failPromise;
 }
 
 async function stageHandler(platform, stage) {
-  const platforms = await getPlatforms();
-  const handler = platforms[platform]?.preflight?.[stage];
-  if (!handler) {
+  const definition = getPlatform(platform);
+  if (!definition?.preflightCheck) {
     throw new Error(`unknown stage "${stage}" for platform "${platform}"`);
   }
-  return handler;
+  return (ctx) => definition.preflightCheck(stage, ctx);
 }
 
 /**
@@ -62,12 +26,11 @@ async function stageHandler(platform, stage) {
  * @param {import("./types.mjs").PreflightContext} ctx
  */
 async function runPlatformPreflight(platform, ctx) {
-  const platforms = await getPlatforms();
-  const handlers = platforms[platform].preflight;
+  const definition = getPlatform(platform);
   const stageEntries = await Promise.all(
     BUILD_STAGES.map(async (stage) => [
       stage,
-      finalizeStage(await handlers[stage](ctx)),
+      finalizeStage(await definition.preflightCheck(stage, ctx)),
     ]),
   );
   const stages = Object.fromEntries(stageEntries);

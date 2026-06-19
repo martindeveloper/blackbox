@@ -223,14 +223,20 @@ export class BuildRunRegistry {
     // Later stages can reuse outputs produced earlier in this same pipeline while every stage
     // remains independently runnable. Bundle precedes Build, so Build can embed that exact
     // platform bundle instead of invoking the bundler again. Package can reuse both.
-    const selectedStages = new Set(record.stages.map((stageRecord) => stageRecord.stage));
-    const buildCanReuseBundle = selectedStages.has("bundle");
-    const packageCanReuse = selectedStages.has("build") && selectedStages.has("bundle");
-
     for (const stageRecord of record.stages) {
       if (record.state !== "running") break;
       stageRecord.state = "running";
       this.emit(project, { type: "stage", stage: stageRecord.stage, state: "running" });
+      const bundleInput =
+        stageRecord.stage === "build"
+          ? (record.stages.find((item) => item.stage === "bundle")?.artifact ?? null)
+          : stageRecord.stage === "package"
+            ? (record.stages.find((item) => item.stage === "bundle")?.artifact ?? null)
+            : null;
+      const buildInput =
+        stageRecord.stage === "package"
+          ? (record.stages.find((item) => item.stage === "build")?.artifact ?? null)
+          : null;
 
       const handle = this.spawn(
         root,
@@ -239,9 +245,8 @@ export class BuildRunRegistry {
           configuration: record.configuration,
           stage: stageRecord.stage,
           reactCompiler: record.reactCompiler,
-          reusePriorStages:
-            (stageRecord.stage === "build" && buildCanReuseBundle) ||
-            (stageRecord.stage === "package" && packageCanReuse),
+          bundleInput,
+          buildInput,
         },
         (line) => this.appendStageLog(project, stageRecord, line),
       );

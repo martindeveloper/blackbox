@@ -19,8 +19,6 @@ const FILES = [
   "platformIos.mjs",
 ];
 
-const DIRS = ["preflight"];
-
 if (!existsSync(SRC)) {
   throw new Error(`Missing repo scripts/lib at ${SRC}`);
 }
@@ -36,12 +34,4 @@ for (const file of FILES) {
   cpSync(source, path.join(OUT, file));
 }
 
-for (const dir of DIRS) {
-  const source = path.join(SRC, dir);
-  if (!existsSync(source)) {
-    throw new Error(`Missing shared lib source dir: ${source}`);
-  }
-  cpSync(source, path.join(OUT, dir), { recursive: true });
-}
-
-console.log(`Staged ${FILES.length} files and ${DIRS.length} dirs to ${OUT}`);
+console.log(`Staged ${FILES.length} shared files to ${OUT}`);

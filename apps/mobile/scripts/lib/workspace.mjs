@@ -75,29 +75,6 @@ function fail(msg) {
   process.exit(1);
 }
 
-/** Resolve the adventure from --adventure <path> or $BLACKBOX_ADVENTURE. No assumptions. */
-export function resolveAdventure(argv) {
-  const flagIdx = argv.indexOf("--adventure");
-  const raw = flagIdx !== -1 ? argv[flagIdx + 1] : process.env.BLACKBOX_ADVENTURE;
-  if (!raw) {
-    fail(
-      "no adventure specified. Set BLACKBOX_ADVENTURE or pass --adventure <path>.\n" +
-        "  e.g. BLACKBOX_ADVENTURE='/abs/path/to/adventure' npm run ios:run",
-    );
-  }
-
-  const project = resolveProject(raw);
-  return {
-    root: project.root,
-    scenario: project.scenarioPath,
-    gameId: project.gameId,
-    title: project.title,
-    configuration: project.configuration,
-    buildDir: project.buildDir,
-    webWwwDir: project.webWwwDir,
-  };
-}
-
 function webDistFor(adv) {
   return adv.webWwwDir ?? path.join(adv.buildDir, "web", "www");
 }
@@ -105,7 +82,7 @@ function webDistFor(adv) {
 /** Build apps/web for the adventure and assemble <buildDir>/www with the native layer. */
 export function buildPayload(
   adv,
-  { noBuild = false, platform, reuseBundleDir = null } = {},
+  { noBuild = false, platform, bundleInput = null } = {},
 ) {
   if (!platform) {
     fail("buildPayload requires platform (ios, android, or web)");
@@ -123,7 +100,7 @@ export function buildPayload(
       env: {
         ...playerBuildEnv({ root: adv.root, configuration }, configuration, platform),
         PROFILE: wasmProfileForConfiguration(configuration),
-        ...(reuseBundleDir ? { BLACKBOX_REUSE_BUNDLE_DIR: reuseBundleDir } : {}),
+        ...(bundleInput ? { BLACKBOX_BUNDLE_INPUT_DIR: bundleInput } : {}),
       },
     });
   }
@@ -466,7 +443,7 @@ export function capOpenAndroid(adv) {
 
 export function capOpenIos(adv) {
   if (!existsSync(path.join(adv.buildDir, "ios"))) {
-    fail("no ios project yet — run `npm run ios:sync` first.");
+    fail("no iOS project yet — execute the iOS Build stage first.");
   }
   cap(adv, ["open", "ios"]);
 }

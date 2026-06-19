@@ -72,9 +72,11 @@ test("runs selected stages in canonical order to completion", async () => {
     const current = await waitForSettled(registry, root);
     assert.equal(current.run.state, "done");
     assert.deepEqual(calls, ["bundle", "build", "package"]);
-    assert.equal(options[0].reusePriorStages, false);
-    assert.equal(options[1].reusePriorStages, true);
-    assert.equal(options[2].reusePriorStages, true);
+    assert.equal(options[0].bundleInput, null);
+    assert.equal(options[1].bundleInput, "/artifact/bundle");
+    assert.equal(options[1].buildInput, null);
+    assert.equal(options[2].bundleInput, "/artifact/bundle");
+    assert.equal(options[2].buildInput, "/artifact/build");
     assert.equal(current.run.artifact, "/artifact/package");
     assert.ok(current.run.stages.every((s) => s.state === "done"));
   } finally {
@@ -82,7 +84,7 @@ test("runs selected stages in canonical order to completion", async () => {
   }
 });
 
-test("build-only runs remain independent and do not request bundle reuse", async () => {
+test("build-only runs remain independent and receive no bundle input", async () => {
   const root = await tempProject();
   try {
     const { spawn, options } = fakeSpawn();
@@ -95,7 +97,8 @@ test("build-only runs remain independent and do not request bundle reuse", async
     await waitForSettled(registry, root);
     assert.equal(options.length, 1);
     assert.equal(options[0].stage, "build");
-    assert.equal(options[0].reusePriorStages, false);
+    assert.equal(options[0].bundleInput, null);
+    assert.equal(options[0].buildInput, null);
   } finally {
     await rm(root, { recursive: true, force: true });
   }

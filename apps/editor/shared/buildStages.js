@@ -1,4 +1,3 @@
-// Keep in sync with scripts/lib/buildStages.mjs (canonical for CLI + preflight).
 export const BUILD_PLATFORMS = ["web", "ios", "android"];
 export const BUILD_CONFIGURATIONS = ["debug", "release"];
 export const BUILD_STAGES = ["bundle", "build", "package"];

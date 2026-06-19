@@ -39,31 +39,28 @@ is copied over the generated `AppDelegate` on **every** sync.
 
 ## Selecting the adventure
 
-There is **no default adventure and no assumed path** — you supply it explicitly,
-exactly like `npm run dev`:
+There is **no default adventure and no assumed path** — you supply it explicitly:
 
 ```bash
-BLACKBOX_ADVENTURE='/abs/path/to/adventure' npm run payload
+BLACKBOX_ADVENTURE='/abs/path/to/adventure' npm run ios:sync
 ```
 
-`payload` derives both the UI and the content bundle from that one path.
 `--adventure <path>` works too. The path may be the adventure root or its
 `scenario.json`.
 
 ## Scripts
 
-Everything native is namespaced `ios:`. `payload` assembles the web payload — you
-rarely call it directly; `ios:*` does it for you. The first `ios:sync`/`ios:run`
-creates the iOS project automatically (no separate init step).
+The mobile scripts are thin wrappers over the unified build pipeline. The first
+`ios:sync`/`ios:run` creates the iOS project automatically.
 
 | Script | Does |
 | --- | --- |
-| `payload` | build the player + assemble `build/www` (needs `BLACKBOX_ADVENTURE`) |
-| `payload:fast` | reuse the last player build, just reassemble `build/www` |
-| `ios:sync` | rebuild payload + add-or-sync the iOS project (+ re-apply overrides) |
-| `ios:sync:fast` | reassemble (no rebuild) + sync |
+| `ios:sync` | execute the canonical iOS Build stage |
+| `ios:sync:fast` | execute Build with `--no-build` to reuse the prior web player |
 | `ios:open` | open the generated project in Xcode |
-| `ios:run` | rebuild payload + sync + launch on the Simulator |
+| `ios:run` | execute Build, then launch through the iOS platform hook |
+| `android:sync` | execute the canonical Android Build stage |
+| `android:run` | execute Build, then launch through the Android platform hook |
 
 ## First-time setup (on your Mac, needs Xcode + CocoaPods)
 
@@ -74,7 +71,7 @@ BLACKBOX_ADVENTURE='/Users/martin/Projects/martindeveloper/blackbox/data/silent_
 npm run ios:open         # open in Xcode → pick a Simulator → Run
 ```
 
-`ios:sync` builds the payload, scaffolds the workspace under the adventure's
+`ios:sync` runs the same Build stage used by the CLI and Editor, scaffolds under
 `.blackbox/build/`, and runs `cap add ios` on first run. In Xcode: pick a
 Simulator (or your device + a signing team) and Run.
 
@@ -88,9 +85,8 @@ BLACKBOX_ADVENTURE='…' npm run ios:run
 npm run ios:sync:fast
 ```
 
-> Any script that rebuilds the payload (`payload`, `ios:sync`, `ios:run`) needs
-> `BLACKBOX_ADVENTURE` in its environment — prefix it the same way each time.
-> The `:fast` variants reuse the last build and don't need it.
+> Mobile scripts need `BLACKBOX_ADVENTURE` (or `--adventure`) so the shared
+> pipeline knows which project to build.
 
 ## What makes it feel native (not a webview)
 
