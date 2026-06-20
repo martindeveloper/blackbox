@@ -200,6 +200,47 @@ test("ignores generated build/cache output during watching and indexing", async 
   }
 });
 
+test("suppresses every watcher event from a single atomic save, not just the first", async () => {
+  const env = await fixture();
+  try {
+    const [summary] = env.service.listProjects();
+    const project = env.service.requireProject(summary.id);
+    // Drive onExternalChange directly so the real chokidar watcher does not
+    // race the assertions.
+    await env.service.watchers.get(project.id)?.close();
+    env.service.watchers.delete(project.id);
+
+    const events = [];
+    const unsubscribe = env.service.subscribe(project.id, (event) => events.push(event));
+    const revisionAfterSave = project.revision;
+    const scenarioPath = path.join(project.path, "scenario.json");
+
+    // An atomic overwrite of an existing file fires more than one watcher event
+    // on the same path (unlink as the original moves to its backup, then add as
+    // the temp file is renamed into place). The save suppresses the path once.
+    env.service.suppress(scenarioPath);
+    await env.service.onExternalChange(project, scenarioPath); // unlink
+    await env.service.onExternalChange(project, scenarioPath); // add
+
+    assert.equal(project.revision, revisionAfterSave, "self-inflicted writes must not bump revision");
+    assert.deepEqual(
+      events.filter((event) => event.source === "external"),
+      [],
+      "an editor save must not surface as an external change",
+    );
+
+    // A genuine external change after the suppression window still registers.
+    await new Promise((resolve) => setTimeout(resolve, 1600));
+    await env.service.onExternalChange(project, scenarioPath);
+    assert.equal(project.revision, revisionAfterSave + 1);
+    assert.equal(events.at(-1)?.source, "external");
+
+    unsubscribe();
+  } finally {
+    await env.close();
+  }
+});
+
 test("rejects traversal and symlink escapes", async () => {
   const env = await fixture();
   try {

@@ -50,6 +50,7 @@ export function PreviewPanel() {
   const { t } = useTranslation();
   const projectId = useScenarioStore((s) => s.projectId);
   const saveProject = useScenarioStore((s) => s.save);
+  const conflict = useScenarioStore((s) => s.conflict);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const [reloadKey, setReloadKey] = useState(0);
@@ -103,7 +104,11 @@ export function PreviewPanel() {
   );
 
   useEffect(() => {
-    if (!projectId || preparedProject === projectId) return;
+    // Don't attempt the pre-preview save while a disk conflict is unresolved:
+    // save() refuses to write and would leave the panel spinning forever. The
+    // global conflict banner offers Reload/Overwrite; once the user resolves it
+    // `conflict` flips to null and this effect re-runs to prepare the preview.
+    if (!projectId || preparedProject === projectId || conflict) return;
     let active = true;
     void (async () => {
       const saved = await saveProject();
@@ -113,7 +118,7 @@ export function PreviewPanel() {
     return () => {
       active = false;
     };
-  }, [projectId, saveProject, preparedProject]);
+  }, [projectId, saveProject, preparedProject, conflict]);
 
   useEffect(() => {
     if (!previewReady || !projectId) return;
@@ -218,7 +223,7 @@ export function PreviewPanel() {
   if (preparedProject !== projectId) {
     return (
       <div className="preview-screen flex h-full items-center justify-center">
-        <EmptyState>{t("preview.preparing")}</EmptyState>
+        <EmptyState>{conflict ? t("preview.conflictBlocked") : t("preview.preparing")}</EmptyState>
       </div>
     );
   }

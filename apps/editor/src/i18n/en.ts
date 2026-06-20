@@ -209,6 +209,7 @@ export const en = {
     clearSaves: "Clear saves",
     clearAll: "Clear all state",
     preparing: "Saving project before preview…",
+    conflictBlocked: "Resolve the disk conflict above to start the preview.",
     runtimeState: "Current game state",
     localStorage: "Storage",
     sessionPhase: "Session phase",

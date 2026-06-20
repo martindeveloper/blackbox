@@ -1290,9 +1290,16 @@ export class ProjectService {
 
     const suppressedUntil = this.suppressed.get(absolute) ?? 0;
     if (suppressedUntil >= Date.now()) {
-      this.suppressed.delete(absolute);
+      // Editor-authored write. A single atomic save emits more than one watcher
+      // event for the same path — moving the original aside to its backup fires
+      // an `unlink`, then renaming the temp file into place fires an `add` — so
+      // keep the suppression entry until it expires by time instead of
+      // consuming it on the first event. Otherwise the trailing event leaks out
+      // as a spurious external change and the editor flags its own save as a
+      // disk conflict.
       return;
     }
+    if (suppressedUntil) this.suppressed.delete(absolute);
     await this.exclusive(project.id, async () => {
       project.revision += 1;
       this.db
