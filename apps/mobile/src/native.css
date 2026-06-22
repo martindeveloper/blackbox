@@ -58,7 +58,6 @@ html.bb-native body {
   overscroll-behavior: none;
   /* Match capacitor.config backgroundColor so nothing flashes between splash and app. */
   background: #070503;
-  /* No grey flash when a tap is registered. */
   -webkit-tap-highlight-color: transparent;
   /* A narrative reader should not show the iOS text-selection loupe / callout. */
   -webkit-touch-callout: none;

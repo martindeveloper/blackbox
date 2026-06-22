@@ -12,10 +12,7 @@ import {
   clearPlayerSaveSlots,
   importPlayerStorageSnapshot,
 } from "../engine/lib/playerStorageAdmin.js";
-import {
-  capturePreviewCheckpoint,
-  restorePreviewCheckpoint,
-} from "./checkpointBridge.js";
+import { capturePreviewCheckpoint, restorePreviewCheckpoint } from "./checkpointBridge.js";
 import { publishPreviewRuntimeState } from "./runtimeStatePublisher.js";
 
 export function installPreviewHostCommands(

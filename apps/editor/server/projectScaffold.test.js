@@ -159,7 +159,6 @@ test("example content forms a fully-connected, self-consistent two-chapter tour"
 });
 
 test("example second-chapter id avoids colliding with the author's first chapter", () => {
-  // When the author names their first chapter "two", the example shifts.
   const intro = exampleIntroChapterDoc({ id: "two", title: "Two", secondChapterId: "second" });
   const cont = intro.nodes.two_ready.choices.find((c) => c.action?.type === "gotoChapter");
   assert.equal(cont.action.chapterId, "second");

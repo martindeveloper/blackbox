@@ -61,7 +61,6 @@ let mainWindow = null;
 let editorServer = null;
 let editorMcpHost = null;
 let editorSocketPath = null;
-// Set on before-quit so confirm-close can call app.quit() vs window.close().
 let isQuitting = false;
 let shutdownDone = false;
 

@@ -223,9 +223,6 @@ export const SCHEMA_REFERENCE = {
   },
 };
 
-/**
- * Render SCHEMA_REFERENCE as markdown body (shared by repo GRAMMAR.md and homepage docs).
- */
 function renderGrammarBody(reference, { banner } = {}) {
   const lines = [];
   const cell = (value) => String(value).replaceAll("|", "\\|");
@@ -311,7 +308,6 @@ export function renderGrammarMarkdown(reference = SCHEMA_REFERENCE) {
   ].join("\n");
 }
 
-/** Render SCHEMA_REFERENCE as a homepage docs page (gray-matter frontmatter + body). */
 export function renderGrammarDocsMarkdown(reference = SCHEMA_REFERENCE) {
   return `---
 title: Authoring grammar

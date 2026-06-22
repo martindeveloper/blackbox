@@ -126,8 +126,6 @@ async function readJsonBody(request) {
   return { value: JSON.parse(Buffer.concat(chunks).toString("utf8")), size };
 }
 
-// Only an upload_media tool call may use the larger body budget; every other
-// request (reads, patches, whole-document saves) stays on MAX_BODY_BYTES.
 function isUploadCall(body) {
   const messages = Array.isArray(body) ? body : [body];
   return messages.some(

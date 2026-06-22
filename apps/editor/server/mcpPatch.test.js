@@ -47,7 +47,6 @@ test("set_node only rewrites the touched chapter and preserves siblings", () => 
   ]);
   assert.deepEqual(Object.keys(docs), ["chapter_intro.json"]);
   const chapter = docs["chapter_intro.json"];
-  // Untouched nodes survive — the whole-rewrite footgun is gone.
   assert.deepEqual(chapter.nodes.start.text, ["Keep me"]);
   assert.equal(chapter.nodes.vault.title, "Vault");
 });
@@ -124,7 +123,6 @@ test("errors are coded for unknown targets and bad payloads", () => {
       ]),
     /non-empty string id/,
   );
-  // No catalog document for the library collection in this fixture.
   assert.throws(
     () =>
       applyDocumentPatch(snapshot(), [

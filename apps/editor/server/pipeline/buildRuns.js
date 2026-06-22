@@ -53,7 +53,6 @@ function isStoredRun(value) {
 }
 
 export class BuildRunRegistry {
-  // `spawn` is injectable so the state machine can be tested without launching the real CLI.
   constructor({ spawn = spawnStage } = {}) {
     this.projects = new Map();
     this.spawn = spawn;
@@ -172,7 +171,6 @@ export class BuildRunRegistry {
       id: randomUUID(),
       platform,
       configuration,
-      // Build-time input (web/mobile player bundles only); not persisted in snapshots.
       reactCompiler,
       state: "running",
       startedAt: Date.now(),

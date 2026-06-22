@@ -109,7 +109,9 @@ server.listen(PORT, async () => {
   try {
     await fs.access(path.join(DIST, "index.html"));
   } catch {
-    console.warn(`${DIST} is missing index.html — run: BLACKBOX_ADVENTURE=<project> npm run build (or dev)`);
+    console.warn(
+      `${DIST} is missing index.html — run: BLACKBOX_ADVENTURE=<project> npm run build (or dev)`,
+    );
   }
 
   if (DEV_MODE) {

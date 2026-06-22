@@ -30,13 +30,9 @@ if (skipTools) {
   await run("node", ["./scripts/ensure-tools.mjs", "--force"]);
 }
 
-// Stage the web player workspace into resources/ so on-demand preview builds work
-// in the packaged app (electron-builder copies it via extraResources).
 await run("node", ["./players/registry.mjs", "stageForPackaging"]);
 await run("node", ["./scripts/stage-shared-lib.mjs"]);
 
-// Stage the build CLI (web/iOS/Android orchestration + Capacitor + prebuilt WASM) so the
-// packaged editor can create builds without the repo or a Rust toolchain.
 await run("node", ["./scripts/stage-cli.mjs"]);
 
 console.log("Electron build inputs are ready. Run: npm run electron:dist");

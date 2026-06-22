@@ -665,10 +665,6 @@ export class ProjectService {
     return { created };
   }
 
-  /**
-   * New projects created in the wizard are authored locally. Skip the trust
-   * prompt on first open: trust scaffolded custom code, otherwise mark safe.
-   */
   async finalizeAuthorCreatedProjectTrust(id, { withCode = false } = {}) {
     if (withCode) {
       await this.bootstrapProjectCode(id);
@@ -1055,11 +1051,6 @@ export class ProjectService {
     return { data: await fs.readFile(target.absolute), mimeType: mimeFromName(target.relative) };
   }
 
-  /**
-   * Raw authored JSON documents for the in-editor preview. Returns the on-disk
-   * text verbatim (envelopes intact) so the engine can decode it directly with
-   * no bundler. Media is fetched separately from `readMedia`.
-   */
   async readPreviewDocs(id) {
     const project = this.requireProject(id);
     const readText = (relativePath) =>

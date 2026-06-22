@@ -8,8 +8,6 @@
  * that `save_documents` uses, so concurrency and logging behave identically.
  */
 
-// Catalog collections map to a parent document and the record key inside it.
-// Names mirror the entity taxonomy used by summarizeDocumentChanges.
 const COLLECTIONS = {
   item: { doc: "items", key: "items" },
   character: { doc: "characters", key: "characters" },

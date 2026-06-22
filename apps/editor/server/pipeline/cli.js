@@ -25,13 +25,6 @@ function buildDir(projectPath, configuration) {
   return path.join(projectPath, ".blackbox", "build", configuration);
 }
 
-/**
- * Remove the project's build output for a configuration so the next build runs from scratch.
- * This is the `.blackbox/build/<configuration>` tree (bundle/web/package artifacts and any
- * incremental output the stages wrote there). Returns the root directory that was cleaned and
- * the immediate child folders that existed inside it (collected before deletion so the build
- * log can report exactly what was removed).
- */
 export async function cleanBuildOutput(projectPath, configuration) {
   const dir = buildDir(projectPath, configuration);
   // The top-level listing is tiny (bundle/web/package), so a sync stat is fine; the heavy part
@@ -58,11 +51,6 @@ export function buildCacheDir(projectPath) {
   return path.join(projectPath, ".blackbox", "cache");
 }
 
-/**
- * Ensure the project's build cache dir exists and is self-ignoring, so the (potentially large)
- * transcode/tailwind scratch is never committed even if the project's root .gitignore doesn't
- * know about it. Mirrors the build dir's self-ignore convention.
- */
 export function ensureBuildCacheDir(projectPath) {
   const dir = buildCacheDir(projectPath);
   mkdirSync(dir, { recursive: true });
@@ -71,10 +59,6 @@ export function ensureBuildCacheDir(projectPath) {
   return dir;
 }
 
-/**
- * Remove the project's reusable build cache so the next build regenerates it from scratch. Returns
- * the directory if it existed and was removed (for the build log), else null.
- */
 export async function cleanBuildCaches(projectPath) {
   const dir = buildCacheDir(projectPath);
   const existed = existsSync(dir);
@@ -151,9 +135,6 @@ export function spawnStage(
   // build reflects the Build-tab checkbox regardless of any ambient env value.
   const extraEnv = {
     BLACKBOX_REACT_COMPILER: reactCompiler === false ? "false" : "true",
-    // Project-scoped build scratch cache (bundler transcode + tailwind), so a clean build of one
-    // project never invalidates another's cache. The project folder is always writable — unlike
-    // the read-only app resources that originally forced this cache into shared user-data.
     BLACKBOX_BUILD_CACHE_DIR: ensureBuildCacheDir(projectPath),
   };
 

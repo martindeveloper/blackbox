@@ -4,14 +4,6 @@ export const VCS_OPERATION = Object.freeze({
   PUBLISH: "publish",
 });
 
-/**
- * Provider contract for version control.
- *
- * Shared code speaks in workflow semantics:
- * - sync: update the workspace from its authoritative source
- * - record: create a revision (local commit or remote submit/check-in)
- * - publish: send local revisions to the authoritative source, when applicable
- */
 export class VcsProvider {
   constructor({ id, label, workflow, operations, features = {} }) {
     this.id = id;

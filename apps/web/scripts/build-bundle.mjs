@@ -97,7 +97,6 @@ if (options.archiveCompress !== "none") {
   args.push("--archive-compress", options.archiveCompress);
 }
 
-// A self-contained editor forwards its prebuilt bundler so this never needs cargo.
 const bundlerBin = process.env.BLACKBOX_BUNDLER_BIN;
 if (bundlerBin && existsSync(bundlerBin)) {
   runSync(bundlerBin, args, { cwd: repoRoot });

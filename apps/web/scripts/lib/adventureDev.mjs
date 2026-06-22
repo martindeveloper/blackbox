@@ -46,11 +46,6 @@ export function resolveWebDevAdventure(env = process.env) {
   };
 }
 
-/**
- * Output root for the web player build, ALWAYS inside the adventure — never the
- * engine repo. The served site is `<root>/www`; deploy config (vercel.json) sits
- * at `<root>`. Throws if no adventure is set: the engine repo must stay clean.
- */
 export function resolveWebOutDir(env = process.env) {
   const adventure = resolveWebDevAdventure(env);
   if (!adventure) {

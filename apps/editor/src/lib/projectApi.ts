@@ -36,11 +36,6 @@ export interface ProjectEvent {
   contribution?: ProjectContribution;
 }
 
-/**
- * Contributor-neutral metadata attached by MCP, Git, remote collaboration, or
- * another integration. The editor consumes this envelope without branching on
- * the event source.
- */
 export interface ProjectContribution {
   status: "applied" | "blocked";
   contributor: {

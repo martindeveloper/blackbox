@@ -254,8 +254,6 @@ test("suppresses every watcher event from a single atomic save, not just the fir
   try {
     const [summary] = env.service.listProjects();
     const project = env.service.requireProject(summary.id);
-    // Drive onExternalChange directly so the real chokidar watcher does not
-    // race the assertions.
     await env.service.watchers.get(project.id)?.close();
     env.service.watchers.delete(project.id);
 

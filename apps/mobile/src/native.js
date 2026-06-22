@@ -13,7 +13,7 @@
 
   var Cap = window.Capacitor;
   if (!Cap || typeof Cap.isNativePlatform !== "function" || !Cap.isNativePlatform()) {
-    return; // running in a browser / dev server — do nothing.
+    return;
   }
 
   var P = Cap.Plugins || {};
@@ -27,25 +27,20 @@
   document.documentElement.classList.add("bb-native");
 
   var shell = window.__BB_NATIVE_SHELL__ || {};
-  // Safe-area strategy: "band" (default) | "bleed" | "none".
   var safeAreaMode = shell.safeAreaMode === "bleed" || shell.safeAreaMode === "none"
     ? shell.safeAreaMode
     : "band";
   var safeAreaEnabled = safeAreaMode !== "none";
   if (safeAreaEnabled) {
     document.documentElement.classList.add("bb-safe-status-bar");
-    // band: #root insets the whole UI below the status bar — safe for any shell.
-    // bleed: header background runs under the bar, its content self-insets.
     document.documentElement.classList.add(
       safeAreaMode === "bleed" ? "bb-safe-bleed" : "bb-safe-band",
     );
     if (shell.safeAreaColor) {
-      // Fill painted in the inset band around the game (native.css reads this).
       document.documentElement.style.setProperty("--bb-safe-fill", shell.safeAreaColor);
     }
   }
 
-  // --- Pinch-zoom lockout -----------------------------------------------------
   // The shipped viewport allows zoom for accessibility on the web; in the app a
   // pinch-zoomable game reads as a webview. Tighten it here only.
   var vp = document.querySelector('meta[name="viewport"]');
@@ -56,7 +51,6 @@
     );
   }
 
-  // --- System bars & safe areas -----------------------------------------------
   // Capacitor 8 SystemBars handles edge-to-edge on Android 15+ and injects
   // --safe-area-inset-* CSS vars (incl. display cutout / punch-hole). iOS uses
   // env(safe-area-inset-*) via viewport-fit=cover. native.css pads UI chrome when
@@ -124,7 +118,6 @@
   applyAndroidSafeTopFallback();
   document.addEventListener("DOMContentLoaded", applyAndroidSafeTopFallback, { once: true });
 
-  // --- Splash handoff ---------------------------------------------------------
   // Capacitor keeps LaunchScreen.storyboard visible (launchAutoHide: false) until
   // we call SplashScreen.hide() after the first React paint into #root.
   var splashDone = false;
@@ -162,9 +155,8 @@
     obs.observe(root, { childList: true });
   }
   watchForFirstPaint();
-  setTimeout(finishSplash, 4000); // safety net
+  setTimeout(finishSplash, 4000);
 
-  // --- Haptics ----------------------------------------------------------------
   // Light, intentional feedback that makes choices feel like physical buttons.
   // Choice buttons get a Medium tap; other controls (mute, menu) a Light one.
   // Scoped by class so it does not fire on incidental taps.
@@ -187,7 +179,6 @@
     );
   }
 
-  // --- App lifecycle ----------------------------------------------------------
   // WKWebView does not reliably fire visibilitychange on background. The player's
   // audio engine self-suspends on visibility/pagehide; bridge the native pause/
   // resume to those so music stops cleanly when the app is backgrounded.

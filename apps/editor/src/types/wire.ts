@@ -63,17 +63,12 @@ export interface IosPlatformConfig {
   version?: string;
   buildNumber?: string;
   versionCode?: string;
-  /** Minimum iOS version (Capacitor 8 floor: 15.0). */
   deploymentTarget?: string;
   category?: string;
   orientations?: PlatformOrientations;
   icon?: string;
   backgroundColor?: string;
   safeAreaColor?: string;
-  /**
-   * Safe-area strategy on native builds. "band" (default): inset whole UI below
-   * system bars. "bleed": header runs full-bleed under the status bar. "none": no inset.
-   */
   safeAreaMode?: "band" | "bleed" | "none";
   signing?: PlatformSigningConfig;
 }
@@ -86,20 +81,13 @@ export interface AndroidPlatformConfig {
   version?: string;
   versionCode?: number;
   buildNumber?: string;
-  /** Minimum Android API level (Capacitor 8 floor: 24). */
   minSdk?: number;
-  /** Compile SDK (Capacitor 8 floor: 36). */
   compileSdk?: number;
-  /** Target SDK (Capacitor 8 floor: 36). */
   targetSdk?: number;
   orientations?: PlatformOrientations;
   icon?: string;
   backgroundColor?: string;
   safeAreaColor?: string;
-  /**
-   * Safe-area strategy on native builds. "band" (default): inset whole UI below
-   * system bars. "bleed": header runs full-bleed under the status bar. "none": no inset.
-   */
   safeAreaMode?: "band" | "bleed" | "none";
   keystore?: PlatformKeystoreConfig;
 }

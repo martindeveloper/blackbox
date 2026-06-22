@@ -11,7 +11,6 @@ const APPX_DIR = path.join(ROOT, "resources", "appx");
 const TILE_BACKGROUND = { r: 0, g: 0, b: 0, alpha: 1 };
 const TRANSPARENT = { r: 0, g: 0, b: 0, alpha: 0 };
 
-/** Windows AppX inner graphic sizes (Visual Studio / Microsoft asset guidance). */
 const APPX_PLATE_RATIO = {
   /** StoreLogo fills the canvas. */
   store: 1,

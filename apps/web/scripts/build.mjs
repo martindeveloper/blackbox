@@ -20,7 +20,6 @@ const scriptsDir = path.dirname(fileURLToPath(import.meta.url));
 const TARGET = "wasm32-unknown-unknown";
 const profile = process.env.PROFILE ?? wasmProfileForConfiguration(configuration);
 
-// Generated WASM glue files consumed by sync-dist.mjs and the runtime player.
 const WASM_GLUE = [
   "blackbox_wasm.js",
   "blackbox_wasm_bg.wasm",
@@ -47,7 +46,7 @@ function syncPrebuiltWasm(prebuiltDir) {
   const source = existsSync(path.join(prebuiltDir, profile))
     ? path.join(prebuiltDir, profile)
     : prebuiltDir;
-  if (path.resolve(source) === path.resolve(wasmCacheDir)) return; // already in place
+  if (path.resolve(source) === path.resolve(wasmCacheDir)) return;
   mkdirSync(wasmCacheDir, { recursive: true });
   for (const name of WASM_GLUE) {
     const from = path.join(source, name);

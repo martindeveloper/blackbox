@@ -77,7 +77,6 @@ function webDistFor(adv) {
   return adv.webWwwDir ?? path.join(adv.buildDir, "web", "www");
 }
 
-/** Build apps/web for the adventure and assemble <buildDir>/www with the native layer. */
 export function buildPayload(
   adv,
   { noBuild = false, platform, bundleInput = null } = {},
@@ -108,7 +107,7 @@ export function buildPayload(
 
   log(`assembling payload -> ${displayPath(www)}`);
   mkdirSync(adv.buildDir, { recursive: true });
-  writeFileSync(path.join(adv.buildDir, ".gitignore"), "*\n"); // make build dir self-ignoring
+  writeFileSync(path.join(adv.buildDir, ".gitignore"), "*\n");
   rmSync(www, { recursive: true, force: true });
   mkdirSync(www, { recursive: true });
   cpSync(webDist, www, { recursive: true });
@@ -162,13 +161,11 @@ function loadPlatformConfig(adv, platform) {
   return resolvePlatformConfig(project, platform);
 }
 
-/** Capacitor android.path relative to the build dir, e.g. android/ExampleGame. */
 export function androidProjectPath(adv) {
   const config = loadPlatformConfig(adv, "android");
   return androidProjectRelativePath(config.displayName);
 }
 
-/** Absolute path to the generated Gradle project root. */
 export function androidRootFor(adv) {
   return path.join(adv.buildDir, androidProjectPath(adv));
 }
@@ -190,7 +187,6 @@ function migrateLegacyAndroidLayout(adv) {
   log(`relocated Android project -> ${displayPath(targetRoot)}`);
 }
 
-/** Write the disposable Capacitor workspace (config, package.json, node_modules symlink). */
 export function ensureWorkspace(adv, platform = "ios") {
   mkdirSync(adv.buildDir, { recursive: true });
 
@@ -274,7 +270,6 @@ function cap(adv, args) {
   runSync(process.execPath, [CAP_CLI, ...args], { cwd: adv.buildDir });
 }
 
-/** Copy the engine's AppDelegate override into the generated project, enforcing it every run. */
 function applyNativeOverrides(adv) {
   const dest = path.join(adv.buildDir, "ios", "App", "App", "AppDelegate.swift");
   const src = path.join(NATIVE_IOS, "AppDelegate.swift");
@@ -298,7 +293,6 @@ function nativeAssetRoots(adv, platform) {
   return null;
 }
 
-/** Install splash assets from platforms.<platform>.splash into native projects. */
 export async function applyPlatformSplash(adv, platform) {
   const config = loadPlatformConfig(adv, platform);
   const imagePath = config.splash?.image;
@@ -323,7 +317,6 @@ export async function applyPlatformSplash(adv, platform) {
   log(`installed Android splash from ${path.relative(adv.root, imagePath)}`);
 }
 
-/** Generate native launcher icons from platforms.<platform>.icon (SVG). */
 export async function applyPlatformIcons(adv, platform) {
   const config = loadPlatformConfig(adv, platform);
   if (!config.icon) {
@@ -355,13 +348,11 @@ export async function applyPlatformIcons(adv, platform) {
   }
 }
 
-/** Install splash and launcher icons for a native platform. */
 export async function applyPlatformAssets(adv, platform) {
   await applyPlatformSplash(adv, platform);
   await applyPlatformIcons(adv, platform);
 }
 
-/** Add the iOS platform if missing, otherwise sync; always re-assert native overrides. */
 export async function capSyncIos(adv) {
   ensureWorkspace(adv, "ios");
   const iosDir = path.join(adv.buildDir, "ios");
@@ -378,7 +369,6 @@ export async function capSyncIos(adv) {
   await applyPlatformAssets(adv, "ios");
 }
 
-/** Add the Android platform if missing, otherwise sync. */
 export async function capSyncAndroid(adv) {
   ensureWorkspace(adv, "android");
   migrateLegacyAndroidLayout(adv);
@@ -437,7 +427,6 @@ function writeExportOptionsPlist(dest, platformConfig) {
   writeFileSync(dest, plist);
 }
 
-/** Archive and export an .ipa into <buildDir>/package/ios/. */
 export function packageIos(adv, platformConfig) {
   const iosRoot = path.join(adv.buildDir, "ios", "App");
   const workspace = path.join(iosRoot, "App.xcworkspace");
@@ -493,7 +482,6 @@ export function packageIos(adv, platformConfig) {
   return ipa;
 }
 
-/** Build a release .aab into <buildDir>/package/android/. */
 export function packageAndroid(adv, platformConfig) {
   const androidRoot = androidRootFor(adv);
   if (!existsSync(androidRoot)) {

@@ -40,7 +40,9 @@ export function resolveWebIconSources(env = process.env) {
 export async function buildWebIcons(env = process.env, { wwwDir = resolveWebWwwDir(env) } = {}) {
   const sources = resolveWebIconSources(env);
   if (!sources) {
-    console.warn("==> skipping web icons: set BLACKBOX_ADVENTURE and platforms.web.icon in scenario.json");
+    console.warn(
+      "==> skipping web icons: set BLACKBOX_ADVENTURE and platforms.web.icon in scenario.json",
+    );
     return false;
   }
 

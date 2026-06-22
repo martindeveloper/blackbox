@@ -15,7 +15,6 @@ Examples:
 export function parseCliMode(argv) {
   const raw = argv.slice(1);
 
-  // Skip the dev entry ("." with `electron .`) or a packaged app binary path.
   let index = 0;
   while (index < raw.length && !raw[index].startsWith("-")) {
     index += 1;

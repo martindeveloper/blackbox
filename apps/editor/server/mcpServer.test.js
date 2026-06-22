@@ -277,7 +277,6 @@ test("patch_documents and upload_media mutate through the revision-checked pipel
     },
   });
   assert.equal(patched.isError, undefined);
-  // Only the touched chapter is rewritten, and the untouched start node survives.
   assert.equal(saves.length, 1);
   assert.deepEqual(Object.keys(saves[0].documents), ["chapter_intro.json"]);
   assert.ok(saves[0].documents["chapter_intro.json"].nodes.start);
@@ -300,7 +299,6 @@ test("patch_documents and upload_media mutate through the revision-checked pipel
   assert.ok(Buffer.isBuffer(uploads[0].data));
   assert.equal(uploads[0].data.toString(), "PNGDATA");
 
-  // Patch ops that address a missing entity surface a coded error, not a clobber.
   const missing = await client.callTool({
     name: "patch_documents",
     arguments: {
@@ -319,7 +317,6 @@ test("patch_documents and upload_media mutate through the revision-checked pipel
   );
   assert.deepEqual(patchEntry.arguments.opTypes, ["set_node", "set_choice"]);
   assert.equal(patchEntry.arguments.opCount, 2);
-  // Audit records structural changes but never node titles or other content.
   assert.equal(JSON.stringify(audit.entries).includes("Vault"), false);
 });
 
@@ -362,7 +359,6 @@ test("add_chapter registers a new chapter and describe_schema is served", async 
   assert.equal(result.startNodeId, "two_start");
   assert.deepEqual(result.documentsWritten.sort(), ["chapter_two.json", "scenario.json"]);
 
-  // The new chapter file carries a start node, and scenario.json gains the registration.
   const chapterDoc = saves[0].documents["chapter_two.json"];
   assert.equal(chapterDoc.spec, "com.blackbox.chapter");
   assert.equal(chapterDoc.nodes.two_start.id, "two_start");
@@ -372,7 +368,6 @@ test("add_chapter registers a new chapter and describe_schema is served", async 
     ["intro", "two"],
   );
 
-  // A duplicate id is rejected without writing.
   const dup = await client.callTool({
     name: "add_chapter",
     arguments: { projectId: "project-1", expectedRevision: 8, id: "intro", title: "Dup" },
@@ -398,7 +393,6 @@ test("only upload_media may use the larger request-body budget", async (t) => {
     accept: "application/json, text/event-stream",
     Authorization: `Bearer ${status.token}`,
   };
-  // ~3 MB payload: over the 2 MB authored-edit cap, well under the 32 MB upload cap.
   const pad = "x".repeat(3 * 1024 * 1024);
   const call = (name, args) =>
     JSON.stringify({
@@ -430,7 +424,6 @@ test("only upload_media may use the larger request-body budget", async (t) => {
       dataBase64: pad,
     }),
   });
-  // The size gate let the oversized upload through (downstream status may vary).
   assert.notEqual(allowed.status, 413);
 });
 

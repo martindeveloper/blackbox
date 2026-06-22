@@ -67,7 +67,15 @@ export function usePanelModals<Id extends string>({
 
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
-  }, [hasOpenModals, openPanel, openPanelModal, panelIds, primaryPanelId, primaryShortcut, shortcuts]);
+  }, [
+    hasOpenModals,
+    openPanel,
+    openPanelModal,
+    panelIds,
+    primaryPanelId,
+    primaryShortcut,
+    shortcuts,
+  ]);
 
   return { showPanel: openPanelModal };
 }

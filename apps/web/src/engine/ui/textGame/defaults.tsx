@@ -294,10 +294,7 @@ export function DefaultInventory({
   const actions = useMemo(() => actionsByItem(view.item_actions), [view.item_actions]);
   const selectedRef = useMemo(() => {
     if (!view.inventory_items.length) return null;
-    if (
-      userSelectedRef &&
-      view.inventory_items.some((item) => item.ref_id === userSelectedRef)
-    ) {
+    if (userSelectedRef && view.inventory_items.some((item) => item.ref_id === userSelectedRef)) {
       return userSelectedRef;
     }
     return view.inventory_items[0]!.ref_id;

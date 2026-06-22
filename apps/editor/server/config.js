@@ -20,7 +20,6 @@ export const STANDALONE = process.env.BLACKBOX_STANDALONE === "1";
 
 export const DIST = path.join(CLIENT_ROOT, "dist");
 export const PREVIEW_CACHE = path.join(USER_DATA_ROOT, ".cache", "preview");
-// Writable scratch space for preview toolchain temp files (tailwind wrappers, etc.).
 export const PREVIEW_BUILD_CACHE = path.join(USER_DATA_ROOT, ".cache", "preview-build");
 export const WORK_DIR = USER_DATA_ROOT;
 
@@ -28,8 +27,6 @@ export function getToolsDir() {
   return process.env.BLACKBOX_TOOLS_DIR ? path.resolve(process.env.BLACKBOX_TOOLS_DIR) : null;
 }
 
-// Root that contains the build CLI entry (cli.js). In repo development this is the
-// repository root; a packaged editor sets BLACKBOX_CLI_DIR to the staged CLI copy.
 export function getCliDir() {
   return process.env.BLACKBOX_CLI_DIR ? path.resolve(process.env.BLACKBOX_CLI_DIR) : REPO_ROOT;
 }

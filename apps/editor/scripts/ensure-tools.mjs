@@ -25,7 +25,6 @@ function toolPath(base) {
   return path.join(TOOLS_DIR, toolFileName(base));
 }
 
-// Oldest staged binary, or 0 if any is missing (missing ⇒ always rebuild).
 async function oldestBinaryMtime() {
   let oldest = Infinity;
   for (const tool of TOOLS) {
@@ -40,7 +39,6 @@ async function oldestBinaryMtime() {
   return oldest === Infinity ? 0 : oldest;
 }
 
-// Newest Rust source mtime across the engine tree and workspace manifests.
 async function newestSourceMtime() {
   let newest = 0;
   const visit = async (dir) => {
@@ -113,7 +111,9 @@ async function verifyTools() {
 }
 
 if (force || (await toolsStale())) {
-  console.log(force ? "==> rebuilding engine tools" : "==> building engine tools (sources changed)");
+  console.log(
+    force ? "==> rebuilding engine tools" : "==> building engine tools (sources changed)",
+  );
   await runBuildTools();
 }
 

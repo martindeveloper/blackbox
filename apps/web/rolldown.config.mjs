@@ -29,9 +29,7 @@ export default defineConfig({
   input: "./src/main.tsx",
   platform: "browser",
   external: ["/pkg/blackbox_wasm.js"],
-  plugins: useReactCompiler
-    ? [reactCompilerPlugin({ babel, compilerPlugin: reactCompiler })]
-    : [],
+  plugins: useReactCompiler ? [reactCompilerPlugin({ babel, compilerPlugin: reactCompiler })] : [],
   resolve: createWebRolldownResolve(WEB_ROOT, {
     gameSrc,
     aliases: {

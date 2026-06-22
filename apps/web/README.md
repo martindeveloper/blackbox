@@ -62,16 +62,16 @@ Use `debug` for dev tooling (in-game console via `__BLACKBOX_DEV__`); `release` 
 
 ## Common commands
 
-| Command                     | Purpose                                                          |
-| --------------------------- | ---------------------------------------------------------------- |
-| `npm run build`             | Full release dist; requires `BLACKBOX_ADVENTURE`                 |
-| `npm run dev`               | Watch + live reload; requires `BLACKBOX_ADVENTURE`               |
-| `npm run build:wasm`        | Rebuild wasm-bindgen pkg only                                    |
-| `npm run build:bundler`     | Cook scenario bundle (release: zstd archive)                     |
-| `npm run build:bundler:dev` | Cook scenario bundle (dev: verbose, skip missing assets, no zst) |
-| `npm run check`             | Oxlint + Oxfmt check                                             |
+| Command                     | Purpose                                                                    |
+| --------------------------- | -------------------------------------------------------------------------- |
+| `npm run build`             | Full release dist; requires `BLACKBOX_ADVENTURE`                           |
+| `npm run dev`               | Watch + live reload; requires `BLACKBOX_ADVENTURE`                         |
+| `npm run build:wasm`        | Rebuild wasm-bindgen pkg only                                              |
+| `npm run build:bundler`     | Cook scenario bundle (release: zstd archive)                               |
+| `npm run build:bundler:dev` | Cook scenario bundle (dev: verbose, skip missing assets, no zst)           |
+| `npm run check`             | Oxlint + Oxfmt check                                                       |
 | `npm run deploy`            | Vercel production deploy from built `www/` (requires `BLACKBOX_ADVENTURE`) |
-| `npm run test:wasm`         | Smoke-test wasm-bindgen ABI                                      |
+| `npm run test:wasm`         | Smoke-test wasm-bindgen ABI                                                |
 
 ## Engine API
 

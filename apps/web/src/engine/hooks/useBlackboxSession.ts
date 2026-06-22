@@ -306,7 +306,14 @@ export function useBlackboxSession({ onSfx, presentation }: UseBlackboxSessionOp
         }
       })();
     },
-    [applyCommandResult, cancelAutosave, clearTransientUi, recoverFromAutosave, setAppStatus, takePlaytimeDelta],
+    [
+      applyCommandResult,
+      cancelAutosave,
+      clearTransientUi,
+      recoverFromAutosave,
+      setAppStatus,
+      takePlaytimeDelta,
+    ],
   );
 
   useEffect(() => {

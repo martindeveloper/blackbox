@@ -13,7 +13,6 @@ import { EmptyState } from "../ui/EmptyState.js";
 interface ToolBadgeProps {
   info: ToolInfo | null;
   label: string;
-  // "scout" is not buildable through the same pipeline; it renders read-only.
   toolName: BuildToolName | "scout";
   projectId: string | null;
   buildEnabled: boolean;
