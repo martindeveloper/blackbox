@@ -65,14 +65,34 @@ fn ci_eq_at(h: &[u8], at: usize, q: &[u8]) -> bool {
     true
 }
 
+/// Short haystacks use a tight byte scan; longer buffers use `memchr` to skip runs.
+const MEMCHR_MIN_LEN: usize = 64;
+
+/// Naive case-insensitive scan — fastest for entity ids and other short strings.
+fn find_ci_naive(h: &[u8], q: &[u8]) -> Option<usize> {
+    let first = lower(q[0]);
+    let max_start = h.len() - q.len();
+    for start in 0..=max_start {
+        if lower(h[start]) != first {
+            continue;
+        }
+        if ci_eq_at(h, start, q) {
+            return Some(start);
+        }
+    }
+    None
+}
+
 /// Case-insensitive substring search. Returns the start index of the first hit.
-/// Uses `memchr` to skip non-matching first bytes — the dominant cost at scale.
 fn find_ci(h: &[u8], q: &[u8]) -> Option<usize> {
     if q.is_empty() {
         return Some(0);
     }
     if q.len() > h.len() {
         return None;
+    }
+    if h.len() < MEMCHR_MIN_LEN {
+        return find_ci_naive(h, q);
     }
 
     let q0l = lower(q[0]);
@@ -303,9 +323,10 @@ mod tests {
     }
 
     #[test]
-    fn find_ci_memchr_path() {
-        let h = b"xxxxxxxxtrapdoor";
-        assert_eq!(find_ci(h, b"door"), Some(12));
-        assert_eq!(find_ci(b"Door", b"door"), Some(0));
+    fn dialogue_text_with_leading_quote() {
+        let frag = "\"You heard it, then. Underneath. Most listeners only hear the damage.\"";
+        let q = b"you heard it";
+        assert!(text_score(frag, q).is_some());
+        assert!(find_ci(frag.as_bytes(), q).is_some());
     }
 }

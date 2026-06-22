@@ -216,16 +216,16 @@ fn rank_matches(
 
 #[inline]
 fn score_candidate(c: &Candidate<'_>, needle: &[u8], full_text: bool) -> Option<i32> {
-    let mut best = fuzzy::score_fields(c.id, c.label, needle)?;
+    let mut best = fuzzy::score_fields(c.id, c.label, needle);
     if full_text {
         for frag in &c.text {
             if let Some(s) = fuzzy::text_score(frag, needle) {
-                best = best.max(s);
+                best = Some(best.map_or(s, |b| b.max(s)));
                 break;
             }
         }
     }
-    Some(best)
+    best
 }
 
 fn focus_for(c: &Candidate) -> Focus {
