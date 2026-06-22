@@ -127,25 +127,81 @@ test("serves authenticated MCP tools and revision-checked saves", async (t) => {
   assert.equal(saves[0].force, false);
   assert.equal(saves[0].clientId, "mcp");
 
+  const expanded = await client.callTool({
+    name: "save_documents",
+    arguments: {
+      projectId: "project-1",
+      expectedRevision: 8,
+      documents: {
+        "chapter_intro.json": {
+          spec: "com.blackbox.chapter",
+          id: "intro",
+          title: "Intro",
+          startNodeId: "start",
+          nodes: {
+            start: {
+              id: "start",
+              title: "Start",
+              text: [],
+              choices: [{ id: "window", label: "Look out", goto: "vault" }],
+            },
+            vault: { id: "vault", title: "Vault", text: [], choices: [] },
+          },
+        },
+        "items.json": {
+          spec: "com.blackbox.items",
+          formatVersion: 1,
+          items: { archive_note: { id: "archive_note", name: "Archive Note" } },
+        },
+        "catalog.json": {
+          spec: "com.blackbox.catalog",
+          formatVersion: 1,
+          events: { found_corridor: {} },
+          flags: { saw_light: {} },
+        },
+      },
+    },
+  });
+  assert.equal(expanded.isError, undefined);
+
   dirty = true;
   const blocked = await client.callTool({
     name: "save_documents",
     arguments: {
       projectId: "project-1",
-      expectedRevision: 8,
+      expectedRevision: 9,
       documents: { "scenario.json": { title: "Blocked" } },
     },
   });
   assert.equal(blocked.isError, true);
   assert.match(blocked.content[0].text, /editor_dirty/);
-  assert.equal(saves.length, 1);
+  assert.equal(saves.length, 2);
 
   const audit = await server.readAudit();
-  const savedAudit = audit.entries.find((entry) => entry.tool === "save_documents");
+  const savedAudit = audit.entries.find((entry) => entry.changeCount === 5);
   assert.equal(audit.path, auditLogPath);
   assert.equal(savedAudit.client.name, "blackbox-editor-test");
-  assert.deepEqual(savedAudit.arguments.documentPaths, ["scenario.json"]);
-  assert.equal(JSON.stringify(audit.entries).includes("Updated"), false);
+  assert.deepEqual(savedAudit.arguments.documentPaths, [
+    "chapter_intro.json",
+    "items.json",
+    "catalog.json",
+  ]);
+  assert.deepEqual(savedAudit.changes, [
+    {
+      action: "added",
+      entity: "choice",
+      id: "window",
+      parentId: "start",
+      chapterId: "intro",
+    },
+    { action: "added", entity: "node", id: "vault", chapterId: "intro" },
+    { action: "added", entity: "item", id: "archive_note" },
+    { action: "added", entity: "event", id: "found_corridor" },
+    { action: "added", entity: "flag", id: "saw_light" },
+  ]);
+  assert.equal(savedAudit.revision, 9);
+  assert.equal(JSON.stringify(audit.entries).includes("Look out"), false);
+  assert.equal(JSON.stringify(audit.entries).includes("Archive Note"), false);
 });
 
 test("disabling MCP closes the endpoint and rotates credentials on restart", async () => {

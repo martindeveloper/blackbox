@@ -34,8 +34,33 @@ export interface McpAuditEntry {
   tool?: string;
   operation?: string;
   arguments?: Record<string, unknown>;
+  changes?: McpAuditChange[];
+  changeCount?: number;
+  changesTruncated?: boolean;
+  revision?: number;
   outcome: "success" | "error";
   durationMs?: number;
+}
+
+export interface McpAuditChange {
+  action: "added" | "removed" | "edited";
+  entity:
+    | "node"
+    | "choice"
+    | "chapter"
+    | "item"
+    | "character"
+    | "event"
+    | "flag"
+    | "texture"
+    | "music"
+    | "sound"
+    | "snippet"
+    | "template"
+    | "condition";
+  id: string;
+  parentId?: string;
+  chapterId?: string;
 }
 
 export interface McpAuditResult {

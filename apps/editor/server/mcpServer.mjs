@@ -4,6 +4,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import * as z from "zod/v4";
 import { McpAuditLog } from "./mcpAuditLog.mjs";
+import { summarizeDocumentChanges } from "./mcpAuditDiff.mjs";
 import { executeLinter, executeSimulator } from "./routes.js";
 
 const HOST = "127.0.0.1";
@@ -171,9 +172,10 @@ function createProtocolServer({ projectService, isRendererDirty, auditTool, clie
   const registerTool = (name, config, handler) => {
     server.registerTool(name, config, async (args, extra) => {
       const started = Date.now();
+      const auditDetails = {};
       let result;
       try {
-        result = await handler(args, extra);
+        result = await handler(args, extra, auditDetails);
         return result;
       } catch (error) {
         result = toolError(error);
@@ -184,6 +186,7 @@ function createProtocolServer({ projectService, isRendererDirty, auditTool, clie
           client,
           tool: name,
           arguments: auditArguments(name, args),
+          ...auditDetails,
           outcome: result?.isError === true ? "error" : "success",
           durationMs: Date.now() - started,
         });
@@ -312,17 +315,18 @@ function createProtocolServer({ projectService, isRendererDirty, auditTool, clie
         openWorldHint: false,
       },
     },
-    async ({ projectId, expectedRevision, documents }) => {
+    async ({ projectId, expectedRevision, documents }, _extra, auditDetails) => {
       mutationGuard();
-      await readSnapshot(projectId);
-      return jsonText(
-        await projectService.saveDocuments(projectId, {
-          baseRevision: expectedRevision,
-          documents,
-          force: false,
-          clientId: "mcp",
-        }),
-      );
+      const before = await readSnapshot(projectId);
+      const changeSummary = summarizeDocumentChanges(before, documents);
+      const saved = await projectService.saveDocuments(projectId, {
+        baseRevision: expectedRevision,
+        documents,
+        force: false,
+        clientId: "mcp",
+      });
+      Object.assign(auditDetails, changeSummary, { revision: saved.revision });
+      return jsonText(saved);
     },
   );
 

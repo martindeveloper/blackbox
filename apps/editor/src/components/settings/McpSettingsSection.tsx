@@ -169,6 +169,8 @@ export function McpAuditSection() {
     };
   }, []);
 
+  const firstDetailedEntry = audit?.entries.findIndex((entry) => entry.changes?.length) ?? -1;
+
   return (
     <section className="user-settings-section user-settings-audit-view">
       <div className="user-settings-audit-head">
@@ -195,15 +197,54 @@ export function McpAuditSection() {
                 className="user-settings-audit-row"
                 key={`${entry.timestamp}-${entry.tool ?? entry.operation}-${index}`}
               >
-                <time dateTime={entry.timestamp}>{formatTime(entry.timestamp)}</time>
-                <span className="user-settings-audit-operation">{formatOperation(entry)}</span>
-                <span className="user-settings-audit-client">{formatClient(entry)}</span>
-                <span
-                  className={`user-settings-audit-outcome user-settings-audit-outcome--${entry.outcome}`}
-                >
-                  {entry.outcome}
-                  {entry.durationMs === undefined ? "" : ` · ${entry.durationMs}ms`}
-                </span>
+                <div className="user-settings-audit-row-main">
+                  <time dateTime={entry.timestamp}>{formatTime(entry.timestamp)}</time>
+                  <span className="user-settings-audit-operation">{formatOperation(entry)}</span>
+                  <span className="user-settings-audit-client">{formatClient(entry)}</span>
+                  <span
+                    className={`user-settings-audit-outcome user-settings-audit-outcome--${entry.outcome}`}
+                  >
+                    {entry.outcome}
+                    {entry.durationMs === undefined ? "" : ` · ${entry.durationMs}ms`}
+                  </span>
+                </div>
+                {entry.changes?.length ? (
+                  <details
+                    className="user-settings-audit-changes"
+                    defaultOpen={index === firstDetailedEntry}
+                  >
+                    <summary>
+                      {t("settings.mcpAuditChanges", {
+                        count: entry.changeCount ?? entry.changes.length,
+                      })}
+                      {entry.revision ? ` · revision ${entry.revision}` : ""}
+                    </summary>
+                    <ul>
+                      {entry.changes.map((change, changeIndex) => (
+                        <li key={`${change.action}-${change.entity}-${change.id}-${changeIndex}`}>
+                          <span
+                            className={`user-settings-audit-change-action user-settings-audit-change-action--${change.action}`}
+                          >
+                            {change.action}
+                          </span>
+                          <span>{change.entity}</span>
+                          <code>{change.id}</code>
+                          {change.parentId ? (
+                            <small>
+                              in {change.parentId}
+                              {change.chapterId ? ` · ${change.chapterId}` : ""}
+                            </small>
+                          ) : change.chapterId ? (
+                            <small>in {change.chapterId}</small>
+                          ) : null}
+                        </li>
+                      ))}
+                    </ul>
+                    {entry.changesTruncated ? (
+                      <p>{t("settings.mcpAuditChangesTruncated")}</p>
+                    ) : null}
+                  </details>
+                ) : null}
               </div>
             ))}
           </div>

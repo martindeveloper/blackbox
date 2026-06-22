@@ -5,7 +5,8 @@ import { useTranslation } from "react-i18next";
 import { IconButton } from "../ui/IconButton.js";
 
 interface ModalShellProps {
-  title: string;
+  title?: string;
+  labelledBy?: string;
   children: ReactNode;
   footer: ReactNode;
   onClose: () => void;
@@ -14,6 +15,7 @@ interface ModalShellProps {
 
 export function ModalShell({
   title,
+  labelledBy,
   children,
   footer,
   onClose,
@@ -40,11 +42,17 @@ export function ModalShell({
         if (dismissOnBackdrop && e.target === e.currentTarget) onClose();
       }}
     >
-      <dialog open className="modal-panel" aria-labelledby="modal-title">
+      <dialog
+        open
+        className="modal-panel"
+        aria-labelledby={labelledBy ?? (title ? "modal-title" : undefined)}
+      >
         <div className="modal-panel-header">
-          <h2 id="modal-title" className="modal-panel-title">
-            {title}
-          </h2>
+          {title ? (
+            <h2 id="modal-title" className="modal-panel-title">
+              {title}
+            </h2>
+          ) : null}
           <IconButton
             icon={X}
             className="modal-panel-close"

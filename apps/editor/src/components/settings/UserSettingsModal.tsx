@@ -155,7 +155,7 @@ export function UserSettingsModal({ onClose }: UserSettingsModalProps) {
 
   return (
     <ModalShell
-      title={t("settings.title")}
+      labelledBy="settings-nav-title"
       onClose={onClose}
       footer={
         <Button variant="primary" size="sm" onClick={onClose}>
@@ -165,6 +165,9 @@ export function UserSettingsModal({ onClose }: UserSettingsModalProps) {
     >
       <div className="user-settings-shell">
         <nav className="user-settings-nav" aria-label={t("settings.title")}>
+          <h2 id="settings-nav-title" className="user-settings-nav-title">
+            {t("settings.title")}
+          </h2>
           {navigation.map((item) => {
             const Icon = item.icon;
             return (
