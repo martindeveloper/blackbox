@@ -424,16 +424,34 @@ test("only upload_media may use the larger request-body budget", async (t) => {
   assert.notEqual(allowed.status, 413);
 });
 
-test("disabling MCP closes the endpoint and rotates credentials on restart", async () => {
+test("disabling MCP closes the endpoint and accepts persisted credentials on restart", async () => {
   const service = {
     listProjects: () => [],
   };
   const server = new EditorMcpServer({ projectService: service });
-  const first = await server.start();
+  const token = "persisted-token-that-is-long-enough";
+  const first = await server.start({ token });
   await server.stop();
   assert.equal(server.status().enabled, false);
-  const second = await server.start();
-  assert.notEqual(second.token, first.token);
+  const second = await server.start({ token });
+  assert.equal(second.token, first.token);
   assert.notEqual(second.endpoint, null);
+  await server.stop();
+});
+
+test("replacing the bearer token is immediate and audited", async (t) => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "blackbox-mcp-token-"));
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  const server = new EditorMcpServer({
+    projectService: { listProjects: () => [] },
+    auditLogPath: path.join(root, "mcp-audit.jsonl"),
+  });
+  await server.start({ token: "original-token-that-is-long-enough" });
+
+  const status = await server.replaceToken("replacement-token-that-is-long-enough");
+  const audit = await server.readAudit(10);
+
+  assert.equal(status.token, "replacement-token-that-is-long-enough");
+  assert.equal(audit.entries[0].operation, "token_regenerated");
   await server.stop();
 });

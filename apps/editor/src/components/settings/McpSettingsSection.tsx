@@ -1,6 +1,8 @@
-import { Check, Copy, History, RefreshCw } from "lucide-react";
+import { Check, Copy, Eye, EyeOff, RefreshCw, RotateCw, Save } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useModal } from "../../context/ModalProvider.js";
+import { isValidMcpPort, MAX_MCP_PORT, MIN_MCP_PORT } from "../../../shared/mcpConfig.js";
 import type { McpAuditEntry, McpAuditResult, McpStatus } from "../../types/electron.js";
 import { Button } from "../ui/Button.js";
 import { Checkbox } from "../ui/Checkbox.js";
@@ -8,16 +10,18 @@ import { Checkbox } from "../ui/Checkbox.js";
 export function McpSettingsSection({
   status,
   onStatusChange,
-  onOpenAudit,
 }: {
   status: McpStatus | null;
   onStatusChange: (status: McpStatus) => void;
-  onOpenAudit: () => void;
 }) {
   const { t } = useTranslation();
+  const { confirm } = useModal();
   const [serverBusy, setServerBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [tokenVisible, setTokenVisible] = useState(false);
+  const [portDraft, setPortDraft] = useState<string | null>(null);
+  const port = portDraft ?? (status ? String(status.port) : "");
 
   async function toggle(enabled: boolean) {
     if (!window.electronAPI || serverBusy) return;
@@ -43,6 +47,51 @@ export function McpSettingsSection({
     }
   }
 
+  async function savePort() {
+    if (!window.electronAPI || serverBusy) return;
+    const value = Number(port);
+    if (!isValidMcpPort(value)) {
+      setError(t("settings.mcpPortInvalid"));
+      return;
+    }
+    setServerBusy(true);
+    setError(null);
+    try {
+      onStatusChange(await window.electronAPI.setMcpPort(value));
+      setPortDraft(null);
+    } catch (reason) {
+      setError(errorMessage(reason));
+    } finally {
+      setServerBusy(false);
+    }
+  }
+
+  async function regenerateToken() {
+    if (!window.electronAPI || serverBusy) return;
+    const approved = await confirm({
+      title: t("settings.mcpRegenerateTitle"),
+      message: t("settings.mcpRegenerateMessage"),
+      confirmLabel: t("settings.mcpRegenerate"),
+      variant: "danger",
+    });
+    if (!approved) return;
+    setServerBusy(true);
+    setError(null);
+    try {
+      onStatusChange(await window.electronAPI.regenerateMcpToken());
+      setTokenVisible(false);
+      setCopied(false);
+    } catch (reason) {
+      setError(errorMessage(reason));
+    } finally {
+      setServerBusy(false);
+    }
+  }
+
+  const parsedPort = Number(port);
+  const portValid = isValidMcpPort(parsedPort);
+  const portChanged = status ? parsedPort !== status.port : false;
+
   return (
     <section className="user-settings-section user-settings-mcp">
       <header className="user-settings-section-head">
@@ -50,9 +99,6 @@ export function McpSettingsSection({
         <div className="user-settings-title-row">
           <h3 className="user-settings-section-title">{t("settings.mcpTitle")}</h3>
           <div className="user-settings-mcp-actions">
-            <Button variant="ghost" size="sm" leadingIcon={History} onClick={onOpenAudit}>
-              {t("settings.mcpAudit")}
-            </Button>
             <span
               className={`user-settings-service-state${status?.enabled ? " user-settings-service-state--online" : ""}`}
             >
@@ -74,10 +120,52 @@ export function McpSettingsSection({
         <span>{t("settings.mcpLocalOnly")}</span>
       </div>
 
+      <div className="user-settings-mcp-port">
+        <label htmlFor="mcp-port">
+          <strong>{t("settings.mcpPort")}</strong>
+          <span>{t("settings.mcpPortHint")}</span>
+        </label>
+        <div>
+          <input
+            id="mcp-port"
+            className="editor-input"
+            type="number"
+            min={MIN_MCP_PORT}
+            max={MAX_MCP_PORT}
+            step={1}
+            value={port}
+            disabled={!status || serverBusy}
+            aria-invalid={!portValid}
+            onChange={(event) => setPortDraft(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") void savePort();
+            }}
+          />
+          <Button
+            size="sm"
+            leadingIcon={Save}
+            disabled={!status || serverBusy || !portValid || !portChanged}
+            onClick={() => void savePort()}
+          >
+            {t("settings.mcpPortApply")}
+          </Button>
+        </div>
+      </div>
+
       {status?.config ? (
-        <McpConnection status={status} copied={copied} onCopy={copyConfig} />
+        <McpConnection
+          status={status}
+          copied={copied}
+          busy={serverBusy}
+          tokenVisible={tokenVisible}
+          onCopy={copyConfig}
+          onToggleToken={() => setTokenVisible((visible) => !visible)}
+          onRegenerate={() => void regenerateToken()}
+        />
       ) : null}
-      {error ? <p className="user-settings-mcp-error">{error}</p> : null}
+      {error || status?.error ? (
+        <p className="user-settings-mcp-error">{error ?? status?.error}</p>
+      ) : null}
     </section>
   );
 }
@@ -85,19 +173,51 @@ export function McpSettingsSection({
 function McpConnection({
   status,
   copied,
+  busy,
+  tokenVisible,
   onCopy,
+  onToggleToken,
+  onRegenerate,
 }: {
   status: McpStatus;
   copied: boolean;
+  busy: boolean;
+  tokenVisible: boolean;
   onCopy: () => void;
+  onToggleToken: () => void;
+  onRegenerate: () => void;
 }) {
   const { t } = useTranslation();
+  const visibleToken = tokenVisible ? status.token : maskToken(status.token);
+  const visibleConfig =
+    tokenVisible || !status.config
+      ? status.config
+      : {
+          ...status.config,
+          mcpServers: {
+            ...status.config.mcpServers,
+            "blackbox-editor": {
+              ...status.config.mcpServers["blackbox-editor"],
+              headers: { Authorization: `Bearer ${maskToken(status.token)}` },
+            },
+          },
+        };
   return (
     <div className="user-settings-mcp-details">
       <div className="user-settings-mcp-overview">
         <div className="user-settings-mcp-fields">
           <McpField label={t("settings.mcpEndpoint")} value={status.endpoint} />
-          <McpField label={t("settings.mcpToken")} value={status.token} />
+          <div className="user-settings-mcp-secret">
+            <McpField label={t("settings.mcpToken")} value={visibleToken} />
+            <Button
+              variant="ghost"
+              size="sm"
+              leadingIcon={tokenVisible ? EyeOff : Eye}
+              onClick={onToggleToken}
+            >
+              {tokenVisible ? t("settings.mcpHideToken") : t("settings.mcpShowToken")}
+            </Button>
+          </div>
         </div>
         <ol className="user-settings-mcp-steps">
           <li>{t("settings.mcpStepOne")}</li>
@@ -115,10 +235,26 @@ function McpConnection({
             {copied ? t("settings.mcpCopied") : t("settings.mcpCopy")}
           </Button>
         </div>
-        <pre className="user-settings-mcp-config">{JSON.stringify(status.config, null, 2)}</pre>
+        <pre className="user-settings-mcp-config">{JSON.stringify(visibleConfig, null, 2)}</pre>
+        <div className="user-settings-mcp-credential-actions">
+          <span>{t("settings.mcpPersistentTokenHint")}</span>
+          <Button
+            variant="danger"
+            size="sm"
+            leadingIcon={RotateCw}
+            disabled={busy}
+            onClick={onRegenerate}
+          >
+            {t("settings.mcpRegenerate")}
+          </Button>
+        </div>
       </div>
     </div>
   );
+}
+
+function maskToken(token: string | null) {
+  return token ? "••••••••••••••••••••••••••••••••" : null;
 }
 
 function McpField({ label, value }: { label: string; value: string | null }) {

@@ -748,20 +748,47 @@ export class EditorMcpServer {
     };
   }
 
-  async start() {
+  async start({ token = randomBytes(24).toString("base64url"), port = 0 } = {}) {
     if (this.httpServer) return this.status();
-    this.token = randomBytes(24).toString("base64url");
+    if (typeof token !== "string" || token.length < 24) {
+      throw new TypeError("MCP bearer token is invalid");
+    }
+    if (!Number.isInteger(port) || port < 0 || port > 65535) {
+      throw new RangeError("MCP port must be an integer between 0 and 65535");
+    }
+    this.token = token;
     this.httpServer = http.createServer((request, response) => {
       void this.handleRequest(request, response);
     });
-    await new Promise((resolve, reject) => {
-      this.httpServer.once("error", reject);
-      this.httpServer.listen(0, HOST, resolve);
-    });
+    try {
+      await new Promise((resolve, reject) => {
+        this.httpServer.once("error", reject);
+        this.httpServer.listen(port, HOST, resolve);
+      });
+    } catch (error) {
+      this.httpServer = null;
+      this.token = null;
+      throw error;
+    }
     const address = this.httpServer.address();
     this.port = typeof address === "object" && address ? address.port : null;
     console.log(`[editor] MCP server listening on ${this.status().endpoint}`);
     await this.audit.append({ type: "service", operation: "enabled", outcome: "success" });
+    return this.status();
+  }
+
+  async replaceToken(token) {
+    if (!this.httpServer) throw new Error("The MCP server must be running to replace its token");
+    if (typeof token !== "string" || token.length < 24) {
+      throw new TypeError("MCP bearer token is invalid");
+    }
+    this.token = token;
+    this.clients.clear();
+    await this.audit.append({
+      type: "service",
+      operation: "token_regenerated",
+      outcome: "success",
+    });
     return this.status();
   }
 

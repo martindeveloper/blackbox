@@ -331,11 +331,7 @@ export function UserSettingsModal({ onClose }: UserSettingsModalProps) {
           ) : null}
 
           {view === "agents" && isElectron ? (
-            <McpSettingsSection
-              status={mcpStatus}
-              onStatusChange={setMcpStatus}
-              onOpenAudit={() => setView("audit")}
-            />
+            <McpSettingsSection status={mcpStatus} onStatusChange={setMcpStatus} />
           ) : null}
 
           {view === "audit" ? <McpAuditSection /> : null}

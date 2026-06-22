@@ -3,12 +3,14 @@ import path from "node:path";
 import { USER_DATA_ROOT } from "./config.js";
 import { EDITOR_SIDECAR_DIR, USER_PREFS_BASENAME } from "../shared/blackboxPaths.js";
 import { DEFAULT_IDE_ID, isValidPreferredIde } from "../shared/ideRegistry.js";
+import { DEFAULT_MCP_PORT, isValidMcpPort } from "../shared/mcpConfig.js";
 
 const USER_PREFS_PATH = path.join(USER_DATA_ROOT, EDITOR_SIDECAR_DIR, USER_PREFS_BASENAME);
 export const DEFAULT_USER_PREFS = Object.freeze({
   theme: "device",
   preferredIde: DEFAULT_IDE_ID,
   mcpEnabled: false,
+  mcpPort: DEFAULT_MCP_PORT,
 });
 
 export async function readUserPrefs() {
@@ -54,6 +56,9 @@ export function sanitizePrefs(raw) {
   }
   if (typeof raw.mcpEnabled === "boolean") {
     prefs.mcpEnabled = raw.mcpEnabled;
+  }
+  if (isValidMcpPort(raw.mcpPort)) {
+    prefs.mcpPort = raw.mcpPort;
   }
   return prefs;
 }

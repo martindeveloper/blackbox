@@ -1,7 +1,16 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { app, BrowserWindow, dialog, ipcMain, nativeTheme, protocol, shell } from "electron";
+import {
+  app,
+  BrowserWindow,
+  dialog,
+  ipcMain,
+  nativeTheme,
+  protocol,
+  safeStorage,
+  shell,
+} from "electron";
 import { loadAppIcon } from "./icon.mjs";
 import { initFileLogging } from "./logFile.mjs";
 import {
@@ -17,6 +26,9 @@ import { parseCliMode, printEditorCliHelp } from "./cliMode.mjs";
 import { applyDarwinShellPath } from "./shellPath.mjs";
 import { dependencyInstallInfo, installDependency } from "./dependencyInstaller.mjs";
 import { VERSION_API } from "../shared/versionApi.js";
+import { EDITOR_SIDECAR_DIR, MCP_CREDENTIALS_BASENAME } from "../shared/blackboxPaths.js";
+import { McpCredentialStore } from "./mcpCredentials.mjs";
+import { McpHost } from "./mcpHost.mjs";
 
 const ELECTRON_ROOT = path.dirname(fileURLToPath(import.meta.url));
 const CLIENT_ROOT = path.resolve(ELECTRON_ROOT, "..");
@@ -47,7 +59,7 @@ app.setName(APP_NAME);
 
 let mainWindow = null;
 let editorServer = null;
-let editorMcpServer = null;
+let editorMcpHost = null;
 let editorSocketPath = null;
 // Set on before-quit so confirm-close can call app.quit() vs window.close().
 let isQuitting = false;
@@ -122,20 +134,37 @@ async function startServer() {
       trashItem: (target) => shell.trashItem(target),
     },
   });
-  const [{ EditorMcpServer }, { readUserPrefs }] = await Promise.all([
+  const [{ EditorMcpServer }, { readUserPrefs, writeUserPrefs }] = await Promise.all([
     import("../server/mcpServer.mjs"),
     import("../server/prefs.js"),
   ]);
-  editorMcpServer = new EditorMcpServer({
+  const credentials = new McpCredentialStore({
+    filePath: path.join(
+      process.env.BLACKBOX_USER_DATA,
+      EDITOR_SIDECAR_DIR,
+      MCP_CREDENTIALS_BASENAME,
+    ),
+    safeStorage,
+  });
+  const mcpServer = new EditorMcpServer({
     projectService: server.projectService,
     isRendererDirty: () => closeGuard.dirty,
     auditLogPath: path.join(process.env.BLACKBOX_USER_DATA, "logs", "mcp-audit.jsonl"),
   });
-  if ((await readUserPrefs()).mcpEnabled === true) {
-    await editorMcpServer.start();
-  }
+  editorMcpHost = new McpHost({
+    server: mcpServer,
+    credentials,
+    readPrefs: readUserPrefs,
+    writePrefs: writeUserPrefs,
+  });
+  await editorMcpHost.initialize();
   protocol.handle(EDITOR_SCHEME, createEditorProtocolHandler(editorSocketPath));
   return server;
+}
+
+function requireMcpHost() {
+  if (!editorMcpHost) throw new Error("The editor MCP service is not ready");
+  return editorMcpHost;
 }
 
 function focusMainWindow() {
@@ -386,35 +415,31 @@ if (cliArgs !== null) {
         if (event.sender !== mainWindow?.webContents) {
           throw new Error("MCP status is only available from the editor window");
         }
-        return (
-          editorMcpServer?.status() ?? {
-            enabled: false,
-            endpoint: null,
-            token: null,
-            transport: "streamable-http",
-            config: null,
-          }
-        );
+        return requireMcpHost().status();
       });
       ipcMain.handle("editor:set-mcp-enabled", async (event, enabled) => {
         if (event.sender !== mainWindow?.webContents) {
           throw new Error("MCP settings are only available from the editor window");
         }
-        if (typeof enabled !== "boolean") {
-          throw new TypeError("enabled must be a boolean");
+        return requireMcpHost().setEnabled(enabled);
+      });
+      ipcMain.handle("editor:set-mcp-port", async (event, port) => {
+        if (event.sender !== mainWindow?.webContents) {
+          throw new Error("MCP settings are only available from the editor window");
         }
-        if (!editorMcpServer) throw new Error("The editor MCP service is not ready");
-        const { readUserPrefs, writeUserPrefs } = await import("../server/prefs.js");
-        const status = enabled ? await editorMcpServer.start() : await editorMcpServer.stop();
-        await writeUserPrefs({ ...(await readUserPrefs()), mcpEnabled: enabled });
-        return status;
+        return requireMcpHost().setPort(port);
+      });
+      ipcMain.handle("editor:regenerate-mcp-token", async (event) => {
+        if (event.sender !== mainWindow?.webContents) {
+          throw new Error("MCP settings are only available from the editor window");
+        }
+        return requireMcpHost().regenerateToken();
       });
       ipcMain.handle("editor:get-mcp-audit", async (event, limit) => {
         if (event.sender !== mainWindow?.webContents) {
           throw new Error("MCP audit is only available from the editor window");
         }
-        if (!editorMcpServer) throw new Error("The editor MCP service is not ready");
-        return editorMcpServer.readAudit(limit);
+        return requireMcpHost().readAudit(limit);
       });
       ipcMain.on("editor:set-dirty", (event, dirty) => {
         if (event.sender !== mainWindow?.webContents) return;

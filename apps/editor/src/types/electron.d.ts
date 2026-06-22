@@ -13,8 +13,10 @@ export interface EditorVersionPayload {
 
 export interface McpStatus {
   enabled: boolean;
+  port: number;
   endpoint: string | null;
   token: string | null;
+  error: string | null;
   transport: "streamable-http";
   config: {
     mcpServers: {
@@ -98,6 +100,8 @@ export interface ElectronAPI {
   installDependency: (dependency: InstallableDependency) => Promise<DependencyInstallResult>;
   getMcpStatus: () => Promise<McpStatus>;
   setMcpEnabled: (enabled: boolean) => Promise<McpStatus>;
+  setMcpPort: (port: number) => Promise<McpStatus>;
+  regenerateMcpToken: () => Promise<McpStatus>;
   getMcpAudit: (limit?: number) => Promise<McpAuditResult>;
   setDirty: (dirty: boolean) => void;
   onRequestClose: (callback: () => void) => () => void;

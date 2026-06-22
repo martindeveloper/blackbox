@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CUSTOM_IDE_ID, DEFAULT_IDE_ID } from "../shared/ideRegistry.js";
+import { DEFAULT_MCP_PORT } from "../shared/mcpConfig.js";
 import { DEFAULT_USER_PREFS, sanitizePrefs } from "./prefs.js";
 
 test("user preferences default theme and preferred IDE", () => {
@@ -8,6 +9,7 @@ test("user preferences default theme and preferred IDE", () => {
     theme: "device",
     preferredIde: DEFAULT_IDE_ID,
     mcpEnabled: false,
+    mcpPort: DEFAULT_MCP_PORT,
   });
   assert.deepEqual(sanitizePrefs({ theme: "dark", preferredIde: DEFAULT_IDE_ID }), {
     theme: "dark",
@@ -22,4 +24,7 @@ test("user preferences default theme and preferred IDE", () => {
   );
   assert.deepEqual(sanitizePrefs({ theme: "invalid", preferredIde: "unknown-ide" }), {});
   assert.deepEqual(sanitizePrefs({ mcpEnabled: true }), { mcpEnabled: true });
+  assert.deepEqual(sanitizePrefs({ mcpPort: 47832 }), { mcpPort: 47832 });
+  assert.deepEqual(sanitizePrefs({ mcpPort: 80 }), {});
+  assert.deepEqual(sanitizePrefs({ mcpPort: 70000 }), {});
 });

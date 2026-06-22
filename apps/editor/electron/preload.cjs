@@ -14,6 +14,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
   installDependency: (dependency) => ipcRenderer.invoke("editor:install-dependency", dependency),
   getMcpStatus: () => ipcRenderer.invoke("editor:get-mcp-status"),
   setMcpEnabled: (enabled) => ipcRenderer.invoke("editor:set-mcp-enabled", enabled),
+  setMcpPort: (port) => ipcRenderer.invoke("editor:set-mcp-port", port),
+  regenerateMcpToken: () => ipcRenderer.invoke("editor:regenerate-mcp-token"),
   getMcpAudit: (limit) => ipcRenderer.invoke("editor:get-mcp-audit", limit),
   setDirty: (dirty) => ipcRenderer.send("editor:set-dirty", dirty),
   onRequestClose: (callback) => {

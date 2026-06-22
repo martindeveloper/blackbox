@@ -3,7 +3,11 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { renderGrammarMarkdown, renderGrammarDocsMarkdown, SCHEMA_REFERENCE } from "./mcpSchema.mjs";
+import {
+  renderGrammarMarkdown,
+  renderGrammarDocsMarkdown,
+  SCHEMA_REFERENCE,
+} from "./mcpSchema.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
 const grammarPath = path.join(repoRoot, "GRAMMAR.md");

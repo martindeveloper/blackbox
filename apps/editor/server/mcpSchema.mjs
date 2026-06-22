@@ -304,9 +304,11 @@ function renderGrammarBody(reference, { banner } = {}) {
  * mcpSchema.test.js asserts the on-disk file matches, so the two never drift.
  */
 export function renderGrammarMarkdown(reference = SCHEMA_REFERENCE) {
-  return ["# Blackbox Authoring Grammar", "", renderGrammarBody(reference, { banner: "repo" })].join(
-    "\n",
-  );
+  return [
+    "# Blackbox Authoring Grammar",
+    "",
+    renderGrammarBody(reference, { banner: "repo" }),
+  ].join("\n");
 }
 
 /** Render SCHEMA_REFERENCE as a homepage docs page (gray-matter frontmatter + body). */

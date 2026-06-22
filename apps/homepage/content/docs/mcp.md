@@ -6,7 +6,7 @@ order: 2
 
 Blackbox Editor exposes a **Model Context Protocol** server so compatible agents (Cursor, Codex, Claude Desktop, and other MCP clients) can work on narrative projects with structured tools instead of raw filesystem access.
 
-The server is **disabled by default**, binds only to `127.0.0.1`, and authenticates every request with a bearer token that rotates when the service starts.
+The server is **disabled by default**, binds only to `127.0.0.1`, and authenticates every request with a persistent bearer token stored through the operating system's secure credential protection.
 
 ## Enable the server
 
@@ -15,11 +15,11 @@ The server is **disabled by default**, binds only to `127.0.0.1`, and authentica
 3. Copy the generated client configuration (endpoint URL + bearer token).
 4. Paste it into your MCP client settings and reconnect.
 
-When the server starts, the editor picks a free localhost port and prints the endpoint to the log. Stopping the server invalidates the current token.
+The editor uses a stable, configurable localhost port so an agent configuration continues to work after restarting the editor. Regenerating the token immediately invalidates the previous credential and records the action in the MCP audit log.
 
 ## Connection
 
-Transport: **streamable HTTP** at `http://127.0.0.1:<port>/mcp`.
+Transport: **streamable HTTP** at `http://127.0.0.1:<port>/mcp`. The default port is `47831` and can be changed in **Settings → Agents**.
 
 Example client configuration:
 
@@ -116,7 +116,7 @@ Agents share the editor's **project service** — the same code paths that power
 ## Security model
 
 - **Localhost only** — the HTTP server listens on `127.0.0.1`, not the LAN.
-- **Bearer token** — SHA-256 compared with timing-safe equality; token rotates on each start.
+- **Bearer token** — SHA-256 compared with timing-safe equality; securely persisted and only rotated on explicit user request.
 - **No broad filesystem access** — tools operate on registered projects through the editor service.
 - **Body limits** — authored JSON requests capped at 2 MB; uploads use a separate 32 MB envelope with a 24 MB per-file cap.
 - **Metadata audit** — the audit log records tool names, argument summaries, and timing — not full document bodies.
