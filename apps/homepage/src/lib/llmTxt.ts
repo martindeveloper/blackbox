@@ -1,4 +1,5 @@
 import { listDocs } from "@/lib/docs";
+import { docLinkDescription, docTopicSummary } from "@/lib/docLlm";
 import { en } from "@/i18n/en";
 import { absoluteUrl } from "@/lib/site";
 import { docPath } from "@/lib/siteRoutes";
@@ -15,6 +16,40 @@ function formatLink({ title, href, description }: LlmLink): string {
 
 function formatSection(title: string, links: LlmLink[]): string[] {
   return ["", `## ${title}`, "", ...links.map(formatLink)];
+}
+
+function documentationIntro(): string[] {
+  const topics = listDocs()
+    .filter((doc) => doc.slug !== "index")
+    .map((doc) => `- **${doc.title}** — ${docTopicSummary(doc)}`);
+
+  return [
+    en.metadata.openGraph.description,
+    "",
+    "Blackbox projects are JSON story documents edited in the desktop app. The same files work with the headless CLI for CI builds and with a local MCP server for agent tooling — no shadow copies or separate APIs.",
+    "",
+    "Documentation topics:",
+    "",
+    ...topics,
+    "",
+    `For complete guide markdown in one file, see [llm-full.txt](${absoluteUrl("/llm-full.txt")}).`,
+  ];
+}
+
+function documentationLinks(): LlmLink[] {
+  const links: LlmLink[] = listDocs().map((doc) => ({
+    title: doc.title,
+    href: docPath(doc.slug),
+    description: docLinkDescription(doc),
+  }));
+
+  links.push({
+    title: "Complete documentation (llm-full.txt)",
+    href: "/llm-full.txt",
+    description: "All guide markdown concatenated for agents that need the full reference in one fetch.",
+  });
+
+  return links;
 }
 
 function productPages(): LlmLink[] {
@@ -58,19 +93,13 @@ function optionalPages(): LlmLink[] {
 }
 
 export function renderLlmTxt(): string {
-  const docLinks: LlmLink[] = listDocs().map((doc) => ({
-    title: doc.title,
-    href: docPath(doc.slug),
-    description: doc.description,
-  }));
-
   return [
     `# ${en.metadata.siteName}`,
     "",
     `> ${en.metadata.description}`,
     "",
-    en.metadata.openGraph.description,
-    ...formatSection("Documentation", docLinks),
+    ...documentationIntro(),
+    ...formatSection("Documentation", documentationLinks()),
     ...formatSection("Product", productPages()),
     ...formatSection("Optional", optionalPages()),
     "",
