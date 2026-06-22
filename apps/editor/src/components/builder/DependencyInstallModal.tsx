@@ -5,10 +5,10 @@ import type {
   DependencyInstallInfo,
   DependencyInstallResult,
   InstallableDependency,
-} from "../../types/electron.js";
-import { Icon } from "../icons/Icon.js";
-import { ModalShell } from "../overlay/ModalShell.js";
-import { Button } from "../ui/Button.js";
+} from "@/types/electron.js";
+import { Icon } from "@/components/icons/Icon.js";
+import { ModalShell } from "@/components/overlay/ModalShell.js";
+import { Button } from "@/components/ui/Button.js";
 
 interface DependencyInstallModalProps {
   dependency: InstallableDependency;

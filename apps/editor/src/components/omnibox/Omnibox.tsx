@@ -16,12 +16,12 @@ import {
   Zap,
   type LucideIcon,
 } from "lucide-react";
-import { Icon } from "../icons/Icon.js";
-import { Page } from "../../lib/pages.js";
-import { editorNavigate } from "../../lib/projectRoute.js";
-import { OMNIBOX_OPEN_EVENT, requestNodeFocus } from "../../lib/omnibox.js";
-import { searchProject, type ScoutCategory, type ScoutHit } from "../../lib/toolsApi.js";
-import { useScenarioStore } from "../../store/useScenarioStore.js";
+import { Icon } from "@/components/icons/Icon.js";
+import { Page } from "@/lib/pages.js";
+import { editorNavigate } from "@/lib/projectRoute.js";
+import { OMNIBOX_OPEN_EVENT, requestNodeFocus } from "@/lib/omnibox.js";
+import { searchProject, type ScoutCategory, type ScoutHit } from "@/lib/toolsApi.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
 
 const ROUTE_TO_PAGE: Record<string, Page> = {
   "/graph": Page.EditorGraph,

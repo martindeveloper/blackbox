@@ -1,8 +1,8 @@
 import { Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useScenarioStore } from "../../store/useScenarioStore.js";
-import { Button } from "../ui/Button.js";
-import { EmptyState } from "../ui/EmptyState.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
+import { Button } from "@/components/ui/Button.js";
+import { EmptyState } from "@/components/ui/EmptyState.js";
 
 export function MetaCatalogOverview() {
   const { t } = useTranslation();

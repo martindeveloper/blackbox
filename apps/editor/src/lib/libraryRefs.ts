@@ -1,4 +1,4 @@
-import type { TextBlock, TextEntry } from "../types/wire.js";
+import type { TextBlock, TextEntry } from "@/types/wire.js";
 
 export function snippetIdFromTextEntry(entry: unknown): string | null {
   if (typeof entry === "string") {

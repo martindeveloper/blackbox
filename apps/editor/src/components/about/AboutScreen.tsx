@@ -1,8 +1,8 @@
 import { ArrowUpCircle, CheckCircle2, Download, Loader2, RefreshCw } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { EDITOR_VERSION } from "../../lib/version.js";
-import { useUpdateCheck } from "../../hooks/useUpdateCheck.js";
-import { Icon } from "../icons/Icon.js";
+import { EDITOR_VERSION } from "@/lib/version.js";
+import { useUpdateCheck } from "@/hooks/useUpdateCheck.js";
+import { Icon } from "@/components/icons/Icon.js";
 
 interface DepEntry {
   name: string;

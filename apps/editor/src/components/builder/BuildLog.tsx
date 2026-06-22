@@ -1,8 +1,8 @@
 import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Check, Copy, Download, Loader2 } from "lucide-react";
-import { Icon } from "../icons/Icon.js";
-import { Input } from "../ui/Input.js";
+import { Icon } from "@/components/icons/Icon.js";
+import { Input } from "@/components/ui/Input.js";
 
 interface Props {
   log: string[];

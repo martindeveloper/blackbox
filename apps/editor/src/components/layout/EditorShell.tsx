@@ -2,28 +2,28 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
-import { useScenarioStore } from "../../store/useScenarioStore.js";
-import { isActiveEditorPage, Page } from "../../lib/pages.js";
-import { editorNavigate, useActivityView, useEditorSearch } from "../../lib/routeHelpers.js";
-import { useUserPrefs } from "../../hooks/useUserPrefs.js";
-import { useHeatmapHydration } from "../../hooks/useHeatmapHydration.js";
-import { confirmModal } from "../../lib/modalApi.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
+import { isActiveEditorPage, Page } from "@/lib/pages.js";
+import { editorNavigate, useActivityView, useEditorSearch } from "@/lib/routeHelpers.js";
+import { useUserPrefs } from "@/hooks/useUserPrefs.js";
+import { useHeatmapHydration } from "@/hooks/useHeatmapHydration.js";
+import { confirmModal } from "@/lib/modalApi.js";
 import { ActivityBar } from "./ActivityBar.js";
 import { FileTree } from "./FileTree.js";
-import { PreviewEventsSidebar } from "../preview/PreviewEventsSidebar.js";
-import { ToolsSidebar } from "../tools/ToolsSidebar.js";
-import { Omnibox } from "../omnibox/Omnibox.js";
+import { PreviewEventsSidebar } from "@/components/preview/PreviewEventsSidebar.js";
+import { ToolsSidebar } from "@/components/tools/ToolsSidebar.js";
+import { Omnibox } from "@/components/omnibox/Omnibox.js";
 import { InspectorPanel } from "./InspectorPanel.js";
 import { TopBar } from "./TopBar.js";
 import { EditorFooter } from "./EditorFooter.js";
-import { Icon } from "../icons/Icon.js";
+import { Icon } from "@/components/icons/Icon.js";
 
 import {
   clampLeftPanelWidth,
   clampRightPanelWidth,
   DEFAULT_LEFT_PANEL,
   DEFAULT_RIGHT_PANEL,
-} from "../../lib/panelLayout.js";
+} from "@/lib/panelLayout.js";
 
 function PanelHandle({
   side,

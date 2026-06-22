@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { SimAnalytics, StoredAnalyticsMeta, StoredHeatmap } from "../lib/toolsApi.js";
+import type { SimAnalytics, StoredAnalyticsMeta, StoredHeatmap } from "@/lib/toolsApi.js";
 
 export type { StoredAnalyticsMeta };
 

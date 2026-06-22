@@ -11,16 +11,16 @@ import {
 import { useCallback, useEffect, useState } from "react";
 import type { CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
-import { useTheme } from "../../context/ThemeContext.js";
-import { useUserPrefs } from "../../hooks/useUserPrefs.js";
+import { useTheme } from "@/context/ThemeContext.js";
+import { useUserPrefs } from "@/hooks/useUserPrefs.js";
 import {
   CUSTOM_IDE_ID,
   DEFAULT_IDE_ID,
   getIdePluginMeta,
   IDE_PLUGINS,
-} from "../../../shared/ideRegistry.js";
-import type { IdeProbeResult } from "../../types/electron.js";
-import type { McpStatus } from "../../types/electron.js";
+} from "@shared/ideRegistry.js";
+import type { IdeProbeResult } from "@/types/electron.js";
+import type { McpStatus } from "@/types/electron.js";
 import {
   DEFAULT_LEFT_PANEL,
   DEFAULT_RIGHT_PANEL,
@@ -30,9 +30,9 @@ import {
   MIN_RIGHT_PANEL,
   clampLeftPanelWidth,
   clampRightPanelWidth,
-} from "../../lib/panelLayout.js";
-import { ModalShell } from "../overlay/ModalShell.js";
-import { Button } from "../ui/Button.js";
+} from "@/lib/panelLayout.js";
+import { ModalShell } from "@/components/overlay/ModalShell.js";
+import { Button } from "@/components/ui/Button.js";
 import { McpAuditSection, McpSettingsSection } from "./McpSettingsSection.js";
 import { ThemePreferencePicker } from "./ThemePreferencePicker.js";
 

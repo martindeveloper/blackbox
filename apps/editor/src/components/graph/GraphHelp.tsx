@@ -1,8 +1,8 @@
 import { CircleHelp, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Button } from "../ui/Button.js";
-import { Icon } from "../icons/Icon.js";
+import { Button } from "@/components/ui/Button.js";
+import { Icon } from "@/components/icons/Icon.js";
 
 const ROUTE_KINDS = [
   { kind: "goto", labelKey: "graph.help.direct" },

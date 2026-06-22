@@ -1,4 +1,4 @@
-import type { ChoiceContent, TextBlock } from "../types/wire.js";
+import type { ChoiceContent, TextBlock } from "@/types/wire.js";
 
 export function choiceHasAdvancedFields(choice: ChoiceContent): boolean {
   return Boolean(

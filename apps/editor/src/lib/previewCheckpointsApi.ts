@@ -1,6 +1,6 @@
-import type { PreviewCheckpointPayload } from "../../players/web/protocol.js";
-import { PREVIEW_CHECKPOINT_FORMAT } from "../../players/web/protocol.js";
-import { ProjectRoutes, projectApiUrl } from "../../shared/apiPaths.js";
+import type { PreviewCheckpointPayload } from "@players/web/protocol.js";
+import { PREVIEW_CHECKPOINT_FORMAT } from "@players/web/protocol.js";
+import { ProjectRoutes, projectApiUrl } from "@shared/apiPaths.js";
 
 export const CHECKPOINT_SCHEMA_VERSION = 1 as const;
 

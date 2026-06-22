@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
-import { Icon, IconLabel } from "../icons/Icon.js";
+import { Icon, IconLabel } from "@/components/icons/Icon.js";
 import { cn } from "./cn.js";
 
 export type ButtonVariant = "default" | "primary" | "danger" | "ghost";

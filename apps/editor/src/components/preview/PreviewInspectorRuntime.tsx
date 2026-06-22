@@ -1,6 +1,6 @@
 import { Gamepad2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type { PreviewRuntimeState } from "../../store/usePreviewStore.js";
+import type { PreviewRuntimeState } from "@/store/usePreviewStore.js";
 import { displayValue, Fact, RawData, SectionTitle } from "./previewInspectorUtils.js";
 
 export function PreviewInspectorRuntime({ state }: { state: PreviewRuntimeState }) {

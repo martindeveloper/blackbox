@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Icon } from "../icons/Icon.js";
+import { Icon } from "@/components/icons/Icon.js";
 
 interface ToolOptionToggleProps {
   icon: LucideIcon;

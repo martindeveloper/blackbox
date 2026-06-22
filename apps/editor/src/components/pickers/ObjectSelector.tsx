@@ -13,13 +13,13 @@ import {
   X,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { getCatalogFileStatus, entriesForCategory, mediaPathSet } from "../../lib/catalogHealth.js";
-import { MEDIA_CATEGORIES, type MediaCategory } from "../../lib/mediaLibrary.js";
-import type { CatalogCategory } from "../../lib/catalogUsage.js";
-import { useProjectRootFiles } from "../../hooks/useProjectRootFiles.js";
-import { useMediaPreview } from "../../hooks/useMediaPreview.js";
-import { useScenarioStore } from "../../store/useScenarioStore.js";
-import { IconButton } from "../ui/IconButton.js";
+import { getCatalogFileStatus, entriesForCategory, mediaPathSet } from "@/lib/catalogHealth.js";
+import { MEDIA_CATEGORIES, type MediaCategory } from "@/lib/mediaLibrary.js";
+import type { CatalogCategory } from "@/lib/catalogUsage.js";
+import { useProjectRootFiles } from "@/hooks/useProjectRootFiles.js";
+import { useMediaPreview } from "@/hooks/useMediaPreview.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
+import { IconButton } from "@/components/ui/IconButton.js";
 
 export interface ObjSelectorMediaMode {
   kind: "media";

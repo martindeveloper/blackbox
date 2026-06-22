@@ -12,8 +12,8 @@ import {
 } from "lucide-react";
 import type { CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
-import type { ScenarioNodeData } from "../../lib/graphBuilder.js";
-import { Icon } from "../icons/Icon.js";
+import type { ScenarioNodeData } from "@/lib/graphBuilder.js";
+import { Icon } from "@/components/icons/Icon.js";
 
 export function NodeCard({ data, selected }: NodeProps) {
   const { t } = useTranslation();

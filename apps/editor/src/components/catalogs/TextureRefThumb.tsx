@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
-import { useMediaPreview } from "../../hooks/useMediaPreview.js";
-import { useScenarioStore } from "../../store/useScenarioStore.js";
+import { useMediaPreview } from "@/hooks/useMediaPreview.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
 
 interface TextureRefThumbProps {
   textureRef?: string;

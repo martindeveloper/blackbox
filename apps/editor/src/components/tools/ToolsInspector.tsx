@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Hammer, Loader2 } from "lucide-react";
-import { formatRelativeTime } from "../../lib/format.js";
-import { useEditorSearch } from "../../lib/routeHelpers.js";
-import { useScenarioStore } from "../../store/useScenarioStore.js";
-import { useToolRunnerStore } from "../../store/useToolRunnerStore.js";
-import type { BuildToolName, ToolBuildResult, ToolInfo } from "../../lib/toolsApi.js";
-import { buildTool, discoverTools } from "../../lib/toolsApi.js";
+import { formatRelativeTime } from "@/lib/format.js";
+import { useEditorSearch } from "@/lib/routeHelpers.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
+import { useToolRunnerStore } from "@/store/useToolRunnerStore.js";
+import type { BuildToolName, ToolBuildResult, ToolInfo } from "@/lib/toolsApi.js";
+import { buildTool, discoverTools } from "@/lib/toolsApi.js";
 import { TOOL_ITEMS } from "./ToolsSidebar.js";
-import { EmptyState } from "../ui/EmptyState.js";
+import { EmptyState } from "@/components/ui/EmptyState.js";
 
 interface ToolBadgeProps {
   info: ToolInfo | null;

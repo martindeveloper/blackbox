@@ -1,5 +1,5 @@
 import type { GraphEdgeKind } from "./graphBuilder.js";
-import type { Chapter, ChoiceContent, ItemCatalog } from "../types/wire.js";
+import type { Chapter, ChoiceContent, ItemCatalog } from "@/types/wire.js";
 
 function choiceHasRoute(choice: ChoiceContent): boolean {
   if (choice.goto) return true;

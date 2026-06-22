@@ -2,11 +2,11 @@ import { Dices, Plus, X } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
-import { translate } from "../../lib/i18n.js";
-import { confirmModal } from "../../lib/modalApi.js";
-import { Page } from "../../lib/pages.js";
-import { editorNavigate } from "../../lib/routeHelpers.js";
-import { useScenarioStore } from "../../store/useScenarioStore.js";
+import { translate } from "@/lib/i18n.js";
+import { confirmModal } from "@/lib/modalApi.js";
+import { Page } from "@/lib/pages.js";
+import { editorNavigate } from "@/lib/routeHelpers.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
 import {
   ASSETS_BUNDLE_SPEC,
   CATALOG_SPEC,
@@ -14,14 +14,14 @@ import {
   CHARACTERS_SPEC,
   ITEMS_SPEC,
   LIBRARY_SPEC,
-} from "../../types/wire.js";
-import { Icon } from "../icons/Icon.js";
-import { ObjectSelector } from "../pickers/ObjectSelector.js";
-import { Button } from "../ui/Button.js";
-import { FieldRow } from "../ui/FieldRow.js";
-import { FormField } from "../ui/FormField.js";
-import { Input } from "../ui/Input.js";
-import { Section, SectionBody, SectionHeader } from "../ui/Section.js";
+} from "@/types/wire.js";
+import { Icon } from "@/components/icons/Icon.js";
+import { ObjectSelector } from "@/components/pickers/ObjectSelector.js";
+import { Button } from "@/components/ui/Button.js";
+import { FieldRow } from "@/components/ui/FieldRow.js";
+import { FormField } from "@/components/ui/FormField.js";
+import { Input } from "@/components/ui/Input.js";
+import { Section, SectionBody, SectionHeader } from "@/components/ui/Section.js";
 import { ScenarioPlatformSettings } from "./ScenarioPlatformSettings.js";
 
 interface ScenarioSettingsFormProps {

@@ -2,11 +2,11 @@ import { AlertTriangle, Trash2 } from "lucide-react";
 import { useEffect, useId, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
-import { deleteProject, type ProjectSummary } from "../../lib/projectApi.js";
-import { notifyFromError } from "../../lib/notifyApi.js";
-import { Icon } from "../icons/Icon.js";
-import { Button } from "../ui/Button.js";
-import { Input } from "../ui/Input.js";
+import { deleteProject, type ProjectSummary } from "@/lib/projectApi.js";
+import { notifyFromError } from "@/lib/notifyApi.js";
+import { Icon } from "@/components/icons/Icon.js";
+import { Button } from "@/components/ui/Button.js";
+import { Input } from "@/components/ui/Input.js";
 
 interface DeleteProjectDialogProps {
   project: ProjectSummary;

@@ -10,30 +10,30 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
-import { useToolRunner } from "../../hooks/useToolRunner.js";
-import { translate } from "../../lib/i18n.js";
-import { Page } from "../../lib/pages.js";
-import { editorNavigate, useEditorSearch } from "../../lib/routeHelpers.js";
-import type { ToolId } from "../../lib/routeHelpers.js";
+import { useToolRunner } from "@/hooks/useToolRunner.js";
+import { translate } from "@/lib/i18n.js";
+import { Page } from "@/lib/pages.js";
+import { editorNavigate, useEditorSearch } from "@/lib/routeHelpers.js";
+import type { ToolId } from "@/lib/routeHelpers.js";
 import type {
   BundleToolResult,
   LintOptions,
   SimOptions,
   StoredAnalyticsMeta,
   ToolResult,
-} from "../../lib/toolsApi.js";
+} from "@/lib/toolsApi.js";
 import {
   DEFAULT_SIM_OPTIONS,
   isCompleteSimulatorOutput,
   LINT_CATEGORIES,
   saveHeatmap,
-} from "../../lib/toolsApi.js";
-import { toolDiscoveryInfo, useToolRunnerStore } from "../../store/useToolRunnerStore.js";
-import { useAnalyticsStore } from "../../store/useAnalyticsStore.js";
-import { useScenarioStore } from "../../store/useScenarioStore.js";
-import { Icon } from "../icons/Icon.js";
-import { Button } from "../ui/Button.js";
-import { Checkbox } from "../ui/Checkbox.js";
+} from "@/lib/toolsApi.js";
+import { toolDiscoveryInfo, useToolRunnerStore } from "@/store/useToolRunnerStore.js";
+import { useAnalyticsStore } from "@/store/useAnalyticsStore.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
+import { Icon } from "@/components/icons/Icon.js";
+import { Button } from "@/components/ui/Button.js";
+import { Checkbox } from "@/components/ui/Checkbox.js";
 import { ParsedOutput } from "./ParsedOutput.js";
 import { SimulatorOptionsPanel } from "./SimulatorOptionsPanel.js";
 import { StoredHeatmapCard } from "./StoredHeatmapCard.js";

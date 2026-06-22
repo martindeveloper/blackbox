@@ -1,4 +1,4 @@
-import { useScenarioStore } from "../store/useScenarioStore.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
 
 export async function tryRestoreProject(projectId: string): Promise<boolean> {
   const state = useScenarioStore.getState();

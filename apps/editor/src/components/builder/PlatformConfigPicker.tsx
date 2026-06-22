@@ -1,19 +1,19 @@
 import { useTranslation } from "react-i18next";
-import { Icon } from "../icons/Icon.js";
-import { PLATFORM_ICONS } from "../icons/PlatformIcons.js";
+import { Icon } from "@/components/icons/Icon.js";
+import { PLATFORM_ICONS } from "@/components/icons/PlatformIcons.js";
 import type {
   BuildCapabilities,
   BuildConfiguration,
   BuildPlatform,
   PlatformCapability,
-} from "../../lib/buildApi.js";
+} from "@/lib/buildApi.js";
 import {
   BUILD_CONFIGURATIONS,
   BUILD_PLATFORMS,
   CONFIGURATION_LABEL_KEYS,
   emptyPlatformCapability,
   PLATFORM_LABEL_KEYS,
-} from "../../lib/buildApi.js";
+} from "@/lib/buildApi.js";
 
 interface Props {
   platform: BuildPlatform;

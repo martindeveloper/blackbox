@@ -1,4 +1,4 @@
-import type { Gate, GateNode } from "../types/wire.js";
+import type { Gate, GateNode } from "@/types/wire.js";
 import type { LoadedBundle } from "./scenarioLoader.js";
 import { isTextBlock } from "./libraryRefs.js";
 

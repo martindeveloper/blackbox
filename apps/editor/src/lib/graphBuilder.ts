@@ -7,7 +7,7 @@ import type {
   EditorLayout,
   GameContent,
   ItemCatalog,
-} from "../types/wire.js";
+} from "@/types/wire.js";
 
 export type GraphEdgeKind =
   | "goto"

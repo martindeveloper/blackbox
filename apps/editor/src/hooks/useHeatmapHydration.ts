@@ -1,7 +1,7 @@
 import { useEffect } from "react";
-import { loadHeatmap, type StoredAnalyticsMeta } from "../lib/toolsApi.js";
-import { useScenarioStore } from "../store/useScenarioStore.js";
-import { useAnalyticsStore } from "../store/useAnalyticsStore.js";
+import { loadHeatmap, type StoredAnalyticsMeta } from "@/lib/toolsApi.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
+import { useAnalyticsStore } from "@/store/useAnalyticsStore.js";
 
 const FALLBACK_META: StoredAnalyticsMeta = {
   mode: "goals",

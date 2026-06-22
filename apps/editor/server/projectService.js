@@ -1,11 +1,10 @@
 import { createHash, randomBytes } from "node:crypto";
 import fs from "node:fs/promises";
 import { existsSync, realpathSync } from "node:fs";
-import os from "node:os";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import chokidar from "chokidar";
-import { PACKAGED, REPO_ROOT, STANDALONE, USER_DATA_ROOT } from "./config.js";
+import { PACKAGED, STANDALONE, USER_DATA_ROOT } from "./config.js";
 import {
   ensureProjectEditorConfig,
   regenerateProjectEditorId,
@@ -19,8 +18,29 @@ import {
 } from "./projectScaffold.js";
 import { projectHasCustomCode } from "./sharedLib.mjs";
 import {
-  BUILD_DIR,
-  CACHE_DIR,
+  normalizeCheckpointManifest,
+  normalizeCheckpointRecord,
+  normalizeCheckpointSummary,
+  normalizeAnalytics,
+  normalizeHeatmapRecord,
+  CHECKPOINTS_SCHEMA_VERSION,
+  HEATMAP_SCHEMA_VERSION,
+  PREVIEW_CHECKPOINT_FORMAT,
+} from "./projectService/normalize.js";
+import {
+  exists,
+  isIgnoredProjectPath,
+  MEDIA_ROOTS,
+  mimeFromName,
+  projectRelativePath,
+  projectRoots,
+  readJson,
+  trashName,
+  walkFiles,
+  writeJson,
+  isInside,
+} from "./projectService/utils.js";
+import {
   EDITOR_DB_BASENAME,
   EDITOR_SIDECAR_DIR,
   CHECKPOINTS_DIR,
@@ -30,19 +50,10 @@ import {
   PROJECT_CONFIG_PATH,
   TRASH_DIR,
   TRASH_MANIFEST,
-  USER_DIR,
 } from "../shared/blackboxPaths.js";
 import { EDITOR_VERSION } from "../shared/editorVersion.js";
 
-const MEDIA_ROOTS = new Set(["textures", "music", "sfx"]);
-const HEATMAP_SCHEMA_VERSION = 2;
-const CHECKPOINTS_SCHEMA_VERSION = 1;
-const PREVIEW_CHECKPOINT_FORMAT = "blackbox-preview-checkpoint";
-// node:sqlite defaults busy_timeout to 0; bound lock waits so close-time WAL
-// checkpoints cannot hang indefinitely on stale -shm locks.
 const SQLITE_BUSY_TIMEOUT_MS = 500;
-// Keep the WAL small while the editor is open so the automatic checkpoint on
-// close is trivial and stale-lock buildup does not accumulate across force-quits.
 const WAL_CHECKPOINT_INTERVAL_MS = 60_000;
 
 export class ProjectError extends Error {
@@ -51,274 +62,6 @@ export class ProjectError extends Error {
     this.code = code;
     this.details = details;
   }
-}
-
-function projectRoots() {
-  const configured = [
-    process.env.BLACKBOX_DATA_ROOT,
-    ...(process.env.BLACKBOX_DATA_ROOTS?.split(path.delimiter) ?? []),
-  ];
-  if (!PACKAGED) configured.push(path.join(REPO_ROOT, "data"));
-  if (PACKAGED) configured.push(os.homedir());
-  return [...new Set(configured.filter(Boolean).map((root) => path.resolve(root)))];
-}
-
-function isInside(candidate, root) {
-  const relative = path.relative(root, candidate);
-  return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative));
-}
-
-function mimeFromName(name) {
-  const ext = path.extname(name).toLowerCase();
-  return (
-    {
-      ".png": "image/png",
-      ".jpg": "image/jpeg",
-      ".jpeg": "image/jpeg",
-      ".webp": "image/webp",
-      ".gif": "image/gif",
-      ".svg": "image/svg+xml",
-      ".mp3": "audio/mpeg",
-      ".wav": "audio/wav",
-      ".ogg": "audio/ogg",
-      ".m4a": "audio/mp4",
-    }[ext] ?? "application/octet-stream"
-  );
-}
-
-async function readJson(filePath, fallback) {
-  try {
-    return JSON.parse(await fs.readFile(filePath, "utf8"));
-  } catch (error) {
-    if (fallback !== undefined && error?.code === "ENOENT") return fallback;
-    throw error;
-  }
-}
-
-async function writeJson(filePath, value) {
-  await fs.mkdir(path.dirname(filePath), { recursive: true });
-  await fs.writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`);
-}
-
-async function exists(filePath) {
-  try {
-    await fs.access(filePath);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-async function walkFiles(root, relative = "") {
-  const directory = path.join(root, relative);
-  let entries;
-  try {
-    entries = await fs.readdir(directory, { withFileTypes: true });
-  } catch (error) {
-    if (error?.code === "ENOENT") return [];
-    throw error;
-  }
-
-  const files = [];
-  for (const entry of entries) {
-    if (entry.name === ".DS_Store") continue;
-    const child = relative ? `${relative}/${entry.name}` : entry.name;
-    if (entry.isDirectory()) {
-      // Prune ignored subtrees (.git, generated build/cache, user sidecar) here
-      // rather than after the fact, so we never readdir thousands of git objects
-      // or Gradle outputs.
-      if (isIgnoredProjectPath(child)) continue;
-      files.push(...(await walkFiles(root, child)));
-    } else if (entry.isFile()) files.push(child);
-  }
-  return files;
-}
-
-function projectRelativePath(projectPath, filePath) {
-  const absolute = path.isAbsolute(filePath) ? filePath : path.resolve(projectPath, filePath);
-  return path.relative(projectPath, absolute).split(path.sep).join("/");
-}
-
-function isUserSidecar(relativePath) {
-  return relativePath === USER_DIR || relativePath.startsWith(`${USER_DIR}/`);
-}
-
-// Disposable build/cache output (see BUILD_DIR/CACHE_DIR). Platform builds churn
-// these constantly; treating their writes as authored changes bumps the project
-// revision and triggers a reload-per-file storm — the editor's main process spins
-// at 100%+ CPU during and after a (clean) Android/iOS build.
-function isGeneratedSidecar(relativePath) {
-  for (const dir of [BUILD_DIR, CACHE_DIR]) {
-    if (relativePath === dir || relativePath.startsWith(`${dir}/`)) return true;
-  }
-  return false;
-}
-
-// The version-control dir is not authored content and churns on every commit,
-// checkout, or status — never watch or index it.
-function isVersionControlPath(relativePath) {
-  return [".git", ".hg", ".svn"].some(
-    (directory) => relativePath === directory || relativePath.startsWith(`${directory}/`),
-  );
-}
-
-function isIgnoredProjectPath(relativePath) {
-  return (
-    isUserSidecar(relativePath) ||
-    isGeneratedSidecar(relativePath) ||
-    isVersionControlPath(relativePath)
-  );
-}
-
-function isAnalyticsRow(value) {
-  return (
-    value &&
-    typeof value === "object" &&
-    typeof value.id === "string" &&
-    Number.isFinite(value.count) &&
-    Number.isFinite(value.total) &&
-    Number.isFinite(value.pct)
-  );
-}
-
-function isTrafficRow(value) {
-  return (
-    value &&
-    typeof value === "object" &&
-    typeof value.id === "string" &&
-    Number.isFinite(value.visits) &&
-    Number.isFinite(value.reach) &&
-    Number.isFinite(value.reachPct) &&
-    Number.isFinite(value.outDegree)
-  );
-}
-
-function isPerEnding(value) {
-  return (
-    value &&
-    typeof value === "object" &&
-    typeof value.ending === "string" &&
-    Number.isFinite(value.pathCount) &&
-    Array.isArray(value.nodes) &&
-    value.nodes.every(
-      (node) =>
-        node &&
-        typeof node === "object" &&
-        typeof node.id === "string" &&
-        Number.isFinite(node.reach) &&
-        Number.isFinite(node.reachPct),
-    )
-  );
-}
-
-function normalizeAnalytics(value) {
-  if (!value || typeof value !== "object") return null;
-  const nodeTraffic = Array.isArray(value.nodeTraffic)
-    ? value.nodeTraffic
-    : Array.isArray(value.hotNodes)
-      ? value.hotNodes
-      : null;
-  if (
-    !Array.isArray(value.mandatoryNodes) ||
-    !value.mandatoryNodes.every((node) => typeof node === "string") ||
-    !Number.isFinite(value.totalEndings) ||
-    !Array.isArray(value.nodeImportance ?? value.importance) ||
-    !(value.nodeImportance ?? value.importance).every(isAnalyticsRow) ||
-    !Array.isArray(value.importance) ||
-    !value.importance.every(isAnalyticsRow) ||
-    !Number.isFinite(value.totalPaths) ||
-    !Array.isArray(value.accessibility) ||
-    !value.accessibility.every(isAnalyticsRow) ||
-    !nodeTraffic ||
-    !nodeTraffic.every(isTrafficRow) ||
-    !Array.isArray(value.hotNodes) ||
-    !value.hotNodes.every(isTrafficRow) ||
-    !Array.isArray(value.splitCandidates) ||
-    !value.splitCandidates.every(isTrafficRow) ||
-    !Array.isArray(value.perEnding) ||
-    !value.perEnding.every(isPerEnding)
-  ) {
-    return null;
-  }
-  return {
-    ...value,
-    nodeImportance: value.nodeImportance ?? value.importance,
-    nodeTraffic,
-  };
-}
-
-function normalizeHeatmapRecord(value) {
-  if (!value || typeof value !== "object") return null;
-  const analytics = normalizeAnalytics(value.analytics);
-  if (!analytics || !Number.isFinite(value.capturedAt)) return null;
-  return {
-    version: value.version === HEATMAP_SCHEMA_VERSION ? HEATMAP_SCHEMA_VERSION : 1,
-    analytics,
-    meta: value.meta && typeof value.meta === "object" ? value.meta : null,
-    capturedAt: value.capturedAt,
-    contentFingerprint:
-      typeof value.contentFingerprint === "string" ? value.contentFingerprint : null,
-    sourceRevision: Number.isFinite(value.sourceRevision) ? value.sourceRevision : null,
-    scenarioRevision: typeof value.scenarioRevision === "string" ? value.scenarioRevision : null,
-    runId: typeof value.runId === "string" ? value.runId : null,
-  };
-}
-
-function normalizeCheckpointSummary(value) {
-  if (!value || typeof value !== "object") return null;
-  const id = typeof value.id === "string" ? value.id.trim() : "";
-  const createdAt = typeof value.createdAt === "string" ? value.createdAt : null;
-  if (!id || !createdAt) return null;
-  return {
-    id,
-    createdAt,
-    nodeId: typeof value.nodeId === "string" ? value.nodeId : null,
-    chapterId: typeof value.chapterId === "string" ? value.chapterId : null,
-    location: typeof value.location === "string" ? value.location : null,
-  };
-}
-
-function normalizeCheckpointRecord(value) {
-  if (!value || typeof value !== "object") return null;
-  if (value.format !== PREVIEW_CHECKPOINT_FORMAT) return null;
-  if (value.version !== CHECKPOINTS_SCHEMA_VERSION) return null;
-  const summary = normalizeCheckpointSummary(value);
-  if (!summary) return null;
-  const storage = value.storage;
-  const engineState = typeof value.engineState === "string" ? value.engineState.trim() : "";
-  if (
-    !storage ||
-    typeof storage !== "object" ||
-    Array.isArray(storage) ||
-    engineState.length === 0
-  ) {
-    return null;
-  }
-  return {
-    format: PREVIEW_CHECKPOINT_FORMAT,
-    version: CHECKPOINTS_SCHEMA_VERSION,
-    ...summary,
-    storage,
-    engineState,
-  };
-}
-
-function normalizeCheckpointManifest(value) {
-  if (!value || typeof value !== "object")
-    return { version: CHECKPOINTS_SCHEMA_VERSION, checkpoints: [] };
-  const checkpoints = Array.isArray(value.checkpoints)
-    ? value.checkpoints.map(normalizeCheckpointSummary).filter(Boolean)
-    : [];
-  return {
-    version: value.version === CHECKPOINTS_SCHEMA_VERSION ? CHECKPOINTS_SCHEMA_VERSION : 1,
-    checkpoints,
-  };
-}
-
-function trashName(originalPath, id) {
-  const ext = path.extname(originalPath);
-  const base = path.basename(originalPath, ext);
-  return `${base}_${id}${ext}`;
 }
 
 export class ProjectService {
@@ -650,8 +393,6 @@ export class ProjectService {
     const project = this.requireProject(id);
     project.codeTrusted = trusted;
     this.db.prepare("UPDATE projects SET code_trusted = ? WHERE id = ?").run(Number(trusted), id);
-    // Refresh the IDE-only tsconfig.json when custom code is trusted on a
-    // developer (monorepo) machine. No-op elsewhere; never throws.
     if (trusted) await ensureProjectIdeSetup(project.path);
     return { trusted };
   }
@@ -659,8 +400,6 @@ export class ProjectService {
   async bootstrapProjectCode(id) {
     const project = this.requireProject(id);
     const created = await bootstrapStarterCode(project.path);
-    // The author scaffolded this code on their own machine — trust it implicitly
-    // (which also refreshes the dev tsconfig.json) rather than prompting.
     await this.setProjectCodeTrust(id, true);
     return { created };
   }
@@ -1257,11 +996,6 @@ export class ProjectService {
     return project.revision;
   }
 
-  /**
-   * Runs a filesystem-changing integration while the project watcher is
-   * paused, then publishes one coherent revision/event for the whole change.
-   * VCS providers, sync clients, and future importers share this boundary.
-   */
   async applyExternalMutation(id, operation, eventForResult) {
     const project = this.requireProject(id);
     return this.exclusive(id, async () => {
@@ -1354,16 +1088,7 @@ export class ProjectService {
     if (isIgnoredProjectPath(relative)) return;
 
     const suppressedUntil = this.suppressed.get(absolute) ?? 0;
-    if (suppressedUntil >= Date.now()) {
-      // Editor-authored write. A single atomic save emits more than one watcher
-      // event for the same path — moving the original aside to its backup fires
-      // an `unlink`, then renaming the temp file into place fires an `add` — so
-      // keep the suppression entry until it expires by time instead of
-      // consuming it on the first event. Otherwise the trailing event leaks out
-      // as a spurious external change and the editor flags its own save as a
-      // disk conflict.
-      return;
-    }
+    if (suppressedUntil >= Date.now()) return;
     if (suppressedUntil) this.suppressed.delete(absolute);
     await this.exclusive(project.id, async () => {
       project.revision += 1;

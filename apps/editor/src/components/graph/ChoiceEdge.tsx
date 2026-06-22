@@ -1,5 +1,5 @@
 import { BaseEdge, EdgeLabelRenderer, getSmoothStepPath, type EdgeProps } from "@xyflow/react";
-import type { ScenarioEdgeData } from "../../lib/graphBuilder.js";
+import type { ScenarioEdgeData } from "@/lib/graphBuilder.js";
 
 const MAX_LABEL_LENGTH = 30;
 const NODE_WIDTH = 200;

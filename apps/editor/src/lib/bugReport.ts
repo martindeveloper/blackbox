@@ -1,8 +1,8 @@
-import { EDITOR_VERSION } from "../../shared/editorVersion.js";
-import { useBuildStore } from "../store/useBuildStore.js";
-import { usePreviewStore } from "../store/usePreviewStore.js";
-import { useScenarioStore } from "../store/useScenarioStore.js";
-import { useToolRunnerStore } from "../store/useToolRunnerStore.js";
+import { EDITOR_VERSION } from "@shared/editorVersion.js";
+import { useBuildStore } from "@/store/useBuildStore.js";
+import { usePreviewStore } from "@/store/usePreviewStore.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
+import { useToolRunnerStore } from "@/store/useToolRunnerStore.js";
 import { createStoreZip, jsonEntry, textEntry, type ZipEntry } from "./storeZip.js";
 
 export interface BugReportContext {

@@ -1,4 +1,4 @@
-import type { Effect } from "../types/wire.js";
+import type { Effect } from "@/types/wire.js";
 import { Page } from "./pages.js";
 import type { MediaCategory } from "./mediaLibrary.js";
 import type { LoadedBundle } from "./scenarioLoader.js";

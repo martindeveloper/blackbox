@@ -1,14 +1,14 @@
 import { Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
-import { editorNavigate } from "../../lib/routeHelpers.js";
-import { translate } from "../../lib/i18n.js";
-import { confirmModal } from "../../lib/modalApi.js";
-import { Page } from "../../lib/pages.js";
-import { useScenarioStore } from "../../store/useScenarioStore.js";
-import type { Gate } from "../../types/wire.js";
-import { Button } from "../ui/Button.js";
-import { GateEditor } from "../node/GateEditor.js";
+import { editorNavigate } from "@/lib/routeHelpers.js";
+import { translate } from "@/lib/i18n.js";
+import { confirmModal } from "@/lib/modalApi.js";
+import { Page } from "@/lib/pages.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
+import type { Gate } from "@/types/wire.js";
+import { Button } from "@/components/ui/Button.js";
+import { GateEditor } from "@/components/node/GateEditor.js";
 
 interface Props {
   conditionId: string;

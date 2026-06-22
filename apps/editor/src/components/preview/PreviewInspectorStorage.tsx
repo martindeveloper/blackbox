@@ -1,11 +1,11 @@
 import { useRef } from "react";
 import { Clock3, Database, Download, Settings2, Trash2, Upload } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { PREVIEW_STORAGE_EXPORT_FORMAT } from "../../../players/web/protocol.js";
-import { usePreviewStore, type PreviewStorageState } from "../../store/usePreviewStore.js";
-import { useScenarioStore } from "../../store/useScenarioStore.js";
-import { notifyError, notifySuccess } from "../../lib/notifyApi.js";
-import { Icon } from "../icons/Icon.js";
+import { PREVIEW_STORAGE_EXPORT_FORMAT } from "@players/web/protocol.js";
+import { usePreviewStore, type PreviewStorageState } from "@/store/usePreviewStore.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
+import { notifyError, notifySuccess } from "@/lib/notifyApi.js";
+import { Icon } from "@/components/icons/Icon.js";
 import {
   asRecord,
   countEntries,

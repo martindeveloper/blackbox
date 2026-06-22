@@ -1,5 +1,5 @@
-import { VERSION_API } from "../../shared/versionApi.js";
-import { isNewerVersion } from "../../shared/releaseVersion.js";
+import { VERSION_API } from "@shared/versionApi.js";
+import { isNewerVersion } from "@shared/releaseVersion.js";
 import { EDITOR_VERSION } from "./version.js";
 
 export interface EditorVersionInfo {

@@ -17,12 +17,12 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
-import { collectDashboardStats } from "../../lib/dashboardStats.js";
-import { Page } from "../../lib/pages.js";
-import { editorNavigate, navigateToTool } from "../../lib/routeHelpers.js";
-import { getToolRun, type ToolRun } from "../../lib/toolsApi.js";
-import { useScenarioStore } from "../../store/useScenarioStore.js";
-import { Icon } from "../icons/Icon.js";
+import { collectDashboardStats } from "@/lib/dashboardStats.js";
+import { Page } from "@/lib/pages.js";
+import { editorNavigate, navigateToTool } from "@/lib/routeHelpers.js";
+import { getToolRun, type ToolRun } from "@/lib/toolsApi.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
+import { Icon } from "@/components/icons/Icon.js";
 import { NarrativeInsightsPanel } from "./NarrativeInsightsPanel.js";
 
 interface WorkspaceLinkProps {

@@ -1,9 +1,9 @@
 import { Activity } from "lucide-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { analyzeNarrative } from "../../lib/narrativeAnalysis.js";
-import { useScenarioStore } from "../../store/useScenarioStore.js";
-import { Icon } from "../icons/Icon.js";
+import { analyzeNarrative } from "@/lib/narrativeAnalysis.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
+import { Icon } from "@/components/icons/Icon.js";
 
 export function NarrativeInsightsPanel() {
   const { t } = useTranslation();

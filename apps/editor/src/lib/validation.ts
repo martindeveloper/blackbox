@@ -1,4 +1,4 @@
-import type { ChoiceContent, Gate, ItemCatalog, NodeContent } from "../types/wire.js";
+import type { ChoiceContent, Gate, ItemCatalog, NodeContent } from "@/types/wire.js";
 import { translate } from "./i18n.js";
 import type { LoadedBundle } from "./scenarioLoader.js";
 import { isTextBlock, snippetIdFromTextEntry } from "./libraryRefs.js";

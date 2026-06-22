@@ -1,5 +1,5 @@
 import { Api } from "./api.js";
-import type { ThemePreference } from "../context/ThemeContext.js";
+import type { ThemePreference } from "@/context/ThemeContext.js";
 
 export interface UserPrefs {
   theme?: ThemePreference;

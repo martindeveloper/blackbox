@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { BuildPlatform } from "../../lib/buildApi.js";
-import { BUILD_PLATFORMS, PLATFORM_LABEL_KEYS } from "../../lib/buildApi.js";
+import type { BuildPlatform } from "@/lib/buildApi.js";
+import { BUILD_PLATFORMS, PLATFORM_LABEL_KEYS } from "@/lib/buildApi.js";
 import type {
   AndroidPlatformConfig,
   GameContent,
@@ -9,12 +9,12 @@ import type {
   PlatformOrientations,
   ScenarioPlatforms,
   WebPlatformConfig,
-} from "../../types/wire.js";
-import { Icon } from "../icons/Icon.js";
-import { PLATFORM_ICONS } from "../icons/PlatformIcons.js";
-import { FormField } from "../ui/FormField.js";
-import { Input } from "../ui/Input.js";
-import { Select } from "../ui/Select.js";
+} from "@/types/wire.js";
+import { Icon } from "@/components/icons/Icon.js";
+import { PLATFORM_ICONS } from "@/components/icons/PlatformIcons.js";
+import { FormField } from "@/components/ui/FormField.js";
+import { Input } from "@/components/ui/Input.js";
+import { Select } from "@/components/ui/Select.js";
 
 type OrientationPreset = "default" | "portrait" | "landscape" | "all";
 

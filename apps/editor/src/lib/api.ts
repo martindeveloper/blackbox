@@ -14,4 +14,4 @@ export {
   serverProjectMediaRoute,
   serverToolsRunRoute,
   serverBuildRunCancelRoute,
-} from "../../shared/apiPaths.js";
+} from "@shared/apiPaths.js";

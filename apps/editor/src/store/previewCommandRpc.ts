@@ -1,4 +1,4 @@
-import type { PreviewCheckpointPayload, PreviewHostCommand } from "../../players/web/protocol.js";
+import type { PreviewCheckpointPayload, PreviewHostCommand } from "@players/web/protocol.js";
 import { PreviewCommandError } from "./previewCommandErrors.js";
 
 export type PreviewCommandSender = (command: PreviewHostCommand) => void;

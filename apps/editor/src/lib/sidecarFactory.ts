@@ -4,7 +4,7 @@ import {
   SUPPORTED_FORMAT_VERSION,
   type LibraryDocument,
   type MetaCatalog,
-} from "../types/wire.js";
+} from "@/types/wire.js";
 import type { LoadedBundle } from "./scenarioLoader.js";
 
 export function createMetaCatalogSidecar(

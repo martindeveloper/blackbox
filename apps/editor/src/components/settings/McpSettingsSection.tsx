@@ -1,11 +1,11 @@
 import { Check, Copy, Eye, EyeOff, RefreshCw, RotateCw, Save } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { useModal } from "../../context/ModalProvider.js";
-import { isValidMcpPort, MAX_MCP_PORT, MIN_MCP_PORT } from "../../../shared/mcpConfig.js";
-import type { McpAuditEntry, McpAuditResult, McpStatus } from "../../types/electron.js";
-import { Button } from "../ui/Button.js";
-import { Checkbox } from "../ui/Checkbox.js";
+import { useModal } from "@/context/ModalProvider.js";
+import { isValidMcpPort, MAX_MCP_PORT, MIN_MCP_PORT } from "@shared/mcpConfig.js";
+import type { McpAuditEntry, McpAuditResult, McpStatus } from "@/types/electron.js";
+import { Button } from "@/components/ui/Button.js";
+import { Checkbox } from "@/components/ui/Checkbox.js";
 
 export function McpSettingsSection({
   status,
@@ -345,9 +345,9 @@ export function McpAuditSection() {
                   </span>
                 </div>
                 {entry.changes?.length ? (
-                  <details
+                  <AuditChangeDetails
                     className="user-settings-audit-changes"
-                    defaultOpen={index === firstDetailedEntry}
+                    initiallyOpen={index === firstDetailedEntry}
                   >
                     <summary>
                       {t("settings.mcpAuditChanges", {
@@ -379,7 +379,7 @@ export function McpAuditSection() {
                     {entry.changesTruncated ? (
                       <p>{t("settings.mcpAuditChangesTruncated")}</p>
                     ) : null}
-                  </details>
+                  </AuditChangeDetails>
                 ) : null}
               </div>
             ))}
@@ -397,6 +397,27 @@ export function McpAuditSection() {
         ) : null}
       </div>
     </section>
+  );
+}
+
+function AuditChangeDetails({
+  className,
+  initiallyOpen,
+  children,
+}: {
+  className: string;
+  initiallyOpen: boolean;
+  children: ReactNode;
+}) {
+  const [open, setOpen] = useState(initiallyOpen);
+  return (
+    <details
+      className={className}
+      open={open}
+      onToggle={(event) => setOpen(event.currentTarget.open)}
+    >
+      {children}
+    </details>
   );
 }
 

@@ -1,7 +1,7 @@
 import { Monitor, Moon, Sun } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { type ThemePreference, useTheme } from "../../context/ThemeContext.js";
-import { IconButton } from "../ui/IconButton.js";
+import { type ThemePreference, useTheme } from "@/context/ThemeContext.js";
+import { IconButton } from "@/components/ui/IconButton.js";
 
 const OPTIONS: Array<{ id: ThemePreference; icon: typeof Sun; labelKey: string }> = [
   { id: "light", icon: Sun, labelKey: "topBar.themeLight" },

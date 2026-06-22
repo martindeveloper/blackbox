@@ -1,4 +1,4 @@
-import { useProjectTransitionStore } from "../../store/useProjectTransitionStore.js";
+import { useProjectTransitionStore } from "@/store/useProjectTransitionStore.js";
 
 export function ProjectTransitionOverlay() {
   const phase = useProjectTransitionStore((s) => s.phase);

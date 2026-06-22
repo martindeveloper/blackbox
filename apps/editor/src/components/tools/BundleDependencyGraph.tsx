@@ -11,9 +11,9 @@ import {
   useReactFlow,
   type NodeMouseHandler,
 } from "@xyflow/react";
-import { graphThemeColors, useTheme } from "../../context/ThemeContext.js";
-import { buildBundleDependencyGraph, type BundleGraphNode } from "../../lib/bundleGraphBuilder.js";
-import type { ProjectInspectBundle } from "../../lib/toolsApi.js";
+import { graphThemeColors, useTheme } from "@/context/ThemeContext.js";
+import { buildBundleDependencyGraph, type BundleGraphNode } from "@/lib/bundleGraphBuilder.js";
+import type { ProjectInspectBundle } from "@/lib/toolsApi.js";
 import { BundleGraphNode as BundleGraphNodeCard } from "./BundleGraphNode.js";
 
 const nodeTypes = { bundleNode: BundleGraphNodeCard };

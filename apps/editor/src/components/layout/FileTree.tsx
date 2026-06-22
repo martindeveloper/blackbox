@@ -1,25 +1,25 @@
 import { Code2, Layers, Plus, Quote, Skull, Star } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
-import { Icon } from "../icons/Icon.js";
-import { ListItem } from "../ui/ListItem.js";
-import { Input } from "../ui/Input.js";
-import { Panel, PanelBody, PanelHeader } from "../ui/Panel.js";
-import { CatalogSidebar } from "../catalogs/CatalogSidebar.js";
-import { MetaCatalogSidebar } from "../catalogs/MetaCatalogSidebar.js";
-import { LibrarySidebar } from "../catalogs/LibrarySidebar.js";
-import { entriesForCategory } from "../../lib/catalogHealth.js";
-import { collectSnippetIdsFromText } from "../../lib/libraryRefs.js";
-import { Page } from "../../lib/pages.js";
+import { Icon } from "@/components/icons/Icon.js";
+import { ListItem } from "@/components/ui/ListItem.js";
+import { Input } from "@/components/ui/Input.js";
+import { Panel, PanelBody, PanelHeader } from "@/components/ui/Panel.js";
+import { CatalogSidebar } from "@/components/catalogs/CatalogSidebar.js";
+import { MetaCatalogSidebar } from "@/components/catalogs/MetaCatalogSidebar.js";
+import { LibrarySidebar } from "@/components/catalogs/LibrarySidebar.js";
+import { entriesForCategory } from "@/lib/catalogHealth.js";
+import { collectSnippetIdsFromText } from "@/lib/libraryRefs.js";
+import { Page } from "@/lib/pages.js";
 import {
   editorNavigate,
   navigateToCatalogEntry,
   useActivityView,
   useEditorSearch,
-} from "../../lib/routeHelpers.js";
-import { parseMediaCategory } from "../../lib/mediaLibrary.js";
-import { useScenarioStore } from "../../store/useScenarioStore.js";
-import { Button } from "../ui/Button.js";
+} from "@/lib/routeHelpers.js";
+import { parseMediaCategory } from "@/lib/mediaLibrary.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
+import { Button } from "@/components/ui/Button.js";
 
 export function FileTree() {
   const { t } = useTranslation();

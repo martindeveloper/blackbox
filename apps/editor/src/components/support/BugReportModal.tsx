@@ -2,13 +2,13 @@ import { Bug, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useRouterState } from "@tanstack/react-router";
-import { useTheme } from "../../context/ThemeContext.js";
-import { downloadBugReport } from "../../lib/bugReport.js";
-import { Icon } from "../icons/Icon.js";
-import { ModalShell } from "../overlay/ModalShell.js";
-import { Button } from "../ui/Button.js";
-import { IconButton } from "../ui/IconButton.js";
-import { Textarea } from "../ui/Textarea.js";
+import { useTheme } from "@/context/ThemeContext.js";
+import { downloadBugReport } from "@/lib/bugReport.js";
+import { Icon } from "@/components/icons/Icon.js";
+import { ModalShell } from "@/components/overlay/ModalShell.js";
+import { Button } from "@/components/ui/Button.js";
+import { IconButton } from "@/components/ui/IconButton.js";
+import { Textarea } from "@/components/ui/Textarea.js";
 
 interface BugReportModalProps {
   onClose: () => void;

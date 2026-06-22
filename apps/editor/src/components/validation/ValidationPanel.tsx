@@ -2,10 +2,10 @@ import { ChevronDown, ChevronUp, ShieldAlert } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
-import { Icon } from "../icons/Icon.js";
-import { Page } from "../../lib/pages.js";
-import { editorNavigate } from "../../lib/routeHelpers.js";
-import { useScenarioStore } from "../../store/useScenarioStore.js";
+import { Icon } from "@/components/icons/Icon.js";
+import { Page } from "@/lib/pages.js";
+import { editorNavigate } from "@/lib/routeHelpers.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
 
 export function ValidationPanel() {
   const { t } = useTranslation();

@@ -1,6 +1,6 @@
-import { useScenarioStore } from "../store/useScenarioStore.js";
-import { getMediaUrl } from "../lib/mediaPreview.js";
-import { scenarioFsPath } from "../lib/scenarioPaths.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
+import { getMediaUrl } from "@/lib/mediaPreview.js";
+import { scenarioFsPath } from "@/lib/scenarioPaths.js";
 
 export function useMediaPreview(
   projectId: string | null,

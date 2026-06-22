@@ -1,8 +1,8 @@
 import { Activity, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { usePreviewStore } from "../../store/usePreviewStore.js";
-import { Icon } from "../icons/Icon.js";
-import { Panel, PanelBody, PanelHeader } from "../ui/Panel.js";
+import { usePreviewStore } from "@/store/usePreviewStore.js";
+import { Icon } from "@/components/icons/Icon.js";
+import { Panel, PanelBody, PanelHeader } from "@/components/ui/Panel.js";
 import { PreviewInspectorProfiler } from "./PreviewInspectorProfiler.js";
 
 export function PreviewEventsSidebar() {

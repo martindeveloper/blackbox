@@ -13,6 +13,7 @@ export function notifyContributionApplied(event: ProjectEvent): void {
   const contribution = event.contribution;
   if (!contribution) return;
   const count = contribution.changeCount ?? contribution.changes?.length ?? 0;
+  const review = contribution.review;
   notify({
     message:
       count > 0
@@ -25,10 +26,10 @@ export function notifyContributionApplied(event: ProjectEvent): void {
           }),
     type: "info",
     duration: 7200,
-    action: contribution.review
+    action: review
       ? {
           label: translate("notifications.viewContributorChanges"),
-          onClick: () => requestContributionReview(contribution.review),
+          onClick: () => requestContributionReview(review),
         }
       : undefined,
   });

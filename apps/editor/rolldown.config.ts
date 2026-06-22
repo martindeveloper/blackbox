@@ -6,6 +6,7 @@ import { reactCompilerPlugin } from "../../scripts/lib/reactCompilerPlugin.mjs";
 export default defineConfig({
   input: "./src/main.tsx",
   platform: "browser",
+  tsconfig: "./tsconfig.json",
   plugins: [reactCompilerPlugin({ babel, compilerPlugin: reactCompiler })],
   transform: {
     jsx: "react-jsx",

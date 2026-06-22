@@ -1,4 +1,4 @@
-import type { NodeContent } from "../types/wire.js";
+import type { NodeContent } from "@/types/wire.js";
 import type { LoadedBundle } from "./scenarioLoader.js";
 
 // Correctness checks — reachability, dead-ends, undefined/write-only flags — are owned by

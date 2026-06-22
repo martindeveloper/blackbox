@@ -1,6 +1,6 @@
 import type { NavigateOptions } from "@tanstack/react-router";
 import { useParams } from "@tanstack/react-router";
-import { useScenarioStore } from "../store/useScenarioStore.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
 
 export function projectIdFromStore(): string | null {
   return useScenarioStore.getState().projectId;

@@ -1,7 +1,7 @@
 import { ChevronDown } from "lucide-react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { cn } from "../ui/cn.js";
+import { cn } from "@/components/ui/cn.js";
 
 interface AuthorDetailsProps {
   summary: ReactNode;

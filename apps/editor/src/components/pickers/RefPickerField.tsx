@@ -1,14 +1,14 @@
 import { FolderOpen } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { buildEditorRefIndex, metricsForCharacter, sortedRefList } from "../../lib/editorRefs.js";
-import { useScenarioStore } from "../../store/useScenarioStore.js";
-import type { CatalogCategory } from "../../lib/catalogUsage.js";
+import { buildEditorRefIndex, metricsForCharacter, sortedRefList } from "@/lib/editorRefs.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
+import type { CatalogCategory } from "@/lib/catalogUsage.js";
 import { ObjectSelector } from "./ObjectSelector.js";
-import { FieldRow } from "../ui/FieldRow.js";
-import { FormField } from "../ui/FormField.js";
-import { Input } from "../ui/Input.js";
-import { Select } from "../ui/Select.js";
+import { FieldRow } from "@/components/ui/FieldRow.js";
+import { FormField } from "@/components/ui/FormField.js";
+import { Input } from "@/components/ui/Input.js";
+import { Select } from "@/components/ui/Select.js";
 
 export type RefKind =
   | "node"

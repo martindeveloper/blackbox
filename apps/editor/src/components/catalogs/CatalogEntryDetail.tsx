@@ -7,21 +7,21 @@ import {
   getCatalogFileStatus,
   mediaPathSet,
   mediaSearchForCatalogSrc,
-} from "../../lib/catalogHealth.js";
-import type { CatalogCategory } from "../../lib/catalogUsage.js";
-import { Page } from "../../lib/pages.js";
-import { editorNavigate, navigateToCatalogEntry } from "../../lib/routeHelpers.js";
-import { useMediaPreview } from "../../hooks/useMediaPreview.js";
-import { useScenarioStore } from "../../store/useScenarioStore.js";
-import type { MediaCategory } from "../../lib/mediaLibrary.js";
-import type { AssetUsage } from "../../types/wire.js";
-import { ObjectSelector } from "../pickers/ObjectSelector.js";
-import { Button } from "../ui/Button.js";
-import { Checkbox } from "../ui/Checkbox.js";
-import { FieldRow } from "../ui/FieldRow.js";
-import { FormField } from "../ui/FormField.js";
-import { Input } from "../ui/Input.js";
-import { Select } from "../ui/Select.js";
+} from "@/lib/catalogHealth.js";
+import type { CatalogCategory } from "@/lib/catalogUsage.js";
+import { Page } from "@/lib/pages.js";
+import { editorNavigate, navigateToCatalogEntry } from "@/lib/routeHelpers.js";
+import { useMediaPreview } from "@/hooks/useMediaPreview.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
+import type { MediaCategory } from "@/lib/mediaLibrary.js";
+import type { AssetUsage } from "@/types/wire.js";
+import { ObjectSelector } from "@/components/pickers/ObjectSelector.js";
+import { Button } from "@/components/ui/Button.js";
+import { Checkbox } from "@/components/ui/Checkbox.js";
+import { FieldRow } from "@/components/ui/FieldRow.js";
+import { FormField } from "@/components/ui/FormField.js";
+import { Input } from "@/components/ui/Input.js";
+import { Select } from "@/components/ui/Select.js";
 import { CatalogDeleteDialog } from "./CatalogDeleteDialog.js";
 import { CatalogUsageList } from "./CatalogUsageList.js";
 

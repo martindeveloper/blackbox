@@ -2,7 +2,7 @@ import { X } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
-import { IconButton } from "../ui/IconButton.js";
+import { IconButton } from "@/components/ui/IconButton.js";
 
 interface ModalShellProps {
   title?: string;

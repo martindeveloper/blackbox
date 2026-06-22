@@ -8,7 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { fetchUserPrefs, saveUserPrefs, type UserPrefs } from "../lib/userPrefs.js";
+import { fetchUserPrefs, saveUserPrefs, type UserPrefs } from "@/lib/userPrefs.js";
 
 const DEBOUNCE_MS = 600;
 

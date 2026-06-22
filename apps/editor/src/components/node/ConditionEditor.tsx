@@ -1,12 +1,12 @@
 import { Plus, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type { Condition } from "../../types/wire.js";
-import { Icon } from "../icons/Icon.js";
-import { Button } from "../ui/Button.js";
-import { Card } from "../ui/Card.js";
-import { FormField } from "../ui/FormField.js";
-import { Input } from "../ui/Input.js";
-import { Select } from "../ui/Select.js";
+import type { Condition } from "@/types/wire.js";
+import { Icon } from "@/components/icons/Icon.js";
+import { Button } from "@/components/ui/Button.js";
+import { Card } from "@/components/ui/Card.js";
+import { FormField } from "@/components/ui/FormField.js";
+import { Input } from "@/components/ui/Input.js";
+import { Select } from "@/components/ui/Select.js";
 
 const CONDITION_TYPES = [
   "hasItem",

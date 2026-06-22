@@ -2,14 +2,14 @@ import { Trash2, X, ZoomIn } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
-import { findCatalogKeysBySrc } from "../../lib/catalogHealth.js";
-import { formatSize } from "../../lib/format.js";
-import { mediaCategoryFromPath } from "../../lib/mediaLibrary.js";
-import { useMediaPreview } from "../../hooks/useMediaPreview.js";
-import { useScenarioStore } from "../../store/useScenarioStore.js";
-import { navigateToCatalogEntry } from "../../lib/routeHelpers.js";
-import { Button } from "../ui/Button.js";
-import { Icon } from "../icons/Icon.js";
+import { findCatalogKeysBySrc } from "@/lib/catalogHealth.js";
+import { formatSize } from "@/lib/format.js";
+import { mediaCategoryFromPath } from "@/lib/mediaLibrary.js";
+import { useMediaPreview } from "@/hooks/useMediaPreview.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
+import { navigateToCatalogEntry } from "@/lib/routeHelpers.js";
+import { Button } from "@/components/ui/Button.js";
+import { Icon } from "@/components/icons/Icon.js";
 
 interface Props {
   selectedPath: string | null;

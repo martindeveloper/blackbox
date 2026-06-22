@@ -1,12 +1,12 @@
 import { Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type { ChoiceContent } from "../../types/wire.js";
-import { translate } from "../../lib/i18n.js";
+import type { ChoiceContent } from "@/types/wire.js";
+import { translate } from "@/lib/i18n.js";
 
 function newChoice(): ChoiceContent {
   return { id: `choice_${crypto.randomUUID()}`, label: translate("defaults.newChoice"), goto: "" };
 }
-import { Button } from "../ui/Button.js";
+import { Button } from "@/components/ui/Button.js";
 import { ChoiceEditor } from "./ChoiceEditor.js";
 
 interface ChoiceListEditorProps {

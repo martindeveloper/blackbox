@@ -1,29 +1,29 @@
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
-import { NodeInspector } from "../node/NodeInspector.js";
-import { GlobalDeathNodeInspector } from "../node/GlobalDeathNodeInspector.js";
-import { ItemInspector } from "../catalogs/ItemInspector.js";
-import { CharacterInspector } from "../catalogs/CharacterInspector.js";
-import { CatalogEntryDetail } from "../catalogs/CatalogEntryDetail.js";
-import { MetaEntryInspector } from "../catalogs/MetaEntryInspector.js";
-import { SnippetInspector } from "../catalogs/SnippetInspector.js";
-import { TemplateInspector } from "../catalogs/TemplateInspector.js";
-import { ConditionInspector } from "../catalogs/ConditionInspector.js";
-import { ToolsInspector } from "../tools/ToolsInspector.js";
-import { BuildInspector } from "../builder/BuildInspector.js";
-import { ValidationPanel } from "../validation/ValidationPanel.js";
-import { MediaInspector } from "../media/MediaInspector.js";
-import { PreviewInspector } from "../preview/PreviewInspector.js";
-import { EmptyState } from "../ui/EmptyState.js";
-import { Panel, PanelBody, PanelHeader } from "../ui/Panel.js";
-import { parseMediaCategory } from "../../lib/mediaLibrary.js";
-import { Page } from "../../lib/pages.js";
+import { NodeInspector } from "@/components/node/NodeInspector.js";
+import { GlobalDeathNodeInspector } from "@/components/node/GlobalDeathNodeInspector.js";
+import { ItemInspector } from "@/components/catalogs/ItemInspector.js";
+import { CharacterInspector } from "@/components/catalogs/CharacterInspector.js";
+import { CatalogEntryDetail } from "@/components/catalogs/CatalogEntryDetail.js";
+import { MetaEntryInspector } from "@/components/catalogs/MetaEntryInspector.js";
+import { SnippetInspector } from "@/components/catalogs/SnippetInspector.js";
+import { TemplateInspector } from "@/components/catalogs/TemplateInspector.js";
+import { ConditionInspector } from "@/components/catalogs/ConditionInspector.js";
+import { ToolsInspector } from "@/components/tools/ToolsInspector.js";
+import { BuildInspector } from "@/components/builder/BuildInspector.js";
+import { ValidationPanel } from "@/components/validation/ValidationPanel.js";
+import { MediaInspector } from "@/components/media/MediaInspector.js";
+import { PreviewInspector } from "@/components/preview/PreviewInspector.js";
+import { EmptyState } from "@/components/ui/EmptyState.js";
+import { Panel, PanelBody, PanelHeader } from "@/components/ui/Panel.js";
+import { parseMediaCategory } from "@/lib/mediaLibrary.js";
+import { Page } from "@/lib/pages.js";
 import {
   editorNavigate,
   useActivityView,
   useEditorSearch,
   type ActivityView,
-} from "../../lib/routeHelpers.js";
+} from "@/lib/routeHelpers.js";
 
 function inspectorTitle(
   activity: ActivityView | null,

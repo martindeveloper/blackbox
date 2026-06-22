@@ -1,6 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import type { CSSProperties, ReactNode } from "react";
-import { Icon } from "../icons/Icon.js";
+import { Icon } from "@/components/icons/Icon.js";
 
 export function entityInitials(name: string): string {
   const words = name.trim().split(/\s+/).filter(Boolean);

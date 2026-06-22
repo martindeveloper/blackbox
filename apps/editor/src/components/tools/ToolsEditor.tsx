@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { useEditorSearch } from "../../lib/routeHelpers.js";
+import { useEditorSearch } from "@/lib/routeHelpers.js";
 import { ToolRunnerView } from "./ToolRunnerView.js";
 import { TOOL_ITEMS } from "./ToolsSidebar.js";
 

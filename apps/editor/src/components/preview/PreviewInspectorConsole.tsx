@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
 import { ChevronRight, Pin, PinOff, Terminal, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { usePreviewStore, type PreviewConsoleEntry } from "../../store/usePreviewStore.js";
-import { Icon } from "../icons/Icon.js";
-import { Input } from "../ui/Input.js";
+import { usePreviewStore, type PreviewConsoleEntry } from "@/store/usePreviewStore.js";
+import { Icon } from "@/components/icons/Icon.js";
+import { Input } from "@/components/ui/Input.js";
 
 type ConsoleFilter = "all" | "log" | "warn" | "error";
 

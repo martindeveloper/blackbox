@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { EDITOR_VERSION } from "../../lib/version.js";
+import { EDITOR_VERSION } from "@/lib/version.js";
 
 export function EditorFooter() {
   const { t } = useTranslation();

@@ -1,5 +1,5 @@
 import { createContext, use, useEffect, useMemo, useState, type ReactNode } from "react";
-import { useUserPrefs } from "../hooks/useUserPrefs.js";
+import { useUserPrefs } from "@/hooks/useUserPrefs.js";
 
 export type ThemeMode = "light" | "dark";
 export type ThemePreference = ThemeMode | "device";

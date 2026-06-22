@@ -1,6 +1,6 @@
 import { forwardRef, type ReactNode } from "react";
 import type { LucideIcon, LucideProps } from "lucide-react";
-import type { BuildPlatform } from "../../lib/buildApi.js";
+import type { BuildPlatform } from "@/lib/buildApi.js";
 
 function createPlatformIcon(displayName: string, children: ReactNode): LucideIcon {
   const Icon = forwardRef<SVGSVGElement, LucideProps>(

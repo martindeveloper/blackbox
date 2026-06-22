@@ -1,4 +1,4 @@
-import type { JsonValue } from "../types/wire.js";
+import type { JsonValue } from "@/types/wire.js";
 
 export type FlagValuePreset = "unset" | "true" | "false" | "custom";
 

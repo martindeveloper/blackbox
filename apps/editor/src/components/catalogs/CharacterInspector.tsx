@@ -1,14 +1,14 @@
 import { Plus, X } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { catalogAssetIds } from "../../lib/catalogHealth.js";
-import { useScenarioStore } from "../../store/useScenarioStore.js";
-import { Button } from "../ui/Button.js";
-import { FormField } from "../ui/FormField.js";
-import { Input } from "../ui/Input.js";
-import { InspectorDeleteHeader } from "../ui/InspectorDeleteHeader.js";
-import { Select } from "../ui/Select.js";
-import { Section, SectionBody, SectionHeader } from "../ui/Section.js";
+import { catalogAssetIds } from "@/lib/catalogHealth.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
+import { Button } from "@/components/ui/Button.js";
+import { FormField } from "@/components/ui/FormField.js";
+import { Input } from "@/components/ui/Input.js";
+import { InspectorDeleteHeader } from "@/components/ui/InspectorDeleteHeader.js";
+import { Select } from "@/components/ui/Select.js";
+import { Section, SectionBody, SectionHeader } from "@/components/ui/Section.js";
 import { CatalogRefField } from "./CatalogRefField.js";
 
 interface Props {

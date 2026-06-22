@@ -6,19 +6,19 @@ import {
   buildLibraryUsageIndex,
   getLibraryUsages,
   libraryUsageNavigateTarget,
-} from "../../lib/libraryUsage.js";
-import { Page } from "../../lib/pages.js";
-import { editorNavigate } from "../../lib/routeHelpers.js";
-import { translate } from "../../lib/i18n.js";
-import { confirmModal } from "../../lib/modalApi.js";
-import { useScenarioStore } from "../../store/useScenarioStore.js";
-import type { TextBlock } from "../../types/wire.js";
-import { Button } from "../ui/Button.js";
-import { FormField } from "../ui/FormField.js";
-import { Input } from "../ui/Input.js";
-import { Select } from "../ui/Select.js";
-import { GateEditor } from "../node/GateEditor.js";
-import { InterpolationField } from "../node/InterpolationField.js";
+} from "@/lib/libraryUsage.js";
+import { Page } from "@/lib/pages.js";
+import { editorNavigate } from "@/lib/routeHelpers.js";
+import { translate } from "@/lib/i18n.js";
+import { confirmModal } from "@/lib/modalApi.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
+import type { TextBlock } from "@/types/wire.js";
+import { Button } from "@/components/ui/Button.js";
+import { FormField } from "@/components/ui/FormField.js";
+import { Input } from "@/components/ui/Input.js";
+import { Select } from "@/components/ui/Select.js";
+import { GateEditor } from "@/components/node/GateEditor.js";
+import { InterpolationField } from "@/components/node/InterpolationField.js";
 
 const TEXT_KINDS = ["paragraph", "dialogue", "thought", "stage_direction"];
 const SIDES = ["left", "right", "center"];

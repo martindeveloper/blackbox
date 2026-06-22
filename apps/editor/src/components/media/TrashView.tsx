@@ -1,10 +1,10 @@
 import { FileAudio, FileImage, RotateCcw, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useScenarioStore } from "../../store/useScenarioStore.js";
-import { formatSize, formatTrashedAt } from "../../lib/format.js";
-import { Icon } from "../icons/Icon.js";
-import { Button } from "../ui/Button.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
+import { formatSize, formatTrashedAt } from "@/lib/format.js";
+import { Icon } from "@/components/icons/Icon.js";
+import { Button } from "@/components/ui/Button.js";
 
 export function TrashView() {
   const { t } = useTranslation();

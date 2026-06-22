@@ -1,9 +1,5 @@
-import { ProjectRoutes, projectApiUrl, projectBuildRunCancelUrl } from "../../shared/apiPaths.js";
-import {
-  BUILD_CONFIGURATIONS,
-  BUILD_PLATFORMS,
-  stagesForPlatform,
-} from "../../shared/buildStages.js";
+import { ProjectRoutes, projectApiUrl, projectBuildRunCancelUrl } from "@shared/apiPaths.js";
+import { BUILD_CONFIGURATIONS, BUILD_PLATFORMS, stagesForPlatform } from "@shared/buildStages.js";
 
 export type BuildPlatform = "web" | "ios" | "android";
 export type BuildConfiguration = "debug" | "release";

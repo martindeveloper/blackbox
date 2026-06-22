@@ -6,9 +6,9 @@ import {
   describeCatalogUsage,
   getCatalogUsages,
   type CatalogCategory,
-} from "../../lib/catalogUsage.js";
-import type { LoadedBundle } from "../../lib/scenarioLoader.js";
-import { editorNavigate } from "../../lib/routeHelpers.js";
+} from "@/lib/catalogUsage.js";
+import type { LoadedBundle } from "@/lib/scenarioLoader.js";
+import { editorNavigate } from "@/lib/routeHelpers.js";
 
 interface CatalogUsageListProps {
   bundle: LoadedBundle;

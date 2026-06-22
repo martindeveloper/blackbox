@@ -1,6 +1,6 @@
 import type { LoadedBundle } from "./scenarioLoader.js";
 import type { MetaEntryKind } from "./metaUsage.js";
-import type { Effect, Gate } from "../types/wire.js";
+import type { Effect, Gate } from "@/types/wire.js";
 import { isTextBlock } from "./libraryRefs.js";
 
 const ID_PATTERN = /^[a-z][a-z0-9_]*$/;

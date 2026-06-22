@@ -3,16 +3,16 @@ import type { LucideIcon } from "lucide-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
-import { useScenarioStore } from "../../store/useScenarioStore.js";
-import { Icon } from "../icons/Icon.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
+import { Icon } from "@/components/icons/Icon.js";
 import {
   analyzeCatalogHealth,
   mediaPathSet,
   type CatalogCategoryStats,
-} from "../../lib/catalogHealth.js";
-import type { CatalogCategory } from "../../lib/catalogUsage.js";
-import { Select } from "../ui/Select.js";
-import { navigateToCatalogEntry } from "../../lib/routeHelpers.js";
+} from "@/lib/catalogHealth.js";
+import type { CatalogCategory } from "@/lib/catalogUsage.js";
+import { Select } from "@/components/ui/Select.js";
+import { navigateToCatalogEntry } from "@/lib/routeHelpers.js";
 
 const CATEGORY_ICONS: Record<CatalogCategory, LucideIcon> = {
   textures: Image,

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getDefaultBundlePlayerId } from "../lib/playersApi.js";
+import { getDefaultBundlePlayerId } from "@/lib/playersApi.js";
 import {
   getToolRun,
   runBundlerInspect,
@@ -11,9 +11,9 @@ import {
   type SimOptions,
   type ToolRun,
   type ToolResult,
-} from "../lib/toolsApi.js";
-import type { ToolId } from "../lib/routeHelpers.js";
-import { useScenarioStore } from "../store/useScenarioStore.js";
+} from "@/lib/toolsApi.js";
+import type { ToolId } from "@/lib/routeHelpers.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
 
 export type ToolRunState = "idle" | "running" | "done" | "error";
 

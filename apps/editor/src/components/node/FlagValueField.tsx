@@ -1,15 +1,15 @@
 import { useTranslation } from "react-i18next";
-import type { JsonValue } from "../../types/wire.js";
+import type { JsonValue } from "@/types/wire.js";
 import {
   flagValueFromPreset,
   flagValuePreset,
   flagValueToCustomString,
   parseCustomFlagValue,
   type FlagValuePreset,
-} from "../../lib/flagValue.js";
-import { FormField } from "../ui/FormField.js";
-import { Input } from "../ui/Input.js";
-import { Select } from "../ui/Select.js";
+} from "@/lib/flagValue.js";
+import { FormField } from "@/components/ui/FormField.js";
+import { Input } from "@/components/ui/Input.js";
+import { Select } from "@/components/ui/Select.js";
 
 interface FlagValueFieldProps {
   label?: string;

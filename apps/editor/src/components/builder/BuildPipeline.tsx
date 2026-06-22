@@ -1,13 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { Check, ChevronRight, Loader2, Minus, X } from "lucide-react";
-import { Icon } from "../icons/Icon.js";
-import type {
-  BuildPlatform,
-  BuildStage,
-  BuildStageSnapshot,
-  StageState,
-} from "../../lib/buildApi.js";
-import { stagesForPlatform } from "../../lib/buildApi.js";
+import { Icon } from "@/components/icons/Icon.js";
+import type { BuildPlatform, BuildStage, BuildStageSnapshot, StageState } from "@/lib/buildApi.js";
+import { stagesForPlatform } from "@/lib/buildApi.js";
 
 interface Props {
   platform: BuildPlatform;

@@ -9,14 +9,14 @@ import {
   RefreshCw,
   XCircle,
 } from "lucide-react";
-import { Icon } from "../icons/Icon.js";
-import { Button } from "../ui/Button.js";
-import { FormField } from "../ui/FormField.js";
-import { Section, SectionBody, SectionHeader } from "../ui/Section.js";
-import { revealPath } from "../../lib/revealPath.js";
-import { useBuildStore } from "../../store/useBuildStore.js";
-import { useScenarioStore } from "../../store/useScenarioStore.js";
-import type { InstallableDependency } from "../../types/electron.js";
+import { Icon } from "@/components/icons/Icon.js";
+import { Button } from "@/components/ui/Button.js";
+import { FormField } from "@/components/ui/FormField.js";
+import { Section, SectionBody, SectionHeader } from "@/components/ui/Section.js";
+import { revealPath } from "@/lib/revealPath.js";
+import { useBuildStore } from "@/store/useBuildStore.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
+import type { InstallableDependency } from "@/types/electron.js";
 import { DependencyInstallModal } from "./DependencyInstallModal.js";
 import {
   CONFIGURATION_LABEL_KEYS,
@@ -24,7 +24,7 @@ import {
   stagesForPlatform,
   type BuildRunState,
   type PreflightCheck,
-} from "../../lib/buildApi.js";
+} from "@/lib/buildApi.js";
 
 const RUN_STATUS_KEY: Record<BuildRunState, string> = {
   running: "build.running",

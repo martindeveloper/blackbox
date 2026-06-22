@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
 import { BarChart3, Compass, Flame, ScrollText, ShieldCheck, Target } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type { SimMode, SimOptions } from "../../lib/toolsApi.js";
-import { SIM_GOALS_PRESETS } from "../../lib/toolsApi.js";
-import { Icon } from "../icons/Icon.js";
+import type { SimMode, SimOptions } from "@/lib/toolsApi.js";
+import { SIM_GOALS_PRESETS } from "@/lib/toolsApi.js";
+import { Icon } from "@/components/icons/Icon.js";
 import { ToolOptionToggle } from "./ToolOptionToggle.js";
 
 interface SimulatorOptionsPanelProps {

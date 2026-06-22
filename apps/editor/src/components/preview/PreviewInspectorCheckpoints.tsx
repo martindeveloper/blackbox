@@ -9,15 +9,15 @@ import {
   toCheckpointPayload,
   toCheckpointSummary,
   type PreviewCheckpointSummary,
-} from "../../lib/previewCheckpointsApi.js";
-import { notifyError, notifySuccess } from "../../lib/notifyApi.js";
-import { useScenarioStore } from "../../store/useScenarioStore.js";
+} from "@/lib/previewCheckpointsApi.js";
+import { notifyError, notifySuccess } from "@/lib/notifyApi.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
 import {
   previewCommandErrorMessage,
   requestPreviewCommand,
   usePreviewStore,
-} from "../../store/usePreviewStore.js";
-import { Icon } from "../icons/Icon.js";
+} from "@/store/usePreviewStore.js";
+import { Icon } from "@/components/icons/Icon.js";
 import { displayValue, formatDate, SectionTitle } from "./previewInspectorUtils.js";
 
 function PreviewInspectorCheckpointsLoaded({ projectId }: { projectId: string }) {

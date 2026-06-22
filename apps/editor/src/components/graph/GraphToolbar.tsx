@@ -2,14 +2,14 @@ import { Flame, GitBranch, LayoutGrid, Plus, Redo2, Star, Trash2, Undo2 } from "
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
-import { useModal } from "../../context/ModalProvider.js";
-import { useScenarioStore } from "../../store/useScenarioStore.js";
-import { Page } from "../../lib/pages.js";
-import type { GraphAnalyticsMode } from "../../lib/heatMap.js";
-import { editorNavigate, useEditorSearch } from "../../lib/routeHelpers.js";
-import { Button } from "../ui/Button.js";
-import { Input } from "../ui/Input.js";
-import { Toolbar } from "../ui/Toolbar.js";
+import { useModal } from "@/context/ModalProvider.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
+import { Page } from "@/lib/pages.js";
+import type { GraphAnalyticsMode } from "@/lib/heatMap.js";
+import { editorNavigate, useEditorSearch } from "@/lib/routeHelpers.js";
+import { Button } from "@/components/ui/Button.js";
+import { Input } from "@/components/ui/Input.js";
+import { Toolbar } from "@/components/ui/Toolbar.js";
 import { GraphHelp } from "./GraphHelp.js";
 
 interface GraphToolbarProps {

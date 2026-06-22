@@ -1,19 +1,19 @@
 import { AlertTriangle } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { catalogAssetIds } from "../../lib/catalogHealth.js";
+import { catalogAssetIds } from "@/lib/catalogHealth.js";
 import {
   buildCatalogUsageIndex,
   describeCatalogUsage,
   getCatalogUsages,
   type CatalogCategory,
-} from "../../lib/catalogUsage.js";
-import type { CatalogRefReplacement } from "../../lib/catalogDelete.js";
-import type { LoadedBundle } from "../../lib/scenarioLoader.js";
-import { ModalShell } from "../overlay/ModalShell.js";
-import { Button } from "../ui/Button.js";
-import { FormField } from "../ui/FormField.js";
-import { Select } from "../ui/Select.js";
+} from "@/lib/catalogUsage.js";
+import type { CatalogRefReplacement } from "@/lib/catalogDelete.js";
+import type { LoadedBundle } from "@/lib/scenarioLoader.js";
+import { ModalShell } from "@/components/overlay/ModalShell.js";
+import { Button } from "@/components/ui/Button.js";
+import { FormField } from "@/components/ui/FormField.js";
+import { Select } from "@/components/ui/Select.js";
 
 const UNSET_VALUE = "__unset__";
 

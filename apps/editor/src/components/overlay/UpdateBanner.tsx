@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { ArrowUpCircle, Download, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useUpdateCheck } from "../../hooks/useUpdateCheck.js";
-import { Icon } from "../icons/Icon.js";
-import { IconButton } from "../ui/IconButton.js";
+import { useUpdateCheck } from "@/hooks/useUpdateCheck.js";
+import { Icon } from "@/components/icons/Icon.js";
+import { IconButton } from "@/components/ui/IconButton.js";
 
 const DISMISS_KEY = "blackbox.update.dismissedVersion";
 

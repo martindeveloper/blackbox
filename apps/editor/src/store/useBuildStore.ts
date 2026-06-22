@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { appendLogLine } from "../../shared/logBuffer.js";
+import { appendLogLine } from "@shared/logBuffer.js";
 import type {
   BuildCapabilities,
   BuildConfiguration,
@@ -7,8 +7,8 @@ import type {
   BuildPlatform,
   BuildRunSnapshot,
   BuildStage,
-} from "../lib/buildApi.js";
-import { getBuildCapabilities, stagesForPlatform } from "../lib/buildApi.js";
+} from "@/lib/buildApi.js";
+import { getBuildCapabilities, stagesForPlatform } from "@/lib/buildApi.js";
 
 interface BuildStore {
   platform: BuildPlatform;

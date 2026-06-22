@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { checkForUpdate, type UpdateCheckResult } from "../lib/updateCheck.js";
+import { checkForUpdate, type UpdateCheckResult } from "@/lib/updateCheck.js";
 
 export type UpdateStatus = "idle" | "checking" | "available" | "current" | "error";
 

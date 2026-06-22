@@ -19,26 +19,26 @@ import {
 import * as dagre from "@dagrejs/dagre";
 
 import { Skull, GitBranch } from "lucide-react";
-import { graphThemeColors, useTheme } from "../../context/ThemeContext.js";
+import { graphThemeColors, useTheme } from "@/context/ThemeContext.js";
 import {
   buildChapterGraph,
   applyDagreLayout,
   type ScenarioEdgeData,
   type ScenarioNodeData,
-} from "../../lib/graphBuilder.js";
-import { buildGraphInsights, type GraphAnalyticsMode } from "../../lib/heatMap.js";
-import { useScenarioStore } from "../../store/useScenarioStore.js";
-import { useAnalyticsStore } from "../../store/useAnalyticsStore.js";
-import { useModal } from "../../context/ModalProvider.js";
-import { Page } from "../../lib/pages.js";
-import { editorNavigate, useEditorSearch } from "../../lib/routeHelpers.js";
-import { consumeNodeFocus } from "../../lib/omnibox.js";
-import { Subtitle } from "../ui/Heading.js";
+} from "@/lib/graphBuilder.js";
+import { buildGraphInsights, type GraphAnalyticsMode } from "@/lib/heatMap.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
+import { useAnalyticsStore } from "@/store/useAnalyticsStore.js";
+import { useModal } from "@/context/ModalProvider.js";
+import { Page } from "@/lib/pages.js";
+import { editorNavigate, useEditorSearch } from "@/lib/routeHelpers.js";
+import { consumeNodeFocus } from "@/lib/omnibox.js";
+import { Subtitle } from "@/components/ui/Heading.js";
 import { NodeCard } from "./NodeCard.js";
 import { GraphToolbar } from "./GraphToolbar.js";
 import { ChoiceEdge } from "./ChoiceEdge.js";
-import { Icon } from "../icons/Icon.js";
-import type { SimMode } from "../../lib/toolsApi.js";
+import { Icon } from "@/components/icons/Icon.js";
+import type { SimMode } from "@/lib/toolsApi.js";
 
 const nodeTypes = { scenarioNode: NodeCard };
 const edgeTypes = { choiceEdge: ChoiceEdge };

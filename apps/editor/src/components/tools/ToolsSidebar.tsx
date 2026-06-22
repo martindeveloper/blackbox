@@ -2,15 +2,15 @@ import { Box, FlaskConical, RefreshCw, Search, ShieldCheck, type LucideIcon } fr
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
-import { Icon } from "../icons/Icon.js";
-import { ListItem } from "../ui/ListItem.js";
-import { Panel, PanelBody, PanelHeader } from "../ui/Panel.js";
-import { Page } from "../../lib/pages.js";
-import { editorNavigate, useEditorSearch, type ToolId } from "../../lib/routeHelpers.js";
-import { openOmnibox } from "../../lib/omnibox.js";
-import { discoverTools } from "../../lib/toolsApi.js";
-import { useScenarioStore } from "../../store/useScenarioStore.js";
-import { toolDiscoveryInfo, useToolRunnerStore } from "../../store/useToolRunnerStore.js";
+import { Icon } from "@/components/icons/Icon.js";
+import { ListItem } from "@/components/ui/ListItem.js";
+import { Panel, PanelBody, PanelHeader } from "@/components/ui/Panel.js";
+import { Page } from "@/lib/pages.js";
+import { editorNavigate, useEditorSearch, type ToolId } from "@/lib/routeHelpers.js";
+import { openOmnibox } from "@/lib/omnibox.js";
+import { discoverTools } from "@/lib/toolsApi.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
+import { toolDiscoveryInfo, useToolRunnerStore } from "@/store/useToolRunnerStore.js";
 
 export const TOOL_ITEMS: {
   id: ToolId;

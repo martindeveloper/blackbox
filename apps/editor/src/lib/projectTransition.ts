@@ -1,4 +1,4 @@
-import { useProjectTransitionStore } from "../store/useProjectTransitionStore.js";
+import { useProjectTransitionStore } from "@/store/useProjectTransitionStore.js";
 
 export async function transitionToEditor(navigate: () => void | Promise<void>): Promise<void> {
   await useProjectTransitionStore.getState().runOpening(navigate);

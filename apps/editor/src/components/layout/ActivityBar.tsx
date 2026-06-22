@@ -16,10 +16,10 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
-import { ACTIVITY_PAGES, isActiveEditorPage, type ActivityView } from "../../lib/pages.js";
-import { editorNavigate } from "../../lib/routeHelpers.js";
-import { Icon } from "../icons/Icon.js";
-import { ActivityTab } from "../ui/ActivityTab.js";
+import { ACTIVITY_PAGES, isActiveEditorPage, type ActivityView } from "@/lib/pages.js";
+import { editorNavigate } from "@/lib/routeHelpers.js";
+import { Icon } from "@/components/icons/Icon.js";
+import { ActivityTab } from "@/components/ui/ActivityTab.js";
 
 const MAIN_ITEMS: { id: ActivityView; labelKey: string; icon: LucideIcon }[] = [
   { id: "dashboard", labelKey: "activity.dashboard", icon: LayoutDashboard },

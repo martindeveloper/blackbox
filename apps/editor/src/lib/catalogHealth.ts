@@ -1,4 +1,4 @@
-import type { AssetCatalog } from "../types/wire.js";
+import type { AssetCatalog } from "@/types/wire.js";
 import type { MediaFileEntry } from "./mediaLibrary.js";
 import { MEDIA_CATEGORIES } from "./mediaLibrary.js";
 import type { LoadedBundle } from "./scenarioLoader.js";

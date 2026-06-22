@@ -1,16 +1,16 @@
 import { ArrowLeft, ArrowRight, FolderOpen, Plus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { createProject } from "../../lib/projectApi.js";
-import { pickProjectFolder } from "../../lib/pickProjectFolder.js";
-import { notifyFromError } from "../../lib/notifyApi.js";
-import { useScenarioStore } from "../../store/useScenarioStore.js";
-import { transitionToEditor } from "../../lib/projectTransition.js";
-import { Page } from "../../lib/pages.js";
-import { editorNavigate } from "../../lib/projectRoute.js";
-import { Icon } from "../icons/Icon.js";
-import { Checkbox } from "../ui/Checkbox.js";
-import { ThemeSelector } from "../layout/ThemeSelector.js";
+import { createProject } from "@/lib/projectApi.js";
+import { pickProjectFolder } from "@/lib/pickProjectFolder.js";
+import { notifyFromError } from "@/lib/notifyApi.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
+import { transitionToEditor } from "@/lib/projectTransition.js";
+import { Page } from "@/lib/pages.js";
+import { editorNavigate } from "@/lib/projectRoute.js";
+import { Icon } from "@/components/icons/Icon.js";
+import { Checkbox } from "@/components/ui/Checkbox.js";
+import { ThemeSelector } from "@/components/layout/ThemeSelector.js";
 
 interface NewProjectWizardProps {
   onBack: () => void;

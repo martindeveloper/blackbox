@@ -2,14 +2,14 @@ import { Plus } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
-import { useScenarioStore } from "../../store/useScenarioStore.js";
-import type { MetaEntryKind } from "../../lib/metaUsage.js";
-import { editorNavigate, navigateToMetaEntry } from "../../lib/routeHelpers.js";
-import { Page } from "../../lib/pages.js";
-import { Button } from "../ui/Button.js";
-import { Input } from "../ui/Input.js";
-import { ListItem } from "../ui/ListItem.js";
-import { Panel, PanelBody, PanelHeader } from "../ui/Panel.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
+import type { MetaEntryKind } from "@/lib/metaUsage.js";
+import { editorNavigate, navigateToMetaEntry } from "@/lib/routeHelpers.js";
+import { Page } from "@/lib/pages.js";
+import { Button } from "@/components/ui/Button.js";
+import { Input } from "@/components/ui/Input.js";
+import { ListItem } from "@/components/ui/ListItem.js";
+import { Panel, PanelBody, PanelHeader } from "@/components/ui/Panel.js";
 
 type TabKind = "all" | MetaEntryKind;
 

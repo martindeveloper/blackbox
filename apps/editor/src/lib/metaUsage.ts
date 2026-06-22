@@ -1,5 +1,5 @@
 import type { LoadedBundle } from "./scenarioLoader.js";
-import type { Effect, Gate } from "../types/wire.js";
+import type { Effect, Gate } from "@/types/wire.js";
 import { Page } from "./pages.js";
 import { isTextBlock } from "./libraryRefs.js";
 

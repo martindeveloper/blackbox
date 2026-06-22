@@ -2,23 +2,23 @@ import { ArrowUpRight, Plus, Quote, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
-import type { TextBlock, TextEntry } from "../../types/wire.js";
-import { textBlockHasDirection } from "../../lib/authorEditorHelpers.js";
+import type { TextBlock, TextEntry } from "@/types/wire.js";
+import { textBlockHasDirection } from "@/lib/authorEditorHelpers.js";
 import {
   isTextBlock,
   snippetIdFromTextEntry,
   snippetRef,
   snippetParamsFromTextEntry,
   textEntryKey,
-} from "../../lib/libraryRefs.js";
-import { navigateToLibraryEntry } from "../../lib/routeHelpers.js";
-import { useScenarioStore } from "../../store/useScenarioStore.js";
-import { Button } from "../ui/Button.js";
-import { Card } from "../ui/Card.js";
-import { FormField } from "../ui/FormField.js";
-import { Input } from "../ui/Input.js";
-import { Select } from "../ui/Select.js";
-import { Textarea } from "../ui/Textarea.js";
+} from "@/lib/libraryRefs.js";
+import { navigateToLibraryEntry } from "@/lib/routeHelpers.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
+import { Button } from "@/components/ui/Button.js";
+import { Card } from "@/components/ui/Card.js";
+import { FormField } from "@/components/ui/FormField.js";
+import { Input } from "@/components/ui/Input.js";
+import { Select } from "@/components/ui/Select.js";
+import { Textarea } from "@/components/ui/Textarea.js";
 import { GateEditor } from "./GateEditor.js";
 import { InterpolationField } from "./InterpolationField.js";
 import { AuthorDetails } from "./AuthorDetails.js";

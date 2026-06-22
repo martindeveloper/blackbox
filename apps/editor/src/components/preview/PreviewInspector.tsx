@@ -1,4 +1,4 @@
-import { usePreviewStore } from "../../store/usePreviewStore.js";
+import { usePreviewStore } from "@/store/usePreviewStore.js";
 import { PreviewInspectorRuntime } from "./PreviewInspectorRuntime.js";
 import { PreviewInspectorCheckpoints } from "./PreviewInspectorCheckpoints.js";
 import { PreviewInspectorStorage } from "./PreviewInspectorStorage.js";

@@ -1,6 +1,6 @@
 import { Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useModal } from "../../context/ModalProvider.js";
+import { useModal } from "@/context/ModalProvider.js";
 import { Button } from "./Button.js";
 import { InspectorTitle } from "./Heading.js";
 

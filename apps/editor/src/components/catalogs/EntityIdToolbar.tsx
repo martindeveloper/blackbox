@@ -1,8 +1,8 @@
 import { Plus } from "lucide-react";
 import { useState } from "react";
-import { Button } from "../ui/Button.js";
-import { Input } from "../ui/Input.js";
-import { Toolbar } from "../ui/Toolbar.js";
+import { Button } from "@/components/ui/Button.js";
+import { Input } from "@/components/ui/Input.js";
+import { Toolbar } from "@/components/ui/Toolbar.js";
 
 interface Props {
   placeholder: string;

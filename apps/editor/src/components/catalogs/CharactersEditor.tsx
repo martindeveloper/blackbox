@@ -1,13 +1,13 @@
 import { ImageOff, Mic2, UserRound } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
-import { getCatalogEntry } from "../../lib/catalogHealth.js";
-import { useMediaPreview } from "../../hooks/useMediaPreview.js";
-import { useScenarioStore } from "../../store/useScenarioStore.js";
-import { Page } from "../../lib/pages.js";
-import { editorNavigate, useEditorSearch } from "../../lib/routeHelpers.js";
-import type { CharacterDefinition } from "../../types/wire.js";
-import { Icon } from "../icons/Icon.js";
+import { getCatalogEntry } from "@/lib/catalogHealth.js";
+import { useMediaPreview } from "@/hooks/useMediaPreview.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
+import { Page } from "@/lib/pages.js";
+import { editorNavigate, useEditorSearch } from "@/lib/routeHelpers.js";
+import type { CharacterDefinition } from "@/types/wire.js";
+import { Icon } from "@/components/icons/Icon.js";
 import { CatalogEntityCard, CatalogEntityGrid } from "./CatalogEntityGrid.js";
 import { EntityIdToolbar } from "./EntityIdToolbar.js";
 

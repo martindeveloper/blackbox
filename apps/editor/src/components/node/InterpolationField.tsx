@@ -1,9 +1,9 @@
 import { useRef } from "react";
 import { useTranslation } from "react-i18next";
-import type { InterpolationContext } from "../../lib/interpolationTokens.js";
-import { tokensForContext } from "../../lib/interpolationTokens.js";
-import { FormField } from "../ui/FormField.js";
-import { Textarea } from "../ui/Textarea.js";
+import type { InterpolationContext } from "@/lib/interpolationTokens.js";
+import { tokensForContext } from "@/lib/interpolationTokens.js";
+import { FormField } from "@/components/ui/FormField.js";
+import { Textarea } from "@/components/ui/Textarea.js";
 
 interface InterpolationFieldProps {
   label?: string;

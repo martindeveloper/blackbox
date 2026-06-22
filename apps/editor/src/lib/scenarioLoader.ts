@@ -7,7 +7,7 @@ import type {
   ItemCatalog,
   LibraryDocument,
   MetaCatalog,
-} from "../types/wire.js";
+} from "@/types/wire.js";
 
 export interface LoadedBundle {
   scenarioName: string;

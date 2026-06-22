@@ -1,15 +1,15 @@
 import { Plus, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type { Gate, GateNode } from "../../types/wire.js";
-import { useScenarioStore } from "../../store/useScenarioStore.js";
-import { RefPickerField } from "../pickers/RefPickerField.js";
+import type { Gate, GateNode } from "@/types/wire.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
+import { RefPickerField } from "@/components/pickers/RefPickerField.js";
 import { FlagValueField } from "./FlagValueField.js";
-import { Button } from "../ui/Button.js";
-import { Card } from "../ui/Card.js";
-import { Checkbox } from "../ui/Checkbox.js";
-import { FormField } from "../ui/FormField.js";
-import { Input } from "../ui/Input.js";
-import { Select } from "../ui/Select.js";
+import { Button } from "@/components/ui/Button.js";
+import { Card } from "@/components/ui/Card.js";
+import { Checkbox } from "@/components/ui/Checkbox.js";
+import { FormField } from "@/components/ui/FormField.js";
+import { Input } from "@/components/ui/Input.js";
+import { Select } from "@/components/ui/Select.js";
 
 const GATE_TYPES = [
   "hasItem",

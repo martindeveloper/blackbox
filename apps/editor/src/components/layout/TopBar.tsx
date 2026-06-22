@@ -16,28 +16,28 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
-import { Icon } from "../icons/Icon.js";
+import { Icon } from "@/components/icons/Icon.js";
 import {
   ideLabelForPrefs,
   UserSettingsButton,
   UserSettingsModal,
-} from "../settings/UserSettingsModal.js";
-import { BugReportButton, BugReportModal } from "../support/BugReportModal.js";
-import { useScenarioStore } from "../../store/useScenarioStore.js";
-import { transitionToHome } from "../../lib/projectTransition.js";
-import { openOmnibox } from "../../lib/omnibox.js";
-import { editorNavigate, navigateToTool } from "../../lib/routeHelpers.js";
-import { CONTRIBUTION_REVIEW_EVENT } from "../../lib/contributionReview.js";
-import type { ProjectContributionReview } from "../../lib/projectApi.js";
-import { isActiveEditorPage, Page } from "../../lib/pages.js";
-import { CUSTOM_IDE_ID, DEFAULT_IDE_ID } from "../../../shared/ideRegistry.js";
-import { useToolRunnerStore } from "../../store/useToolRunnerStore.js";
-import { useUserPrefs } from "../../hooks/useUserPrefs.js";
-import { Button } from "../ui/Button.js";
-import { IconButton } from "../ui/IconButton.js";
-import { StatusPill } from "../ui/StatusPill.js";
-import { useModal } from "../../context/ModalProvider.js";
-import { VcsControl } from "../vcs/VcsControl.js";
+} from "@/components/settings/UserSettingsModal.js";
+import { BugReportButton, BugReportModal } from "@/components/support/BugReportModal.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
+import { transitionToHome } from "@/lib/projectTransition.js";
+import { openOmnibox } from "@/lib/omnibox.js";
+import { editorNavigate, navigateToTool } from "@/lib/routeHelpers.js";
+import { CONTRIBUTION_REVIEW_EVENT } from "@/lib/contributionReview.js";
+import type { ProjectContributionReview } from "@/lib/projectApi.js";
+import { isActiveEditorPage, Page } from "@/lib/pages.js";
+import { CUSTOM_IDE_ID, DEFAULT_IDE_ID } from "@shared/ideRegistry.js";
+import { useToolRunnerStore } from "@/store/useToolRunnerStore.js";
+import { useUserPrefs } from "@/hooks/useUserPrefs.js";
+import { Button } from "@/components/ui/Button.js";
+import { IconButton } from "@/components/ui/IconButton.js";
+import { StatusPill } from "@/components/ui/StatusPill.js";
+import { useModal } from "@/context/ModalProvider.js";
+import { VcsControl } from "@/components/vcs/VcsControl.js";
 
 const OMNIBOX_SHORTCUT =
   typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform) ? "⌘K" : "Ctrl K";

@@ -1,6 +1,6 @@
 import type { LoadedBundle } from "./scenarioLoader.js";
 import { translate } from "./i18n.js";
-import { CHAPTER_SPEC, SUPPORTED_FORMAT_VERSION, type Chapter } from "../types/wire.js";
+import { CHAPTER_SPEC, SUPPORTED_FORMAT_VERSION, type Chapter } from "@/types/wire.js";
 
 export interface NewChapterProposal {
   id: string;

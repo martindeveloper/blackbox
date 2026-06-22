@@ -7,8 +7,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { NotificationToast } from "../components/overlay/NotificationToast.js";
-import { registerNotifyApi, type NotificationType, type NotifyOptions } from "../lib/notifyApi.js";
+import { NotificationToast } from "@/components/overlay/NotificationToast.js";
+import { registerNotifyApi, type NotificationType, type NotifyOptions } from "@/lib/notifyApi.js";
 
 interface NotificationEntry {
   id: string;

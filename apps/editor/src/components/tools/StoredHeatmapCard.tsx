@@ -1,9 +1,9 @@
 import { Flame, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { deleteHeatmap, SIM_GOALS_PRESETS } from "../../lib/toolsApi.js";
-import { useAnalyticsStore, type StoredAnalyticsMeta } from "../../store/useAnalyticsStore.js";
-import { useScenarioStore } from "../../store/useScenarioStore.js";
-import { Icon } from "../icons/Icon.js";
+import { deleteHeatmap, SIM_GOALS_PRESETS } from "@/lib/toolsApi.js";
+import { useAnalyticsStore, type StoredAnalyticsMeta } from "@/store/useAnalyticsStore.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
+import { Icon } from "@/components/icons/Icon.js";
 
 function formatSimCount(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;

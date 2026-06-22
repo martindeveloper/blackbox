@@ -23,13 +23,13 @@ import {
   type VcsHistoryEntry,
   type VcsOperation,
   type VcsStatus,
-} from "../../lib/projectApi.js";
-import { CONTRIBUTION_REVIEW_EVENT } from "../../lib/contributionReview.js";
-import { notifyFromError, notifySuccess } from "../../lib/notifyApi.js";
-import { Icon } from "../icons/Icon.js";
-import { Button } from "../ui/Button.js";
-import { Select } from "../ui/Select.js";
-import { Textarea } from "../ui/Textarea.js";
+} from "@/lib/projectApi.js";
+import { CONTRIBUTION_REVIEW_EVENT } from "@/lib/contributionReview.js";
+import { notifyFromError, notifySuccess } from "@/lib/notifyApi.js";
+import { Icon } from "@/components/icons/Icon.js";
+import { Button } from "@/components/ui/Button.js";
+import { Select } from "@/components/ui/Select.js";
+import { Textarea } from "@/components/ui/Textarea.js";
 
 interface VcsControlProps {
   projectId: string;
@@ -145,7 +145,7 @@ export function VcsControl({ projectId, revision, dirty }: VcsControlProps) {
   const runOperation = async (
     operationId: string,
     operation: VcsOperation,
-    payload: { message?: string } = {},
+    payload: { message?: string; paths?: string[] } = {},
   ): Promise<boolean> => {
     setBusy(operationId);
     try {

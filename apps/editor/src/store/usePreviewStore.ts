@@ -6,7 +6,7 @@ import {
   type PreviewProfilerEvent,
   type PreviewRuntimeState,
   type PreviewStorageState,
-} from "../../players/web/protocol.js";
+} from "@players/web/protocol.js";
 import { PreviewCommandError } from "./previewCommandErrors.js";
 import { cancelPreviewRpc, type PreviewCommandSender } from "./previewCommandRpc.js";
 
@@ -17,7 +17,7 @@ export type {
   PreviewStorageState,
   PreviewHostCommand,
   PreviewCheckpointPayload,
-} from "../../players/web/protocol.js";
+} from "@players/web/protocol.js";
 
 export type {
   PreviewCommandSender,

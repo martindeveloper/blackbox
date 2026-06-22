@@ -1,4 +1,4 @@
-import { Api, ProjectRoutes, projectApiUrl, projectMediaUrl } from "../../shared/apiPaths.js";
+import { Api, ProjectRoutes, projectApiUrl, projectMediaUrl } from "@shared/apiPaths.js";
 import type { MediaFileEntry } from "./mediaLibrary.js";
 import type { LoadedBundle } from "./scenarioLoader.js";
 import type { TrashEntry } from "./trash.js";
@@ -399,4 +399,4 @@ export async function getVcsHistory(
   return result.revisions;
 }
 
-export { projectApiUrl } from "../../shared/apiPaths.js";
+export { projectApiUrl } from "@shared/apiPaths.js";

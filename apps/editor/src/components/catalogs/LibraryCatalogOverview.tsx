@@ -1,7 +1,7 @@
 import { BookCopy, Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useScenarioStore } from "../../store/useScenarioStore.js";
-import { Button } from "../ui/Button.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
+import { Button } from "@/components/ui/Button.js";
 
 export function LibraryCatalogOverview() {
   const { t } = useTranslation();

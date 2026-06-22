@@ -2,24 +2,24 @@ import { Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
-import { useScenarioStore } from "../../store/useScenarioStore.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
 import {
   entriesForCategory,
   getCatalogFileStatus,
   isCatalogEntryExternallyUsed,
   mediaPathSet,
-} from "../../lib/catalogHealth.js";
+} from "@/lib/catalogHealth.js";
 import {
   buildCatalogUsageIndex,
   catalogUsageKey,
   type CatalogCategory,
-} from "../../lib/catalogUsage.js";
-import { MEDIA_CATEGORIES } from "../../lib/mediaLibrary.js";
-import { navigateToCatalogEntry } from "../../lib/routeHelpers.js";
-import { Input } from "../ui/Input.js";
-import { ListItem } from "../ui/ListItem.js";
-import { Panel, PanelBody, PanelHeader } from "../ui/Panel.js";
-import { Icon } from "../icons/Icon.js";
+} from "@/lib/catalogUsage.js";
+import { MEDIA_CATEGORIES } from "@/lib/mediaLibrary.js";
+import { navigateToCatalogEntry } from "@/lib/routeHelpers.js";
+import { Input } from "@/components/ui/Input.js";
+import { ListItem } from "@/components/ui/ListItem.js";
+import { Panel, PanelBody, PanelHeader } from "@/components/ui/Panel.js";
+import { Icon } from "@/components/icons/Icon.js";
 
 interface CatalogSidebarProps {
   selectedCategory: CatalogCategory;

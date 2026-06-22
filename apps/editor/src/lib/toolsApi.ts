@@ -3,7 +3,7 @@ import {
   projectApiUrl,
   projectScoutUrl,
   projectToolsRunUrl,
-} from "../../shared/apiPaths.js";
+} from "@shared/apiPaths.js";
 
 export type LintSeverity = "error" | "warn" | "info";
 

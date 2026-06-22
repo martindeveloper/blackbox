@@ -8,14 +8,14 @@ import {
   type ReactNode,
 } from "react";
 import { useTranslation } from "react-i18next";
-import { ModalShell } from "../components/overlay/ModalShell.js";
-import { Button } from "../components/ui/Button.js";
+import { ModalShell } from "@/components/overlay/ModalShell.js";
+import { Button } from "@/components/ui/Button.js";
 import {
   registerModalApi,
   type AlertModalOptions,
   type ConfirmModalOptions,
   type ModalVariant,
-} from "../lib/modalApi.js";
+} from "@/lib/modalApi.js";
 
 interface ModalContextValue {
   confirm: (options: ConfirmModalOptions) => Promise<boolean | null>;

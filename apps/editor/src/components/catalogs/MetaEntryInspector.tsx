@@ -2,22 +2,18 @@ import { ArrowUpRight, Pencil, Trash2, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
-import { useScenarioStore } from "../../store/useScenarioStore.js";
-import {
-  buildMetaUsageIndex,
-  getMetaUsages,
-  metaUsageNavigateTarget,
-} from "../../lib/metaUsage.js";
-import type { MetaEntryKind } from "../../lib/metaUsage.js";
-import { editorNavigate, navigateToMetaEntry } from "../../lib/routeHelpers.js";
-import { translate } from "../../lib/i18n.js";
-import { confirmModal } from "../../lib/modalApi.js";
-import { notifyError, notifySuccess } from "../../lib/notifyApi.js";
-import { Button } from "../ui/Button.js";
-import { Checkbox } from "../ui/Checkbox.js";
-import { FieldRow } from "../ui/FieldRow.js";
-import { FormField } from "../ui/FormField.js";
-import { Input } from "../ui/Input.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
+import { buildMetaUsageIndex, getMetaUsages, metaUsageNavigateTarget } from "@/lib/metaUsage.js";
+import type { MetaEntryKind } from "@/lib/metaUsage.js";
+import { editorNavigate, navigateToMetaEntry } from "@/lib/routeHelpers.js";
+import { translate } from "@/lib/i18n.js";
+import { confirmModal } from "@/lib/modalApi.js";
+import { notifyError, notifySuccess } from "@/lib/notifyApi.js";
+import { Button } from "@/components/ui/Button.js";
+import { Checkbox } from "@/components/ui/Checkbox.js";
+import { FieldRow } from "@/components/ui/FieldRow.js";
+import { FormField } from "@/components/ui/FormField.js";
+import { Input } from "@/components/ui/Input.js";
 
 interface Props {
   kind: MetaEntryKind;

@@ -1,8 +1,8 @@
 import { AlertCircle, AlertTriangle, CheckCircle2, Info, X } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import type { NotificationType } from "../../lib/notifyApi.js";
-import { Icon } from "../icons/Icon.js";
-import { IconButton } from "../ui/IconButton.js";
+import type { NotificationType } from "@/lib/notifyApi.js";
+import { Icon } from "@/components/icons/Icon.js";
+import { IconButton } from "@/components/ui/IconButton.js";
 
 const ICONS: Record<NotificationType, LucideIcon> = {
   success: CheckCircle2,

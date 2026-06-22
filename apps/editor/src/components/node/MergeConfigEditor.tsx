@@ -1,8 +1,8 @@
 import { useTranslation } from "react-i18next";
-import type { MergeConfig } from "../../types/wire.js";
-import { FormField } from "../ui/FormField.js";
-import { Section, SectionBody, SectionHeader } from "../ui/Section.js";
-import { Select } from "../ui/Select.js";
+import type { MergeConfig } from "@/types/wire.js";
+import { FormField } from "@/components/ui/FormField.js";
+import { Section, SectionBody, SectionHeader } from "@/components/ui/Section.js";
+import { Select } from "@/components/ui/Select.js";
 
 interface MergeConfigEditorProps {
   merge: MergeConfig;

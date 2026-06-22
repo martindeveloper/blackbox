@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Play, RotateCcw, Square } from "lucide-react";
-import { Icon } from "../icons/Icon.js";
-import { Button } from "../ui/Button.js";
-import { useScenarioStore } from "../../store/useScenarioStore.js";
-import { useBuildStore } from "../../store/useBuildStore.js";
+import { Icon } from "@/components/icons/Icon.js";
+import { Button } from "@/components/ui/Button.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
+import { useBuildStore } from "@/store/useBuildStore.js";
 import {
   cancelBuild,
   clearBuildResult,
@@ -15,8 +15,8 @@ import {
   stagesForPlatform,
   subscribeBuild,
   type BuildRunState,
-} from "../../lib/buildApi.js";
-import { subscribeProject } from "../../lib/projectApi.js";
+} from "@/lib/buildApi.js";
+import { subscribeProject } from "@/lib/projectApi.js";
 import { PlatformConfigPicker } from "./PlatformConfigPicker.js";
 import { BuildPipeline } from "./BuildPipeline.js";
 import { BuildLog } from "./BuildLog.js";

@@ -10,18 +10,18 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { isPreviewPlayerMessage, postPreviewHostMessage } from "../../../players/web/protocol.js";
-import { useScenarioStore } from "../../store/useScenarioStore.js";
+import { isPreviewPlayerMessage, postPreviewHostMessage } from "@players/web/protocol.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
 import {
   finishPreviewRpcResult,
   usePreviewStore,
   type PreviewCommandSender,
-} from "../../store/usePreviewStore.js";
-import { API_PREFIX, ProjectRoutes, projectApiUrl } from "../../../shared/apiPaths.js";
-import { notifyError, notifySuccess } from "../../lib/notifyApi.js";
-import { Icon } from "../icons/Icon.js";
-import { TabletLandscapeIcon } from "../icons/TabletLandscapeIcon.js";
-import { EmptyState } from "../ui/EmptyState.js";
+} from "@/store/usePreviewStore.js";
+import { API_PREFIX, ProjectRoutes, projectApiUrl } from "@shared/apiPaths.js";
+import { notifyError, notifySuccess } from "@/lib/notifyApi.js";
+import { Icon } from "@/components/icons/Icon.js";
+import { TabletLandscapeIcon } from "@/components/icons/TabletLandscapeIcon.js";
+import { EmptyState } from "@/components/ui/EmptyState.js";
 import { PreviewInspectorConsole } from "./PreviewInspectorConsole.js";
 
 type PreviewDevice = "desktop" | "tablet" | "mobile";

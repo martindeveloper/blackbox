@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
 import { Handle, Position, type NodeProps } from "@xyflow/react";
-import type { BundleGraphNodeData } from "../../lib/bundleGraphBuilder.js";
+import type { BundleGraphNodeData } from "@/lib/bundleGraphBuilder.js";
 
 function formatBytes(
   t: (key: string, options?: Record<string, unknown>) => string,

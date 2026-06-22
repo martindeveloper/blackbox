@@ -1,7 +1,7 @@
 import { create } from "zustand";
-import type { ToolRunState } from "../hooks/useToolRunner.js";
-import type { ToolId } from "../lib/routeHelpers.js";
-import type { ToolDiscovery, ToolInfo } from "../lib/toolsApi.js";
+import type { ToolRunState } from "@/hooks/useToolRunner.js";
+import type { ToolId } from "@/lib/routeHelpers.js";
+import type { ToolDiscovery, ToolInfo } from "@/lib/toolsApi.js";
 
 interface ToolRunnerStore {
   activeTool: ToolId | null;

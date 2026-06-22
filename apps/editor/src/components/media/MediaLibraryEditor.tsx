@@ -14,20 +14,20 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { MediaCategory, MediaFileEntry } from "../../lib/mediaLibrary.js";
-import { MEDIA_CATEGORIES, parseMediaCategory } from "../../lib/mediaLibrary.js";
+import type { MediaCategory, MediaFileEntry } from "@/lib/mediaLibrary.js";
+import { MEDIA_CATEGORIES, parseMediaCategory } from "@/lib/mediaLibrary.js";
 import type { LucideIcon } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
-import { useScenarioStore } from "../../store/useScenarioStore.js";
-import { Page } from "../../lib/pages.js";
-import { editorNavigate, useEditorSearch } from "../../lib/routeHelpers.js";
-import { useMediaPreview } from "../../hooks/useMediaPreview.js";
-import { formatSize } from "../../lib/format.js";
-import { Icon } from "../icons/Icon.js";
-import { Button } from "../ui/Button.js";
-import { PanelHeader } from "../ui/Panel.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
+import { Page } from "@/lib/pages.js";
+import { editorNavigate, useEditorSearch } from "@/lib/routeHelpers.js";
+import { useMediaPreview } from "@/hooks/useMediaPreview.js";
+import { formatSize } from "@/lib/format.js";
+import { Icon } from "@/components/icons/Icon.js";
+import { Button } from "@/components/ui/Button.js";
+import { PanelHeader } from "@/components/ui/Panel.js";
 import { TrashView } from "./TrashView.js";
-import { TRASH_DIR as TRASH_FOLDER } from "../../../shared/blackboxPaths.js";
+import { TRASH_DIR as TRASH_FOLDER } from "@shared/blackboxPaths.js";
 
 interface TreeNode {
   path: string;

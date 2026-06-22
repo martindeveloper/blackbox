@@ -1,4 +1,4 @@
-import type { Effect } from "../types/wire.js";
+import type { Effect } from "@/types/wire.js";
 import { entriesForCategory } from "./catalogHealth.js";
 import type { CatalogCategory } from "./catalogUsage.js";
 import type { LoadedBundle } from "./scenarioLoader.js";

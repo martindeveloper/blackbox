@@ -1,5 +1,5 @@
 import { ChevronRight, type LucideIcon } from "lucide-react";
-import { Icon } from "../icons/Icon.js";
+import { Icon } from "@/components/icons/Icon.js";
 
 type UnknownRecord = Record<string, unknown>;
 

@@ -1,8 +1,8 @@
 import { useTranslation } from "react-i18next";
-import type { ExprInput } from "../../types/wire.js";
-import { FormField } from "../ui/FormField.js";
-import { Input } from "../ui/Input.js";
-import { Select } from "../ui/Select.js";
+import type { ExprInput } from "@/types/wire.js";
+import { FormField } from "@/components/ui/FormField.js";
+import { Input } from "@/components/ui/Input.js";
+import { Select } from "@/components/ui/Select.js";
 import { InterpolationField } from "./InterpolationField.js";
 
 function exprToDisplay(expr: ExprInput | undefined): string {

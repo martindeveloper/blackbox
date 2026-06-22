@@ -7,16 +7,16 @@ import {
   registerProject,
   revokeAllProjectCodeTrust,
   type ProjectSummary,
-} from "../../lib/projectApi.js";
-import { pickProjectFolder } from "../../lib/pickProjectFolder.js";
-import { Icon } from "../icons/Icon.js";
-import { ThemeSelector } from "../layout/ThemeSelector.js";
-import { useScenarioStore } from "../../store/useScenarioStore.js";
-import { transitionToEditor } from "../../lib/projectTransition.js";
-import { Page } from "../../lib/pages.js";
-import { editorNavigate } from "../../lib/projectRoute.js";
-import { translate } from "../../lib/i18n.js";
-import { notifyFromError, notifySuccess } from "../../lib/notifyApi.js";
+} from "@/lib/projectApi.js";
+import { pickProjectFolder } from "@/lib/pickProjectFolder.js";
+import { Icon } from "@/components/icons/Icon.js";
+import { ThemeSelector } from "@/components/layout/ThemeSelector.js";
+import { useScenarioStore } from "@/store/useScenarioStore.js";
+import { transitionToEditor } from "@/lib/projectTransition.js";
+import { Page } from "@/lib/pages.js";
+import { editorNavigate } from "@/lib/projectRoute.js";
+import { translate } from "@/lib/i18n.js";
+import { notifyFromError, notifySuccess } from "@/lib/notifyApi.js";
 import { NewProjectWizard } from "./NewProjectWizard.js";
 import { DeleteProjectDialog } from "./DeleteProjectDialog.js";
 
