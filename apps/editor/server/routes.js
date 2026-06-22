@@ -17,6 +17,7 @@ import {
   serverProjectRoute,
   serverPreviewCheckpointRoute,
   serverToolsRunRoute,
+  serverVcsOperationRoute,
 } from "../shared/apiPaths.js";
 import {
   ensureBuildCacheDir,
@@ -28,6 +29,7 @@ import { detectBuildCapabilities } from "./pipeline/preflight/index.js";
 import { getPlayer, listPlayers, playersWith } from "../players/registry.mjs";
 import { runPlayerBundle } from "./tools/bundle.mjs";
 import { ensureProjectSidecars, writeNewProject } from "./projectScaffold.js";
+import { VcsService } from "./vcs/vcsService.js";
 
 const previewPlayer = playersWith("livePreview")[0] ?? null;
 
@@ -64,6 +66,7 @@ function projectRequest(service, handler) {
 export async function registerRoutes(app, service) {
   const toolRuns = new ToolRunRegistry();
   const buildRuns = new BuildRunRegistry();
+  const vcs = new VcsService(service);
 
   app.get(GlobalRoutes.Prefs, () => readUserPrefs());
   app.put(GlobalRoutes.Prefs, async (request, reply) => {
@@ -174,6 +177,30 @@ export async function registerRoutes(app, service) {
   app.post(
     serverProjectRoute(ProjectRoutes.BootstrapCode),
     projectRequest(service, (project) => service.bootstrapProjectCode(project.id)),
+  );
+
+  app.get(
+    serverProjectRoute(ProjectRoutes.VcsStatus),
+    projectRequest(service, (project) => vcs.status(project)),
+  );
+  app.put(
+    serverProjectRoute(ProjectRoutes.Vcs),
+    projectRequest(service, (project, request) => vcs.configure(project, request.body ?? {})),
+  );
+  app.post(
+    serverVcsOperationRoute(),
+    projectRequest(service, (project, request) =>
+      vcs.execute(project, request.params.operation, request.body ?? {}),
+    ),
+  );
+  app.get(
+    serverProjectRoute(ProjectRoutes.VcsHistory),
+    projectRequest(service, (project, request) =>
+      vcs.history(project, {
+        path: typeof request.query?.path === "string" ? request.query.path : null,
+        limit: request.query?.limit,
+      }),
+    ),
   );
 
   app.post(GlobalRoutes.ProjectsRevokeCodeTrust, () => service.revokeAllProjectCodeTrust());

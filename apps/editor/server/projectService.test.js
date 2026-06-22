@@ -125,23 +125,23 @@ test("discovers, opens, and revision-saves a project", async () => {
       },
       clientId: "git-sync",
       event: {
-        source: "git",
+        source: "vcs",
         contribution: {
           status: "applied",
           contributor: { kind: "person", name: "Test Author" },
           changes: [{ action: "edited", entity: "node", id: "start", chapterId: "one" }],
           changeCount: 1,
-          review: { type: "git-diff", from: "abc", to: "def" },
+          review: { type: "vcs-diff", provider: "git", from: "abc", to: "def" },
         },
       },
     });
     unsubscribe();
     assert.equal(result.revision, snapshot.project.revision + 1);
-    assert.equal(events[0].source, "git");
+    assert.equal(events[0].source, "vcs");
     assert.equal(events[0].clientId, "git-sync");
     assert.equal(events[0].contribution.contributor.name, "Test Author");
     assert.equal(events[0].contribution.changes[0].id, "start");
-    assert.equal(events[0].contribution.review.type, "git-diff");
+    assert.equal(events[0].contribution.review.type, "vcs-diff");
     assert.equal((await env.service.openProject(project.id)).bundle.scenario.title, "Changed");
 
     await assert.rejects(
@@ -151,6 +151,36 @@ test("discovers, opens, and revision-saves a project", async () => {
       }),
       (error) => error instanceof ProjectError && error.code === "revision_conflict",
     );
+  } finally {
+    await env.close();
+  }
+});
+
+test("prepares authored file mutations before writing them", async () => {
+  const env = await fixture();
+  try {
+    const [project] = env.service.listProjects();
+    env.service.setProjectCodeTrust(project.id, false);
+    const snapshot = await env.service.openProject(project.id);
+    const prepared = [];
+    env.service.setPrepareMutationHook(async (_registeredProject, changes) => {
+      prepared.push(changes);
+    });
+
+    await env.service.saveDocuments(project.id, {
+      baseRevision: snapshot.project.revision,
+      documents: {
+        "scenario.json": { ...snapshot.bundle.scenario, title: "Prepared" },
+        "new-catalog.json": { spec: "com.blackbox.catalog", formatVersion: 1 },
+      },
+    });
+
+    assert.deepEqual(prepared, [
+      [
+        { path: "scenario.json", action: "edit" },
+        { path: "new-catalog.json", action: "add" },
+      ],
+    ]);
   } finally {
     await env.close();
   }

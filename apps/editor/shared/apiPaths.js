@@ -33,6 +33,10 @@ export const ProjectRoutes = {
   BuildRuns: "/build/runs",
   BuildRunsCurrent: "/build/runs/current",
   BuildRunsStream: "/build/runs/stream",
+  Vcs: "/vcs",
+  VcsStatus: "/vcs/status",
+  VcsOperations: "/vcs/operations",
+  VcsHistory: "/vcs/history",
 };
 
 export function globalApiUrl(route) {
@@ -74,6 +78,10 @@ export function serverBuildRunCancelRoute() {
 
 export function serverPreviewCheckpointRoute() {
   return `${serverProjectRoute(ProjectRoutes.PreviewCheckpoints)}/:checkpointId`;
+}
+
+export function serverVcsOperationRoute() {
+  return `${serverProjectRoute(ProjectRoutes.VcsOperations)}/:operation`;
 }
 
 export const Api = {

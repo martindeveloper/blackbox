@@ -27,7 +27,7 @@ silent_archive_game/     ← project root (open this folder)
   music/
   sfx/
   saves/                     ← optional runtime save files
-  .blackbox/                 ← editor sidecars (project, layout, trash, user state)
+  .blackbox/                 ← editor sidecars (project, layout, VCS, trash, user state)
   src/                       ← optional custom UI (game.ts, app.css, fonts.css)
 ```
 
@@ -64,6 +64,26 @@ The local server owns all project file access. Each project keeps a shared sidec
 `id` is an 11-character project identifier. The server generates one when missing.
 
 File: `<project>/.blackbox/project.json` (alongside `layout.json`, `trash.json`, and `trash/`). Machine-specific project state, including optional tool overrides and tool-run history, lives under `<project>/.blackbox/user/` and should be gitignored. No absolute project path is stored.
+
+Version-control provider settings live in `<project>/.blackbox/vcs.json`. This
+file contains only a schema version and provider ID (currently `git`) and is
+safe to commit. User identity, remotes, SSH keys, credential helpers, and
+signing remain owned by the VCS itself. The editor server exposes a
+provider-neutral status/operation/history API; Git is the first adapter.
+Providers advertise their workflow (`distributed` or `centralized`), supported
+operations, terminology, and optional features such as checkout, revert,
+changelists, and locking. Shared operations use semantic IDs: `sync` updates
+the workspace, `record` creates a revision (Git commit, SVN commit, or Perforce
+submit), and optional `publish` sends local revisions upstream. Providers may
+also prepare file mutations before the editor writes, allowing systems such as
+Perforce to open files for edit/add/delete across UI and MCP saves.
+
+When `.blackbox/vcs.json` is absent, the editor auto-selects and persists the
+single provider whose workspace is rooted at the project folder (for example,
+an existing `<project>/.git`). An existing `vcs.json` always takes priority.
+If no provider is detected, the UI can initialize providers that support it;
+if multiple providers are detected, the editor asks the user instead of
+guessing.
 
 The server stores its project registry, revisions, and file index in
 `<user-data>/.blackbox/editor.db`, plus UI preferences in

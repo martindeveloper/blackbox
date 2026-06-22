@@ -11,7 +11,7 @@ import {
   SquareTerminal,
   X,
 } from "lucide-react";
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
@@ -35,6 +35,7 @@ import { Button } from "../ui/Button.js";
 import { IconButton } from "../ui/IconButton.js";
 import { StatusPill } from "../ui/StatusPill.js";
 import { useModal } from "../../context/ModalProvider.js";
+import { VcsControl } from "../vcs/VcsControl.js";
 
 /**
  * The "Unsaved" pill plus a hover popover listing which documents are dirty.
@@ -104,6 +105,8 @@ export function TopBar() {
   const bundle = useScenarioStore((s) => s.bundle);
   const projectName = useScenarioStore((s) => s.projectName);
   const projectPath = useScenarioStore((s) => s.projectPath);
+  const projectId = useScenarioStore((s) => s.projectId);
+  const revision = useScenarioStore((s) => s.revision);
   const dirty = useScenarioStore((s) => s.dirty);
   const saving = useScenarioStore((s) => s.saving);
   const validationIssues = useScenarioStore((s) => s.validationIssues);
@@ -301,6 +304,13 @@ export function TopBar() {
             </StatusPill>
           ) : null}
           {dirty.size > 0 ? <UnsavedPill labels={dirtyLabels} /> : null}
+          {projectName && projectId ? (
+            <VcsControl
+              projectId={projectId}
+              revision={revision}
+              dirty={dirty.size > 0 || saving}
+            />
+          ) : null}
         </div>
 
         <span className="editor-topbar-divider" aria-hidden />

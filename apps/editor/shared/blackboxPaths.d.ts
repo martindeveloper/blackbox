@@ -13,8 +13,10 @@ export declare const CHECKPOINTS_MANIFEST_BASENAME: "manifest.json";
 export declare const TRASH_MANIFEST_BASENAME: "trash.json";
 export declare const EDITOR_DB_BASENAME: "editor.db";
 export declare const USER_PREFS_BASENAME: "user.preferences.json";
+export declare const VCS_CONFIG_BASENAME: "vcs.json";
 
 export declare const PROJECT_CONFIG_PATH: ".blackbox/project.json";
+export declare const VCS_CONFIG_PATH: ".blackbox/vcs.json";
 export declare const USER_DIR: ".blackbox/user";
 export declare const USER_TOOLS_PATH: ".blackbox/user/tools.json";
 export declare const LAYOUT_PATH: ".blackbox/layout.json";

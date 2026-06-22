@@ -14,8 +14,10 @@ export const TRASH_MANIFEST_BASENAME = "trash.json";
 export const EDITOR_DB_BASENAME = "editor.db";
 export const USER_PREFS_BASENAME = "user.preferences.json";
 export const MCP_CREDENTIALS_BASENAME = "mcp-token.bin";
+export const VCS_CONFIG_BASENAME = "vcs.json";
 
 export const PROJECT_CONFIG_PATH = `${EDITOR_SIDECAR_DIR}/${PROJECT_CONFIG_BASENAME}`;
+export const VCS_CONFIG_PATH = `${EDITOR_SIDECAR_DIR}/${VCS_CONFIG_BASENAME}`;
 export const USER_DIR = `${EDITOR_SIDECAR_DIR}/${USER_DIRNAME}`;
 // Generated, disposable, git-ignored sidecar trees. Platform builds (Gradle,
 // Capacitor, web staging) churn thousands of files under these — the project

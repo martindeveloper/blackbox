@@ -31,7 +31,7 @@ export interface ProjectSnapshot {
 export interface ProjectEvent {
   revision: number;
   changedPaths: string[];
-  source?: "api" | "external" | "mcp" | "git" | "remote";
+  source?: "api" | "external" | "mcp" | "vcs" | "git" | "remote";
   clientId?: string | null;
   contribution?: ProjectContribution;
 }
@@ -56,7 +56,7 @@ export interface ProjectContribution {
 
 export type ProjectContributionReview =
   | { type: "mcp-audit" }
-  | { type: "git-diff"; from?: string; to?: string }
+  | { type: "vcs-diff"; provider: string; from?: string; to?: string }
   | { type: "external-diff"; changedPaths?: string[] };
 
 export interface ProjectChange {
@@ -65,6 +65,91 @@ export interface ProjectChange {
   id: string;
   parentId?: string;
   chapterId?: string;
+}
+
+export type VcsFileStatus =
+  | "modified"
+  | "added"
+  | "deleted"
+  | "renamed"
+  | "untracked"
+  | "conflicted";
+
+export interface VcsFile {
+  path: string;
+  originalPath?: string;
+  status: VcsFileStatus;
+  stateLabel?: string | null;
+}
+
+export type VcsWorkflow = "distributed" | "centralized";
+export type VcsOperationPlacement = "primary" | "footer" | "file";
+
+export interface VcsOperation {
+  label: string;
+  busyLabel: string;
+  successMessage: string;
+  placement: VcsOperationPlacement;
+  scope: "workspace" | "changes" | "selection";
+  changesWorkspace?: boolean;
+  requiresCleanEditor?: boolean;
+  requiresMessage?: boolean;
+  messagePlaceholder?: string;
+  requiresChanges?: boolean;
+}
+
+export interface VcsFeatures {
+  initialize: boolean;
+  prepareMutation: boolean;
+  history: boolean;
+  checkout: boolean;
+  revert: boolean;
+  changelists: boolean;
+  locking: boolean;
+}
+
+export interface VcsProviderInfo {
+  id: string;
+  label: string;
+  workflow: VcsWorkflow;
+  operations: Record<string, VcsOperation>;
+  features: VcsFeatures;
+  available: boolean;
+  version: string | null;
+  detected: boolean;
+}
+
+export interface VcsWorkspace {
+  label?: string | null;
+  trackingLabel?: string | null;
+  ahead?: number;
+  behind?: number;
+}
+
+export interface VcsOperationState {
+  enabled: boolean;
+  reason?: string | null;
+}
+
+export interface VcsStatus {
+  configured: boolean;
+  provider: string | null;
+  activeProvider?: Omit<VcsProviderInfo, "available" | "version" | "detected">;
+  providers: VcsProviderInfo[];
+  unavailable?: boolean;
+  initialized?: boolean;
+  workspace?: VcsWorkspace;
+  operationStates?: Record<string, VcsOperationState>;
+  files?: VcsFile[];
+}
+
+export interface VcsHistoryEntry {
+  id: string;
+  shortId: string;
+  authorName: string;
+  authorEmail: string;
+  occurredAt: string;
+  summary: string;
 }
 
 const CLIENT_ID = crypto.randomUUID();
@@ -276,6 +361,47 @@ export function subscribeProject(
     if (includeOwnClient || event.clientId !== CLIENT_ID) onEvent(event);
   };
   return () => events.close();
+}
+
+export async function getVcsStatus(projectId: string): Promise<VcsStatus> {
+  return responseJson<VcsStatus>(await fetch(projectUrl(projectId, ProjectRoutes.VcsStatus)));
+}
+
+export async function configureVcs(
+  projectId: string,
+  provider: string,
+  initialize: boolean,
+): Promise<VcsStatus> {
+  return responseJson<VcsStatus>(
+    await fetch(projectUrl(projectId, ProjectRoutes.Vcs), {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ provider, initialize }),
+    }),
+  );
+}
+
+export function executeVcsOperation(
+  projectId: string,
+  operation: string,
+  payload: { message?: string; paths?: string[] } = {},
+): Promise<{ operation: string; result: unknown; status: VcsStatus }> {
+  return postJson(
+    projectUrl(projectId, `${ProjectRoutes.VcsOperations}/${encodeURIComponent(operation)}`),
+    payload,
+  );
+}
+
+export async function getVcsHistory(
+  projectId: string,
+  filePath?: string,
+): Promise<VcsHistoryEntry[]> {
+  const query = new URLSearchParams({ limit: "50" });
+  if (filePath) query.set("path", filePath);
+  const result = await responseJson<{ revisions: VcsHistoryEntry[] }>(
+    await fetch(`${projectUrl(projectId, ProjectRoutes.VcsHistory)}?${query}`),
+  );
+  return result.revisions;
 }
 
 export { projectApiUrl } from "../../shared/apiPaths.js";

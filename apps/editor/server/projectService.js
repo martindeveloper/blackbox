@@ -157,7 +157,9 @@ function isGeneratedSidecar(relativePath) {
 // The version-control dir is not authored content and churns on every commit,
 // checkout, or status — never watch or index it.
 function isVersionControlPath(relativePath) {
-  return relativePath === ".git" || relativePath.startsWith(".git/");
+  return [".git", ".hg", ".svn"].some(
+    (directory) => relativePath === directory || relativePath.startsWith(`${directory}/`),
+  );
 }
 
 function isIgnoredProjectPath(relativePath) {
@@ -331,8 +333,17 @@ export class ProjectService {
     this.watchers = new Map();
     this.listeners = new Map();
     this.suppressed = new Map();
+    this.prepareMutationHook = null;
     this.db = null;
     this.walCheckpointTimer = null;
+  }
+
+  setPrepareMutationHook(hook) {
+    this.prepareMutationHook = hook;
+  }
+
+  async prepareMutation(project, changes) {
+    await this.prepareMutationHook?.(project, changes);
   }
 
   async start() {
@@ -989,6 +1000,15 @@ export class ProjectService {
         const target = this.resolvePath(project, relativePath);
         return { ...target, content: `${JSON.stringify(value, null, 2)}\n` };
       });
+      await this.prepareMutation(
+        project,
+        await Promise.all(
+          writes.map(async (write) => ({
+            path: write.relative,
+            action: (await exists(write.absolute)) ? "edit" : "add",
+          })),
+        ),
+      );
       await this.atomicWrite(project, writes);
       const revision = await this.commitMutation(
         project,
@@ -1015,6 +1035,9 @@ export class ProjectService {
       }
       const safeName = path.basename(filename);
       const target = this.resolvePath(project, `${root}/${safeName}`);
+      await this.prepareMutation(project, [
+        { path: target.relative, action: (await exists(target.absolute)) ? "edit" : "add" },
+      ]);
       await fs.mkdir(path.dirname(target.absolute), { recursive: true });
       this.suppress(target.absolute);
       await fs.writeFile(target.absolute, data);
@@ -1078,6 +1101,7 @@ export class ProjectService {
       const idPart = `${Date.now()}_${randomBytes(3).toString("hex")}`;
       const storedName = trashName(source.relative, idPart);
       const destination = this.resolvePath(project, `${TRASH_DIR}/${storedName}`);
+      await this.prepareMutation(project, [{ path: source.relative, action: "delete" }]);
       await fs.mkdir(path.dirname(destination.absolute), { recursive: true });
       this.suppress(source.absolute);
       this.suppress(destination.absolute);
@@ -1110,9 +1134,13 @@ export class ProjectService {
       if (!entry) throw new ProjectError("not_found", "Trash entry not found");
       const source = this.resolvePath(project, `${TRASH_DIR}/${entry.trashName}`);
       const destination = this.resolvePath(project, entry.originalPath);
-      if (!overwrite && (await exists(destination.absolute))) {
+      const destinationExists = await exists(destination.absolute);
+      if (!overwrite && destinationExists) {
         throw new ProjectError("file_exists", `File already exists: ${entry.originalPath}`);
       }
+      await this.prepareMutation(project, [
+        { path: destination.relative, action: destinationExists ? "edit" : "add" },
+      ]);
       await fs.mkdir(path.dirname(destination.absolute), { recursive: true });
       if (overwrite) await fs.rm(destination.absolute, { force: true });
       this.suppress(source.absolute);
@@ -1236,6 +1264,33 @@ export class ProjectService {
       clientId,
     });
     return project.revision;
+  }
+
+  /**
+   * Runs a filesystem-changing integration while the project watcher is
+   * paused, then publishes one coherent revision/event for the whole change.
+   * VCS providers, sync clients, and future importers share this boundary.
+   */
+  async applyExternalMutation(id, operation, eventForResult) {
+    const project = this.requireProject(id);
+    return this.exclusive(id, async () => {
+      const watcher = this.watchers.get(id);
+      if (watcher) {
+        await watcher.close();
+        this.watchers.delete(id);
+      }
+      try {
+        const result = await operation(project);
+        const event = eventForResult(result);
+        const changedPaths = [...new Set(event.changedPaths ?? [])];
+        if (changedPaths.length > 0) {
+          await this.commitMutation(project, changedPaths, null, event);
+        }
+        return result;
+      } finally {
+        await this.watchProject(project);
+      }
+    });
   }
 
   notify(id, event) {
