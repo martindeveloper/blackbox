@@ -1,5 +1,6 @@
 /** @typedef {"error" | "warning"} PreflightSeverity */
-/** @typedef {{ severity: PreflightSeverity, message: string }} PreflightCheck */
+/** @typedef {"ffmpeg" | "cwebp"} InstallableDependency */
+/** @typedef {{ severity: PreflightSeverity, message: string, dependency?: InstallableDependency }} PreflightCheck */
 
 /** @typedef {{ commandExists: (command: string) => Promise<boolean>, ffmpegEncoders: () => Promise<string> }} HostCache */
 /** @typedef {ReturnType<typeof import("../adventure.mjs").resolveProject>} AdventureProject */

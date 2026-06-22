@@ -1,5 +1,3 @@
-import { toolInstallHint } from "./host.mjs";
-
 /** @typedef {import("./types.mjs").PreflightContext} PreflightContext */
 /** @typedef {import("./types.mjs").PreflightCheck} PreflightCheck */
 
@@ -14,12 +12,17 @@ export async function sharedBundleChecks(ctx, { iosAudio = false } = {}) {
   const cwebpOk = await ctx.host.commandExists("cwebp");
 
   if (!ffmpegOk) {
-    checks.push({ severity: "error", message: toolInstallHint("ffmpeg", "ffmpeg") });
+    checks.push({
+      severity: "error",
+      message: "ffmpeg not found",
+      dependency: "ffmpeg",
+    });
   }
   if (!cwebpOk) {
     checks.push({
       severity: "warning",
-      message: `${toolInstallHint("cwebp", "webp")} — textures may stay PNG-sized`,
+      message: "cwebp not found — textures may stay PNG-sized",
+      dependency: "cwebp",
     });
   }
   if (ffmpegOk && iosAudio) {

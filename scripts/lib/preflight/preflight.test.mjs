@@ -5,11 +5,29 @@ import path from "node:path";
 import test from "node:test";
 import { BUILD_PLATFORMS, BUILD_STAGES } from "../buildStages.mjs";
 import { resolveProject } from "../adventure.mjs";
+import { sharedBundleChecks } from "./bundleCommon.mjs";
 import {
   assertStageReady,
   createHostCache,
   detectBuildCapabilities,
 } from "./index.mjs";
+
+test("shared bundle checks identify installable media dependencies", async () => {
+  const checks = await sharedBundleChecks({
+    host: {
+      commandExists: async () => false,
+      ffmpegEncoders: async () => "",
+    },
+  });
+
+  assert.deepEqual(
+    checks.map(({ severity, dependency }) => ({ severity, dependency })),
+    [
+      { severity: "error", dependency: "ffmpeg" },
+      { severity: "warning", dependency: "cwebp" },
+    ],
+  );
+});
 
 test("detectBuildCapabilities exposes stage hooks for every platform", async () => {
   const caps = await detectBuildCapabilities();

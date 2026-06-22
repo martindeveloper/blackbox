@@ -1,5 +1,6 @@
 appId: com.blackbox.editor
 productName: Blackbox Editor
+executableName: BlackboxEditor
 copyright: Copyright © Blackbox
 icon: icon.png
 

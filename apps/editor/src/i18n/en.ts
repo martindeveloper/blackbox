@@ -522,6 +522,30 @@ export const en = {
     preflightRefresh: "Refresh",
     preflightRefreshing: "Refreshing…",
     preflightOk: "All checks passed for the selected stages.",
+    dependencies: {
+      details: "Details",
+      detecting: "Detecting your package manager…",
+      manual: "Manual installation",
+      desktopOnly: "Automatic installation is available in the desktop editor.",
+      installButton: "Install with {{manager}}",
+      installing: "Installing…",
+      permissionNote:
+        "The editor will run the command shown above. Your system may ask for permission.",
+      installSuccess: "Installation completed",
+      installSuccessRestart:
+        "Installation completed. Restart the editor so Windows can refresh its command paths.",
+      installFailed: "Installation did not complete",
+      ffmpeg: {
+        title: "FFmpeg is required",
+        description:
+          "FFmpeg processes game audio, resizes textures, and provides encoding fallbacks. Builds that need media processing cannot continue without it.",
+      },
+      cwebp: {
+        title: "cwebp is optional",
+        description:
+          "cwebp creates smaller WebP textures. Builds can continue without it, but some textures may remain larger PNG files.",
+      },
+    },
     stage: {
       build: "Build",
       bundle: "Bundle",

@@ -127,14 +127,14 @@ The packaged editor binary (and `electron .` in development) can run the unified
 
 ```bash
 # Packaged binary
-Blackbox\ Editor --cli build --project=./my-game --platform=web --configuration=release
-Blackbox\ Editor --cli package --project=./my-game --platform=ios
+BlackboxEditor --cli build --project=./my-game --platform=web --configuration=release
+BlackboxEditor --cli package --project=./my-game --platform=ios
 
 # Optional POSIX `--` separator before CLI args
-Blackbox\ Editor --cli -- lint --project=./my-game --platform=web
+BlackboxEditor --cli -- lint --project=./my-game --platform=web
 
 # Full CLI reference (actions, platforms, scenario.json platform config)
-Blackbox\ Editor --cli --help
+BlackboxEditor --cli --help
 
 # Development
 npm run electron:dev -- --cli build --project=../../data/silent_archive_game --platform=web
@@ -147,13 +147,13 @@ Example CI step:
 ```yaml
 - name: Build web release
   run: |
-    "./Blackbox Editor" --cli build \
+    BlackboxEditor --cli build \
       --project="${{ github.workspace }}/games/my-adventure" \
       --platform=web \
       --configuration=release
 ```
 
-On Windows, quote the executable: `"Blackbox Editor.exe" --cli build --project=C:\game --platform=web`.
+On Windows, run `BlackboxEditor.exe --cli build --project=C:\game --platform=web`.
 
 The cross-platform release command must run on macOS because Apple packages require the macOS
 SDK. It supports x64 and ARM64 targets for macOS, Linux, and Windows. Install

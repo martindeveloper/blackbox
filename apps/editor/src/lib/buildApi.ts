@@ -53,6 +53,7 @@ export type PreflightSeverity = "error" | "warning";
 export interface PreflightCheck {
   severity: PreflightSeverity;
   message: string;
+  dependency?: "ffmpeg" | "cwebp";
 }
 
 export interface StagePreflight {

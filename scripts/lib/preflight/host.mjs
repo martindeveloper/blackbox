@@ -37,10 +37,3 @@ export function createHostCache() {
     },
   };
 }
-
-export function toolInstallHint(tool, brewPackage) {
-  if (process.platform === "darwin") {
-    return `${tool} not found (brew install ${brewPackage})`;
-  }
-  return `${tool} not found — install ${tool} and ensure it is on PATH`;
-}

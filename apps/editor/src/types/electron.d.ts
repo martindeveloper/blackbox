@@ -68,6 +68,24 @@ export interface McpAuditResult {
   path: string | null;
 }
 
+export type InstallableDependency = "ffmpeg" | "cwebp";
+
+export interface DependencyInstallInfo {
+  dependency: InstallableDependency;
+  platform: "windows" | "macos" | "linux";
+  platformLabel: string;
+  packageManager: string | null;
+  command: string;
+  canInstall: boolean;
+  unavailableReason: string | null;
+}
+
+export interface DependencyInstallResult {
+  ok: boolean;
+  output: string;
+  restartRequired: boolean;
+}
+
 export interface ElectronAPI {
   isElectron: true;
   fetchEditorVersion: (signal?: AbortSignal) => Promise<EditorVersionPayload>;
@@ -76,6 +94,8 @@ export interface ElectronAPI {
   pickIdeBinary: () => Promise<string | null>;
   openInIde: (projectPath: string, ideId?: string, customPath?: string) => Promise<boolean>;
   revealPath: (targetPath: string) => Promise<boolean>;
+  getDependencyInstallInfo: (dependency: InstallableDependency) => Promise<DependencyInstallInfo>;
+  installDependency: (dependency: InstallableDependency) => Promise<DependencyInstallResult>;
   getMcpStatus: () => Promise<McpStatus>;
   setMcpEnabled: (enabled: boolean) => Promise<McpStatus>;
   getMcpAudit: (limit?: number) => Promise<McpAuditResult>;
