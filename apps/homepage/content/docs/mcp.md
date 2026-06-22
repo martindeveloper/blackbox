@@ -44,14 +44,16 @@ Agents share the editor's **project service** — the same code paths that power
 - **Revision safety** — every mutation requires `expectedRevision` matching the project on disk. Conflicts return an error; agents should `read_project` again and reconcile.
 - **Editor dirty guard** — if the user has unsaved changes in the renderer, mutations are rejected with `editor_dirty` until they save or discard.
 - **Live editor updates** — successful edits enter the editor’s contributor-neutral change pipeline: clean projects reload automatically, preserve graph context, briefly mark affected nodes, and link to the MCP audit entry.
-- **Prefer patches** — `patch_documents` applies targeted ops (one node, choice, or catalog record). Reserve `save_documents` for whole-document rewrites.
+- **Schema-first authoring** — call `describe_schema` or read `blackbox://schema` before writing content so conditions, effects, and node shapes are valid.
+- **Prefer patches** — `patch_documents` applies targeted ops (one node, choice, or catalog record). Use `add_chapter` to create and register a new chapter. Reserve `save_documents` for whole-document rewrites.
 - **Audit trail** — every tool call is logged with metadata (tool name, arguments summary, duration, outcome). Open **Audit log** in settings to review recent operations.
 
 ## Resources
 
-| URI                   | Content                          |
-| --------------------- | -------------------------------- |
-| `blackbox://projects` | JSON list of registered projects |
+| URI                   | Content                                                                                          |
+| --------------------- | ------------------------------------------------------------------------------------------------ |
+| `blackbox://projects` | JSON list of registered projects                                                                 |
+| `blackbox://schema`   | Authoring grammar: document layout, nodes, text blocks, choices, conditions, effects, and more |
 
 ## Tools
 
@@ -60,19 +62,23 @@ Agents share the editor's **project service** — the same code paths that power
 | Tool               | Description                                                                                    |
 | ------------------ | ---------------------------------------------------------------------------------------------- |
 | `list_projects`    | List projects registered in the running editor                                                 |
+| `describe_schema`  | Return the authoring grammar. Call before writing content so conditions and effects are valid |
 | `read_project`     | Read scenario, chapters, and catalogs. Optional `includeLayout` and `includeMedia`             |
 | `get_node`         | Read one node by `chapterId` and `nodeId`. Use `chapterId: "scenario"` for legacy inline nodes |
 | `search_project`   | Search string values across the project (max 100 matches)                                      |
-| `bundle_project`   | Run the bundler at a revision to surface build errors. Output is discarded                     |
-| `lint_project`     | Run Blackbox validation. Supports `ignore` and `only` rule filters                             |
-| `simulate_project` | Explore reachability and endings. Modes: `goals` or `explore`; tunable budgets and analytics   |
+| `bundle_project`   | Run the bundler at `expectedRevision` to surface build errors. Optional `platform` and `ignoreMissing`. Output is discarded |
+| `lint_project`     | Run Blackbox validation at `expectedRevision`. Supports `ignore` and `only` rule filters     |
+| `simulate_project` | Explore reachability and endings at `expectedRevision`. Modes: `goals` or `explore`; tunable budgets and analytics |
+
+`bundle_project`, `lint_project`, and `simulate_project` require the exact `expectedRevision` from a recent `read_project` call.
 
 ### Mutations
 
 | Tool              | Description                                                                                                               |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | `save_documents`  | Atomically save one or more authored JSON documents at `expectedRevision`                                                 |
-| `patch_documents` | Apply targeted ops: `set_node`, `remove_node`, `set_choice`, `remove_choice`, `set_record`, `remove_record` (max 500 ops) |
+| `patch_documents` | Apply targeted ops: `set_node`, `remove_node`, `set_choice`, `remove_choice`, `set_record`, `remove_record` (max 500 ops). Catalog collections: `item`, `character`, `event`, `flag`, `texture`, `music`, `sound`, `snippet`, `template`, `condition` |
+| `add_chapter`     | Create a chapter file with a start node and register it in `scenario.json` at `expectedRevision`. Optional `startNodeId` and `startNodeTitle` |
 | `upload_media`    | Write a base64-encoded asset into `textures`, `music`, or `sfx` at `expectedRevision`                                     |
 
 `upload_media` accepts a larger request body than other tools (up to 24 MB decoded per asset).
@@ -91,13 +97,27 @@ Agents share the editor's **project service** — the same code paths that power
     },
     {
       "op": "set_record",
-      "collection": "flags",
+      "collection": "flag",
       "id": "met_archivist",
       "value": { "id": "met_archivist", "label": "Met the archivist" }
     }
   ]
 }
 ```
+
+### Add chapter example
+
+```json
+{
+  "projectId": "silent_archive",
+  "expectedRevision": 42,
+  "id": "chapter_02",
+  "title": "The Archive",
+  "startNodeId": "archive_entry"
+}
+```
+
+Reach the new chapter from an existing choice with `{ "type": "gotoChapter", "chapterId": "chapter_02" }`.
 
 ## Simulation options
 
@@ -126,12 +146,13 @@ Agents share the editor's **project service** — the same code paths that power
 
 A reliable mutation loop:
 
-1. `list_projects` or `read_project` to get the current `revision`.
-2. `patch_documents` or `save_documents` with that `expectedRevision`.
-3. On conflict, `read_project` again and merge changes — never force-overwrite.
-4. `lint_project` and optionally `simulate_project` to validate the result.
+1. `describe_schema` (or read `blackbox://schema`) before authoring new content.
+2. `list_projects` or `read_project` to get the current `revision`.
+3. `patch_documents`, `add_chapter`, or `save_documents` with that `expectedRevision`.
+4. On conflict, `read_project` again and merge changes — never force-overwrite.
+5. `lint_project` and optionally `simulate_project` to validate the result.
 
-Built-in server instructions echo this: _"Read a project immediately before saving. If a revision conflict occurs, read again and reconcile instead of forcing an overwrite."_
+Built-in server instructions echo this: _"Call describe_schema (or read blackbox://schema) before authoring so conditions and effects are valid. Use project revisions for every mutation and read a project immediately before saving. Prefer patch_documents for targeted edits; reserve save_documents for whole-document rewrites, and use add_chapter to create and register a new chapter. If a revision conflict occurs, read again and reconcile instead of forcing an overwrite."_
 
 ## Requirements
 

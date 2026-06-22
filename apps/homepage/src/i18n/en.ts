@@ -676,15 +676,15 @@ export const en = {
       capabilities: [
         {
           title: "Read the narrative model",
-          body: "Inspect projects, chapters, nodes, catalogs, and references as structured context without exposing unrestricted filesystem access.",
+          body: "Inspect projects, chapters, nodes, catalogs, and the authoring schema as structured context — no unrestricted filesystem access.",
         },
         {
           title: "Author with revision safety",
-          body: "Save authored JSON through atomic, revision-checked mutations. Unsaved editor changes block agent writes before work can collide.",
+          body: "Patch nodes, catalog records, and chapters through atomic, revision-checked mutations. Unsaved editor changes block agent writes before work can collide.",
         },
         {
           title: "Validate through the engine",
-          body: "Run lint and simulation tools, search story content, and investigate unreachable paths through focused MCP operations.",
+          body: "Run lint, simulation, and bundle diagnostics, search story content, and investigate unreachable paths through focused MCP operations.",
         },
       ],
       security: {
@@ -708,9 +708,9 @@ export const en = {
         label: "MCP AUDIT",
         title: "Every operation leaves a receipt.",
         items: [
-          "read_project · silent_archive",
+          "describe_schema",
+          "patch_documents · chapter_01 · 3 ops",
           "lint_project · revision 42",
-          "save_documents · chapter_03.json",
         ],
       },
     },

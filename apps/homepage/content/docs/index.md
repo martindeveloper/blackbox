@@ -11,7 +11,7 @@ This is the reference for working with Blackbox outside the editor window: scrip
 | Topic                    | Summary                                                               |
 | ------------------------ | --------------------------------------------------------------------- |
 | [CLI](/docs/cli)         | `prepare`, `lint`, `build`, `bundle`, and `package` from the terminal |
-| [MCP](/docs/mcp)         | Read, patch, lint, simulate, and bundle through a local MCP server    |
+| [MCP](/docs/mcp)         | Schema reference, read/patch/chapter tools, lint, simulate, and bundle through a local MCP server |
 | [Grammar](/docs/grammar) | JSON document layout, nodes, choices, gates, and effects              |
 
 Both interfaces use the same project files and toolchain as the desktop app — no shadow copies or separate APIs.
