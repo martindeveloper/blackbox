@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "./providers";
 import { en } from "@/i18n/en";
+import { SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.onbbx.com"),
+  metadataBase: new URL(SITE_URL),
   title: en.metadata.title,
   description: en.metadata.description,
   applicationName: en.metadata.siteName,

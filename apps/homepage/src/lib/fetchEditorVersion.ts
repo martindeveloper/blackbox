@@ -3,7 +3,7 @@ import { FALLBACK_RELEASE_TAG, GITHUB_REPO } from "./releaseAssets";
 
 export const EDITOR_VERSION_CACHE_TAG = "editor-version";
 
-const SITE_URL = "https://www.onbbx.com";
+import { SITE_URL } from "@/lib/site";
 
 export type EditorVersionInfo = {
   version: string;
