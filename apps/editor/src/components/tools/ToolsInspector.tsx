@@ -13,7 +13,8 @@ import { EmptyState } from "../ui/EmptyState.js";
 interface ToolBadgeProps {
   info: ToolInfo | null;
   label: string;
-  toolName: BuildToolName;
+  // "scout" is not buildable through the same pipeline; it renders read-only.
+  toolName: BuildToolName | "scout";
   projectId: string | null;
   buildEnabled: boolean;
   onBuilt: () => void;
@@ -23,9 +24,10 @@ function ToolBadge({ info, label, toolName, projectId, buildEnabled, onBuilt }: 
   const { t } = useTranslation();
   const [building, setBuilding] = useState(false);
   const [buildResult, setBuildResult] = useState<ToolBuildResult | null>(null);
+  const buildable = toolName !== "scout";
 
   const handleBuild = useCallback(async () => {
-    if (!projectId || building) return;
+    if (!projectId || building || toolName === "scout") return;
     setBuilding(true);
     setBuildResult(null);
     try {
@@ -66,7 +68,7 @@ function ToolBadge({ info, label, toolName, projectId, buildEnabled, onBuilt }: 
             {t("tools.buildFailed", { code: entry.exitCode })}
           </span>
         )}
-        {projectId && buildEnabled ? (
+        {projectId && buildEnabled && buildable ? (
           <button
             className="tools-inspector-build-btn"
             onClick={() => void handleBuild()}
@@ -140,6 +142,14 @@ export function ToolsInspector() {
             onBuilt={handleBuilt}
           />
         ))}
+        <ToolBadge
+          info={discovery?.scout ?? null}
+          label={t("tools.scout.title")}
+          toolName="scout"
+          projectId={projectId}
+          buildEnabled={false}
+          onBuilt={handleBuilt}
+        />
       </div>
     </div>
   );

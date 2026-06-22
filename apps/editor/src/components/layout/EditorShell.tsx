@@ -12,6 +12,7 @@ import { ActivityBar } from "./ActivityBar.js";
 import { FileTree } from "./FileTree.js";
 import { PreviewEventsSidebar } from "../preview/PreviewEventsSidebar.js";
 import { ToolsSidebar } from "../tools/ToolsSidebar.js";
+import { Omnibox } from "../omnibox/Omnibox.js";
 import { InspectorPanel } from "./InspectorPanel.js";
 import { TopBar } from "./TopBar.js";
 import { EditorFooter } from "./EditorFooter.js";
@@ -250,6 +251,7 @@ export function EditorShell() {
 
   return (
     <div className="editor-shell flex h-full flex-col">
+      <Omnibox />
       <TopBar />
       {conflict ? (
         <div className="flex items-center gap-3 border-b border-danger bg-danger/10 px-3 py-2 text-xs">

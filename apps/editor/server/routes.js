@@ -3,7 +3,7 @@ import path from "node:path";
 import { WORK_DIR, bundledToolsEnabled, toolBinPath } from "./config.js";
 import { getCargoTargetDir, runProcess, runEngineTool, discoverOneTool } from "./cargo.js";
 import { nullTools } from "./editorConfig.js";
-import { commandResult, parseLint, parseSimulator } from "./parsers.js";
+import { commandResult, parseLint, parseScout, parseSimulator } from "./parsers.js";
 import { readUserPrefs, writeUserPrefs, sanitizePrefs } from "./prefs.js";
 import { ProjectError } from "./projectService.js";
 import { ToolRunRegistry } from "./toolRuns.js";
@@ -387,7 +387,7 @@ export async function registerRoutes(app, service) {
     serverProjectRoute(ProjectRoutes.ToolsDiscover),
     projectRequest(service, async (project) => {
       const tools = project.tools ?? nullTools();
-      const [linter, bundler, simulator] = await Promise.all([
+      const [linter, bundler, simulator, scout] = await Promise.all([
         discoverOneTool(
           "blackbox-lint",
           tools.linter,
@@ -403,11 +403,17 @@ export async function registerRoutes(app, service) {
           tools.simulator,
           toolDiscoverySource("blackbox-simulator", tools.simulator),
         ),
+        discoverOneTool(
+          "blackbox-scout",
+          tools.scout,
+          toolDiscoverySource("blackbox-scout", tools.scout),
+        ),
       ]);
       return {
         linter,
         bundler,
         simulator,
+        scout,
         buildEnabled: !bundledToolsEnabled(),
         updatedAt: new Date().toISOString(),
       };
@@ -474,6 +480,25 @@ export async function registerRoutes(app, service) {
         executeTool(service, project.id, tool, body),
       );
       return reply.code(run.state === "running" ? 202 : 200).send({ run });
+    }),
+  );
+
+  app.get(
+    serverProjectRoute(ProjectRoutes.Scout),
+    projectRequest(service, async (project, request) => {
+      const q = request.query ?? {};
+      const query = typeof q.q === "string" ? q.q : "";
+      const onlyRaw = q.only ?? [];
+      const only = (Array.isArray(onlyRaw) ? onlyRaw : [onlyRaw]).filter(
+        (value) => typeof value === "string" && value.length > 0,
+      );
+      const limit = Number(q.limit);
+      return executeScout(service, project.id, {
+        query,
+        only,
+        limit: Number.isFinite(limit) && limit > 0 ? Math.floor(limit) : undefined,
+        fullText: q.fullText === "1" || q.fullText === "true",
+      });
     }),
   );
 
@@ -588,6 +613,26 @@ export function executeLinter(service, projectId, body) {
     const result = await runEngineTool(tools.linter, "blackbox-lint", args);
     return { ...commandResult(result), parsed: parseLint(result.stdout) };
   });
+}
+
+export async function executeScout(
+  service,
+  projectId,
+  { query = "", only = [], limit, fullText = false } = {},
+) {
+  const project = service.requireProject(projectId);
+  const tools = project.tools ?? nullTools();
+  // The project dir is walked (not scenario.json directly) so scout applies its
+  // ignore set — skipping the .blackbox sidecar and any nested non-scenario dirs.
+  const args = ["--scenario", project.path, "--json"];
+  for (const category of only) {
+    if (typeof category === "string" && category.length > 0) args.push("--only", category);
+  }
+  if (Number.isFinite(limit) && limit > 0) args.push("--limit", String(Math.floor(limit)));
+  if (fullText) args.push("--full-text");
+  if (typeof query === "string" && query.length > 0) args.push(query);
+  const result = await runEngineTool(tools.scout, "blackbox-scout", args);
+  return { ...commandResult(result), parsed: parseScout(result.stdout) };
 }
 
 export function executeSimulator(service, projectId, body) {

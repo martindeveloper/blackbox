@@ -7,6 +7,7 @@ import { downloadBugReport } from "../../lib/bugReport.js";
 import { Icon } from "../icons/Icon.js";
 import { ModalShell } from "../overlay/ModalShell.js";
 import { Button } from "../ui/Button.js";
+import { IconButton } from "../ui/IconButton.js";
 import { Textarea } from "../ui/Textarea.js";
 
 interface BugReportModalProps {
@@ -89,10 +90,8 @@ export function BugReportModal({ onClose }: BugReportModalProps) {
 export function BugReportButton({ onClick }: { onClick: () => void }) {
   const { t } = useTranslation();
   return (
-    <Button
-      variant="ghost"
-      size="sm"
-      leadingIcon={Bug}
+    <IconButton
+      icon={Bug}
       onClick={onClick}
       title={t("bugReport.title")}
       aria-label={t("bugReport.title")}

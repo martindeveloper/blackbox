@@ -11,7 +11,7 @@ const editorRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.resolve(editorRoot, "../..");
 const resourcesBinDir = path.join(editorRoot, "resources", "bin");
 const cargoTargetDir = resolveCargoTargetDir(repoRoot);
-const tools = ["blackbox-lint", "blackbox-bundler", "blackbox-simulator"];
+const tools = ["blackbox-lint", "blackbox-bundler", "blackbox-simulator", "blackbox-scout"];
 
 const windowsPackageFormats = {
   zip: ["zip"],
@@ -219,6 +219,8 @@ function buildTools(platform, config) {
       "blackbox-bundler",
       "-p",
       "blackbox-simulator",
+      "-p",
+      "blackbox-scout",
     ],
     { cwd: repoRoot, env: cargoEnvironment(resolvedConfig) },
   );

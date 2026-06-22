@@ -7,6 +7,7 @@ import {
   MonitorPlay,
   Package,
   Save,
+  Search,
   ShieldCheck,
   SquareTerminal,
   X,
@@ -24,6 +25,7 @@ import {
 import { BugReportButton, BugReportModal } from "../support/BugReportModal.js";
 import { useScenarioStore } from "../../store/useScenarioStore.js";
 import { transitionToHome } from "../../lib/projectTransition.js";
+import { openOmnibox } from "../../lib/omnibox.js";
 import { editorNavigate, navigateToTool } from "../../lib/routeHelpers.js";
 import { CONTRIBUTION_REVIEW_EVENT } from "../../lib/contributionReview.js";
 import type { ProjectContributionReview } from "../../lib/projectApi.js";
@@ -36,6 +38,9 @@ import { IconButton } from "../ui/IconButton.js";
 import { StatusPill } from "../ui/StatusPill.js";
 import { useModal } from "../../context/ModalProvider.js";
 import { VcsControl } from "../vcs/VcsControl.js";
+
+const OMNIBOX_SHORTCUT =
+  typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform) ? "⌘K" : "Ctrl K";
 
 /**
  * The "Unsaved" pill plus a hover popover listing which documents are dirty.
@@ -196,6 +201,12 @@ export function TopBar() {
     }
   };
 
+  const hasStatus =
+    (bundle && errorCount > 0) ||
+    (bundle && warnCount > 0) ||
+    dirty.size > 0 ||
+    (projectName && projectId);
+
   return (
     <header className="editor-topbar">
       <div className="editor-topbar-left">
@@ -212,112 +223,128 @@ export function TopBar() {
         <div className="editor-topbar-context">
           <span className="editor-topbar-path">{projectTitle ?? t("app.noProject")}</span>
         </div>
-      </div>
 
-      <div className="editor-topbar-center">
         {projectName ? (
-          <div
-            className={`editor-play-toolbar${toolsBusy ? " editor-play-toolbar--busy" : ""}`}
-            role="group"
-            aria-label={t("topBar.runTools")}
+          <button
+            type="button"
+            className="editor-omnibox-trigger"
+            onClick={() => openOmnibox()}
+            title={t("omnibox.placeholder")}
           >
-            <button
-              type="button"
-              className={`editor-play-btn editor-play-btn--lint${activeTool === "linter" && toolsBusy ? " editor-play-btn--running" : ""}`}
-              disabled={!projectName || toolsBusy}
-              title={t("tools.linter.description")}
-              onClick={() => handleRunTool("linter")}
-            >
-              <span className="editor-play-btn-icon" aria-hidden>
-                {activeTool === "linter" && toolsBusy ? (
-                  <Icon icon={Loader2} size={11} className="editor-play-btn-spin" />
-                ) : (
-                  <Icon icon={ShieldCheck} size={11} strokeWidth={2.5} />
-                )}
-              </span>
-              <span className="editor-play-btn-label">{t("topBar.lint")}</span>
-            </button>
-
-            <button
-              type="button"
-              className={`editor-play-btn editor-play-btn--bundle${activeTool === "bundle" && toolsBusy ? " editor-play-btn--running" : ""}`}
-              disabled={!projectName || toolsBusy}
-              title={t("tools.bundle.description")}
-              onClick={() => handleRunTool("bundle")}
-            >
-              <span className="editor-play-btn-icon" aria-hidden>
-                {activeTool === "bundle" && toolsBusy ? (
-                  <Icon icon={Loader2} size={11} className="editor-play-btn-spin" />
-                ) : (
-                  <Icon icon={Package} size={11} strokeWidth={2.5} />
-                )}
-              </span>
-              <span className="editor-play-btn-label">{t("topBar.bundle")}</span>
-            </button>
-
-            <button
-              type="button"
-              className={`editor-play-btn editor-play-btn--simulator${activeTool === "simulator" && toolsBusy ? " editor-play-btn--running" : ""}`}
-              disabled={!projectName || toolsBusy}
-              title={t("tools.simulator.description")}
-              onClick={() => handleRunTool("simulator")}
-            >
-              <span className="editor-play-btn-icon" aria-hidden>
-                {activeTool === "simulator" && toolsBusy ? (
-                  <Icon icon={Loader2} size={12} className="editor-play-btn-spin" />
-                ) : (
-                  <Icon icon={FlaskConical} size={12} strokeWidth={2.2} />
-                )}
-              </span>
-              <span className="editor-play-btn-label">{t("topBar.simulate")}</span>
-            </button>
-
-            <button
-              type="button"
-              className={`editor-play-btn editor-play-btn--preview${previewActive ? " editor-play-btn--active" : ""}`}
-              disabled={!projectName}
-              title={t("preview.title")}
-              aria-current={previewActive ? "page" : undefined}
-              onClick={handleOpenPreview}
-            >
-              <span className="editor-play-btn-icon" aria-hidden>
-                <Icon icon={MonitorPlay} size={13} strokeWidth={2.3} />
-              </span>
-              <span className="editor-play-btn-label">{t("topBar.preview")}</span>
-            </button>
-          </div>
+            <Icon icon={Search} size={12} className="editor-omnibox-trigger-icon" />
+            <span className="editor-omnibox-trigger-label">{t("omnibox.triggerLabel")}</span>
+            <kbd className="editor-omnibox-trigger-kbd">{OMNIBOX_SHORTCUT}</kbd>
+          </button>
         ) : null}
       </div>
 
       <div className="editor-topbar-right">
-        <div className="editor-topbar-status">
-          {bundle && errorCount > 0 ? (
-            <StatusPill variant="error">
-              <Icon icon={AlertCircle} size={12} />
-              {t("common.errors", { count: errorCount })}
-            </StatusPill>
-          ) : null}
-          {bundle && warnCount > 0 ? (
-            <StatusPill variant="warning">
-              <Icon icon={AlertTriangle} size={12} />
-              {t("common.warnings", { count: warnCount })}
-            </StatusPill>
-          ) : null}
-          {dirty.size > 0 ? <UnsavedPill labels={dirtyLabels} /> : null}
-          {projectName && projectId ? (
-            <VcsControl
-              projectId={projectId}
-              revision={revision}
-              dirty={dirty.size > 0 || saving}
-            />
-          ) : null}
-        </div>
+        {projectName ? (
+          <>
+            <div
+              className={`editor-tool-strip${toolsBusy ? " editor-tool-strip--busy" : ""}`}
+              role="group"
+              aria-label={t("topBar.runTools")}
+            >
+              <button
+                type="button"
+                className={`editor-tool-btn${activeTool === "linter" && toolsBusy ? " editor-tool-btn--running" : ""}`}
+                disabled={toolsBusy}
+                title={t("tools.linter.description")}
+                onClick={() => handleRunTool("linter")}
+              >
+                <span className="editor-tool-btn-icon" aria-hidden>
+                  {activeTool === "linter" && toolsBusy ? (
+                    <Icon icon={Loader2} size={11} className="editor-tool-btn-spin" />
+                  ) : (
+                    <Icon icon={ShieldCheck} size={11} strokeWidth={2.5} />
+                  )}
+                </span>
+                <span className="editor-tool-btn-label">{t("topBar.lint")}</span>
+              </button>
 
-        <span className="editor-topbar-divider" aria-hidden />
+              <button
+                type="button"
+                className={`editor-tool-btn${activeTool === "bundle" && toolsBusy ? " editor-tool-btn--running" : ""}`}
+                disabled={toolsBusy}
+                title={t("tools.bundle.description")}
+                onClick={() => handleRunTool("bundle")}
+              >
+                <span className="editor-tool-btn-icon" aria-hidden>
+                  {activeTool === "bundle" && toolsBusy ? (
+                    <Icon icon={Loader2} size={11} className="editor-tool-btn-spin" />
+                  ) : (
+                    <Icon icon={Package} size={11} strokeWidth={2.5} />
+                  )}
+                </span>
+                <span className="editor-tool-btn-label">{t("topBar.bundle")}</span>
+              </button>
+
+              <button
+                type="button"
+                className={`editor-tool-btn${activeTool === "simulator" && toolsBusy ? " editor-tool-btn--running" : ""}`}
+                disabled={toolsBusy}
+                title={t("tools.simulator.description")}
+                onClick={() => handleRunTool("simulator")}
+              >
+                <span className="editor-tool-btn-icon" aria-hidden>
+                  {activeTool === "simulator" && toolsBusy ? (
+                    <Icon icon={Loader2} size={11} className="editor-tool-btn-spin" />
+                  ) : (
+                    <Icon icon={FlaskConical} size={11} strokeWidth={2.2} />
+                  )}
+                </span>
+                <span className="editor-tool-btn-label">{t("topBar.simulate")}</span>
+              </button>
+
+              <button
+                type="button"
+                className={`editor-tool-btn editor-tool-btn--preview${previewActive ? " editor-tool-btn--active" : ""}`}
+                title={t("preview.title")}
+                aria-current={previewActive ? "page" : undefined}
+                onClick={handleOpenPreview}
+              >
+                <span className="editor-tool-btn-icon" aria-hidden>
+                  <Icon icon={MonitorPlay} size={11} strokeWidth={2.3} />
+                </span>
+                <span className="editor-tool-btn-label">{t("topBar.preview")}</span>
+              </button>
+            </div>
+
+            <span className="editor-topbar-divider" aria-hidden />
+          </>
+        ) : null}
+
+        {hasStatus ? (
+          <>
+            <div className="editor-topbar-status">
+              {bundle && errorCount > 0 ? (
+                <StatusPill variant="error">
+                  <Icon icon={AlertCircle} size={12} />
+                  {t("common.errors", { count: errorCount })}
+                </StatusPill>
+              ) : null}
+              {bundle && warnCount > 0 ? (
+                <StatusPill variant="warning">
+                  <Icon icon={AlertTriangle} size={12} />
+                  {t("common.warnings", { count: warnCount })}
+                </StatusPill>
+              ) : null}
+              {dirty.size > 0 ? <UnsavedPill labels={dirtyLabels} /> : null}
+              {projectName && projectId ? (
+                <VcsControl
+                  projectId={projectId}
+                  revision={revision}
+                  dirty={dirty.size > 0 || saving}
+                />
+              ) : null}
+            </div>
+
+            <span className="editor-topbar-divider" aria-hidden />
+          </>
+        ) : null}
 
         <div className="editor-topbar-actions">
-          <BugReportButton onClick={() => setBugReportOpen(true)} />
-          {bugReportOpen ? <BugReportModal onClose={() => setBugReportOpen(false)} /> : null}
           <UserSettingsButton
             onClick={() => {
               setSettingsView("appearance");
@@ -341,22 +368,27 @@ export function TopBar() {
             </Button>
           ) : null}
           {projectName ? (
-            <>
-              <Button
-                variant="primary"
-                size="sm"
-                leadingIcon={Save}
-                disabled={!bundle || dirty.size === 0 || saving}
-                onClick={() => void save()}
-              >
-                {saving ? t("topBar.saving") : t("topBar.save")}
-              </Button>
-              <IconButton
-                icon={X}
-                title={t("topBar.closeProject")}
-                onClick={() => void handleClose()}
-              />
-            </>
+            <Button
+              variant="primary"
+              size="sm"
+              leadingIcon={Save}
+              disabled={!bundle || dirty.size === 0 || saving}
+              onClick={() => void save()}
+            >
+              {saving ? t("topBar.saving") : t("topBar.save")}
+            </Button>
+          ) : null}
+        </div>
+
+        <div className="editor-topbar-end">
+          <BugReportButton onClick={() => setBugReportOpen(true)} />
+          {bugReportOpen ? <BugReportModal onClose={() => setBugReportOpen(false)} /> : null}
+          {projectName ? (
+            <IconButton
+              icon={X}
+              title={t("topBar.closeProject")}
+              onClick={() => void handleClose()}
+            />
           ) : null}
         </div>
       </div>

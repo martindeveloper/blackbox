@@ -759,6 +759,12 @@ export const en = {
         removeTitle: "Discard stored graph analytics",
       },
     },
+    scout: {
+      title: "Scout",
+      short: "Jump to any node, item, character or asset",
+      shortcut: "⌘K",
+      command: "blackbox-scout",
+    },
     inspector: {
       selectTool: "Select a tool from the sidebar.",
       toolsHeading: "Tools",
@@ -872,6 +878,25 @@ export const en = {
         explorationCoverage: "Exploration coverage",
         structuralIssues: "Structural issues",
       },
+    },
+  },
+  omnibox: {
+    title: "Search",
+    triggerLabel: "Search…",
+    placeholder: "Search nodes, items, characters, assets…",
+    empty: "No matches",
+    fullText: "Full text",
+    fullTextHint: "Also search body text — node prose, choices, descriptions, subtitles",
+    category: {
+      node: "Node",
+      chapter: "Chapter",
+      item: "Item",
+      character: "Character",
+      flag: "Flag",
+      event: "Event",
+      texture: "Texture",
+      music: "Music",
+      sfx: "SFX",
     },
   },
   inspector: {

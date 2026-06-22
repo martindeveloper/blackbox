@@ -29,6 +29,7 @@ export const ProjectRoutes = {
   ToolsDiscover: "/tools/discover",
   ToolsBuild: "/tools/build",
   ToolsRuns: "/tools/runs",
+  Scout: "/scout",
   BuildCapabilities: "/build/capabilities",
   BuildRuns: "/build/runs",
   BuildRunsCurrent: "/build/runs/current",
@@ -54,6 +55,19 @@ export function projectMediaUrl(projectId, relativePath, revision) {
 
 export function projectToolsRunUrl(projectId, tool) {
   return projectApiUrl(projectId, `${ProjectRoutes.ToolsRuns}/${tool}`);
+}
+
+export function projectScoutUrl(
+  projectId,
+  { query = "", only = [], limit, fullText = false } = {},
+) {
+  const params = new URLSearchParams();
+  if (query) params.set("q", query);
+  for (const category of only) params.append("only", category);
+  if (Number.isFinite(limit)) params.set("limit", String(limit));
+  if (fullText) params.set("fullText", "1");
+  const qs = params.toString();
+  return projectApiUrl(projectId, `${ProjectRoutes.Scout}${qs ? `?${qs}` : ""}`);
 }
 
 export function projectBuildRunCancelUrl(projectId, runId) {

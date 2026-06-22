@@ -160,6 +160,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "blackbox-scout"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "blackbox",
+ "blackbox-format",
+ "blackbox-output",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "blackbox-simulator"
 version = "0.2.0"
 dependencies = [

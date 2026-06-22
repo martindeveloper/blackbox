@@ -32,6 +32,7 @@ import { useAnalyticsStore } from "../../store/useAnalyticsStore.js";
 import { useModal } from "../../context/ModalProvider.js";
 import { Page } from "../../lib/pages.js";
 import { editorNavigate, useEditorSearch } from "../../lib/routeHelpers.js";
+import { consumeNodeFocus } from "../../lib/omnibox.js";
 import { Subtitle } from "../ui/Heading.js";
 import { NodeCard } from "./NodeCard.js";
 import { GraphToolbar } from "./GraphToolbar.js";
@@ -356,6 +357,18 @@ function ChapterGraphInner() {
   );
 
   const { fitView } = useReactFlow();
+
+  // Recenter/zoom on a node only when arriving from search — `consumeNodeFocus`
+  // fires once per request, after the target chapter's nodes are laid out, so
+  // ordinary in-graph clicks never move the viewport.
+  useEffect(() => {
+    if (!nodeId || !chapterId) return;
+    if (!nodes.some((n) => n.id === nodeId)) return;
+    if (!consumeNodeFocus(chapterId, nodeId)) return;
+    requestAnimationFrame(() => {
+      void fitView({ nodes: [{ id: nodeId }], padding: 0.5, maxZoom: 1.5, duration: 450 });
+    });
+  }, [nodeId, chapterId, nodes, fitView]);
 
   const handleAutoLayout = useCallback(() => {
     if (!chapterId) return;

@@ -29,22 +29,32 @@ export const ProjectRoutes: {
   readonly ToolsDiscover: "/tools/discover";
   readonly ToolsBuild: "/tools/build";
   readonly ToolsRuns: "/tools/runs";
+  readonly Scout: "/scout";
   readonly BuildCapabilities: "/build/capabilities";
   readonly BuildRuns: "/build/runs";
   readonly BuildRunsCurrent: "/build/runs/current";
   readonly BuildRunsStream: "/build/runs/stream";
+  readonly Vcs: "/vcs";
+  readonly VcsStatus: "/vcs/status";
+  readonly VcsOperations: "/vcs/operations";
+  readonly VcsHistory: "/vcs/history";
 };
 
 export function globalApiUrl(route: string): string;
 export function projectApiUrl(projectId: string, suffix?: string): string;
 export function projectMediaUrl(projectId: string, relativePath: string, revision: number): string;
 export function projectToolsRunUrl(projectId: string, tool: string): string;
+export function projectScoutUrl(
+  projectId: string,
+  options?: { query?: string; only?: string[]; limit?: number; fullText?: boolean },
+): string;
 export function projectBuildRunCancelUrl(projectId: string, runId: string): string;
 export function serverProjectRoute(suffix: string): string;
 export function serverProjectMediaRoute(): string;
 export function serverToolsRunRoute(): string;
 export function serverBuildRunCancelRoute(): string;
 export function serverPreviewCheckpointRoute(): string;
+export function serverVcsOperationRoute(): string;
 
 export const Api: {
   readonly Prefs: string;

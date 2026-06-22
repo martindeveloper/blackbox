@@ -8,6 +8,7 @@ members = [
     "engine/format",
     "engine/lint",
     "engine/output",
+    "engine/scout",
     "engine/simulator",
     "engine/wasm",
 ]

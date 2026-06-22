@@ -6,9 +6,16 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+const REPO_ROOT = path.resolve(ROOT, "..", "..");
 const TOOLS_DIR = path.join(ROOT, "resources", "bin");
-const TOOLS = ["blackbox-lint", "blackbox-bundler", "blackbox-simulator"];
+const TOOLS = ["blackbox-lint", "blackbox-bundler", "blackbox-simulator", "blackbox-scout"];
 const force = process.argv.includes("--force");
+
+// Rust sources whose changes must invalidate the staged binaries. The engine
+// tree holds every tool crate and its workspace deps; the manifests cover
+// dependency/version bumps.
+const SOURCE_ROOTS = [path.join(REPO_ROOT, "engine")];
+const SOURCE_FILES = [path.join(REPO_ROOT, "Cargo.toml"), path.join(REPO_ROOT, "Cargo.lock")];
 
 function toolFileName(base) {
   return process.platform === "win32" ? `${base}.exe` : base;
@@ -18,17 +25,62 @@ function toolPath(base) {
   return path.join(TOOLS_DIR, toolFileName(base));
 }
 
-async function toolsPresent() {
+// Oldest staged binary, or 0 if any is missing (missing ⇒ always rebuild).
+async function oldestBinaryMtime() {
+  let oldest = Infinity;
   for (const tool of TOOLS) {
     try {
-      const filePath = toolPath(tool);
-      const stat = await fs.stat(filePath);
-      if (!stat.isFile()) return false;
+      const stat = await fs.stat(toolPath(tool));
+      if (!stat.isFile()) return 0;
+      if (stat.mtimeMs < oldest) oldest = stat.mtimeMs;
     } catch {
-      return false;
+      return 0;
     }
   }
-  return true;
+  return oldest === Infinity ? 0 : oldest;
+}
+
+// Newest Rust source mtime across the engine tree and workspace manifests.
+async function newestSourceMtime() {
+  let newest = 0;
+  const visit = async (dir) => {
+    let entries;
+    try {
+      entries = await fs.readdir(dir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      if (entry.name === "target" || entry.name === ".cache" || entry.name.startsWith(".")) {
+        continue;
+      }
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        await visit(full);
+      } else if (entry.name.endsWith(".rs")) {
+        const { mtimeMs } = await fs.stat(full);
+        if (mtimeMs > newest) newest = mtimeMs;
+      }
+    }
+  };
+  for (const root of SOURCE_ROOTS) await visit(root);
+  for (const file of SOURCE_FILES) {
+    try {
+      const { mtimeMs } = await fs.stat(file);
+      if (mtimeMs > newest) newest = mtimeMs;
+    } catch {
+      // Manifest absent in this layout — ignore.
+    }
+  }
+  return newest;
+}
+
+// Rebuild when a binary is missing or any Rust source is newer than the oldest
+// staged binary. cargo itself is the source of truth for incremental work, so a
+// no-op rebuild here is cheap; this just decides whether to invoke it at all.
+async function toolsStale() {
+  const [binMtime, srcMtime] = await Promise.all([oldestBinaryMtime(), newestSourceMtime()]);
+  return binMtime === 0 || srcMtime > binMtime;
 }
 
 function runBuildTools() {
@@ -60,8 +112,8 @@ async function verifyTools() {
   return binaries;
 }
 
-if (force || !(await toolsPresent())) {
-  console.log(force ? "==> rebuilding engine tools" : "==> building engine tools");
+if (force || (await toolsStale())) {
+  console.log(force ? "==> rebuilding engine tools" : "==> building engine tools (sources changed)");
   await runBuildTools();
 }
 

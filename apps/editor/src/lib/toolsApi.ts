@@ -1,4 +1,9 @@
-import { ProjectRoutes, projectApiUrl, projectToolsRunUrl } from "../../shared/apiPaths.js";
+import {
+  ProjectRoutes,
+  projectApiUrl,
+  projectScoutUrl,
+  projectToolsRunUrl,
+} from "../../shared/apiPaths.js";
 
 export type LintSeverity = "error" | "warn" | "info";
 
@@ -367,8 +372,61 @@ export interface ToolDiscovery {
   linter: ToolInfo;
   bundler: ToolInfo;
   simulator: ToolInfo;
+  scout: ToolInfo;
   buildEnabled: boolean;
   updatedAt: string | null;
+}
+
+export type ScoutCategory =
+  | "node"
+  | "chapter"
+  | "item"
+  | "character"
+  | "flag"
+  | "event"
+  | "texture"
+  | "music"
+  | "sfx";
+
+export interface ScoutHit {
+  category: ScoutCategory;
+  id: string;
+  label: string;
+  chapter?: string;
+  scenario: string;
+  score: number;
+  snippet?: string;
+  focus: { route: string; params: Record<string, string> };
+}
+
+export interface ScoutOutput {
+  kind: "scout";
+  query: string;
+  target: string;
+  count: number;
+  results: ScoutHit[];
+}
+
+export async function searchProject(
+  projectId: string,
+  query: string,
+  options: {
+    only?: ScoutCategory[];
+    limit?: number;
+    fullText?: boolean;
+    signal?: AbortSignal;
+  } = {},
+): Promise<ScoutHit[]> {
+  const url = projectScoutUrl(projectId, {
+    query,
+    only: options.only ?? [],
+    limit: options.limit ?? 30,
+    fullText: options.fullText ?? false,
+  });
+  const res = await fetch(url, { signal: options.signal });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data = (await res.json()) as { parsed: ScoutOutput | null };
+  return data.parsed?.results ?? [];
 }
 
 export interface LintCategoryMeta {

@@ -40,3 +40,7 @@ export function parseBundle(bundleStdout, inspectStdout, bundleStderr) {
 export function parseSimulator(stdout) {
   return parseJsonOutput(stdout);
 }
+
+export function parseScout(stdout) {
+  return parseJsonOutput(stdout);
+}

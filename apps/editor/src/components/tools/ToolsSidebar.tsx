@@ -1,4 +1,4 @@
-import { Box, FlaskConical, RefreshCw, ShieldCheck, type LucideIcon } from "lucide-react";
+import { Box, FlaskConical, RefreshCw, Search, ShieldCheck, type LucideIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
@@ -7,6 +7,7 @@ import { ListItem } from "../ui/ListItem.js";
 import { Panel, PanelBody, PanelHeader } from "../ui/Panel.js";
 import { Page } from "../../lib/pages.js";
 import { editorNavigate, useEditorSearch, type ToolId } from "../../lib/routeHelpers.js";
+import { openOmnibox } from "../../lib/omnibox.js";
 import { discoverTools } from "../../lib/toolsApi.js";
 import { useScenarioStore } from "../../store/useScenarioStore.js";
 import { toolDiscoveryInfo, useToolRunnerStore } from "../../store/useToolRunnerStore.js";
@@ -140,7 +141,46 @@ export function ToolsSidebar() {
             </ListItem>
           );
         })}
+        <ScoutListItem />
       </PanelBody>
     </Panel>
+  );
+}
+
+function ScoutListItem() {
+  const { t } = useTranslation();
+  const discovery = useToolRunnerStore((s) => s.discovery);
+  const info = discovery?.scout ?? null;
+  const unavailable = info !== null && !info.available;
+
+  return (
+    <ListItem
+      className={`tools-sidebar-item${unavailable ? " tools-sidebar-item--unavailable" : ""}`}
+      onClick={() => openOmnibox()}
+    >
+      <span className="tools-sidebar-item-inner">
+        <span
+          className={`tools-sidebar-icon${unavailable ? " tools-sidebar-icon--unavailable" : ""}`}
+        >
+          <Icon icon={Search} size={14} strokeWidth={1.75} />
+        </span>
+        <span className="tools-sidebar-copy">
+          <span className="tools-sidebar-label-row">
+            <span className="tools-sidebar-label">{t("tools.scout.title")}</span>
+            <span className="tools-sidebar-source-tag">{t("tools.scout.shortcut")}</span>
+          </span>
+          {unavailable ? (
+            <span className="tools-sidebar-desc tools-sidebar-desc--error">
+              {info.error ?? t("tools.binaryNotAvailable")}
+            </span>
+          ) : (
+            <>
+              <span className="tools-sidebar-desc">{t("tools.scout.short")}</span>
+              {info?.version && <span className="tools-sidebar-version">{info.version}</span>}
+            </>
+          )}
+        </span>
+      </span>
+    </ListItem>
   );
 }

@@ -10,7 +10,7 @@ const clientRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const repoRoot = path.resolve(clientRoot, "../..");
 const outDir = path.join(clientRoot, "resources/bin");
 const targetDir = resolveCargoTargetDir(repoRoot);
-const tools = ["blackbox-lint", "blackbox-bundler", "blackbox-simulator"];
+const tools = ["blackbox-lint", "blackbox-bundler", "blackbox-simulator", "blackbox-scout"];
 
 mkdirSync(outDir, { recursive: true });
 
@@ -26,6 +26,8 @@ runSync(
     "blackbox-bundler",
     "-p",
     "blackbox-simulator",
+    "-p",
+    "blackbox-scout",
   ],
   { cwd: repoRoot, env: { ...process.env, CARGO_TARGET_DIR: targetDir } },
 );

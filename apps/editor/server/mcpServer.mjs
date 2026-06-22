@@ -7,7 +7,7 @@ import { McpAuditLog } from "./mcpAuditLog.mjs";
 import { summarizeDocumentChanges } from "./mcpAuditDiff.mjs";
 import { applyDocumentPatch, PATCH_COLLECTIONS } from "./mcpPatch.mjs";
 import { SCHEMA_REFERENCE } from "./mcpSchema.mjs";
-import { executeBundle, executeLinter, executeSimulator } from "./routes.js";
+import { executeBundle, executeLinter, executeScout, executeSimulator } from "./routes.js";
 
 const HOST = "127.0.0.1";
 const MCP_PATH = "/mcp";
@@ -18,7 +18,29 @@ const MAX_UPLOAD_BODY_BYTES = 32 * 1024 * 1024;
 const MAX_MEDIA_BYTES = 24 * 1024 * 1024;
 const UPLOAD_TOOL = "upload_media";
 const MAX_PATCH_OPS = 500;
-const MAX_SEARCH_RESULTS = 100;
+
+// Maps a scout category to the patch_documents address that edits it, so an agent
+// can go straight from a search hit to a targeted patch. Nodes resolve to a
+// set_node op (chapterId + nodeId); record types to a set_record op (collection +
+// id). Chapters have no single record op and resolve to null.
+const SCOUT_RECORD_COLLECTION = {
+  item: "item",
+  character: "character",
+  flag: "flag",
+  event: "event",
+  texture: "texture",
+  music: "music",
+  sfx: "sound",
+};
+
+function scoutPatchLocator(hit) {
+  if (hit.category === "node") {
+    const chapterId = hit.chapter ?? hit.focus?.params?.chapter ?? null;
+    return chapterId ? { op: "set_node", chapterId, nodeId: hit.id } : null;
+  }
+  const collection = SCOUT_RECORD_COLLECTION[hit.category];
+  return collection ? { op: "set_record", collection, id: hit.id } : null;
+}
 
 function jsonText(value) {
   return {
@@ -86,30 +108,6 @@ function findNode(snapshot, chapterId, nodeId) {
   const chapter = snapshot.bundle.chapters[chapterId];
   const node = chapter?.nodes?.[nodeId];
   return node ? { chapterId, chapterTitle: chapter.title, nodeId, node } : null;
-}
-
-function searchValue(value, query, path, results) {
-  if (results.length >= MAX_SEARCH_RESULTS) return;
-  if (typeof value === "string") {
-    const index = value.toLocaleLowerCase().indexOf(query);
-    if (index >= 0) {
-      results.push({
-        path,
-        text: value.length > 320 ? `${value.slice(0, 317)}…` : value,
-      });
-    }
-    return;
-  }
-  if (Array.isArray(value)) {
-    value.forEach((entry, index) => searchValue(entry, query, `${path}[${index}]`, results));
-    return;
-  }
-  if (value && typeof value === "object") {
-    for (const [key, entry] of Object.entries(value)) {
-      searchValue(entry, query, path ? `${path}.${key}` : key, results);
-      if (results.length >= MAX_SEARCH_RESULTS) return;
-    }
-  }
 }
 
 async function readJsonBody(request) {
@@ -377,31 +375,6 @@ function createProtocolServer({ projectService, isRendererDirty, auditTool, clie
         });
       }
       return jsonText({ revision: snapshot.project.revision, ...result });
-    },
-  );
-
-  registerTool(
-    "search_project",
-    {
-      title: "Search project text",
-      description:
-        "Search string values across scenario, chapters, and catalogs. Returns at most 100 matches.",
-      inputSchema: {
-        projectId: z.string().min(1),
-        query: z.string().trim().min(1).max(200),
-      },
-      annotations: { readOnlyHint: true, openWorldHint: false },
-    },
-    async ({ projectId, query }) => {
-      const snapshot = await readSnapshot(projectId);
-      const results = [];
-      searchValue(snapshot.bundle, query.toLocaleLowerCase(), "", results);
-      return jsonText({
-        revision: snapshot.project.revision,
-        query,
-        matches: results,
-        truncated: results.length >= MAX_SEARCH_RESULTS,
-      });
     },
   );
 
@@ -733,6 +706,60 @@ function createProtocolServer({ projectService, isRendererDirty, auditTool, clie
           analytics: options.analytics,
         }),
       );
+    },
+  );
+
+  registerTool(
+    "search_project",
+    {
+      title: "Search project",
+      description:
+        "Fuzzy search across every project entity — nodes, chapters, items, characters, flags, events, and assets — powered by blackbox-scout. Each hit carries a `patch` locator giving the exact patch_documents address (set_node chapterId/nodeId, or set_record collection/id) so you can jump straight from a match to a targeted edit. Use `only` to restrict categories; pass an empty query to list everything. Set `fullText` to also match body text (node prose, choice labels, descriptions, subtitles), returning a `snippet` of the matched text.",
+      inputSchema: {
+        projectId: z.string().min(1),
+        query: z.string().default(""),
+        only: z
+          .array(
+            z.enum([
+              "node",
+              "chapter",
+              "item",
+              "character",
+              "flag",
+              "event",
+              "texture",
+              "music",
+              "sfx",
+              "asset",
+            ]),
+          )
+          .default([]),
+        fullText: z.boolean().default(false),
+        limit: z.number().int().positive().max(500).default(50),
+      },
+      annotations: { readOnlyHint: true, openWorldHint: false },
+    },
+    async ({ projectId, query, only, limit, fullText }) => {
+      const snapshot = await readSnapshot(projectId);
+      const run = await executeScout(projectService, projectId, { query, only, limit, fullText });
+      if (!run.ok || !run.parsed) {
+        return jsonText({ ok: false, query, error: run.raw?.stderr?.trim() || "scout failed" });
+      }
+      const results = (run.parsed.results ?? []).map((hit) => ({
+        category: hit.category,
+        id: hit.id,
+        label: hit.label,
+        chapter: hit.chapter ?? null,
+        scenario: hit.scenario,
+        ...(hit.snippet ? { snippet: hit.snippet } : {}),
+        patch: scoutPatchLocator(hit),
+      }));
+      return jsonText({
+        revision: snapshot.project.revision,
+        query,
+        count: results.length,
+        results,
+      });
     },
   );
 

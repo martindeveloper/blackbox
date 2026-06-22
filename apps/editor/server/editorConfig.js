@@ -37,6 +37,7 @@ export function nullTools() {
   const linter = toolBinPath("blackbox-lint");
   const bundler = toolBinPath("blackbox-bundler");
   const simulator = toolBinPath("blackbox-simulator");
+  const scout = toolBinPath("blackbox-scout");
   return {
     linter,
     linterBuild: null,
@@ -44,6 +45,8 @@ export function nullTools() {
     bundlerBuild: null,
     simulator,
     simulatorBuild: null,
+    scout,
+    scoutBuild: null,
   };
 }
 
@@ -76,6 +79,8 @@ function resolveToolsFromDoc(doc, pathVars) {
     bundlerBuild: PACKAGED ? null : resolveToolBuild(doc.tools.bundler, pathVars),
     simulator: resolveToolWithFallback(doc.tools.simulator, pathVars, "blackbox-simulator"),
     simulatorBuild: PACKAGED ? null : resolveToolBuild(doc.tools.simulator, pathVars),
+    scout: resolveToolWithFallback(doc.tools.scout, pathVars, "blackbox-scout"),
+    scoutBuild: PACKAGED ? null : resolveToolBuild(doc.tools.scout, pathVars),
   };
 }
 
