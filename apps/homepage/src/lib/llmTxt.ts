@@ -46,7 +46,8 @@ function documentationLinks(): LlmLink[] {
   links.push({
     title: "Complete documentation (llm-full.txt)",
     href: "/llm-full.txt",
-    description: "All guide markdown concatenated for agents that need the full reference in one fetch.",
+    description:
+      "All guide markdown concatenated for agents that need the full reference in one fetch.",
   });
 
   return links;

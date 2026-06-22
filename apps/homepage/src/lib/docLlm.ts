@@ -78,7 +78,8 @@ function joinNotes(...parts: Array<string | undefined>): string {
 
 function cliNotes(content: string): string {
   const actions = extractTableFirstColumn(extractSection(content, "Actions"));
-  const platforms = content.match(/`--platform (web \| ios \| android)`/)?.[1] ?? "web, ios, android";
+  const platforms =
+    content.match(/`--platform (web \| ios \| android)`/)?.[1] ?? "web, ios, android";
 
   return joinNotes(
     actions.length > 0 ? `Actions: ${actions.join(", ")}.` : undefined,
@@ -90,11 +91,15 @@ function cliNotes(content: string): string {
 function mcpNotes(content: string): string {
   const toolsSection = extractSection(content, "Tools");
   const tools = extractTableFirstColumn(toolsSection);
-  const patchOps = content.match(/`set_node`, `remove_node`, `set_choice`, `remove_choice`, `set_record`, `remove_record`/);
+  const patchOps = content.match(
+    /`set_node`, `remove_node`, `set_choice`, `remove_choice`, `set_record`, `remove_record`/,
+  );
 
   return joinNotes(
     tools.length > 0 ? `Tools: ${tools.join(", ")}.` : undefined,
-    patchOps ? "Patch ops: set_node, remove_node, set_choice, remove_choice, set_record, remove_record." : undefined,
+    patchOps
+      ? "Patch ops: set_node, remove_node, set_choice, remove_choice, set_record, remove_record."
+      : undefined,
     "Localhost-only streamable HTTP with bearer auth; mutations require expectedRevision.",
   );
 }
@@ -103,7 +108,9 @@ function grammarNotes(content: string): string {
   const documents = extractH3Headings(extractSection(content, "Documents")).map((heading) =>
     heading.replace(/^`([^`]+)`.*/, "$1"),
   );
-  const concepts = extractH2Headings(content).filter((heading) => heading !== "Documents" && heading !== "Conventions");
+  const concepts = extractH2Headings(content).filter(
+    (heading) => heading !== "Documents" && heading !== "Conventions",
+  );
 
   return joinNotes(
     documents.length > 0 ? `Documents: ${documents.join(", ")}.` : undefined,

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactElement, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { cycleTheme, type ThemeMode } from "@/hooks/useTheme";
@@ -68,18 +69,8 @@ const THEME_META: Record<
   auto: { icon: <AutoIcon />, labelKey: "nav.theme_auto" },
 };
 
-const NAV_SECTIONS: {
+type SiteNavItem = {
   id: string;
-  labelKey: "nav.features" | "nav.toolchain" | "nav.architecture" | "nav.editor" | "nav.platforms";
-}[] = [
-  { id: "features", labelKey: "nav.features" },
-  { id: "toolchain", labelKey: "nav.toolchain" },
-  { id: "architecture", labelKey: "nav.architecture" },
-  { id: "platforms", labelKey: "nav.platforms" },
-  { id: "editor", labelKey: "nav.editor" },
-];
-
-export type NavItem = {
   href: string;
   label: string;
 };
@@ -87,7 +78,6 @@ export type NavItem = {
 type Props = {
   mode: ThemeMode;
   setMode: (m: ThemeMode) => void;
-  items?: NavItem[];
 };
 
 function NavAnchor({
@@ -115,17 +105,30 @@ function NavAnchor({
   );
 }
 
-export function Nav({ mode, setMode, items }: Props) {
+function isSiteNavActive(id: string, pathname: string): boolean {
+  switch (id) {
+    case "engine":
+      return pathname === "/";
+    case "editor":
+      return pathname === "/editor";
+    case "docs":
+      return pathname === "/docs" || pathname.startsWith("/docs/");
+    case "download":
+      return pathname === "/download";
+    case "games":
+      return pathname === "/games" || pathname.startsWith("/games/");
+    default:
+      return false;
+  }
+}
+
+export function Nav({ mode, setMode }: Props) {
+  const pathname = usePathname();
   const { t } = useTranslation();
   const [isScrolled, setIsScrolled] = useState(false);
   const { icon, labelKey } = THEME_META[mode];
   const label = t(labelKey);
-  const navItems =
-    items ??
-    NAV_SECTIONS.map(({ id, labelKey: sectionLabelKey }) => ({
-      href: `#${id}`,
-      label: t(sectionLabelKey),
-    }));
+  const siteItems = t("nav.site", { returnObjects: true }) as SiteNavItem[];
 
   useEffect(() => {
     const updateScrolledState = () => setIsScrolled(window.scrollY > 24);
@@ -136,7 +139,7 @@ export function Nav({ mode, setMode, items }: Props) {
   }, []);
 
   return (
-    <nav className={`nav${isScrolled ? " nav--scrolled" : ""}`}>
+    <nav className={`nav${isScrolled ? " nav--scrolled" : ""}`} aria-label={t("nav.site_aria")}>
       <div className="container nav-inner">
         <Link href="/" className="nav-logo" aria-label={t("nav.home_aria")}>
           <LogoMark className="nav-logo-mark" />
@@ -146,27 +149,18 @@ export function Nav({ mode, setMode, items }: Props) {
           </span>
         </Link>
         <div className="nav-links">
-          <div className="nav-anchor-links">
-            {navItems.map((item) => (
-              <NavAnchor key={item.href} href={item.href} className="nav-link">
+          <div className="nav-site-links">
+            {siteItems.map((item) => (
+              <NavAnchor
+                key={item.id}
+                href={item.href}
+                className={`nav-link${isSiteNavActive(item.id, pathname) ? " nav-link--active" : ""}`}
+                aria-current={isSiteNavActive(item.id, pathname) ? "page" : undefined}
+              >
                 {item.label}
               </NavAnchor>
             ))}
           </div>
-          <Link href="/games" className="nav-link nav-link--games">
-            <span>{t("nav.games")}</span>
-            <svg
-              width="13"
-              height="13"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              aria-hidden="true"
-            >
-              <path d="M5 12h14M13 6l6 6-6 6" />
-            </svg>
-          </Link>
           <button
             type="button"
             className="theme-btn"

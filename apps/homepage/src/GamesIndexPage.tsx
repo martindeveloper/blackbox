@@ -37,12 +37,12 @@ export function GamesIndexPage() {
         <section className="games-index-hero">
           <div className="games-index-grid" aria-hidden="true" />
           <div className="container games-index-hero-inner">
-            <div className="games-index-eyebrow">
+            <div className="games-index-eyebrow games-index-reveal">
               <span>{t("gamesIndex.eyebrow.brand")}</span>
               <span>{t("gamesIndex.eyebrow.catalog")}</span>
             </div>
             <div className="games-index-title-row">
-              <h1>
+              <h1 className="games-index-reveal games-index-delay-1">
                 {t("gamesIndex.headline")
                   .split("\n")
                   .map((line, i) => (
@@ -52,9 +52,14 @@ export function GamesIndexPage() {
                     </span>
                   ))}
               </h1>
-              <p>{t("gamesIndex.description")}</p>
+              <p className="games-index-reveal games-index-delay-2">
+                {t("gamesIndex.description")}
+              </p>
             </div>
-            <div className="games-index-ledger" aria-label={t("gamesIndex.ledger_aria")}>
+            <div
+              className="games-index-ledger games-index-reveal games-index-delay-3"
+              aria-label={t("gamesIndex.ledger_aria")}
+            >
               {ledger.map((item) => (
                 <span key={item}>{item}</span>
               ))}
