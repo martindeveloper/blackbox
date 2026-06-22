@@ -3,7 +3,7 @@ mod formats;
 mod pipeline;
 
 use std::fs::File;
-use std::io::BufWriter;
+use std::io::{BufWriter, Cursor, Seek, Write};
 use std::path::Path;
 
 use crate::error::{ConvertError, Result};
@@ -29,6 +29,21 @@ pub struct AudioOptions {
 }
 
 pub fn convert_audio(input: &Path, output: &Path, options: AudioOptions) -> Result<()> {
+    let file = BufWriter::with_capacity(BUFFER_SIZE, File::create(output)?);
+    convert_to_writer(input, file, options)
+}
+
+pub fn convert_audio_to_vec(input: &Path, options: AudioOptions) -> Result<Vec<u8>> {
+    let mut writer = Cursor::new(Vec::new());
+    convert_to_writer(input, &mut writer, options)?;
+    Ok(writer.into_inner())
+}
+
+fn convert_to_writer<W: Write + Seek>(
+    input: &Path,
+    writer: W,
+    options: AudioOptions,
+) -> Result<()> {
     if options.bitrate == 0 {
         return Err(ConvertError::InvalidOption(
             "audio bitrate must be greater than zero".to_string(),
@@ -37,11 +52,10 @@ pub fn convert_audio(input: &Path, output: &Path, options: AudioOptions) -> Resu
 
     let source = AudioSource::open(input)?;
     let channels = source.channels();
-    let file = BufWriter::with_capacity(BUFFER_SIZE, File::create(output)?);
 
     match options.codec {
-        AudioCodec::Opus => run(source, OpusSink::new(file, channels, options.bitrate)?),
-        AudioCodec::Aac => run(source, AacSink::new(file, channels, options.bitrate)?),
-        AudioCodec::Wav => run(source, WavSink::new(file, channels)?),
+        AudioCodec::Opus => run(source, OpusSink::new(writer, channels, options.bitrate)?),
+        AudioCodec::Aac => run(source, AacSink::new(writer, channels, options.bitrate)?),
+        AudioCodec::Wav => run(source, WavSink::new(writer, channels)?),
     }
 }

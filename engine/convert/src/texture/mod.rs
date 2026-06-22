@@ -33,18 +33,33 @@ pub struct ImageOptions {
 }
 
 pub fn convert_image(input: &Path, output: &Path, options: ImageOptions) -> Result<()> {
+    let mut writer = BufWriter::with_capacity(256 * 1024, File::create(output)?);
+    convert_to_writer(input, &mut writer, options)?;
+    writer.flush()?;
+    Ok(())
+}
+
+pub fn convert_image_to_vec(input: &Path, options: ImageOptions) -> Result<Vec<u8>> {
+    let mut output = Vec::new();
+    convert_to_writer(input, &mut output, options)?;
+    Ok(output)
+}
+
+fn convert_to_writer(
+    input: &Path,
+    writer: &mut impl Write,
+    options: ImageOptions,
+) -> Result<()> {
     validate(options)?;
     let image = apply(
         ImageReader::open(input)?.with_guessed_format()?.decode()?,
         options.resize,
     );
-    let mut writer = BufWriter::with_capacity(256 * 1024, File::create(output)?);
     match options.format {
-        ImageFormat::Webp => formats::webp::encode(&image, options.quality, &mut writer)?,
-        ImageFormat::Png => formats::png::encode(&image, &mut writer)?,
-        ImageFormat::Jpeg => formats::jpeg::encode(&image, options.quality, &mut writer)?,
+        ImageFormat::Webp => formats::webp::encode(&image, options.quality, writer)?,
+        ImageFormat::Png => formats::png::encode(&image, writer)?,
+        ImageFormat::Jpeg => formats::jpeg::encode(&image, options.quality, writer)?,
     }
-    writer.flush()?;
     Ok(())
 }
 
