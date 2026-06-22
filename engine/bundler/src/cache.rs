@@ -8,7 +8,7 @@ use super::format::EntryCodec;
 use super::platform::Platform;
 
 /// Bump when platform transcode profiles, cook schema, or resize pipeline change.
-const COOK_CACHE_VERSION: u32 = 3;
+const COOK_CACHE_VERSION: u32 = 4;
 
 #[derive(Debug, Clone)]
 pub struct CookCache {

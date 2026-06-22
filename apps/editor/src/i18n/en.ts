@@ -491,14 +491,13 @@ export const en = {
   },
   about: {
     tagline: "Scenario authoring for Blackbox",
-    lead: "Browser-based editor for game projects — manifests, chapter graphs, catalogs, and media. Ships with a local API that runs the Rust engine toolchain.",
+    lead: "Desktop editor for game projects — manifests, chapter graphs, catalogs, and media. Ships with a local API and bundled Rust engine tools; media conversion needs no external codecs.",
     inspectorHint: "Credits and stack details are in the main panel.",
     groups: {
       runtime: "Runtime",
       editorUi: "Editor UI",
       build: "Build & dev server",
-      engine: "Rust engine",
-      media: "Media toolchain",
+      engine: "Rust engine & CLI tools",
       platform: "Platform APIs",
     },
     ai: {
@@ -506,6 +505,7 @@ export const en = {
       lead: "Blackbox and this editor were developed with help from AI coding agents — alongside human design, review, and direction.",
     },
     deps: {
+      electron: "Desktop shell, OS integration & packaged builds",
       nodeJs: "Editor dev server & tooling",
       react: "UI framework",
       typescript: "Typed authoring surface",
@@ -519,14 +519,16 @@ export const en = {
       rolldown: "Frontend bundler",
       fastify: "Local API server",
       oxlint: "Lint & format",
-      rust: "Scenario engine, lint, bundle",
+      rust: "Scenario engine, lint, bundle & convert",
       cargo: "Workspace builds & CLI tools",
       blackboxCore: "Runtime logic & validation",
       blackboxLint: "Project validation",
       blackboxBundler: "Cook, pack, inspect",
-      ffmpeg: "Audio transcode, texture resize & encode fallbacks",
-      cwebp: "WebP texture encoding (optional)",
+      blackboxConvert: "Self-contained texture & audio conversion (no ffmpeg or cwebp)",
+      blackboxScout: "Index-free fuzzy search across nodes, catalogs & assets",
+      blackboxSimulator: "Path exploration, endings coverage & narrative analytics",
       localProjectApi: "Revisioned project files, media, and file watching",
+      mcp: "AI agent integration in the desktop app",
       webAssembly: "Engine target for web clients",
       cursor: "Composer model (notably) — pairing, refactors, editor UI",
       claude: "Architecture, engine work, documentation",
@@ -572,30 +574,6 @@ export const en = {
     preflightRefresh: "Refresh",
     preflightRefreshing: "Refreshing…",
     preflightOk: "All checks passed for the selected stages.",
-    dependencies: {
-      details: "Details",
-      detecting: "Detecting your package manager…",
-      manual: "Manual installation",
-      desktopOnly: "Automatic installation is available in the desktop editor.",
-      installButton: "Install with {{manager}}",
-      installing: "Installing…",
-      permissionNote:
-        "The editor will run the command shown above. Your system may ask for permission.",
-      installSuccess: "Installation completed",
-      installSuccessRestart:
-        "Installation completed. Restart the editor so Windows can refresh its command paths.",
-      installFailed: "Installation did not complete",
-      ffmpeg: {
-        title: "FFmpeg is required",
-        description:
-          "FFmpeg processes game audio, resizes textures, and provides encoding fallbacks. Builds that need media processing cannot continue without it.",
-      },
-      cwebp: {
-        title: "cwebp is optional",
-        description:
-          "cwebp creates smaller WebP textures. Builds can continue without it, but some textures may remain larger PNG files.",
-      },
-    },
     stage: {
       build: "Build",
       bundle: "Bundle",
@@ -717,6 +695,13 @@ export const en = {
       graphEntries: "{{count}} entries",
       graphDeps_one: "{{count}} dep",
       graphDeps_other: "{{count}} deps",
+    },
+    convert: {
+      title: "Convert",
+      short: "Convert textures and audio",
+      description:
+        "Used by the bundler to convert textures and audio into the formats required by web, iOS, and Android builds.",
+      command: "blackbox-convert",
     },
     simulator: {
       title: "Simulator",

@@ -2,7 +2,6 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 import { resolvePlatformConfig } from "../../lib/adventure.mjs";
 import { validateIosSdkConfig } from "../../lib/platformIos.mjs";
-import { sharedBundleChecks } from "../../lib/preflight/bundleCommon.mjs";
 import { capacitorBin } from "../../lib/preflight/context.mjs";
 import { toMobileAdv } from "../lib/mobileAdv.mjs";
 import { displayPath, log, runBundler, runLint, runScriptsLint } from "../lib/run.mjs";
@@ -18,7 +17,7 @@ export const name = "ios";
 
 export async function preflightCheck(stage, ctx) {
   if (stage === "lint") return [];
-  if (stage === "bundle") return sharedBundleChecks(ctx, { iosAudio: true });
+  if (stage === "bundle") return [];
 
   const checks = [];
   if (process.platform !== "darwin") {

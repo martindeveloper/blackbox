@@ -36,6 +36,7 @@ function resolveEditorPath(value, vars) {
 export function nullTools() {
   const linter = toolBinPath("blackbox-lint");
   const bundler = toolBinPath("blackbox-bundler");
+  const converter = toolBinPath("blackbox-convert");
   const simulator = toolBinPath("blackbox-simulator");
   const scout = toolBinPath("blackbox-scout");
   return {
@@ -43,6 +44,7 @@ export function nullTools() {
     linterBuild: null,
     bundler,
     bundlerBuild: null,
+    converter,
     simulator,
     simulatorBuild: null,
     scout,
@@ -77,6 +79,7 @@ function resolveToolsFromDoc(doc, pathVars) {
     linterBuild: PACKAGED ? null : resolveToolBuild(doc.tools.linter, pathVars),
     bundler: resolveToolWithFallback(doc.tools.bundler, pathVars, "blackbox-bundler"),
     bundlerBuild: PACKAGED ? null : resolveToolBuild(doc.tools.bundler, pathVars),
+    converter: resolveToolWithFallback(doc.tools.converter, pathVars, "blackbox-convert"),
     simulator: resolveToolWithFallback(doc.tools.simulator, pathVars, "blackbox-simulator"),
     simulatorBuild: PACKAGED ? null : resolveToolBuild(doc.tools.simulator, pathVars),
     scout: resolveToolWithFallback(doc.tools.scout, pathVars, "blackbox-scout"),

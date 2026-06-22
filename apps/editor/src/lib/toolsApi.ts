@@ -371,6 +371,7 @@ export interface ToolInfo {
 export interface ToolDiscovery {
   linter: ToolInfo;
   bundler: ToolInfo;
+  converter: ToolInfo;
   simulator: ToolInfo;
   scout: ToolInfo;
   buildEnabled: boolean;

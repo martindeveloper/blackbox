@@ -35,8 +35,6 @@ struct Options {
     platform: Platform,
     data_root: Option<PathBuf>,
     cache_dir: PathBuf,
-    ffmpeg: PathBuf,
-    cwebp: PathBuf,
     skip_transcode: bool,
     skip_missing: bool,
     archive_compression: ArchiveCompression,
@@ -174,14 +172,12 @@ fn run_bundle(args: &[String]) -> Result<()> {
     };
 
     let tools = MediaTools::new(
-        options.ffmpeg.clone(),
-        options.cwebp.clone(),
         options.platform,
         options.skip_transcode,
         cache,
         options.verbose,
         Arc::clone(&output),
-    )?;
+    );
     let cook_jobs = build_cook_jobs(
         &content,
         &data_root,
@@ -218,8 +214,6 @@ fn parse_bundle_args(args: &[String]) -> Result<Options> {
     let mut platform = None;
     let mut data_root = None;
     let mut cache_dir = PathBuf::from(".cache/bundle");
-    let mut ffmpeg = PathBuf::from("ffmpeg");
-    let mut cwebp = PathBuf::from("cwebp");
     let mut skip_transcode = false;
     let mut skip_missing = false;
     let mut archive_compression = ArchiveCompression::None;
@@ -254,12 +248,6 @@ fn parse_bundle_args(args: &[String]) -> Result<Options> {
                     args.next()
                         .context("--cache-dir requires a path argument")?,
                 );
-            }
-            "--ffmpeg" => {
-                ffmpeg = PathBuf::from(args.next().context("--ffmpeg requires a path argument")?);
-            }
-            "--cwebp" => {
-                cwebp = PathBuf::from(args.next().context("--cwebp requires a path argument")?);
             }
             "--skip-transcode" => skip_transcode = true,
             "--ignore-missing" => skip_missing = true,
@@ -304,8 +292,6 @@ fn parse_bundle_args(args: &[String]) -> Result<Options> {
         platform,
         data_root,
         cache_dir,
-        ffmpeg,
-        cwebp,
         skip_transcode,
         skip_missing,
         archive_compression,
@@ -333,8 +319,6 @@ OPTIONS:
     -o, --output <PATH>    Output directory (default: dist/bundle)
     --data-root <PATH>     Asset root for src paths (default: scenario folder)
     --cache-dir <PATH>     Cook cache root (default: .cache/bundle)
-    --ffmpeg <PATH>        ffmpeg binary (default: ffmpeg)
-    --cwebp <PATH>         cwebp binary for WebP textures (default: cwebp)
     --skip-transcode       Pack source assets unchanged (escape hatch; skips cook cache)
     --ignore-missing       Skip asset src paths whose files are not on disk (dev only)
     --archive-compress <F> Lossless archive compression for shipping (zstd)
@@ -931,8 +915,6 @@ mod tests {
             platform: Platform::Web,
             data_root: Some(Path::new(env!("CARGO_MANIFEST_DIR")).join("../../tests/assets")),
             cache_dir: std::env::temp_dir().join("blackbox-bundler-cache-test"),
-            ffmpeg: PathBuf::from("ffmpeg"),
-            cwebp: PathBuf::from("cwebp"),
             skip_transcode: true,
             skip_missing: false,
             archive_compression: ArchiveCompression::None,
@@ -945,15 +927,12 @@ mod tests {
         let content = decode_scenario_bundle_files(&bundle_files).expect("load scenario");
         let test_out = std::sync::Arc::new(blackbox_output::Output::new(false));
         let tools = MediaTools::new(
-            options.ffmpeg.clone(),
-            options.cwebp.clone(),
             options.platform,
             true,
             None,
             false,
             std::sync::Arc::clone(&test_out),
-        )
-        .expect("media tools");
+        );
         let cook_jobs = build_cook_jobs(
             &content,
             options.data_root.as_ref().unwrap(),

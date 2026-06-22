@@ -12,24 +12,15 @@ Library crate: `blackbox_bundler`. Cook-rule parsing lives in
 | Tool | Required? | Purpose |
 |------|-----------|---------|
 | Rust toolchain | yes | Build and run the bundler |
-| `ffmpeg` | yes when transcoding | Audio encoding, texture resizing, and fallbacks |
-| `cwebp` | optional | Preferred WebP encoder when ffmpeg lacks `libwebp` |
 | Scenario folder | yes | `data/<name>/` with JSON documents and source assets |
 
-On macOS:
-
-```bash
-brew install ffmpeg webp
-```
-
-Check the available codecs before building:
+Check the built-in media profile before building:
 
 ```bash
 cargo run -p blackbox-bundler -- doctor --platform web
 ```
 
-`doctor` supports `--platform web|ios|android`, `--ffmpeg`, and `--cwebp`. It exits `1` only when
-the required ffmpeg executable is missing; unavailable optional codecs are warnings.
+`doctor` supports `--platform web|ios|android` and reports the built-in texture and audio codecs.
 
 ## Pipeline
 
@@ -66,8 +57,6 @@ cargo run -p blackbox-bundler --release -- \
 | `-o, --output <PATH>` | Output directory; default `dist/bundle` |
 | `--data-root <PATH>` | Asset root; default is the scenario folder |
 | `--cache-dir <PATH>` | Cook cache; default `.cache/bundle` |
-| `--ffmpeg <PATH>` | ffmpeg executable; default `ffmpeg` |
-| `--cwebp <PATH>` | cwebp executable; default `cwebp` |
 | `--skip-transcode` | Pack source media unchanged and bypass the cook cache |
 | `--ignore-missing` | Skip missing source files; intended for development |
 | `--archive-compress zstd` | Write compressed shipping blobs in addition to raw boxes |
@@ -163,9 +152,8 @@ With transcoding enabled, the preferred outputs are:
 | iOS | WebP, quality 90 | AAC/M4A 128k | AAC/M4A 96k |
 | Android | WebP, quality 80 | Opus/OGG 96k | Opus/OGG 48k |
 
-Texture fallback order is `cwebp`, ffmpeg `libwebp`, then optimized PNG or iOS JPEG. Audio falls
-back to MP3 when the preferred encoder is unavailable. If all transforms fail, the source bytes
-are packed with a warning.
+Texture fallback order is built-in WebP, then iOS JPEG or PNG. Audio uses built-in Opus for web
+and Android and AAC for iOS. If conversion fails, source bytes are packed with a warning.
 
 ## Web integration
 
@@ -204,7 +192,7 @@ engine/bundler-cook/     bundle.cook.json parsing and resolution
 engine/bundler/src/
   main.rs                CLI and project-bundle assembly
   cook.rs                parallel cook worker pool
-  media.rs               ffmpeg/cwebp transforms
+  media.rs               built-in texture/audio conversion
   cache.rs               cook cache
   deps.rs                shared/chapter asset ownership
   format.rs              box, map, and project-map formats

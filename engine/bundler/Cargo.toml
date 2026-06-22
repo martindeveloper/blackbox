@@ -19,6 +19,7 @@ path = "src/lib.rs"
 anyhow = "1.0"
 blackbox = { path = "../core" }
 blackbox-bundler-cook = { path = "../bundler-cook" }
+blackbox-convert = { path = "../convert" }
 blackbox-format = { path = "../format" }
 blackbox-output = { path = "../output" }
 serde = { version = "1.0", features = ["derive"] }

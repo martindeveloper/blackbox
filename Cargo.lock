@@ -96,6 +96,7 @@ dependencies = [
  "anyhow",
  "blackbox",
  "blackbox-bundler-cook",
+ "blackbox-convert",
  "blackbox-format",
  "blackbox-output",
  "serde",

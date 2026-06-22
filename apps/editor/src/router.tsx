@@ -203,11 +203,13 @@ export const toolsRoute = createRoute({
     tool:
       s.tool === "bundle"
         ? ("bundle" as const)
-        : s.tool === "simulator"
-          ? ("simulator" as const)
-          : s.tool === "linter"
-            ? ("linter" as const)
-            : null,
+        : s.tool === "convert"
+          ? ("convert" as const)
+          : s.tool === "simulator"
+            ? ("simulator" as const)
+            : s.tool === "linter"
+              ? ("linter" as const)
+              : null,
     run: s.run === true || s.run === 1 || s.run === "1" || s.run === "true" ? true : undefined,
   }),
   component: ToolsEditor,

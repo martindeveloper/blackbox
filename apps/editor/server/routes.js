@@ -387,7 +387,7 @@ export async function registerRoutes(app, service) {
     serverProjectRoute(ProjectRoutes.ToolsDiscover),
     projectRequest(service, async (project) => {
       const tools = project.tools ?? nullTools();
-      const [linter, bundler, simulator, scout] = await Promise.all([
+      const [linter, bundler, converter, simulator, scout] = await Promise.all([
         discoverOneTool(
           "blackbox-lint",
           tools.linter,
@@ -397,6 +397,11 @@ export async function registerRoutes(app, service) {
           "blackbox-bundler",
           tools.bundler,
           toolDiscoverySource("blackbox-bundler", tools.bundler),
+        ),
+        discoverOneTool(
+          "blackbox-convert",
+          tools.converter,
+          toolDiscoverySource("blackbox-convert", tools.converter),
         ),
         discoverOneTool(
           "blackbox-simulator",
@@ -412,6 +417,7 @@ export async function registerRoutes(app, service) {
       return {
         linter,
         bundler,
+        converter,
         simulator,
         scout,
         buildEnabled: !bundledToolsEnabled(),

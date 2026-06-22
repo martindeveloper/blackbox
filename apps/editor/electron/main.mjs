@@ -24,7 +24,6 @@ import { setupMacApplicationMenu } from "./menu.mjs";
 import { openInIde, probeIdes } from "./ideHost.mjs";
 import { parseCliMode, printEditorCliHelp } from "./cliMode.mjs";
 import { applyDarwinShellPath } from "./shellPath.mjs";
-import { dependencyInstallInfo, installDependency } from "./dependencyInstaller.mjs";
 import { VERSION_API } from "../shared/versionApi.js";
 import { EDITOR_SIDECAR_DIR, MCP_CREDENTIALS_BASENAME } from "../shared/blackboxPaths.js";
 import { McpCredentialStore } from "./mcpCredentials.mjs";
@@ -397,18 +396,6 @@ if (cliArgs !== null) {
         }
         shell.showItemInFolder(resolved);
         return true;
-      });
-      ipcMain.handle("editor:get-dependency-install-info", async (event, dependency) => {
-        if (event.sender !== mainWindow?.webContents) {
-          throw new Error("Dependency details are only available from the editor window");
-        }
-        return dependencyInstallInfo(dependency);
-      });
-      ipcMain.handle("editor:install-dependency", async (event, dependency) => {
-        if (event.sender !== mainWindow?.webContents) {
-          throw new Error("Dependency installation is only available from the editor window");
-        }
-        return installDependency(dependency);
       });
       ipcMain.handle("editor:get-mcp-status", async (event) => {
         if (event.sender !== mainWindow?.webContents) {

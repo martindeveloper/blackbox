@@ -26,5 +26,6 @@ export function toolDiscoveryInfo(
   if (!discovery) return null;
   if (toolId === "linter") return discovery.linter;
   if (toolId === "bundle") return discovery.bundler;
+  if (toolId === "convert") return discovery.converter;
   return discovery.simulator;
 }

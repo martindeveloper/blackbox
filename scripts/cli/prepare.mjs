@@ -19,8 +19,6 @@ const REQUIRED_TOOLS = [
 
 const OPTIONAL_TOOLS = [
   { name: "wasm-pack", versionArgs: ["--version"], hint: "cargo install wasm-pack" },
-  { name: "ffmpeg", versionArgs: ["-version"], hint: "brew install ffmpeg" },
-  { name: "cwebp", versionArgs: ["-version"], hint: "brew install webp" },
 ];
 
 function toolVersion(command, versionArgs) {

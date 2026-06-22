@@ -10,7 +10,7 @@ import { ACTIVITY_PAGES, Page, type ActivityView } from "./pages.js";
 
 export type { ActivityView } from "./pages.js";
 
-export type ToolId = "linter" | "bundle" | "simulator";
+export type ToolId = "linter" | "bundle" | "convert" | "simulator";
 
 export const DEFAULT_MEDIA_SEARCH = {
   category: "textures" as const,
@@ -56,7 +56,9 @@ function parseLibraryKind(value: string | undefined): LibraryEntryKind {
 }
 
 function parseToolId(value: string | undefined): ToolId | null {
-  if (value === "linter" || value === "bundle" || value === "simulator") return value;
+  if (value === "linter" || value === "bundle" || value === "convert" || value === "simulator") {
+    return value;
+  }
   return null;
 }
 

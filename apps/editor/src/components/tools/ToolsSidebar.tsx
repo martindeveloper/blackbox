@@ -1,4 +1,12 @@
-import { Box, FlaskConical, RefreshCw, Search, ShieldCheck, type LucideIcon } from "lucide-react";
+import {
+  ArrowLeftRight,
+  Box,
+  FlaskConical,
+  RefreshCw,
+  Search,
+  ShieldCheck,
+  type LucideIcon,
+} from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
@@ -30,6 +38,12 @@ export const TOOL_ITEMS: {
     labelKey: "tools.bundle.title",
     descKey: "tools.bundle.short",
     icon: Box,
+  },
+  {
+    id: "convert",
+    labelKey: "tools.convert.title",
+    descKey: "tools.convert.short",
+    icon: ArrowLeftRight,
   },
   {
     id: "simulator",

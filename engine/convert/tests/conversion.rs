@@ -33,6 +33,37 @@ fn opus_output_ends_at_resampled_source_length() {
 }
 
 #[test]
+fn opus_input_decodes_to_source_length() {
+    let temp = TempDir::new().expect("temp dir");
+    let input = temp.path().join("input.wav");
+    let encoded = temp.path().join("encoded.ogg");
+    let decoded = temp.path().join("decoded.wav");
+    write_sine(&input);
+
+    convert_audio(
+        &input,
+        &encoded,
+        AudioOptions {
+            codec: AudioCodec::Opus,
+            bitrate: 64_000,
+        },
+    )
+    .expect("encode Opus");
+    convert_audio(
+        &encoded,
+        &decoded,
+        AudioOptions {
+            codec: AudioCodec::Wav,
+            bitrate: 1,
+        },
+    )
+    .expect("decode Opus");
+
+    let reader = hound::WavReader::open(decoded).expect("open decoded WAV");
+    assert_eq!(u64::from(reader.duration()), TARGET_FRAMES);
+}
+
+#[test]
 fn aac_output_has_resampled_source_duration() {
     let temp = TempDir::new().expect("temp dir");
     let input = temp.path().join("input.wav");

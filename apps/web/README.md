@@ -8,7 +8,7 @@ Full documentation (features, scenario authoring, engine API) lives in the [repo
 
 - [wasm-pack](https://rustwasm.github.io/wasm-pack/) (`cargo install wasm-pack`)
 - Node.js and npm
-- `ffmpeg` (and optionally `cwebp`) for scenario asset cooking — see [engine/bundler/README.md](../../engine/bundler/README.md)
+- Built-in Rust media conversion for scenario asset cooking — see [engine/bundler/README.md](../../engine/bundler/README.md)
 
 ## Quick start
 

@@ -27,19 +27,18 @@ Android experiences without rewriting its rules.
 
 - [Node.js](https://nodejs.org) LTS with npm
 - [Rust](https://rustup.rs)
-- [ffmpeg](https://ffmpeg.org) for processing game audio and images
 
 On macOS:
 
 ```bash
-brew install node rustup ffmpeg
+brew install node rustup
 rustup-init
 ```
 
 On Windows:
 
 ```powershell
-winget install OpenJS.NodeJS.LTS Rustlang.Rustup Gyan.FFmpeg
+winget install OpenJS.NodeJS.LTS Rustlang.Rustup
 ```
 
 On Linux, use your distribution's package manager.
@@ -55,8 +54,7 @@ npm run electron:dev --prefix apps/editor
 
 `prepare` installs npm dependencies (web, mobile, editor), fetches Rust crates, adds the
 `wasm32-unknown-unknown` target when needed, then verifies `node`, `npm`, `rustc`, and `cargo`
-are available. `ffmpeg` and `cwebp` are optional but reported when missing (needed for asset
-bundling).
+are available. Media conversion is built into the Rust toolchain and requires no system codecs.
 
 The first editor launch builds engine tools, so it can take a few minutes.
 

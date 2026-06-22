@@ -77,33 +77,6 @@ impl ResizeSpec {
         }
         h
     }
-
-    pub fn ffmpeg_filter(self) -> Option<String> {
-        if self.is_noop() {
-            return None;
-        }
-
-        match (self.scale, self.max_width, self.max_height) {
-            (Some(scale), None, None) if scale > 0.0 => {
-                Some(format!("scale=iw*{scale}:ih*{scale}"))
-            }
-            (None, Some(w), None) if w > 0 => Some(format!("scale={w}:-2")),
-            (None, None, Some(h)) if h > 0 => Some(format!("scale=-2:{h}")),
-            (None, Some(w), Some(h)) if w > 0 && h > 0 => Some(format!(
-                "scale={w}:{h}:force_original_aspect_ratio=decrease"
-            )),
-            (Some(scale), Some(w), Some(h)) if scale > 0.0 && w > 0 && h > 0 => Some(format!(
-                "scale=iw*{scale}:ih*{scale},scale={w}:{h}:force_original_aspect_ratio=decrease"
-            )),
-            (Some(scale), Some(w), None) if scale > 0.0 && w > 0 => {
-                Some(format!("scale=iw*{scale}:ih*{scale},scale={w}:-2"))
-            }
-            (Some(scale), None, Some(h)) if scale > 0.0 && h > 0 => {
-                Some(format!("scale=iw*{scale}:ih*{scale},scale=-2:{h}"))
-            }
-            _ => None,
-        }
-    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -392,13 +365,6 @@ fn validate_profile(label: &str, profile: TextureCookProfile) -> Option<CookVali
         });
     }
 
-    if !profile.resize.is_noop() && profile.resize.ffmpeg_filter().is_none() {
-        return Some(CookValidationError {
-            code: "invalid-cook-resize",
-            message: format!("'{label}': unsupported resize combination"),
-        });
-    }
-
     None
 }
 
@@ -495,14 +461,12 @@ mod tests {
     }
 
     #[test]
-    fn resize_filter_for_max_box() {
-        let filter = ResizeSpec {
+    fn resize_max_box_is_not_noop() {
+        let resize = ResizeSpec {
             scale: None,
             max_width: Some(1280),
             max_height: Some(720),
-        }
-        .ffmpeg_filter()
-        .expect("filter");
-        assert!(filter.contains("force_original_aspect_ratio=decrease"));
+        };
+        assert!(!resize.is_noop());
     }
 }

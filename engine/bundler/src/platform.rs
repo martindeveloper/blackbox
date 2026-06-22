@@ -1,6 +1,7 @@
 use anyhow::{Result, bail};
 
 use blackbox_bundler_cook::COOK_PLATFORMS;
+use blackbox_convert::{AudioCodec, ImageFormat};
 
 use super::format::EntryCodec;
 
@@ -32,7 +33,7 @@ impl Platform {
         }
     }
 
-    pub fn texture_attempts(self) -> &'static [EncodeAttempt] {
+    pub fn texture_encodings(self) -> &'static [TextureEncoding] {
         match self {
             Self::Web => WEB_TEXTURE,
             Self::Ios => IOS_TEXTURE,
@@ -40,18 +41,20 @@ impl Platform {
         }
     }
 
-    pub fn music_attempts(self) -> &'static [EncodeAttempt] {
+    pub fn music_encoding(self) -> AudioEncoding {
         match self {
-            Self::Web | Self::Android => OPUS_MUSIC,
-            Self::Ios => AAC_MUSIC,
+            Self::Web | Self::Android => {
+                AudioEncoding::new(AudioCodec::Opus, 96_000, EntryCodec::Ogg)
+            }
+            Self::Ios => AudioEncoding::new(AudioCodec::Aac, 128_000, EntryCodec::M4a),
         }
     }
 
-    pub fn sfx_attempts(self) -> &'static [EncodeAttempt] {
+    pub fn sfx_encoding(self) -> AudioEncoding {
         match self {
-            Self::Web => OPUS_SFX_WEB,
-            Self::Android => OPUS_SFX_ANDROID,
-            Self::Ios => AAC_SFX,
+            Self::Web => AudioEncoding::new(AudioCodec::Opus, 64_000, EntryCodec::Ogg),
+            Self::Android => AudioEncoding::new(AudioCodec::Opus, 48_000, EntryCodec::Ogg),
+            Self::Ios => AudioEncoding::new(AudioCodec::Aac, 96_000, EntryCodec::M4a),
         }
     }
 
@@ -65,121 +68,48 @@ impl Platform {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct EncodeAttempt {
-    pub args: &'static [&'static str],
-    pub output_name: &'static str,
+pub struct TextureEncoding {
+    pub format: ImageFormat,
     pub codec: EntryCodec,
 }
 
-impl EncodeAttempt {
-    const fn new(
-        args: &'static [&'static str],
-        output_name: &'static str,
-        codec: EntryCodec,
-    ) -> Self {
+impl TextureEncoding {
+    const fn new(format: ImageFormat, codec: EntryCodec) -> Self {
+        Self { format, codec }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct AudioEncoding {
+    pub codec: AudioCodec,
+    pub bitrate: u32,
+    pub entry_codec: EntryCodec,
+}
+
+impl AudioEncoding {
+    const fn new(codec: AudioCodec, bitrate: u32, entry_codec: EntryCodec) -> Self {
         Self {
-            args,
-            output_name,
             codec,
+            bitrate,
+            entry_codec,
         }
     }
 }
 
-const WEB_TEXTURE: &[EncodeAttempt] = &[
-    EncodeAttempt::new(
-        &["-c:v", "libwebp", "-quality", "85"],
-        "out.webp",
-        EntryCodec::Webp,
-    ),
-    EncodeAttempt::new(
-        &["-c:v", "png", "-compression_level", "9"],
-        "out.png",
-        EntryCodec::Png,
-    ),
+const WEB_TEXTURE: &[TextureEncoding] = &[
+    TextureEncoding::new(ImageFormat::Webp, EntryCodec::Webp),
+    TextureEncoding::new(ImageFormat::Png, EntryCodec::Png),
 ];
 
-const IOS_TEXTURE: &[EncodeAttempt] = &[
-    EncodeAttempt::new(
-        &["-c:v", "libwebp", "-quality", "90"],
-        "out.webp",
-        EntryCodec::Webp,
-    ),
-    EncodeAttempt::new(&["-c:v", "mjpeg", "-q:v", "3"], "out.jpg", EntryCodec::Jpeg),
-    EncodeAttempt::new(
-        &["-c:v", "png", "-compression_level", "9"],
-        "out.png",
-        EntryCodec::Png,
-    ),
+const IOS_TEXTURE: &[TextureEncoding] = &[
+    TextureEncoding::new(ImageFormat::Webp, EntryCodec::Webp),
+    TextureEncoding::new(ImageFormat::Jpeg, EntryCodec::Jpeg),
+    TextureEncoding::new(ImageFormat::Png, EntryCodec::Png),
 ];
 
-const ANDROID_TEXTURE: &[EncodeAttempt] = &[
-    EncodeAttempt::new(
-        &["-c:v", "libwebp", "-quality", "80"],
-        "out.webp",
-        EntryCodec::Webp,
-    ),
-    EncodeAttempt::new(
-        &["-c:v", "png", "-compression_level", "9"],
-        "out.png",
-        EntryCodec::Png,
-    ),
-];
-
-const OPUS_MUSIC: &[EncodeAttempt] = &[
-    EncodeAttempt::new(
-        &["-c:a", "libopus", "-b:a", "96k", "-vbr", "on"],
-        "out.ogg",
-        EntryCodec::Ogg,
-    ),
-    EncodeAttempt::new(
-        &["-c:a", "libmp3lame", "-b:a", "128k"],
-        "out.mp3",
-        EntryCodec::Mp3,
-    ),
-];
-
-const AAC_MUSIC: &[EncodeAttempt] = &[
-    EncodeAttempt::new(&["-c:a", "aac", "-b:a", "128k"], "out.m4a", EntryCodec::M4a),
-    EncodeAttempt::new(
-        &["-c:a", "libmp3lame", "-b:a", "128k"],
-        "out.mp3",
-        EntryCodec::Mp3,
-    ),
-];
-
-const OPUS_SFX_WEB: &[EncodeAttempt] = &[
-    EncodeAttempt::new(
-        &["-c:a", "libopus", "-b:a", "64k", "-vbr", "on"],
-        "out.ogg",
-        EntryCodec::Ogg,
-    ),
-    EncodeAttempt::new(
-        &["-c:a", "libmp3lame", "-b:a", "96k"],
-        "out.mp3",
-        EntryCodec::Mp3,
-    ),
-];
-
-const OPUS_SFX_ANDROID: &[EncodeAttempt] = &[
-    EncodeAttempt::new(
-        &["-c:a", "libopus", "-b:a", "48k", "-vbr", "on"],
-        "out.ogg",
-        EntryCodec::Ogg,
-    ),
-    EncodeAttempt::new(
-        &["-c:a", "libmp3lame", "-b:a", "96k"],
-        "out.mp3",
-        EntryCodec::Mp3,
-    ),
-];
-
-const AAC_SFX: &[EncodeAttempt] = &[
-    EncodeAttempt::new(&["-c:a", "aac", "-b:a", "96k"], "out.m4a", EntryCodec::M4a),
-    EncodeAttempt::new(
-        &["-c:a", "libmp3lame", "-b:a", "96k"],
-        "out.mp3",
-        EntryCodec::Mp3,
-    ),
+const ANDROID_TEXTURE: &[TextureEncoding] = &[
+    TextureEncoding::new(ImageFormat::Webp, EntryCodec::Webp),
+    TextureEncoding::new(ImageFormat::Png, EntryCodec::Png),
 ];
 
 #[cfg(test)]
@@ -208,6 +138,6 @@ mod tests {
 
     #[test]
     fn ios_prefers_aac_for_music() {
-        assert_eq!(Platform::Ios.music_attempts()[0].codec, EntryCodec::M4a);
+        assert_eq!(Platform::Ios.music_encoding().entry_codec, EntryCodec::M4a);
     }
 }

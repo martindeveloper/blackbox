@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   AlertTriangle,
@@ -16,8 +15,6 @@ import { Section, SectionBody, SectionHeader } from "@/components/ui/Section.js"
 import { revealPath } from "@/lib/revealPath.js";
 import { useBuildStore } from "@/store/useBuildStore.js";
 import { useScenarioStore } from "@/store/useScenarioStore.js";
-import type { InstallableDependency } from "@/types/electron.js";
-import { DependencyInstallModal } from "./DependencyInstallModal.js";
 import {
   CONFIGURATION_LABEL_KEYS,
   PLATFORM_LABEL_KEYS,
@@ -43,29 +40,12 @@ const STATUS_ICON = {
 
 type BuildStatus = BuildRunState | "ready";
 
-function PreflightCheckRow({
-  check,
-  onDependencyDetails,
-}: {
-  check: PreflightCheck;
-  onDependencyDetails: (dependency: InstallableDependency) => void;
-}) {
-  const { t } = useTranslation();
+function PreflightCheckRow({ check }: { check: PreflightCheck }) {
   const icon = check.severity === "error" ? XCircle : AlertTriangle;
   return (
     <li className={`build-preflight-check build-preflight-check--${check.severity}`}>
       <Icon icon={icon} size={12} className="build-preflight-check-icon" />
       <span>{check.message}</span>
-      {check.dependency ? (
-        <Button
-          size="sm"
-          variant="ghost"
-          className="build-preflight-details"
-          onClick={() => onDependencyDetails(check.dependency!)}
-        >
-          {t("build.dependencies.details")}
-        </Button>
-      ) : null}
     </li>
   );
 }
@@ -81,7 +61,6 @@ export function BuildInspector() {
   const preflightLoading = useBuildStore((s) => s.preflightLoading);
   const preflightError = useBuildStore((s) => s.preflightError);
   const refreshPreflight = useBuildStore((s) => s.refreshPreflight);
-  const [dependencyModal, setDependencyModal] = useState<InstallableDependency | null>(null);
 
   const status: BuildStatus = run?.state ?? "ready";
   const StatusIcon = STATUS_ICON[status];
@@ -168,11 +147,7 @@ export function BuildInspector() {
                   <span className="build-preflight-stage">{t(`build.stage.${stage}`)}</span>
                   <ul className="build-preflight-checks">
                     {checks.map((check, index) => (
-                      <PreflightCheckRow
-                        key={`${stage}-${index}`}
-                        check={check}
-                        onDependencyDetails={setDependencyModal}
-                      />
+                      <PreflightCheckRow key={`${stage}-${index}`} check={check} />
                     ))}
                   </ul>
                 </li>
@@ -205,16 +180,6 @@ export function BuildInspector() {
           )}
         </SectionBody>
       </Section>
-      {dependencyModal ? (
-        <DependencyInstallModal
-          key={dependencyModal}
-          dependency={dependencyModal}
-          onClose={() => setDependencyModal(null)}
-          onInstalled={async () => {
-            if (projectId) await refreshPreflight(projectId);
-          }}
-        />
-      ) : null}
     </div>
   );
 }

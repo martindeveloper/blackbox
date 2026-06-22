@@ -13,7 +13,7 @@ import { EmptyState } from "@/components/ui/EmptyState.js";
 interface ToolBadgeProps {
   info: ToolInfo | null;
   label: string;
-  toolName: BuildToolName | "scout";
+  toolName: BuildToolName | "converter" | "scout";
   projectId: string | null;
   buildEnabled: boolean;
   onBuilt: () => void;
@@ -23,10 +23,10 @@ function ToolBadge({ info, label, toolName, projectId, buildEnabled, onBuilt }: 
   const { t } = useTranslation();
   const [building, setBuilding] = useState(false);
   const [buildResult, setBuildResult] = useState<ToolBuildResult | null>(null);
-  const buildable = toolName !== "scout";
+  const buildable = toolName !== "converter" && toolName !== "scout";
 
   const handleBuild = useCallback(async () => {
-    if (!projectId || building || toolName === "scout") return;
+    if (!projectId || building || toolName === "converter" || toolName === "scout") return;
     setBuilding(true);
     setBuildResult(null);
     try {
@@ -130,11 +130,19 @@ export function ToolsInspector() {
                 ? (discovery?.linter ?? null)
                 : item.id === "bundle"
                   ? (discovery?.bundler ?? null)
-                  : (discovery?.simulator ?? null)
+                  : item.id === "convert"
+                    ? (discovery?.converter ?? null)
+                    : (discovery?.simulator ?? null)
             }
             label={t(item.labelKey)}
             toolName={
-              item.id === "simulator" ? "simulator" : item.id === "bundle" ? "bundler" : "linter"
+              item.id === "simulator"
+                ? "simulator"
+                : item.id === "bundle"
+                  ? "bundler"
+                  : item.id === "convert"
+                    ? "converter"
+                    : "linter"
             }
             projectId={projectId}
             buildEnabled={discovery?.buildEnabled ?? true}

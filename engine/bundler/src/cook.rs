@@ -218,8 +218,6 @@ mod tests {
         ];
 
         let tools = MediaTools::new(
-            PathBuf::from("ffmpeg"),
-            PathBuf::from("cwebp"),
             Platform::Web,
             true,
             Some(CookCache::new(
@@ -228,8 +226,7 @@ mod tests {
             )),
             false,
             std::sync::Arc::new(blackbox_output::Output::new(false)),
-        )
-        .expect("media tools");
+        );
 
         let cooked = cook_assets(jobs, &tools, 4).expect("cook assets");
         assert_eq!(cooked.len(), 2);

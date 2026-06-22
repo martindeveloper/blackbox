@@ -45,11 +45,7 @@ pub fn convert_image_to_vec(input: &Path, options: ImageOptions) -> Result<Vec<u
     Ok(output)
 }
 
-fn convert_to_writer(
-    input: &Path,
-    writer: &mut impl Write,
-    options: ImageOptions,
-) -> Result<()> {
+fn convert_to_writer(input: &Path, writer: &mut impl Write, options: ImageOptions) -> Result<()> {
     validate(options)?;
     let image = apply(
         ImageReader::open(input)?.with_guessed_format()?.decode()?,

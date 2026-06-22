@@ -2,6 +2,7 @@ use std::fs::File;
 use std::path::Path;
 
 use symphonia::core::audio::sample::Sample;
+use symphonia::core::codecs::audio::well_known::CODEC_ID_OPUS;
 use symphonia::core::codecs::audio::{AudioDecoder, AudioDecoderOptions};
 use symphonia::core::errors::Error as SymphoniaError;
 use symphonia::core::formats::probe::Hint;
@@ -11,9 +12,14 @@ use symphonia::core::meta::MetadataOptions;
 
 use crate::error::{ConvertError, Result};
 
+enum Decoder {
+    Symphonia(Box<dyn AudioDecoder>),
+    Opus(Box<opus_rs::OpusDecoder>),
+}
+
 pub struct AudioSource {
     format: Box<dyn FormatReader>,
-    decoder: Box<dyn AudioDecoder>,
+    decoder: Decoder,
     track_id: u32,
     sample_rate: u32,
     channels: usize,
@@ -59,9 +65,18 @@ impl AudioSource {
         if !(1..=2).contains(&channels) {
             return Err(ConvertError::UnsupportedChannels(channels));
         }
-        let decoder = symphonia::default::get_codecs()
-            .make_audio_decoder(&params, &AudioDecoderOptions::default())
-            .map_err(|error| ConvertError::Decode(error.to_string()))?;
+        let decoder = if params.codec == CODEC_ID_OPUS {
+            Decoder::Opus(Box::new(
+                opus_rs::OpusDecoder::new(sample_rate as i32, channels)
+                    .map_err(|error| ConvertError::Decode(error.to_owned()))?,
+            ))
+        } else {
+            Decoder::Symphonia(
+                symphonia::default::get_codecs()
+                    .make_audio_decoder(&params, &AudioDecoderOptions::default())
+                    .map_err(|error| ConvertError::Decode(error.to_string()))?,
+            )
+        };
         let track_id = track.id;
 
         Ok(Self {
@@ -122,13 +137,36 @@ impl AudioSource {
             if packet.track_id != self.track_id {
                 continue;
             }
-            let decoded = match self.decoder.decode(&packet) {
-                Ok(decoded) => decoded,
-                Err(SymphoniaError::DecodeError(_)) => continue,
-                Err(error) => return Err(ConvertError::Decode(error.to_string())),
-            };
-            self.samples.resize(decoded.samples_interleaved(), f32::MID);
-            decoded.copy_to_slice_interleaved(&mut self.samples);
+            match &mut self.decoder {
+                Decoder::Symphonia(decoder) => {
+                    let decoded = match decoder.decode(&packet) {
+                        Ok(decoded) => decoded,
+                        Err(SymphoniaError::DecodeError(_)) => continue,
+                        Err(error) => return Err(ConvertError::Decode(error.to_string())),
+                    };
+                    self.samples.resize(decoded.samples_interleaved(), f32::MID);
+                    decoded.copy_to_slice_interleaved(&mut self.samples);
+                }
+                Decoder::Opus(decoder) => {
+                    let packet_frames = usize::try_from(packet.block_dur().get())
+                        .unwrap_or(5_760)
+                        .min(5_760);
+                    self.samples.resize(packet_frames * self.channels, 0.0);
+                    let frames = decoder
+                        .decode(&packet.data, packet_frames, &mut self.samples)
+                        .map_err(|error| ConvertError::Decode(error.to_owned()))?;
+                    let trim_start = usize::try_from(packet.trim_start.get()).unwrap_or(usize::MAX);
+                    let trim_end = usize::try_from(packet.trim_end.get()).unwrap_or(usize::MAX);
+                    let start = trim_start.min(frames);
+                    let end = frames.saturating_sub(trim_end).max(start);
+                    self.samples
+                        .copy_within(start * self.channels..end * self.channels, 0);
+                    self.samples.truncate((end - start) * self.channels);
+                    if self.samples.is_empty() {
+                        continue;
+                    }
+                }
+            }
             self.sample_offset = 0;
             return Ok(true);
         }

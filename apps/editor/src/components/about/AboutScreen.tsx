@@ -19,6 +19,7 @@ const DEP_GROUPS: DepGroup[] = [
   {
     titleKey: "about.groups.runtime",
     entries: [
+      { name: "Electron", roleKey: "about.deps.electron", url: "https://www.electronjs.org/" },
       { name: "Node.js", roleKey: "about.deps.nodeJs", url: "https://nodejs.org/" },
       { name: "React", roleKey: "about.deps.react", url: "https://react.dev/" },
       {
@@ -68,27 +69,20 @@ const DEP_GROUPS: DepGroup[] = [
       { name: "blackbox-core", roleKey: "about.deps.blackboxCore" },
       { name: "blackbox-lint", roleKey: "about.deps.blackboxLint" },
       { name: "blackbox-bundler", roleKey: "about.deps.blackboxBundler" },
-    ],
-  },
-  {
-    titleKey: "about.groups.media",
-    entries: [
-      {
-        name: "FFmpeg",
-        roleKey: "about.deps.ffmpeg",
-        url: "https://ffmpeg.org/",
-      },
-      {
-        name: "cwebp",
-        roleKey: "about.deps.cwebp",
-        url: "https://developers.google.com/speed/webp",
-      },
+      { name: "blackbox-convert", roleKey: "about.deps.blackboxConvert" },
+      { name: "blackbox-scout", roleKey: "about.deps.blackboxScout" },
+      { name: "blackbox-simulator", roleKey: "about.deps.blackboxSimulator" },
     ],
   },
   {
     titleKey: "about.groups.platform",
     entries: [
       { name: "Local Project API", roleKey: "about.deps.localProjectApi" },
+      {
+        name: "Model Context Protocol",
+        roleKey: "about.deps.mcp",
+        url: "https://modelcontextprotocol.io/",
+      },
       { name: "WebAssembly", roleKey: "about.deps.webAssembly" },
     ],
   },

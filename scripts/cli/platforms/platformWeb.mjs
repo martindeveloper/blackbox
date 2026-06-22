@@ -2,7 +2,6 @@ import { spawn } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { resolvePlatformConfig } from "../../lib/adventure.mjs";
-import { sharedBundleChecks } from "../../lib/preflight/bundleCommon.mjs";
 import { windowsSpawnOptions } from "../../lib/spawn.mjs";
 import { deployWwwToVercel } from "../../lib/vercelDeploy.mjs";
 import { playerBuildEnv } from "../lib/buildEnv.mjs";
@@ -21,8 +20,8 @@ import {
 
 export const name = "web";
 
-export function preflightCheck(stage, ctx) {
-  return stage === "bundle" ? sharedBundleChecks(ctx) : [];
+export function preflightCheck() {
+  return [];
 }
 
 export function executeLint({ project }) {

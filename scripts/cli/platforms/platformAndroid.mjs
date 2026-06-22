@@ -1,7 +1,6 @@
 import { existsSync } from "node:fs";
 import { resolvePlatformConfig } from "../../lib/adventure.mjs";
 import { validateAndroidSdkConfig } from "../../lib/platformAndroid.mjs";
-import { sharedBundleChecks } from "../../lib/preflight/bundleCommon.mjs";
 import { capacitorBin } from "../../lib/preflight/context.mjs";
 import { toMobileAdv } from "../lib/mobileAdv.mjs";
 import { displayPath, log, runBundler, runLint, runScriptsLint } from "../lib/run.mjs";
@@ -18,7 +17,7 @@ export const name = "android";
 
 export async function preflightCheck(stage, ctx) {
   if (stage === "lint") return [];
-  if (stage === "bundle") return sharedBundleChecks(ctx);
+  if (stage === "bundle") return [];
   if (stage === "build") {
     const checks = existsSync(capacitorBin())
       ? []
