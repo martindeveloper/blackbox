@@ -6,6 +6,7 @@ import * as z from "zod/v4";
 import { McpAuditLog } from "./mcpAuditLog.mjs";
 import { summarizeDocumentChanges } from "./mcpAuditDiff.mjs";
 import { applyDocumentPatch, PATCH_COLLECTIONS } from "./mcpPatch.mjs";
+import { SCHEMA_REFERENCE } from "./mcpSchema.mjs";
 import { executeBundle, executeLinter, executeSimulator } from "./routes.js";
 
 const HOST = "127.0.0.1";
@@ -32,6 +33,26 @@ function toolError(error) {
   return {
     isError: true,
     content: [{ type: "text", text: JSON.stringify({ code, message, ...details }, null, 2) }],
+  };
+}
+
+const CHAPTER_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9_-]*$/;
+
+function newChapterDocument({ id, title, startNodeId }) {
+  return {
+    spec: "com.blackbox.chapter",
+    formatVersion: 1,
+    id,
+    title,
+    startNodeId,
+    nodes: {
+      [startNodeId]: {
+        id: startNodeId,
+        title,
+        text: [{ kind: "paragraph", text: "Your story begins here." }],
+        choices: [],
+      },
+    },
   };
 }
 
@@ -165,6 +186,9 @@ function auditArguments(tool, args) {
   if (tool === "upload_media" && typeof args?.filename === "string") {
     summary.filename = args.filename.slice(0, 160);
   }
+  if (tool === "add_chapter" && typeof args?.id === "string") {
+    summary.chapterId = args.id;
+  }
   if (tool === "lint_project") {
     summary.ignoreCount = Array.isArray(args?.ignore) ? args.ignore.length : 0;
     summary.onlyCount = Array.isArray(args?.only) ? args.only.length : 0;
@@ -180,9 +204,11 @@ function createProtocolServer({ projectService, isRendererDirty, auditTool, clie
     },
     {
       instructions:
-        "Use project revisions for every mutation. Read a project immediately before saving. " +
-        "Prefer patch_documents for targeted edits (one node, choice, or catalog record at a time) " +
-        "so unrelated content is never rewritten; reserve save_documents for whole-document rewrites. " +
+        "Call describe_schema (or read blackbox://schema) before authoring so conditions and " +
+        "effects are valid. Use project revisions for every mutation and read a project immediately " +
+        "before saving. Prefer patch_documents for targeted edits (one node, choice, or catalog " +
+        "record at a time) so unrelated content is never rewritten; reserve save_documents for " +
+        "whole-document rewrites, and use add_chapter to create and register a new chapter. " +
         "If a revision conflict occurs, read again and reconcile instead of forcing an overwrite.",
     },
   );
@@ -245,6 +271,26 @@ function createProtocolServer({ projectService, isRendererDirty, auditTool, clie
     }),
   );
 
+  server.registerResource(
+    "blackbox-schema",
+    "blackbox://schema",
+    {
+      title: "Blackbox authoring schema",
+      description:
+        "Document layout and the condition/effect/choice/node grammar for authoring Blackbox stories",
+      mimeType: "application/json",
+    },
+    async (uri) => ({
+      contents: [
+        {
+          uri: uri.href,
+          mimeType: "application/json",
+          text: JSON.stringify(SCHEMA_REFERENCE, null, 2),
+        },
+      ],
+    }),
+  );
+
   registerTool(
     "list_projects",
     {
@@ -253,6 +299,19 @@ function createProtocolServer({ projectService, isRendererDirty, auditTool, clie
       annotations: { readOnlyHint: true, openWorldHint: false },
     },
     async () => jsonText({ projects: projectService.listProjects().map(publicProject) }),
+  );
+
+  registerTool(
+    "describe_schema",
+    {
+      title: "Describe authoring schema",
+      description:
+        "Return the Blackbox authoring grammar: document layout plus the node, text block, " +
+        "choice, gate/condition, effect, action, and skill-check shapes. Read this before " +
+        "writing content so conditions and effects are valid.",
+      annotations: { readOnlyHint: true, openWorldHint: false },
+    },
+    async () => jsonText(SCHEMA_REFERENCE),
   );
 
   registerTool(
@@ -431,6 +490,81 @@ function createProtocolServer({ projectService, isRendererDirty, auditTool, clie
       });
       Object.assign(auditDetails, changeSummary, { revision: saved.revision });
       return jsonText({ ...saved, documentsWritten: Object.keys(documents) });
+    },
+  );
+
+  registerTool(
+    "add_chapter",
+    {
+      title: "Add a chapter",
+      description:
+        "Create a new chapter file with a start node and register it in scenario.json " +
+        "atomically. Requires the exact current project revision. Reach it from an existing " +
+        "choice with action { type: gotoChapter, chapterId }.",
+      inputSchema: {
+        projectId: z.string().min(1),
+        expectedRevision: z.number().int().positive(),
+        id: z.string().trim().min(1).max(80).regex(CHAPTER_ID_PATTERN, {
+          message: "id may contain only letters, numbers, hyphen, and underscore",
+        }),
+        title: z.string().trim().min(1).max(200),
+        startNodeId: z.string().trim().min(1).max(120).optional(),
+        startNodeTitle: z.string().trim().min(1).max(200).optional(),
+      },
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: false,
+      },
+    },
+    async (
+      { projectId, expectedRevision, id, title, startNodeId, startNodeTitle },
+      _extra,
+      auditDetails,
+    ) => {
+      mutationGuard();
+      const before = await readSnapshot(projectId);
+      const scenarioPath = before.bundle.filePaths?.scenario ?? "scenario.json";
+      const scenario = structuredClone(before.bundle.scenario ?? {});
+      const chapters = Array.isArray(scenario.chapters) ? scenario.chapters : [];
+      const ref = `chapter_${id}.json`;
+
+      if (chapters.some((entry) => entry?.id === id) || before.bundle.chapters?.[id]) {
+        throw Object.assign(new Error(`Chapter already exists: ${id}`), { code: "chapter_exists" });
+      }
+      const usedRefs = new Set(Object.values(before.bundle.filePaths?.chapters ?? {}));
+      if (usedRefs.has(ref) || chapters.some((entry) => entry?.ref === ref)) {
+        throw Object.assign(new Error(`Chapter file already exists: ${ref}`), {
+          code: "chapter_exists",
+        });
+      }
+
+      const resolvedStartNodeId = startNodeId ?? `${id}_start`;
+      const chapterDoc = newChapterDocument({
+        id,
+        title: startNodeTitle ?? title,
+        startNodeId: resolvedStartNodeId,
+      });
+      chapterDoc.title = title;
+      scenario.chapters = [...chapters, { id, title, ref }];
+
+      const documents = { [ref]: chapterDoc, [scenarioPath]: scenario };
+      const changeSummary = summarizeDocumentChanges(before, documents);
+      const saved = await projectService.saveDocuments(projectId, {
+        baseRevision: expectedRevision,
+        documents,
+        force: false,
+        clientId: "mcp",
+      });
+      Object.assign(auditDetails, changeSummary, { revision: saved.revision });
+      return jsonText({
+        revision: saved.revision,
+        chapterId: id,
+        ref,
+        startNodeId: resolvedStartNodeId,
+        documentsWritten: Object.keys(documents),
+      });
     },
   );
 

@@ -16,6 +16,7 @@
     "check": "npm run lint && npm run lint:react-compiler && npm run fmt:check",
     "dev": "npm run build && concurrently -k -n js,css,server -c blue,magenta,green \"npm run watch:js\" \"npm run watch:css\" \"node --watch server.js --dev\"",
     "electron:dev": "node ./scripts/ensure-electron.mjs && node ./scripts/ensure-tools.mjs && npm run build && electron .",
+    "grammar": "node ../../scripts/write-grammar.mjs",
     "electron:dist": "npm run electron:pack && electron-builder --config electron-builder.yml",
     "electron:dist:dir": "npm run electron:pack && electron-builder --config electron-builder.yml --dir",
     "electron:pack": "npm run build:icon && node ./scripts/build-electron.mjs",

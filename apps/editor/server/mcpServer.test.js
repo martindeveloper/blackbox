@@ -313,6 +313,65 @@ test("patch_documents and upload_media mutate through the revision-checked pipel
   assert.equal(JSON.stringify(audit.entries).includes("Vault"), false);
 });
 
+test("add_chapter registers a new chapter and describe_schema is served", async (t) => {
+  let revision = 7;
+  const saves = [];
+  const service = {
+    listProjects: () => [snapshot(revision).project],
+    openProject: async () => snapshot(revision),
+    saveDocuments: async (_id, payload) => {
+      saves.push(payload);
+      revision += 1;
+      return { revision };
+    },
+  };
+  const server = new EditorMcpServer({ projectService: service });
+  const status = await server.start();
+  t.after(() => server.stop());
+
+  const client = new Client({ name: "chapter-test", version: "1.0.0" });
+  const transport = new StreamableHTTPClientTransport(new URL(status.endpoint), {
+    requestInit: { headers: { Authorization: `Bearer ${status.token}` } },
+  });
+  await client.connect(transport);
+  t.after(() => client.close());
+
+  const schema = await client.callTool({ name: "describe_schema", arguments: {} });
+  const reference = JSON.parse(schema.content[0].text);
+  assert.ok(reference.effects.types.setFlag);
+  assert.ok(reference.gates.types.hasItem);
+  assert.equal(reference.documents["chapter_<id>.json"].spec, "com.blackbox.chapter");
+
+  const added = await client.callTool({
+    name: "add_chapter",
+    arguments: { projectId: "project-1", expectedRevision: 7, id: "two", title: "Chapter Two" },
+  });
+  assert.equal(added.isError, undefined);
+  const result = JSON.parse(added.content[0].text);
+  assert.equal(result.ref, "chapter_two.json");
+  assert.equal(result.startNodeId, "two_start");
+  assert.deepEqual(result.documentsWritten.sort(), ["chapter_two.json", "scenario.json"]);
+
+  // The new chapter file carries a start node, and scenario.json gains the registration.
+  const chapterDoc = saves[0].documents["chapter_two.json"];
+  assert.equal(chapterDoc.spec, "com.blackbox.chapter");
+  assert.equal(chapterDoc.nodes.two_start.id, "two_start");
+  const scenarioDoc = saves[0].documents["scenario.json"];
+  assert.deepEqual(
+    scenarioDoc.chapters.map((entry) => entry.id),
+    ["intro", "two"],
+  );
+
+  // A duplicate id is rejected without writing.
+  const dup = await client.callTool({
+    name: "add_chapter",
+    arguments: { projectId: "project-1", expectedRevision: 8, id: "intro", title: "Dup" },
+  });
+  assert.equal(dup.isError, true);
+  assert.match(dup.content[0].text, /chapter_exists/);
+  assert.equal(saves.length, 1);
+});
+
 test("only upload_media may use the larger request-body budget", async (t) => {
   const service = {
     listProjects: () => [],
