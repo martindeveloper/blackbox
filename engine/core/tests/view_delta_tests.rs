@@ -17,9 +17,6 @@ fn damage_command_delta_contains_only_changed_view_fields() {
     let wire: serde_json::Value = serde_json::from_str(&encoded).unwrap();
     let delta = wire["delta"].as_object().unwrap();
 
-    // touch_hazard subtracts 2 HP and stays on the same node.
-    // HP change causes stats and text to differ (hp is interpolated in text and
-    // a conditional block appears at ≤ 8 HP). Events are not fired.
     assert_eq!(delta["player_stats"]["hp"].as_i64(), Some(8));
     assert!(
         delta.contains_key("text"),

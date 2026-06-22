@@ -133,7 +133,9 @@ pub fn score(haystack: &str, query: &[u8]) -> Option<i32> {
 #[inline]
 pub fn score_fields(id: &str, label: &str, query: &[u8]) -> Option<i32> {
     let mut best = score(id, query);
-    if id != label && let Some(s) = score(label, query) {
+    if id != label
+        && let Some(s) = score(label, query)
+    {
         best = Some(best.map_or(s, |b| b.max(s)));
     }
     best

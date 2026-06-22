@@ -121,7 +121,6 @@ fn check_preview_shows_normal_roll_mode_by_default() {
 
 #[test]
 fn advantage_roll_record_carries_roll_mode() {
-    // DC=1 ensures the check always succeeds so we can deterministically land on "pass".
     let mut engine = load(
         r#"
         "startNodeId": "start",
@@ -165,7 +164,6 @@ fn advantage_roll_record_carries_roll_mode() {
 
 #[test]
 fn disadvantage_always_fails_against_impossible_dc_confirms_roll_mode() {
-    // DC=21 is impossible (d20 max + modifier still can't hit 21 without bonuses).
     let mut engine = load(
         r#"
         "startNodeId": "start",

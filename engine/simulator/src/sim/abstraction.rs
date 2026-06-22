@@ -157,8 +157,6 @@ impl Builder {
         self.visit_expr(gate.compiled_unless.as_ref());
     }
 
-    // --- Structured gates: every threshold here is a clean constant comparison.
-
     fn visit_gate(&mut self, gate: Option<&Gate>) {
         let Some(gate) = gate else { return };
         match gate {
@@ -206,9 +204,8 @@ impl Builder {
         }
     }
 
-    // --- Compiled expressions: catch raw-expression gates the structured walk
-    //     misses, and mark any non-constant numeric use as opaque.
-
+    // Catch raw-expression gates the structured walk misses, and mark any
+    // non-constant numeric use as opaque.
     fn visit_expr(&mut self, expr: Option<&Expr>) {
         if let Some(expr) = expr {
             self.walk_expr(expr);

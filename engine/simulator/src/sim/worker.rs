@@ -295,8 +295,6 @@ fn explore_choice(
         None => return,
     };
 
-    // Key from a borrow; clone the state only once we know it is unseen —
-    // most transitions in a dense graph land on already-seen states.
     let key = StateKey::from_state(engine.get_state(), check_override, abstraction);
     if !seen.try_admit(key) {
         return;

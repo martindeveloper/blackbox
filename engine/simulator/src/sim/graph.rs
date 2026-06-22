@@ -703,7 +703,6 @@ mod tests {
         let content = tiny_content();
         let graph = GraphIndex::build(&content);
         let issues = graph.static_analysis(&content, "start");
-        // "dead" has no path to goal, but it's reachable from start → dead end
         assert_eq!(issues.dead_end_nodes, vec!["dead".to_string()]);
         assert!(issues.trapping_loops.is_empty());
     }

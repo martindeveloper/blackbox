@@ -96,7 +96,6 @@ const CHAPTER: &str = r#"{
     }
 }"#;
 
-/// Characters that include "ally" — needed for actor presence tests.
 const CHARACTERS_WITH_ALLY: &str = r#"{
     "spec": "com.blackbox.characters",
     "formatVersion": 1,
@@ -159,7 +158,6 @@ fn named_condition_filters_text_block_at_full_hp() {
 
 #[test]
 fn named_condition_shows_text_block_when_met() {
-    // Start with hp=2 (below the low_hp threshold of 3) via defaultStats override.
     let content = decode_scenario_bundle_json(
         r#"{"spec":"com.blackbox.scenario","formatVersion":1,"libraryRef":"library.json","defaultStats":{"hp":2,"max_hp":10},"chapters":[{"id":"test","title":"Test","ref":"chapter.json"}]}"#,
         support::MINIMAL_ITEMS,

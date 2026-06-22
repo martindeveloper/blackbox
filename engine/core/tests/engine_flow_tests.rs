@@ -8,8 +8,6 @@ use blackbox_format::{JsonFormat, decode_scenario_bundle_json};
 const SCENARIO: &str = support::SCENARIO;
 const FORMAT: JsonFormat = JsonFormat;
 
-/// Read a single relationship metric off a character view, defaulting to 0 when
-/// the metric is not declared/surfaced.
 fn metric(character: &blackbox::CharacterView, key: &str) -> i32 {
     character
         .metrics
@@ -481,8 +479,6 @@ fn rejects_missing_play_music_track() {
 
 #[test]
 fn consumed_choice_hidden_after_use() {
-    // A choice with `unless: hasFlag done` should disappear from the view once
-    // the flag is set, rather than showing as disabled with a misleading message.
     let json = r#"{
         "startNodeId": "hub",
         "nodes": {
@@ -1008,9 +1004,6 @@ fn scenario_infiltration_path_reaches_archive() {
 
 #[test]
 fn scenario_export_path_reaches_good_ending() {
-    // Navigate to the archive terminal. The final export_incident uses a skill
-    // check whose outcome depends on RNG, so we assert on the terminal arrival
-    // rather than the roll result.
     let view = run_choice_path(&[
         "ask_guide",
         "continue",

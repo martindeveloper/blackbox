@@ -127,19 +127,17 @@ fn build_scene_characters(
         .characters
         .values()
         .filter(|character| speaker_ids.contains(&character.id))
-        .map(|character| {
-            CharacterView {
-                ref_id: character.id.clone(),
-                name: character.name.clone(),
-                subtitle: character.subtitle.clone(),
-                portrait: character
-                    .portrait_ref
-                    .as_deref()
-                    .and_then(|ref_id| content.assets.resolve_texture(ref_id)),
-                voice_ref: character.voice_ref.clone(),
-                color: character.color.clone(),
-                metrics: build_character_metrics(state, character),
-            }
+        .map(|character| CharacterView {
+            ref_id: character.id.clone(),
+            name: character.name.clone(),
+            subtitle: character.subtitle.clone(),
+            portrait: character
+                .portrait_ref
+                .as_deref()
+                .and_then(|ref_id| content.assets.resolve_texture(ref_id)),
+            voice_ref: character.voice_ref.clone(),
+            color: character.color.clone(),
+            metrics: build_character_metrics(state, character),
         })
         .collect();
     characters.sort_by(|left, right| left.ref_id.cmp(&right.ref_id));

@@ -140,23 +140,41 @@ fn relationship_roster_excludes_scene_speakers() {
         .iter()
         .find(|character| character.ref_id == "guide_npc")
         .expect("guide_npc should appear in relationship roster");
-    assert_eq!(guide.metrics.iter().find(|metric| metric.key == "affinity").map(|metric| metric.value), Some(2));
-    assert_eq!(guide.metrics.iter().find(|metric| metric.key == "trust").map(|metric| metric.value), Some(2));
+    assert_eq!(
+        guide
+            .metrics
+            .iter()
+            .find(|metric| metric.key == "affinity")
+            .map(|metric| metric.value),
+        Some(2)
+    );
+    assert_eq!(
+        guide
+            .metrics
+            .iter()
+            .find(|metric| metric.key == "trust")
+            .map(|metric| metric.value),
+        Some(2)
+    );
 }
 
 #[test]
 fn relationship_roster_serializes_without_portrait_cues() {
     let mut engine = support::load_scenario_engine(support::SCENARIO);
-    assert!(engine
-        .submit_command(PlayerCommand::Choose {
-            choice_id: "ask_guide".to_string(),
-        })
-        .ok);
-    assert!(engine
-        .submit_command(PlayerCommand::Choose {
-            choice_id: "continue".to_string(),
-        })
-        .ok);
+    assert!(
+        engine
+            .submit_command(PlayerCommand::Choose {
+                choice_id: "ask_guide".to_string(),
+            })
+            .ok
+    );
+    assert!(
+        engine
+            .submit_command(PlayerCommand::Choose {
+                choice_id: "continue".to_string(),
+            })
+            .ok
+    );
 
     let view = engine.get_current_view().unwrap();
     let json = encode_view_json(&view).unwrap();
@@ -169,6 +187,12 @@ fn relationship_roster_serializes_without_portrait_cues() {
         .find(|entry| entry["ref_id"] == "guide_npc")
         .expect("guide_npc in relationship roster JSON");
 
-    assert!(guide.get("portrait").is_none(), "relationship roster must not carry portrait cues");
-    assert!(guide.get("voiceRef").is_none(), "relationship roster must not carry voice cues");
+    assert!(
+        guide.get("portrait").is_none(),
+        "relationship roster must not carry portrait cues"
+    );
+    assert!(
+        guide.get("voiceRef").is_none(),
+        "relationship roster must not carry voice cues"
+    );
 }

@@ -53,11 +53,7 @@ fn run() -> Result<()> {
     let opts = parse_args()?;
     let output = blackbox_output::Output::new(opts.json);
 
-    let manifests = discover(
-        &opts.target,
-        &opts.user_ignores,
-        opts.use_default_ignores,
-    );
+    let manifests = discover(&opts.target, &opts.user_ignores, opts.use_default_ignores);
     if manifests.is_empty() {
         anyhow::bail!("no scenario.json found under {}", opts.target.display());
     }
@@ -101,7 +97,10 @@ fn run() -> Result<()> {
         .iter()
         .map(|&(score, i)| {
             let c = &candidates[i];
-            let snippet = opts.full_text.then(|| fuzzy::snippet(&c.text, needle)).flatten();
+            let snippet = opts
+                .full_text
+                .then(|| fuzzy::snippet(&c.text, needle))
+                .flatten();
             Hit::new(c, score, snippet)
         })
         .collect();
@@ -188,8 +187,6 @@ fn hit_order(a: &(i32, usize), b: &(i32, usize), candidates: &[Candidate]) -> st
     })
 }
 
-/// Score every candidate, keep only the top `limit` hits. Empty query skips
-/// scoring and returns the first `limit` entities in stable category/id order.
 fn rank_matches(
     candidates: &[Candidate],
     needle: &[u8],
@@ -231,7 +228,6 @@ fn score_candidate(c: &Candidate<'_>, needle: &[u8], full_text: bool) -> Option<
     Some(best)
 }
 
-/// Map a candidate to the editor route and search params that focus it.
 fn focus_for(c: &Candidate) -> Focus {
     let (route, params) = match c.cat {
         Category::Chapter => ("/graph", serde_json::json!({ "chapter": c.id })),
@@ -329,7 +325,12 @@ fn parse_args() -> Result<Options> {
             }
             "--ignore" => {
                 let value = args.next().context("--ignore requires a pattern")?;
-                user_ignores.extend(value.split(',').filter(|p| !p.is_empty()).map(str::to_string));
+                user_ignores.extend(
+                    value
+                        .split(',')
+                        .filter(|p| !p.is_empty())
+                        .map(str::to_string),
+                );
             }
             "--no-default-ignores" => use_default_ignores = false,
             "--only" => {
@@ -366,7 +367,10 @@ fn parse_args() -> Result<Options> {
 
 fn print_help() {
     let mut w = String::new();
-    let _ = writeln!(w, "blackbox-scout — fast index-free search across a scenario");
+    let _ = writeln!(
+        w,
+        "blackbox-scout — fast index-free search across a scenario"
+    );
     let _ = writeln!(w);
     let _ = writeln!(w, "USAGE:");
     let _ = writeln!(w, "    blackbox-scout [OPTIONS] [QUERY]");
@@ -396,7 +400,10 @@ fn print_help() {
         w,
         "    --limit <N>         Max results (default: {DEFAULT_LIMIT})"
     );
-    let _ = writeln!(w, "    --json              Emit a single JSON object to stdout");
+    let _ = writeln!(
+        w,
+        "    --json              Emit a single JSON object to stdout"
+    );
     let _ = writeln!(w, "    -h, --help          Show this help");
     let _ = writeln!(w);
     let _ = write!(w, "CATEGORIES:\n    ");

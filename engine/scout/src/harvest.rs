@@ -106,17 +106,24 @@ pub fn collect<'a>(
                 &node.id,
                 node.title.as_deref().unwrap_or(&node.id),
                 content.node_chapter.get(&node.id).map(String::as_str),
-                if full_text { node_text(node) } else { Vec::new() },
+                if full_text {
+                    node_text(node)
+                } else {
+                    Vec::new()
+                },
             );
         }
     }
     if on(Category::Item) {
         for item in content.items.items.values() {
             let text = if full_text {
-                [Some(item.description.as_str()), item.examine_text.as_deref()]
-                    .into_iter()
-                    .flatten()
-                    .collect()
+                [
+                    Some(item.description.as_str()),
+                    item.examine_text.as_deref(),
+                ]
+                .into_iter()
+                .flatten()
+                .collect()
             } else {
                 Vec::new()
             };
@@ -173,7 +180,6 @@ pub fn collect<'a>(
     }
 }
 
-/// Body fragments of a node: prose (text + fallback else_text) and choice labels.
 fn node_text(node: &blackbox::content::NodeContent) -> Vec<&str> {
     let mut out = Vec::with_capacity(node.text.len() + node.choices.len());
     for block in &node.text {
