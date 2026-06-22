@@ -5,11 +5,18 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import * as z from "zod/v4";
 import { McpAuditLog } from "./mcpAuditLog.mjs";
 import { summarizeDocumentChanges } from "./mcpAuditDiff.mjs";
-import { executeLinter, executeSimulator } from "./routes.js";
+import { applyDocumentPatch, PATCH_COLLECTIONS } from "./mcpPatch.mjs";
+import { executeBundle, executeLinter, executeSimulator } from "./routes.js";
 
 const HOST = "127.0.0.1";
 const MCP_PATH = "/mcp";
+// Authored JSON edits stay on a tight ceiling; only upload_media is allowed the
+// larger budget needed to carry a base64-encoded asset (inflates by ~33%).
 const MAX_BODY_BYTES = 2 * 1024 * 1024;
+const MAX_UPLOAD_BODY_BYTES = 32 * 1024 * 1024;
+const MAX_MEDIA_BYTES = 24 * 1024 * 1024;
+const UPLOAD_TOOL = "upload_media";
+const MAX_PATCH_OPS = 500;
 const MAX_SEARCH_RESULTS = 100;
 
 function jsonText(value) {
@@ -89,15 +96,24 @@ async function readJsonBody(request) {
   const chunks = [];
   for await (const chunk of request) {
     size += chunk.length;
-    if (size > MAX_BODY_BYTES) {
+    if (size > MAX_UPLOAD_BODY_BYTES) {
       const error = new Error("MCP request body is too large");
       error.statusCode = 413;
       throw error;
     }
     chunks.push(chunk);
   }
-  if (chunks.length === 0) return undefined;
-  return JSON.parse(Buffer.concat(chunks).toString("utf8"));
+  if (chunks.length === 0) return { value: undefined, size: 0 };
+  return { value: JSON.parse(Buffer.concat(chunks).toString("utf8")), size };
+}
+
+// Only an upload_media tool call may use the larger body budget; every other
+// request (reads, patches, whole-document saves) stays on MAX_BODY_BYTES.
+function isUploadCall(body) {
+  const messages = Array.isArray(body) ? body : [body];
+  return messages.some(
+    (message) => message?.method === "tools/call" && message?.params?.name === UPLOAD_TOOL,
+  );
 }
 
 function tokenMatches(header, token) {
@@ -133,11 +149,21 @@ function auditArguments(tool, args) {
     "heuristic",
     "check",
     "analytics",
+    "platform",
+    "ignoreMissing",
+    "targetDir",
   ]) {
     if (args?.[key] !== undefined) summary[key] = args[key];
   }
   if (tool === "save_documents" && args?.documents && typeof args.documents === "object") {
     summary.documentPaths = Object.keys(args.documents);
+  }
+  if (tool === "patch_documents" && Array.isArray(args?.ops)) {
+    summary.opCount = args.ops.length;
+    summary.opTypes = [...new Set(args.ops.map((op) => op?.op).filter(Boolean))];
+  }
+  if (tool === "upload_media" && typeof args?.filename === "string") {
+    summary.filename = args.filename.slice(0, 160);
   }
   if (tool === "lint_project") {
     summary.ignoreCount = Array.isArray(args?.ignore) ? args.ignore.length : 0;
@@ -155,6 +181,8 @@ function createProtocolServer({ projectService, isRendererDirty, auditTool, clie
     {
       instructions:
         "Use project revisions for every mutation. Read a project immediately before saving. " +
+        "Prefer patch_documents for targeted edits (one node, choice, or catalog record at a time) " +
+        "so unrelated content is never rewritten; reserve save_documents for whole-document rewrites. " +
         "If a revision conflict occurs, read again and reconcile instead of forcing an overwrite.",
     },
   );
@@ -327,6 +355,164 @@ function createProtocolServer({ projectService, isRendererDirty, auditTool, clie
       });
       Object.assign(auditDetails, changeSummary, { revision: saved.revision });
       return jsonText(saved);
+    },
+  );
+
+  registerTool(
+    "patch_documents",
+    {
+      title: "Patch project documents",
+      description:
+        "Apply targeted, id-addressed edits without re-sending whole documents. " +
+        "Each op touches one node, choice, or catalog record; only the affected " +
+        "documents are rewritten atomically. Requires the exact current revision. " +
+        "Use chapterId 'scenario' for legacy inline nodes.",
+      inputSchema: {
+        projectId: z.string().min(1),
+        expectedRevision: z.number().int().positive(),
+        ops: z
+          .array(
+            z.discriminatedUnion("op", [
+              z.object({
+                op: z.literal("set_node"),
+                chapterId: z.string().min(1),
+                node: z.record(z.string(), z.unknown()),
+              }),
+              z.object({
+                op: z.literal("remove_node"),
+                chapterId: z.string().min(1),
+                nodeId: z.string().min(1),
+              }),
+              z.object({
+                op: z.literal("set_choice"),
+                chapterId: z.string().min(1),
+                nodeId: z.string().min(1),
+                choice: z.record(z.string(), z.unknown()),
+              }),
+              z.object({
+                op: z.literal("remove_choice"),
+                chapterId: z.string().min(1),
+                nodeId: z.string().min(1),
+                choiceId: z.string().min(1),
+              }),
+              z.object({
+                op: z.literal("set_record"),
+                collection: z.enum(PATCH_COLLECTIONS),
+                id: z.string().min(1),
+                value: z.record(z.string(), z.unknown()),
+              }),
+              z.object({
+                op: z.literal("remove_record"),
+                collection: z.enum(PATCH_COLLECTIONS),
+                id: z.string().min(1),
+              }),
+            ]),
+          )
+          .min(1)
+          .max(MAX_PATCH_OPS),
+      },
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: true,
+        idempotentHint: false,
+        openWorldHint: false,
+      },
+    },
+    async ({ projectId, expectedRevision, ops }, _extra, auditDetails) => {
+      mutationGuard();
+      const before = await readSnapshot(projectId);
+      const documents = applyDocumentPatch(before, ops);
+      const changeSummary = summarizeDocumentChanges(before, documents);
+      const saved = await projectService.saveDocuments(projectId, {
+        baseRevision: expectedRevision,
+        documents,
+        force: false,
+        clientId: "mcp",
+      });
+      Object.assign(auditDetails, changeSummary, { revision: saved.revision });
+      return jsonText({ ...saved, documentsWritten: Object.keys(documents) });
+    },
+  );
+
+  registerTool(
+    "upload_media",
+    {
+      title: "Upload media asset",
+      description:
+        "Write a binary asset (base64) into textures, music, or sfx so authored " +
+        "documents can reference it. Requires the exact current project revision.",
+      inputSchema: {
+        projectId: z.string().min(1),
+        expectedRevision: z.number().int().positive(),
+        targetDir: z.enum(["textures", "music", "sfx"]),
+        filename: z.string().trim().min(1).max(160),
+        dataBase64: z.string().min(1),
+      },
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: false,
+      },
+    },
+    async (
+      { projectId, expectedRevision, targetDir, filename, dataBase64 },
+      _extra,
+      auditDetails,
+    ) => {
+      mutationGuard();
+      const data = Buffer.from(dataBase64, "base64");
+      if (data.length === 0) {
+        throw Object.assign(new Error("dataBase64 did not decode to any bytes"), {
+          code: "invalid_request",
+        });
+      }
+      if (data.length > MAX_MEDIA_BYTES) {
+        throw Object.assign(new Error(`Media exceeds the ${MAX_MEDIA_BYTES} byte limit`), {
+          code: "payload_too_large",
+        });
+      }
+      const result = await projectService.uploadMedia(projectId, {
+        baseRevision: expectedRevision,
+        targetDir,
+        filename,
+        data,
+        clientId: "mcp",
+      });
+      Object.assign(auditDetails, { revision: result.revision, mediaPath: result.path });
+      return jsonText({
+        path: result.path,
+        revision: result.revision,
+        bytes: data.length,
+        mediaCount: Array.isArray(result.mediaFiles) ? result.mediaFiles.length : undefined,
+      });
+    },
+  );
+
+  registerTool(
+    "bundle_project",
+    {
+      title: "Build diagnostic bundle",
+      description:
+        "Run the bundler at the exact requested revision to surface build errors and " +
+        "missing assets. Output is discarded — nothing is written into the project.",
+      inputSchema: {
+        projectId: z.string().min(1),
+        expectedRevision: z.number().int().positive(),
+        platform: z.string().min(1).optional(),
+        ignoreMissing: z.boolean().default(false),
+      },
+      annotations: { readOnlyHint: true, openWorldHint: false },
+    },
+    async ({ projectId, expectedRevision, platform, ignoreMissing }) => {
+      await readSnapshot(projectId);
+      return jsonText(
+        await executeBundle(projectService, projectId, {
+          expectedRevision,
+          platform,
+          ignoreMissing,
+        }),
+      );
     },
   );
 
@@ -509,7 +695,12 @@ export class EditorMcpServer {
         return sendJson(response, 405, { error: "Method not allowed" }, { allow: "POST" });
       }
 
-      const body = await readJsonBody(request);
+      const { value: body, size } = await readJsonBody(request);
+      if (size > MAX_BODY_BYTES && !isUploadCall(body)) {
+        const error = new Error("MCP request body is too large");
+        error.statusCode = 413;
+        throw error;
+      }
       const client = this.clientFor(request, body);
       const protocolServer = createProtocolServer({
         projectService: this.projectService,

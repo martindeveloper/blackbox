@@ -204,6 +204,167 @@ test("serves authenticated MCP tools and revision-checked saves", async (t) => {
   assert.equal(JSON.stringify(audit.entries).includes("Archive Note"), false);
 });
 
+test("patch_documents and upload_media mutate through the revision-checked pipeline", async (t) => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "blackbox-mcp-patch-"));
+  const auditLogPath = path.join(tempDir, "logs", "mcp-audit.jsonl");
+  t.after(() => fs.rm(tempDir, { recursive: true, force: true }));
+  let revision = 7;
+  const saves = [];
+  const uploads = [];
+  const service = {
+    listProjects: () => [snapshot(revision).project],
+    openProject: async () => snapshot(revision),
+    saveDocuments: async (_id, payload) => {
+      assert.equal(payload.baseRevision, revision);
+      assert.equal(payload.force, false);
+      assert.equal(payload.clientId, "mcp");
+      saves.push(payload);
+      revision += 1;
+      return { revision };
+    },
+    uploadMedia: async (_id, payload) => {
+      assert.equal(payload.baseRevision, revision);
+      assert.equal(payload.clientId, "mcp");
+      uploads.push(payload);
+      revision += 1;
+      return { path: `${payload.targetDir}/${payload.filename}`, revision, mediaFiles: [{}, {}] };
+    },
+  };
+
+  const server = new EditorMcpServer({ projectService: service, auditLogPath });
+  const status = await server.start();
+  t.after(() => server.stop());
+
+  const client = new Client({ name: "patch-test", version: "1.0.0" });
+  const transport = new StreamableHTTPClientTransport(new URL(status.endpoint), {
+    requestInit: { headers: { Authorization: `Bearer ${status.token}` } },
+  });
+  await client.connect(transport);
+  t.after(() => client.close());
+
+  const tools = await client.listTools();
+  for (const name of ["patch_documents", "upload_media", "bundle_project"]) {
+    assert.ok(
+      tools.tools.some((tool) => tool.name === name),
+      `missing tool ${name}`,
+    );
+  }
+
+  const patched = await client.callTool({
+    name: "patch_documents",
+    arguments: {
+      projectId: "project-1",
+      expectedRevision: 7,
+      ops: [
+        { op: "set_node", chapterId: "intro", node: { id: "vault", title: "Vault", choices: [] } },
+        {
+          op: "set_choice",
+          chapterId: "intro",
+          nodeId: "start",
+          choice: { id: "go", label: "Go", goto: "vault" },
+        },
+      ],
+    },
+  });
+  assert.equal(patched.isError, undefined);
+  // Only the touched chapter is rewritten, and the untouched start node survives.
+  assert.equal(saves.length, 1);
+  assert.deepEqual(Object.keys(saves[0].documents), ["chapter_intro.json"]);
+  assert.ok(saves[0].documents["chapter_intro.json"].nodes.start);
+  assert.equal(saves[0].documents["chapter_intro.json"].nodes.vault.title, "Vault");
+  assert.match(patched.content[0].text, /chapter_intro\.json/);
+
+  const uploaded = await client.callTool({
+    name: "upload_media",
+    arguments: {
+      projectId: "project-1",
+      expectedRevision: 8,
+      targetDir: "textures",
+      filename: "door.png",
+      dataBase64: Buffer.from("PNGDATA").toString("base64"),
+    },
+  });
+  assert.equal(uploaded.isError, undefined);
+  assert.equal(uploads.length, 1);
+  assert.equal(uploads[0].targetDir, "textures");
+  assert.ok(Buffer.isBuffer(uploads[0].data));
+  assert.equal(uploads[0].data.toString(), "PNGDATA");
+
+  // Patch ops that address a missing entity surface a coded error, not a clobber.
+  const missing = await client.callTool({
+    name: "patch_documents",
+    arguments: {
+      projectId: "project-1",
+      expectedRevision: 9,
+      ops: [{ op: "remove_node", chapterId: "intro", nodeId: "ghost" }],
+    },
+  });
+  assert.equal(missing.isError, true);
+  assert.match(missing.content[0].text, /not_found/);
+  assert.equal(saves.length, 1);
+
+  const audit = await server.readAudit();
+  const patchEntry = audit.entries.find(
+    (entry) => entry.tool === "patch_documents" && entry.outcome === "success" && entry.changeCount,
+  );
+  assert.deepEqual(patchEntry.arguments.opTypes, ["set_node", "set_choice"]);
+  assert.equal(patchEntry.arguments.opCount, 2);
+  // Audit records structural changes but never node titles or other content.
+  assert.equal(JSON.stringify(audit.entries).includes("Vault"), false);
+});
+
+test("only upload_media may use the larger request-body budget", async (t) => {
+  const service = {
+    listProjects: () => [],
+    openProject: async () => snapshot(),
+    saveDocuments: async () => ({ revision: 1 }),
+    uploadMedia: async () => ({ path: "textures/x.png", revision: 1, mediaFiles: [] }),
+  };
+  const server = new EditorMcpServer({ projectService: service });
+  const status = await server.start();
+  t.after(() => server.stop());
+
+  const headers = {
+    "content-type": "application/json",
+    accept: "application/json, text/event-stream",
+    Authorization: `Bearer ${status.token}`,
+  };
+  // ~3 MB payload: over the 2 MB authored-edit cap, well under the 32 MB upload cap.
+  const pad = "x".repeat(3 * 1024 * 1024);
+  const call = (name, args) =>
+    JSON.stringify({
+      jsonrpc: "2.0",
+      id: 1,
+      method: "tools/call",
+      params: { name, arguments: args },
+    });
+
+  const rejected = await fetch(status.endpoint, {
+    method: "POST",
+    headers,
+    body: call("save_documents", {
+      projectId: "project-1",
+      expectedRevision: 1,
+      documents: { "scenario.json": { pad } },
+    }),
+  });
+  assert.equal(rejected.status, 413);
+
+  const allowed = await fetch(status.endpoint, {
+    method: "POST",
+    headers,
+    body: call("upload_media", {
+      projectId: "project-1",
+      expectedRevision: 1,
+      targetDir: "textures",
+      filename: "x.png",
+      dataBase64: pad,
+    }),
+  });
+  // The size gate let the oversized upload through (downstream status may vary).
+  assert.notEqual(allowed.status, 413);
+});
+
 test("disabling MCP closes the endpoint and rotates credentials on restart", async () => {
   const service = {
     listProjects: () => [],

@@ -600,7 +600,7 @@ export function executeSimulator(service, projectId, body) {
   });
 }
 
-function executeBundle(service, projectId, body) {
+export function executeBundle(service, projectId, body) {
   return service.withRevision(projectId, body.expectedRevision, async (locked) => {
     const defaultPlayerId = playersWith("bundle")[0]?.manifest.id;
     const playerId = typeof body.platform === "string" ? body.platform : defaultPlayerId;
