@@ -167,6 +167,7 @@ dependencies = [
  "blackbox",
  "blackbox-format",
  "blackbox-output",
+ "memchr",
  "serde",
  "serde_json",
 ]

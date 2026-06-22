@@ -16,17 +16,17 @@ pub const DEFAULT_IGNORES: &[&str] = &[
 
 /// Resolve `target` to the scenario manifests it covers. A file is taken as-is;
 /// a directory is walked recursively, skipping any component matching `ignores`.
-pub fn discover(target: &Path, ignores: &[String]) -> Vec<PathBuf> {
+pub fn discover(target: &Path, user_ignores: &[String], use_defaults: bool) -> Vec<PathBuf> {
     if target.is_file() {
         return vec![target.to_path_buf()];
     }
     let mut out = Vec::new();
-    walk(target, ignores, &mut out);
+    walk(target, user_ignores, use_defaults, &mut out);
     out.sort();
     out
 }
 
-fn walk(dir: &Path, ignores: &[String], out: &mut Vec<PathBuf>) {
+fn walk(dir: &Path, user_ignores: &[String], use_defaults: bool, out: &mut Vec<PathBuf>) {
     let manifest = dir.join("scenario.json");
     if manifest.is_file() {
         // A scenario folder owns its subtree; no nested scenarios to find below.
@@ -44,15 +44,23 @@ fn walk(dir: &Path, ignores: &[String], out: &mut Vec<PathBuf>) {
         let Some(name) = path.file_name().and_then(|n| n.to_str()) else {
             continue;
         };
-        if is_ignored(name, ignores) {
+        if is_ignored(name, user_ignores, use_defaults) {
             continue;
         }
-        walk(&path, ignores, out);
+        walk(&path, user_ignores, use_defaults, out);
     }
 }
 
-fn is_ignored(name: &str, ignores: &[String]) -> bool {
-    ignores
+#[inline]
+fn is_default_ignored(name: &str) -> bool {
+    DEFAULT_IGNORES.contains(&name)
+}
+
+fn is_ignored(name: &str, user_ignores: &[String], use_defaults: bool) -> bool {
+    if use_defaults && is_default_ignored(name) {
+        return true;
+    }
+    user_ignores
         .iter()
         .any(|pattern| glob_match(pattern.as_bytes(), name.as_bytes()))
 }
@@ -103,10 +111,11 @@ mod tests {
 
     #[test]
     fn defaults_cover_sidecars() {
-        let ignores: Vec<String> = DEFAULT_IGNORES.iter().map(|s| s.to_string()).collect();
-        assert!(is_ignored(".git", &ignores));
-        assert!(is_ignored(".blackbox", &ignores));
-        assert!(is_ignored("node_modules", &ignores));
-        assert!(!is_ignored("chapters", &ignores));
+        assert!(is_default_ignored(".git"));
+        assert!(is_default_ignored(".blackbox"));
+        assert!(is_default_ignored("node_modules"));
+        assert!(!is_default_ignored("chapters"));
+        assert!(is_ignored(".git", &[], true));
+        assert!(!is_ignored("chapters", &[], true));
     }
 }

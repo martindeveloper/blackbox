@@ -83,7 +83,7 @@ pub fn collect<'a>(
     out: &mut Vec<Candidate<'a>>,
 ) {
     let on = |c: Category| enabled[c as usize];
-    let mut push = |cat, id, label, chapter, text| {
+    let mut push = |cat, id, label, chapter, text: Vec<&'a str>| {
         out.push(Candidate {
             cat,
             id,
@@ -135,13 +135,25 @@ pub fn collect<'a>(
     if on(Category::Flag) {
         for (key, entry) in &content.meta.flags {
             let text = catalog_text(full_text, entry);
-            push(Category::Flag, key, entry.title.as_deref().unwrap_or(key), None, text);
+            push(
+                Category::Flag,
+                key,
+                entry.title.as_deref().unwrap_or(key),
+                None,
+                text,
+            );
         }
     }
     if on(Category::Event) {
         for (key, entry) in &content.meta.events {
             let text = catalog_text(full_text, entry);
-            push(Category::Event, key, entry.title.as_deref().unwrap_or(key), None, text);
+            push(
+                Category::Event,
+                key,
+                entry.title.as_deref().unwrap_or(key),
+                None,
+                text,
+            );
         }
     }
     if on(Category::Texture) {

@@ -11,7 +11,7 @@ use anyhow::{Context, Result};
 use serde::Serialize;
 use serde_json::Value;
 
-use crate::discover::{DEFAULT_IGNORES, discover};
+use crate::discover::discover;
 use crate::harvest::{Candidate, Category, collect};
 
 const DEFAULT_TARGET: &str = "data";
@@ -20,7 +20,8 @@ const DEFAULT_LIMIT: usize = 50;
 struct Options {
     query: String,
     target: PathBuf,
-    ignores: Vec<String>,
+    user_ignores: Vec<String>,
+    use_default_ignores: bool,
     enabled: [bool; 9],
     limit: usize,
     full_text: bool,
@@ -52,7 +53,11 @@ fn run() -> Result<()> {
     let opts = parse_args()?;
     let output = blackbox_output::Output::new(opts.json);
 
-    let manifests = discover(&opts.target, &opts.ignores);
+    let manifests = discover(
+        &opts.target,
+        &opts.user_ignores,
+        opts.use_default_ignores,
+    );
     if manifests.is_empty() {
         anyhow::bail!("no scenario.json found under {}", opts.target.display());
     }
@@ -75,7 +80,8 @@ fn run() -> Result<()> {
         }
     }
 
-    let mut candidates = Vec::new();
+    let mut candidates =
+        Vec::with_capacity(loaded.iter().map(|s| estimate_entities(&s.content)).sum());
     for scenario in &loaded {
         collect(
             &scenario.content,
@@ -88,37 +94,7 @@ fn run() -> Result<()> {
 
     let query = opts.query.to_ascii_lowercase();
     let needle = query.as_bytes();
-
-    let mut scored: Vec<(i32, usize)> = candidates
-        .iter()
-        .enumerate()
-        .filter_map(|(i, c)| {
-            let mut best = fuzzy::score(c.id, needle);
-            if let Some(label) = fuzzy::score(c.label, needle) {
-                best = Some(best.map_or(label, |b| b.max(label)));
-            }
-            if opts.full_text {
-                for frag in &c.text {
-                    if let Some(s) = fuzzy::text_score(frag, needle) {
-                        best = Some(best.map_or(s, |b| b.max(s)));
-                        break;
-                    }
-                }
-            }
-            best.map(|s| (s, i))
-        })
-        .collect();
-
-    // Highest score first; ties resolved by category then id for stable output.
-    scored.sort_by(|a, b| {
-        b.0.cmp(&a.0).then_with(|| {
-            let (x, y) = (&candidates[a.1], &candidates[b.1]);
-            (x.cat as usize)
-                .cmp(&(y.cat as usize))
-                .then_with(|| x.id.cmp(y.id))
-        })
-    });
-    scored.truncate(opts.limit);
+    let scored = rank_matches(&candidates, needle, opts.full_text, opts.limit);
 
     let target = opts.target.display().to_string();
     let hits: Vec<Hit> = scored
@@ -190,6 +166,71 @@ impl<'a> Hit<'a> {
     }
 }
 
+fn estimate_entities(content: &blackbox::GameContent) -> usize {
+    content.chapters.len()
+        + content.nodes.len()
+        + content.items.items.len()
+        + content.characters.characters.len()
+        + content.meta.flags.len()
+        + content.meta.events.len()
+        + content.assets.textures.len()
+        + content.assets.music.len()
+        + content.assets.sfx.len()
+}
+
+#[inline]
+fn hit_order(a: &(i32, usize), b: &(i32, usize), candidates: &[Candidate]) -> std::cmp::Ordering {
+    a.0.cmp(&b.0).then_with(|| {
+        let (x, y) = (&candidates[a.1], &candidates[b.1]);
+        (x.cat as usize)
+            .cmp(&(y.cat as usize))
+            .then_with(|| x.id.cmp(y.id))
+    })
+}
+
+/// Score every candidate, keep only the top `limit` hits. Empty query skips
+/// scoring and returns the first `limit` entities in stable category/id order.
+fn rank_matches(
+    candidates: &[Candidate],
+    needle: &[u8],
+    full_text: bool,
+    limit: usize,
+) -> Vec<(i32, usize)> {
+    if needle.is_empty() {
+        let mut out: Vec<(i32, usize)> = (0..candidates.len()).map(|i| (0, i)).collect();
+        out.sort_by(|a, b| hit_order(a, b, candidates));
+        out.truncate(limit);
+        return out;
+    }
+
+    let mut scored: Vec<(i32, usize)> = candidates
+        .iter()
+        .enumerate()
+        .filter_map(|(i, c)| score_candidate(c, needle, full_text).map(|s| (s, i)))
+        .collect();
+
+    if scored.len() > limit {
+        scored.select_nth_unstable_by(limit - 1, |a, b| hit_order(b, a, candidates));
+        scored.truncate(limit);
+    }
+    scored.sort_by(|a, b| hit_order(b, a, candidates));
+    scored
+}
+
+#[inline]
+fn score_candidate(c: &Candidate<'_>, needle: &[u8], full_text: bool) -> Option<i32> {
+    let mut best = fuzzy::score_fields(c.id, c.label, needle)?;
+    if full_text {
+        for frag in &c.text {
+            if let Some(s) = fuzzy::text_score(frag, needle) {
+                best = best.max(s);
+                break;
+            }
+        }
+    }
+    Some(best)
+}
+
 /// Map a candidate to the editor route and search params that focus it.
 fn focus_for(c: &Candidate) -> Focus {
     let (route, params) = match c.cat {
@@ -258,8 +299,8 @@ fn parse_args() -> Result<Options> {
     let mut full_text = false;
     let mut enabled = [false; 9];
     let mut any_filter = false;
-    let mut ignores: Vec<String> = DEFAULT_IGNORES.iter().map(|s| s.to_string()).collect();
-    let mut default_ignores = true;
+    let mut user_ignores = Vec::new();
+    let mut use_default_ignores = true;
 
     while let Some(arg) = args.next() {
         match arg.as_str() {
@@ -288,9 +329,9 @@ fn parse_args() -> Result<Options> {
             }
             "--ignore" => {
                 let value = args.next().context("--ignore requires a pattern")?;
-                ignores.extend(value.split(',').filter(|p| !p.is_empty()).map(str::to_string));
+                user_ignores.extend(value.split(',').filter(|p| !p.is_empty()).map(str::to_string));
             }
-            "--no-default-ignores" => default_ignores = false,
+            "--no-default-ignores" => use_default_ignores = false,
             "--only" => {
                 let value = args.next().context("--only requires a category")?;
                 for token in value.split(',') {
@@ -307,9 +348,6 @@ fn parse_args() -> Result<Options> {
         }
     }
 
-    if !default_ignores {
-        ignores.retain(|p| !DEFAULT_IGNORES.contains(&p.as_str()));
-    }
     if !any_filter {
         enabled = [true; 9];
     }
@@ -317,7 +355,8 @@ fn parse_args() -> Result<Options> {
     Ok(Options {
         query: positional.join(" "),
         target: target.unwrap_or_else(|| PathBuf::from(DEFAULT_TARGET)),
-        ignores,
+        user_ignores,
+        use_default_ignores,
         enabled,
         limit,
         full_text,
