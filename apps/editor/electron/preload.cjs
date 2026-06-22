@@ -9,6 +9,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
   openInIde: (projectPath, ideId, customPath) =>
     ipcRenderer.invoke("editor:open-in-ide", projectPath, ideId, customPath),
   revealPath: (targetPath) => ipcRenderer.invoke("editor:reveal-path", targetPath),
+  getMcpStatus: () => ipcRenderer.invoke("editor:get-mcp-status"),
+  setMcpEnabled: (enabled) => ipcRenderer.invoke("editor:set-mcp-enabled", enabled),
+  getMcpAudit: (limit) => ipcRenderer.invoke("editor:get-mcp-audit", limit),
   setDirty: (dirty) => ipcRenderer.send("editor:set-dirty", dirty),
   onRequestClose: (callback) => {
     const listener = () => callback();

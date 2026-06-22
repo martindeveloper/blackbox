@@ -222,7 +222,11 @@ test("suppresses every watcher event from a single atomic save, not just the fir
     await env.service.onExternalChange(project, scenarioPath); // unlink
     await env.service.onExternalChange(project, scenarioPath); // add
 
-    assert.equal(project.revision, revisionAfterSave, "self-inflicted writes must not bump revision");
+    assert.equal(
+      project.revision,
+      revisionAfterSave,
+      "self-inflicted writes must not bump revision",
+    );
     assert.deepEqual(
       events.filter((event) => event.source === "external"),
       [],

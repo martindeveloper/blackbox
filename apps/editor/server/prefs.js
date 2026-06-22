@@ -8,6 +8,7 @@ const USER_PREFS_PATH = path.join(USER_DATA_ROOT, EDITOR_SIDECAR_DIR, USER_PREFS
 export const DEFAULT_USER_PREFS = Object.freeze({
   theme: "device",
   preferredIde: DEFAULT_IDE_ID,
+  mcpEnabled: false,
 });
 
 export async function readUserPrefs() {
@@ -50,6 +51,9 @@ export function sanitizePrefs(raw) {
   }
   if (typeof raw.rightColumnWidth === "number" && Number.isFinite(raw.rightColumnWidth)) {
     prefs.rightColumnWidth = Math.round(raw.rightColumnWidth);
+  }
+  if (typeof raw.mcpEnabled === "boolean") {
+    prefs.mcpEnabled = raw.mcpEnabled;
   }
   return prefs;
 }

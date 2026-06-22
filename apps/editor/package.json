@@ -34,9 +34,11 @@
   },
   "dependencies": {
     "@fastify/multipart": "^10.0.0",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "chokidar": "^5.0.0",
     "fastify": "^5.8.5",
-    "livereload": "^0.10.3"
+    "livereload": "^0.10.3",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@babel/core": "^8.0.1",
@@ -62,7 +64,7 @@
     "react-dom": "^19.2.7",
     "react-i18next": "^17.0.8",
     "rolldown": "^1.1.2",
-    "sharp": "^0.35.1",
+    "sharp": "^0.35.2",
     "tailwindcss": "^4.3.1",
     "typescript": "^6.0.3",
     "zustand": "^5.0.14"

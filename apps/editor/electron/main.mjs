@@ -46,6 +46,7 @@ app.setName(APP_NAME);
 
 let mainWindow = null;
 let editorServer = null;
+let editorMcpServer = null;
 let editorSocketPath = null;
 // Set on before-quit so confirm-close can call app.quit() vs window.close().
 let isQuitting = false;
@@ -120,6 +121,18 @@ async function startServer() {
       trashItem: (target) => shell.trashItem(target),
     },
   });
+  const [{ EditorMcpServer }, { readUserPrefs }] = await Promise.all([
+    import("../server/mcpServer.mjs"),
+    import("../server/prefs.js"),
+  ]);
+  editorMcpServer = new EditorMcpServer({
+    projectService: server.projectService,
+    isRendererDirty: () => closeGuard.dirty,
+    auditLogPath: path.join(process.env.BLACKBOX_USER_DATA, "logs", "mcp-audit.jsonl"),
+  });
+  if ((await readUserPrefs()).mcpEnabled === true) {
+    await editorMcpServer.start();
+  }
   protocol.handle(EDITOR_SCHEME, createEditorProtocolHandler(editorSocketPath));
   return server;
 }
@@ -355,6 +368,40 @@ if (cliArgs !== null) {
         }
         shell.showItemInFolder(resolved);
         return true;
+      });
+      ipcMain.handle("editor:get-mcp-status", async (event) => {
+        if (event.sender !== mainWindow?.webContents) {
+          throw new Error("MCP status is only available from the editor window");
+        }
+        return (
+          editorMcpServer?.status() ?? {
+            enabled: false,
+            endpoint: null,
+            token: null,
+            transport: "streamable-http",
+            config: null,
+          }
+        );
+      });
+      ipcMain.handle("editor:set-mcp-enabled", async (event, enabled) => {
+        if (event.sender !== mainWindow?.webContents) {
+          throw new Error("MCP settings are only available from the editor window");
+        }
+        if (typeof enabled !== "boolean") {
+          throw new TypeError("enabled must be a boolean");
+        }
+        if (!editorMcpServer) throw new Error("The editor MCP service is not ready");
+        const { readUserPrefs, writeUserPrefs } = await import("../server/prefs.js");
+        const status = enabled ? await editorMcpServer.start() : await editorMcpServer.stop();
+        await writeUserPrefs({ ...(await readUserPrefs()), mcpEnabled: enabled });
+        return status;
+      });
+      ipcMain.handle("editor:get-mcp-audit", async (event, limit) => {
+        if (event.sender !== mainWindow?.webContents) {
+          throw new Error("MCP audit is only available from the editor window");
+        }
+        if (!editorMcpServer) throw new Error("The editor MCP service is not ready");
+        return editorMcpServer.readAudit(limit);
       });
       ipcMain.on("editor:set-dirty", (event, dirty) => {
         if (event.sender !== mainWindow?.webContents) return;

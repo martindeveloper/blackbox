@@ -549,7 +549,7 @@ function executeTool(service, projectId, tool, body) {
   return executeBundle(service, projectId, body);
 }
 
-function executeLinter(service, projectId, body) {
+export function executeLinter(service, projectId, body) {
   return service.withRevision(projectId, body.expectedRevision, async (locked) => {
     const scenarioPath = path.join(locked.path, "scenario.json");
     const tools = locked.tools ?? nullTools();
@@ -563,7 +563,7 @@ function executeLinter(service, projectId, body) {
   });
 }
 
-function executeSimulator(service, projectId, body) {
+export function executeSimulator(service, projectId, body) {
   return service.withRevision(projectId, body.expectedRevision, async (locked) => {
     const tools = locked.tools ?? nullTools();
     const args = [locked.path];
