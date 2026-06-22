@@ -63,6 +63,7 @@ test("serves authenticated MCP tools and revision-checked saves", async (t) => {
   let dirty = false;
   let revision = 7;
   const saves = [];
+  const notifications = [];
   const service = {
     listProjects: () => [snapshot(revision).project],
     openProject: async () => snapshot(revision),
@@ -77,6 +78,7 @@ test("serves authenticated MCP tools and revision-checked saves", async (t) => {
       revision += 1;
       return { revision };
     },
+    notify: (_id, event) => notifications.push(event),
   };
 
   const server = new EditorMcpServer({
@@ -126,6 +128,10 @@ test("serves authenticated MCP tools and revision-checked saves", async (t) => {
   assert.equal(saves.length, 1);
   assert.equal(saves[0].force, false);
   assert.equal(saves[0].clientId, "mcp");
+  assert.equal(saves[0].event.source, "mcp");
+  assert.equal(saves[0].event.contribution.contributor.kind, "agent");
+  assert.equal(saves[0].event.contribution.contributor.name, "blackbox-editor-test");
+  assert.equal(saves[0].event.contribution.review.type, "mcp-audit");
 
   const expanded = await client.callTool({
     name: "save_documents",
@@ -176,6 +182,9 @@ test("serves authenticated MCP tools and revision-checked saves", async (t) => {
   assert.equal(blocked.isError, true);
   assert.match(blocked.content[0].text, /editor_dirty/);
   assert.equal(saves.length, 2);
+  assert.equal(notifications.length, 1);
+  assert.equal(notifications[0].contribution.status, "blocked");
+  assert.equal(notifications[0].contribution.contributor.name, "blackbox-editor-test");
 
   const audit = await server.readAudit();
   const savedAudit = audit.entries.find((entry) => entry.changeCount === 5);
@@ -218,6 +227,7 @@ test("patch_documents and upload_media mutate through the revision-checked pipel
       assert.equal(payload.baseRevision, revision);
       assert.equal(payload.force, false);
       assert.equal(payload.clientId, "mcp");
+      assert.equal(payload.event.source, "mcp");
       saves.push(payload);
       revision += 1;
       return { revision };

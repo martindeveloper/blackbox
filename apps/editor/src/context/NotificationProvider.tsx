@@ -15,6 +15,7 @@ interface NotificationEntry {
   message: string;
   type: NotificationType;
   duration: number;
+  action?: NotifyOptions["action"];
 }
 
 interface NotificationContextValue {
@@ -47,6 +48,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         message: options.message,
         type: options.type ?? "info",
         duration: options.duration ?? DEFAULT_DURATION,
+        action: options.action,
       };
 
       setItems((prev) => [...prev, entry]);
@@ -81,6 +83,15 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
             key={item.id}
             message={item.message}
             type={item.type}
+            actionLabel={item.action?.label}
+            onAction={
+              item.action
+                ? () => {
+                    item.action?.onClick();
+                    dismiss(item.id);
+                  }
+                : undefined
+            }
             onDismiss={() => dismiss(item.id)}
           />
         ))}

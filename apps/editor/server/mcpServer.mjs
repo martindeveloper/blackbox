@@ -214,8 +214,29 @@ function createProtocolServer({ projectService, isRendererDirty, auditTool, clie
   );
 
   const readSnapshot = async (projectId) => projectService.openProject(projectId, false);
-  const mutationGuard = () => {
+  const contributor = {
+    kind: "agent",
+    name: client.name,
+    version: client.version,
+  };
+  const mutationEvent = (changeSummary) => ({
+    source: "mcp",
+    contribution: {
+      status: "applied",
+      contributor,
+      review: { type: "mcp-audit" },
+      ...changeSummary,
+    },
+  });
+  const mutationGuard = (projectId) => {
     if (isRendererDirty()) {
+      projectService.notify(projectId, {
+        source: "mcp",
+        contribution: {
+          status: "blocked",
+          contributor,
+        },
+      });
       const error = new Error(
         "The editor has unsaved changes. Ask the user to save or discard them before an agent mutation.",
       );
@@ -403,7 +424,7 @@ function createProtocolServer({ projectService, isRendererDirty, auditTool, clie
       },
     },
     async ({ projectId, expectedRevision, documents }, _extra, auditDetails) => {
-      mutationGuard();
+      mutationGuard(projectId);
       const before = await readSnapshot(projectId);
       const changeSummary = summarizeDocumentChanges(before, documents);
       const saved = await projectService.saveDocuments(projectId, {
@@ -411,6 +432,7 @@ function createProtocolServer({ projectService, isRendererDirty, auditTool, clie
         documents,
         force: false,
         clientId: "mcp",
+        event: mutationEvent(changeSummary),
       });
       Object.assign(auditDetails, changeSummary, { revision: saved.revision });
       return jsonText(saved);
@@ -478,7 +500,7 @@ function createProtocolServer({ projectService, isRendererDirty, auditTool, clie
       },
     },
     async ({ projectId, expectedRevision, ops }, _extra, auditDetails) => {
-      mutationGuard();
+      mutationGuard(projectId);
       const before = await readSnapshot(projectId);
       const documents = applyDocumentPatch(before, ops);
       const changeSummary = summarizeDocumentChanges(before, documents);
@@ -487,6 +509,7 @@ function createProtocolServer({ projectService, isRendererDirty, auditTool, clie
         documents,
         force: false,
         clientId: "mcp",
+        event: mutationEvent(changeSummary),
       });
       Object.assign(auditDetails, changeSummary, { revision: saved.revision });
       return jsonText({ ...saved, documentsWritten: Object.keys(documents) });
@@ -523,7 +546,7 @@ function createProtocolServer({ projectService, isRendererDirty, auditTool, clie
       _extra,
       auditDetails,
     ) => {
-      mutationGuard();
+      mutationGuard(projectId);
       const before = await readSnapshot(projectId);
       const scenarioPath = before.bundle.filePaths?.scenario ?? "scenario.json";
       const scenario = structuredClone(before.bundle.scenario ?? {});
@@ -556,6 +579,7 @@ function createProtocolServer({ projectService, isRendererDirty, auditTool, clie
         documents,
         force: false,
         clientId: "mcp",
+        event: mutationEvent(changeSummary),
       });
       Object.assign(auditDetails, changeSummary, { revision: saved.revision });
       return jsonText({
@@ -594,7 +618,7 @@ function createProtocolServer({ projectService, isRendererDirty, auditTool, clie
       _extra,
       auditDetails,
     ) => {
-      mutationGuard();
+      mutationGuard(projectId);
       const data = Buffer.from(dataBase64, "base64");
       if (data.length === 0) {
         throw Object.assign(new Error("dataBase64 did not decode to any bytes"), {

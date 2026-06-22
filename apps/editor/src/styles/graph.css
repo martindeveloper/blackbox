@@ -29,6 +29,28 @@
     var(--editor-shadow);
 }
 
+.graph-node--recently-changed {
+  outline: 2px solid transparent;
+  animation: graph-contribution-updated 2.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.graph-node-badge--contributor {
+  color: var(--editor-primary);
+  background: color-mix(in srgb, var(--editor-primary) 11%, transparent);
+  border: 1px solid color-mix(in srgb, var(--editor-primary) 35%, transparent);
+}
+
+@keyframes graph-contribution-updated {
+  0% {
+    outline-color: color-mix(in srgb, var(--editor-primary) 75%, transparent);
+    outline-offset: 2px;
+  }
+  100% {
+    outline-color: transparent;
+    outline-offset: 8px;
+  }
+}
+
 .graph-node-id {
   font-family: var(--font-mono);
   font-size: 10px;
@@ -138,6 +160,10 @@
   box-shadow: var(--editor-shadow);
 }
 
+.graph-node--analytics.graph-node--recently-changed {
+  animation: graph-contribution-updated 2.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 .graph-node-analytics-badge {
   color: #fff;
   background: color-mix(in srgb, var(--insight-color) 76%, #20100a);
@@ -169,7 +195,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .graph-node--analytics {
+  .graph-node--analytics,
+  .graph-node--recently-changed {
     animation: none;
   }
 }

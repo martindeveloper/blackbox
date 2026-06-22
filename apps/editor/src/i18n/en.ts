@@ -109,6 +109,9 @@ export const en = {
     title: "Project changed on disk",
     message:
       "Your unsaved edits are preserved. Reload the disk version or overwrite it explicitly.",
+    contributorTitle: "A contributor updated the project",
+    contributorMessage:
+      "Your unsaved edits are preserved. Reload to review their version before continuing.",
     reload: "Reload",
     overwrite: "Overwrite",
   },
@@ -976,6 +979,7 @@ export const en = {
     fileMissing: "Trash file missing: {{name}}",
   },
   graph: {
+    changedByContributor: "Changed by {{contributor}}",
     noChapter: "No chapter",
     newNodeIdPlaceholder: "new_node_id",
     addNode: "Add node",
@@ -1647,6 +1651,13 @@ export const en = {
     restored: "Restored: {{name}}",
     permanentlyDeleted: "File permanently deleted",
     trashEmptied: "Trash emptied",
+    contributorFallback: "A contributor",
+    contributorUpdated_one: "{{contributor}} updated {{count}} project change",
+    contributorUpdated_other: "{{contributor}} updated {{count}} project changes",
+    contributorUpdatedProject: "{{contributor}} updated the project",
+    contributorWaiting:
+      "{{contributor}} is waiting. Save or discard your unsaved changes to continue.",
+    viewContributorChanges: "View changes",
   },
   store: {
     noProject:

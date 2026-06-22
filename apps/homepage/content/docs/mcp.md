@@ -43,6 +43,7 @@ Agents share the editor's **project service** — the same code paths that power
 
 - **Revision safety** — every mutation requires `expectedRevision` matching the project on disk. Conflicts return an error; agents should `read_project` again and reconcile.
 - **Editor dirty guard** — if the user has unsaved changes in the renderer, mutations are rejected with `editor_dirty` until they save or discard.
+- **Live editor updates** — successful edits enter the editor’s contributor-neutral change pipeline: clean projects reload automatically, preserve graph context, briefly mark affected nodes, and link to the MCP audit entry.
 - **Prefer patches** — `patch_documents` applies targeted ops (one node, choice, or catalog record). Reserve `save_documents` for whole-document rewrites.
 - **Audit trail** — every tool call is logged with metadata (tool name, arguments summary, duration, outcome). Open **Audit log** in settings to review recent operations.
 

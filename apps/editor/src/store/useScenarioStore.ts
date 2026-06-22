@@ -33,6 +33,10 @@ import {
 import { removeChapterFromBundle, renameChapterId } from "../lib/chapterLifecycle.js";
 import { disconnectChoiceEdgeInBundle } from "../lib/disconnectChoiceEdge.js";
 import { diffDirtyKeys } from "../lib/historyDiff.js";
+import {
+  notifyContributionApplied,
+  notifyContributionBlocked,
+} from "../lib/contributionNotifications.js";
 import type { GraphEdgeKind } from "../lib/graphBuilder.js";
 import { createLibrarySidecar, createMetaCatalogSidecar } from "../lib/sidecarFactory.js";
 import type { MetaEntryKind } from "../lib/metaUsage.js";
@@ -72,6 +76,7 @@ interface ScenarioState {
   editVersion: number;
   narrativeVersion: number;
   conflict: ProjectEvent | null;
+  recentContribution: ProjectEvent | null;
   validationIssues: ValidationIssue[];
   saving: boolean;
   undoStack: HistorySnapshot[];
@@ -181,6 +186,23 @@ function applyHistorySnapshot(
 }
 
 let unsubscribeProject: (() => void) | null = null;
+let contributionTimer: ReturnType<typeof setTimeout> | null = null;
+
+function presentContribution(
+  event: ProjectEvent,
+  set: (partial: Partial<ScenarioState>) => void,
+  get: () => ScenarioState,
+): void {
+  if (event.contribution?.status !== "applied") return;
+  if (contributionTimer) clearTimeout(contributionTimer);
+  set({ recentContribution: event });
+  notifyContributionApplied(event);
+  contributionTimer = setTimeout(() => {
+    if (get().recentContribution?.revision === event.revision) {
+      set({ recentContribution: null });
+    }
+  }, 5000);
+}
 
 function pickMediaFile(category: MediaCategory): Promise<File | null> {
   return new Promise((resolve) => {
@@ -208,6 +230,7 @@ export const useScenarioStore = create<ScenarioState>((set, get) => ({
   editVersion: 0,
   narrativeVersion: 0,
   conflict: null,
+  recentContribution: null,
   validationIssues: [],
   saving: false,
   undoStack: [],
@@ -273,17 +296,28 @@ export const useScenarioStore = create<ScenarioState>((set, get) => ({
         editVersion: 0,
         narrativeVersion: 0,
         conflict: null,
+        recentContribution: null,
         validationIssues: validateBundle(snapshot.bundle),
         ...resetHistory(),
       });
       unsubscribeProject = subscribeProject(projectId, (event) => {
         const state = get();
-        if (event.revision <= (state.revision ?? 0)) return;
+        if (event.contribution?.status === "blocked") {
+          notifyContributionBlocked(event);
+          return;
+        }
+        if (event.revision <= (state.revision ?? 0)) {
+          if (state.dirty.size === 0 && !state.saving) presentContribution(event, set, get);
+          return;
+        }
         if (state.dirty.size > 0 || state.saving) {
           set({ conflict: event });
           return;
         }
-        void get().reloadProject();
+        void (async () => {
+          const reloaded = await get().reloadProject();
+          if (reloaded) presentContribution(event, set, get);
+        })();
       });
       return true;
     } catch (error) {
@@ -1065,6 +1099,8 @@ export const useScenarioStore = create<ScenarioState>((set, get) => ({
   closeFolder: () => {
     unsubscribeProject?.();
     unsubscribeProject = null;
+    if (contributionTimer) clearTimeout(contributionTimer);
+    contributionTimer = null;
     set({
       bundle: null,
       projectName: null,
@@ -1080,6 +1116,7 @@ export const useScenarioStore = create<ScenarioState>((set, get) => ({
       editVersion: 0,
       narrativeVersion: 0,
       conflict: null,
+      recentContribution: null,
       validationIssues: [],
       ...resetHistory(),
     });

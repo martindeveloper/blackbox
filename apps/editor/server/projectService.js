@@ -968,7 +968,10 @@ export class ProjectService {
     return output.sort((a, b) => a.path.localeCompare(b.path));
   }
 
-  async saveDocuments(id, { baseRevision, documents, force = false, clientId = null }) {
+  async saveDocuments(
+    id,
+    { baseRevision, documents, force = false, clientId = null, event = null },
+  ) {
     const project = this.requireProject(id);
     return this.exclusive(id, async () => {
       this.assertRevision(project, baseRevision, force);
@@ -991,6 +994,7 @@ export class ProjectService {
         project,
         writes.map((write) => write.relative),
         clientId,
+        event,
       );
       return { revision };
     });
@@ -1218,14 +1222,29 @@ export class ProjectService {
     }
   }
 
-  async commitMutation(project, changedPaths, clientId = null) {
+  async commitMutation(project, changedPaths, clientId = null, event = null) {
     project.revision += 1;
     this.db
       .prepare("UPDATE projects SET revision = ? WHERE id = ?")
       .run(project.revision, project.id);
     await this.indexProject(project);
-    this.emit(project.id, { revision: project.revision, changedPaths, source: "api", clientId });
+    this.emit(project.id, {
+      ...event,
+      revision: project.revision,
+      changedPaths,
+      source: event?.source ?? "api",
+      clientId,
+    });
     return project.revision;
+  }
+
+  notify(id, event) {
+    const project = this.requireProject(id);
+    this.emit(id, {
+      ...event,
+      revision: project.revision,
+      changedPaths: event.changedPaths ?? [],
+    });
   }
 
   withRevision(id, expectedRevision, operation) {

@@ -4,6 +4,10 @@ export interface NotifyOptions {
   message: string;
   type?: NotificationType;
   duration?: number;
+  action?: {
+    label: string;
+    onClick: () => void;
+  };
 }
 
 export interface NotifyApi {
@@ -17,7 +21,7 @@ export function registerNotifyApi(api: NotifyApi | null): void {
   notifyApi = api;
 }
 
-function notify(options: NotifyOptions): string {
+export function notify(options: NotifyOptions): string {
   if (notifyApi) return notifyApi.push(options);
   console.warn("[notify]", options.type ?? "info", options.message);
   return "";

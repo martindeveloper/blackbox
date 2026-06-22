@@ -31,8 +31,40 @@ export interface ProjectSnapshot {
 export interface ProjectEvent {
   revision: number;
   changedPaths: string[];
-  source?: "api" | "external";
+  source?: "api" | "external" | "mcp" | "git" | "remote";
   clientId?: string | null;
+  contribution?: ProjectContribution;
+}
+
+/**
+ * Contributor-neutral metadata attached by MCP, Git, remote collaboration, or
+ * another integration. The editor consumes this envelope without branching on
+ * the event source.
+ */
+export interface ProjectContribution {
+  status: "applied" | "blocked";
+  contributor: {
+    kind: "agent" | "person" | "integration" | "system";
+    name: string;
+    version?: string | null;
+  };
+  changes?: ProjectChange[];
+  changeCount?: number;
+  changesTruncated?: boolean;
+  review?: ProjectContributionReview;
+}
+
+export type ProjectContributionReview =
+  | { type: "mcp-audit" }
+  | { type: "git-diff"; from?: string; to?: string }
+  | { type: "external-diff"; changedPaths?: string[] };
+
+export interface ProjectChange {
+  action: "added" | "removed" | "edited";
+  entity: string;
+  id: string;
+  parentId?: string;
+  chapterId?: string;
 }
 
 const CLIENT_ID = crypto.randomUUID();

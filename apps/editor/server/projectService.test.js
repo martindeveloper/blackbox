@@ -114,6 +114,8 @@ test("discovers, opens, and revision-saves a project", async () => {
     env.service.setProjectCodeTrust(project.id, false);
     const snapshot = await env.service.openProject(project.id);
     assert.equal(snapshot.bundle.scenario.title, "Test Project");
+    const events = [];
+    const unsubscribe = env.service.subscribe(project.id, (event) => events.push(event));
 
     const result = await env.service.saveDocuments(project.id, {
       baseRevision: snapshot.project.revision,
@@ -121,8 +123,25 @@ test("discovers, opens, and revision-saves a project", async () => {
         "scenario.json": { ...snapshot.bundle.scenario, title: "Changed" },
         [LAYOUT_PATH]: { chapters: { one: { nodes: {} } } },
       },
+      clientId: "git-sync",
+      event: {
+        source: "git",
+        contribution: {
+          status: "applied",
+          contributor: { kind: "person", name: "Test Author" },
+          changes: [{ action: "edited", entity: "node", id: "start", chapterId: "one" }],
+          changeCount: 1,
+          review: { type: "git-diff", from: "abc", to: "def" },
+        },
+      },
     });
+    unsubscribe();
     assert.equal(result.revision, snapshot.project.revision + 1);
+    assert.equal(events[0].source, "git");
+    assert.equal(events[0].clientId, "git-sync");
+    assert.equal(events[0].contribution.contributor.name, "Test Author");
+    assert.equal(events[0].contribution.changes[0].id, "start");
+    assert.equal(events[0].contribution.review.type, "git-diff");
     assert.equal((await env.service.openProject(project.id)).bundle.scenario.title, "Changed");
 
     await assert.rejects(

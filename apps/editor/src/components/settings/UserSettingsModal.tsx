@@ -38,11 +38,12 @@ import { ThemePreferencePicker } from "./ThemePreferencePicker.js";
 
 interface UserSettingsModalProps {
   onClose: () => void;
+  initialView?: SettingsView;
 }
 
 type SettingsView = "appearance" | "workspace" | "agents" | "audit";
 
-export function UserSettingsModal({ onClose }: UserSettingsModalProps) {
+export function UserSettingsModal({ onClose, initialView = "appearance" }: UserSettingsModalProps) {
   const { t } = useTranslation();
   const { prefs, updatePrefs } = useUserPrefs();
   const { themePreference } = useTheme();
@@ -55,7 +56,7 @@ export function UserSettingsModal({ onClose }: UserSettingsModalProps) {
   const [probing, setProbing] = useState(isElectron);
   const [probeNonce, setProbeNonce] = useState(0);
   const [trackedIdePath, setTrackedIdePath] = useState(customIdePath);
-  const [view, setView] = useState<SettingsView>("appearance");
+  const [view, setView] = useState<SettingsView>(initialView);
   const [mcpStatus, setMcpStatus] = useState<McpStatus | null>(null);
 
   if (isElectron && trackedIdePath !== customIdePath) {

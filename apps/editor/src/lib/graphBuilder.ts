@@ -1,5 +1,6 @@
 import { MarkerType, type Edge, type Node } from "@xyflow/react";
 import { collectSnippetIdsFromText } from "./libraryRefs.js";
+import type { ProjectContribution } from "./projectApi.js";
 import type {
   Chapter,
   ChoiceContent,
@@ -37,6 +38,7 @@ export interface ScenarioNodeData {
   analyticsMarkers?: ("spine" | "split")[];
   analyticsColor?: string;
   inspectorSelected?: boolean;
+  recentlyChangedBy?: ProjectContribution["contributor"];
   [key: string]: unknown;
 }
 

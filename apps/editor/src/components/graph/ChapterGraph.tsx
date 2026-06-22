@@ -141,6 +141,7 @@ function ChapterGraphInner() {
   const bundle = useScenarioStore((s) => s.bundle);
   const projectId = useScenarioStore((s) => s.projectId);
   const narrativeVersion = useScenarioStore((s) => s.narrativeVersion);
+  const recentContribution = useScenarioStore((s) => s.recentContribution);
   const updateNodePosition = useScenarioStore((s) => s.updateNodePosition);
   const applyLayout = useScenarioStore((s) => s.applyLayout);
   const connectNodes = useScenarioStore((s) => s.connectNodes);
@@ -189,6 +190,17 @@ function ChapterGraphInner() {
   );
 
   const chapter = chapterId && bundle ? bundle.chapters[chapterId] : null;
+  const recentlyChangedNodeIds = useMemo(() => {
+    const ids = new Set<string>();
+    if (!chapterId) return ids;
+    for (const change of recentContribution?.contribution?.changes ?? []) {
+      if (change.chapterId !== chapterId || change.action === "removed") continue;
+      if (change.entity === "node") ids.add(change.id);
+      if (change.entity === "choice" && change.parentId) ids.add(change.parentId);
+    }
+    return ids;
+  }, [recentContribution, chapterId]);
+  const recentContributor = recentContribution?.contribution?.contributor;
 
   const graphData = useMemo(() => {
     if (!bundle || !chapter || !chapterId) {
@@ -229,6 +241,9 @@ function ChapterGraphInner() {
             ? {
                 ...node.data,
                 inspectorSelected: node.id === nodeId,
+                recentlyChangedBy: recentlyChangedNodeIds.has(node.id)
+                  ? recentContributor
+                  : undefined,
                 analyticsActive: true,
                 analyticsIntensity: insight?.intensity ?? 0,
                 analyticsBadge: insight?.badge ?? coldBadge,
@@ -245,11 +260,24 @@ function ChapterGraphInner() {
             : {
                 ...node.data,
                 inspectorSelected: node.id === nodeId,
+                recentlyChangedBy: recentlyChangedNodeIds.has(node.id)
+                  ? recentContributor
+                  : undefined,
               },
         };
       }),
     };
-  }, [bundle, chapter, chapterId, insights, effectiveAnalyticsMode, nodeId, t]);
+  }, [
+    bundle,
+    chapter,
+    chapterId,
+    insights,
+    effectiveAnalyticsMode,
+    nodeId,
+    recentlyChangedNodeIds,
+    recentContributor,
+    t,
+  ]);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(graphData.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(graphData.edges);
@@ -285,6 +313,22 @@ function ChapterGraphInner() {
       })),
     );
   }, [nodeId, setNodes]);
+
+  useEffect(() => {
+    if (!chapterId || !nodeId) return;
+    const selectedNodeWasRemoved = recentContribution?.contribution?.changes?.some(
+      (change) =>
+        change.entity === "node" &&
+        change.action === "removed" &&
+        change.chapterId === chapterId &&
+        change.id === nodeId,
+    );
+    if (!selectedNodeWasRemoved) return;
+    void editorNavigate(navigate, {
+      to: Page.EditorGraph,
+      search: { chapter: chapterId, node: null },
+    });
+  }, [recentContribution, chapterId, navigate, nodeId]);
 
   const onConnect = useCallback(
     (connection: Connection) => {

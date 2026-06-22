@@ -253,17 +253,23 @@ export function EditorShell() {
       <TopBar />
       {conflict ? (
         <div className="flex items-center gap-3 border-b border-danger bg-danger/10 px-3 py-2 text-xs">
-          <strong>{t("conflict.title")}</strong>
-          <span className="flex-1">{t("conflict.message")}</span>
+          <strong>
+            {t(conflict.contribution ? "conflict.contributorTitle" : "conflict.title")}
+          </strong>
+          <span className="flex-1">
+            {t(conflict.contribution ? "conflict.contributorMessage" : "conflict.message")}
+          </span>
           <button className="editor-btn editor-btn-sm" onClick={() => void reloadProject()}>
             {t("conflict.reload")}
           </button>
-          <button
-            className="editor-btn editor-btn-sm editor-btn-primary"
-            onClick={() => void overwriteConflict()}
-          >
-            {t("conflict.overwrite")}
-          </button>
+          {!conflict.contribution ? (
+            <button
+              className="editor-btn editor-btn-sm editor-btn-primary"
+              onClick={() => void overwriteConflict()}
+            >
+              {t("conflict.overwrite")}
+            </button>
+          ) : null}
         </div>
       ) : null}
       <div

@@ -1,5 +1,15 @@
 import { Handle, Position, type NodeProps } from "@xyflow/react";
-import { GitBranch, Layers, Quote, Skull, Star } from "lucide-react";
+import {
+  Bot,
+  GitBranch,
+  Layers,
+  Link2,
+  Quote,
+  Settings2,
+  Skull,
+  Star,
+  UserRound,
+} from "lucide-react";
 import type { CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
 import type { ScenarioNodeData } from "../../lib/graphBuilder.js";
@@ -11,6 +21,7 @@ export function NodeCard({ data, selected }: NodeProps) {
   const hasAnalytics = d.analyticsActive === true;
   const intensity = d.analyticsIntensity ?? 0;
   const active = selected || d.inspectorSelected === true;
+  const contributor = d.recentlyChangedBy;
 
   const analyticsStyle: CSSProperties | undefined = hasAnalytics
     ? ({
@@ -22,7 +33,7 @@ export function NodeCard({ data, selected }: NodeProps) {
 
   return (
     <div
-      className={`graph-node ${active ? "graph-node-selected" : ""}${hasAnalytics ? ` graph-node--analytics graph-node--analytics-${d.analyticsTone ?? "reach"}${intensity <= 0 ? " graph-node--analytics-cold" : ""}` : ""}`}
+      className={`graph-node ${active ? "graph-node-selected" : ""}${contributor ? " graph-node--recently-changed" : ""}${hasAnalytics ? ` graph-node--analytics graph-node--analytics-${d.analyticsTone ?? "reach"}${intensity <= 0 ? " graph-node--analytics-cold" : ""}` : ""}`}
       style={analyticsStyle}
     >
       {d.incomingHandles.length > 0 ? (
@@ -43,6 +54,15 @@ export function NodeCard({ data, selected }: NodeProps) {
       <div className="flex items-center justify-between gap-1 mb-1">
         <span className="graph-node-id truncate flex-1">{d.nodeId}</span>
         <div className="flex shrink-0 items-center gap-1">
+          {contributor ? (
+            <span
+              className="graph-node-badge graph-node-badge--contributor"
+              title={t("graph.changedByContributor", { contributor: contributor.name })}
+            >
+              <Icon icon={contributorIcon(contributor.kind)} size={9} strokeWidth={2} />
+              {contributorBadge(contributor)}
+            </span>
+          ) : null}
           {hasAnalytics && d.analyticsBadge ? (
             <span className="graph-node-badge graph-node-analytics-badge" title={d.analyticsTitle}>
               {d.analyticsBadge}
@@ -119,4 +139,34 @@ export function NodeCard({ data, selected }: NodeProps) {
       )}
     </div>
   );
+}
+
+function contributorIcon(kind: NonNullable<ScenarioNodeData["recentlyChangedBy"]>["kind"]) {
+  if (kind === "agent") return Bot;
+  if (kind === "person") return UserRound;
+  if (kind === "integration") return Link2;
+  return Settings2;
+}
+
+function contributorBadge(contributor: NonNullable<ScenarioNodeData["recentlyChangedBy"]>) {
+  if (contributor.kind === "agent") return "AI";
+  if (contributor.kind === "person") {
+    return (
+      contributor.name
+        .split(/\s+/)
+        .map((part) => part[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase() || "USER"
+    );
+  }
+  if (contributor.kind === "integration") {
+    return (
+      contributor.name
+        .replaceAll(/[^A-Za-z0-9]/g, "")
+        .slice(0, 3)
+        .toUpperCase() || "EXT"
+    );
+  }
+  return "SYS";
 }

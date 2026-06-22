@@ -25,6 +25,8 @@ import { BugReportButton, BugReportModal } from "../support/BugReportModal.js";
 import { useScenarioStore } from "../../store/useScenarioStore.js";
 import { transitionToHome } from "../../lib/projectTransition.js";
 import { editorNavigate, navigateToTool } from "../../lib/routeHelpers.js";
+import { CONTRIBUTION_REVIEW_EVENT } from "../../lib/contributionReview.js";
+import type { ProjectContributionReview } from "../../lib/projectApi.js";
 import { isActiveEditorPage, Page } from "../../lib/pages.js";
 import { CUSTOM_IDE_ID, DEFAULT_IDE_ID } from "../../../shared/ideRegistry.js";
 import { useToolRunnerStore } from "../../store/useToolRunnerStore.js";
@@ -113,6 +115,7 @@ export function TopBar() {
   const previewActive = isActiveEditorPage(pathname, Page.EditorPreview);
   const [openingIde, setOpeningIde] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsView, setSettingsView] = useState<"appearance" | "audit">("appearance");
   const [bugReportOpen, setBugReportOpen] = useState(false);
   const { prefs } = useUserPrefs();
 
@@ -131,6 +134,18 @@ export function TopBar() {
     .sort((a, b) => a.localeCompare(b));
 
   const projectTitle = bundle?.scenario.title ?? projectName;
+
+  useEffect(() => {
+    const reviewContribution = (event: Event) => {
+      const review = (event as CustomEvent<ProjectContributionReview>).detail;
+      if (review.type === "mcp-audit") {
+        setSettingsView("audit");
+        setSettingsOpen(true);
+      }
+    };
+    window.addEventListener(CONTRIBUTION_REVIEW_EVENT, reviewContribution);
+    return () => window.removeEventListener(CONTRIBUTION_REVIEW_EVENT, reviewContribution);
+  }, []);
 
   const handleClose = async () => {
     // Guard against silently discarding unsaved work. Three outcomes:
@@ -293,8 +308,15 @@ export function TopBar() {
         <div className="editor-topbar-actions">
           <BugReportButton onClick={() => setBugReportOpen(true)} />
           {bugReportOpen ? <BugReportModal onClose={() => setBugReportOpen(false)} /> : null}
-          <UserSettingsButton onClick={() => setSettingsOpen(true)} />
-          {settingsOpen ? <UserSettingsModal onClose={() => setSettingsOpen(false)} /> : null}
+          <UserSettingsButton
+            onClick={() => {
+              setSettingsView("appearance");
+              setSettingsOpen(true);
+            }}
+          />
+          {settingsOpen ? (
+            <UserSettingsModal initialView={settingsView} onClose={() => setSettingsOpen(false)} />
+          ) : null}
           {projectPath && window.electronAPI ? (
             <Button
               variant="ghost"

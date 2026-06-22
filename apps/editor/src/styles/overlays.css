@@ -297,12 +297,38 @@
   color: var(--editor-primary);
 }
 
-.notification-toast-message {
+.notification-toast-content {
   flex: 1;
+  min-width: 0;
+}
+
+.notification-toast-message {
   margin: 1px 0 0;
   font-size: 10px;
   line-height: 1.45;
   color: var(--editor-text);
+}
+
+.notification-toast-action {
+  margin-top: 5px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--editor-primary);
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.notification-toast-action:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.notification-toast-action:focus-visible {
+  border-radius: 2px;
+  outline: 2px solid color-mix(in srgb, var(--editor-primary) 55%, transparent);
+  outline-offset: 2px;
 }
 
 .notification-toast-dismiss {
