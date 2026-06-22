@@ -10,6 +10,7 @@ test("user preferences default theme and preferred IDE", () => {
     preferredIde: DEFAULT_IDE_ID,
     mcpEnabled: false,
     mcpPort: DEFAULT_MCP_PORT,
+    searchFullTextDefault: false,
   });
   assert.deepEqual(sanitizePrefs({ theme: "dark", preferredIde: DEFAULT_IDE_ID }), {
     theme: "dark",
@@ -27,4 +28,7 @@ test("user preferences default theme and preferred IDE", () => {
   assert.deepEqual(sanitizePrefs({ mcpPort: 47832 }), { mcpPort: 47832 });
   assert.deepEqual(sanitizePrefs({ mcpPort: 80 }), {});
   assert.deepEqual(sanitizePrefs({ mcpPort: 70000 }), {});
+  assert.deepEqual(sanitizePrefs({ searchFullTextDefault: true }), {
+    searchFullTextDefault: true,
+  });
 });

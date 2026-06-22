@@ -209,6 +209,10 @@ export const en = {
     layoutReset: "Reset",
     layoutNavigator: "Navigator",
     layoutInspector: "Inspector",
+    searchTitle: "Project search",
+    searchFullTextDefault: "Search full text by default",
+    searchFullTextDefaultHint:
+      "When opening search (⌘K), also match node prose, choice labels, descriptions, and subtitles.",
     mcpTitle: "Model Context Protocol",
     mcpHint:
       "Let local AI agents inspect, validate, simulate, and revision-safely edit registered Blackbox projects.",

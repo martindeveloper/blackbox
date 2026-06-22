@@ -33,6 +33,7 @@ import {
 } from "@/lib/panelLayout.js";
 import { ModalShell } from "@/components/overlay/ModalShell.js";
 import { Button } from "@/components/ui/Button.js";
+import { Checkbox } from "@/components/ui/Checkbox.js";
 import { McpAuditSection, McpSettingsSection } from "./McpSettingsSection.js";
 import { ThemePreferencePicker } from "./ThemePreferencePicker.js";
 
@@ -232,6 +233,20 @@ export function UserSettingsModal({ onClose, initialView = "appearance" }: UserS
                     onChange={(value) => updatePrefs({ rightColumnWidth: value })}
                   />
                 </div>
+              </div>
+
+              <div className="user-settings-section">
+                <header className="user-settings-section-head">
+                  <h3 className="user-settings-section-title">{t("settings.searchTitle")}</h3>
+                  <p className="user-settings-section-copy">
+                    {t("settings.searchFullTextDefaultHint")}
+                  </p>
+                </header>
+                <Checkbox
+                  checked={prefs.searchFullTextDefault ?? false}
+                  onChange={(event) => updatePrefs({ searchFullTextDefault: event.target.checked })}
+                  label={t("settings.searchFullTextDefault")}
+                />
               </div>
             </section>
           ) : null}

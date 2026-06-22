@@ -7,6 +7,7 @@ export interface UserPrefs {
   customIdePath?: string;
   leftColumnWidth?: number;
   rightColumnWidth?: number;
+  searchFullTextDefault?: boolean;
 }
 
 export async function fetchUserPrefs(): Promise<UserPrefs> {

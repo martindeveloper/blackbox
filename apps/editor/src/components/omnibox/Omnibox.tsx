@@ -21,6 +21,7 @@ import { Page } from "@/lib/pages.js";
 import { editorNavigate } from "@/lib/projectRoute.js";
 import { OMNIBOX_OPEN_EVENT, requestNodeFocus } from "@/lib/omnibox.js";
 import { searchProject, type ScoutCategory, type ScoutHit } from "@/lib/toolsApi.js";
+import { useUserPrefs } from "@/hooks/useUserPrefs.js";
 import { useScenarioStore } from "@/store/useScenarioStore.js";
 
 const ROUTE_TO_PAGE: Record<string, Page> = {
@@ -48,9 +49,11 @@ export function Omnibox() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const projectId = useScenarioStore((s) => s.projectId);
+  const { prefs } = useUserPrefs();
+  const searchFullTextDefault = prefs.searchFullTextDefault ?? false;
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [fullText, setFullText] = useState(false);
+  const [fullText, setFullText] = useState(searchFullTextDefault);
   const [results, setResults] = useState<ScoutHit[]>([]);
   const [active, setActive] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -81,6 +84,11 @@ export function Omnibox() {
   useEffect(() => {
     if (open) inputRef.current?.focus();
   }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    setFullText(searchFullTextDefault);
+  }, [open, searchFullTextDefault]);
 
   useEffect(() => {
     if (!open || !projectId) return;

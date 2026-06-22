@@ -11,6 +11,7 @@ export const DEFAULT_USER_PREFS = Object.freeze({
   preferredIde: DEFAULT_IDE_ID,
   mcpEnabled: false,
   mcpPort: DEFAULT_MCP_PORT,
+  searchFullTextDefault: false,
 });
 
 export async function readUserPrefs() {
@@ -59,6 +60,9 @@ export function sanitizePrefs(raw) {
   }
   if (isValidMcpPort(raw.mcpPort)) {
     prefs.mcpPort = raw.mcpPort;
+  }
+  if (typeof raw.searchFullTextDefault === "boolean") {
+    prefs.searchFullTextDefault = raw.searchFullTextDefault;
   }
   return prefs;
 }
