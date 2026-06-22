@@ -53,7 +53,8 @@ export function Omnibox() {
   const searchFullTextDefault = prefs.searchFullTextDefault ?? false;
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [fullText, setFullText] = useState(searchFullTextDefault);
+  const [fullTextOverride, setFullTextOverride] = useState<boolean | null>(null);
+  const fullText = fullTextOverride ?? searchFullTextDefault;
   const [results, setResults] = useState<ScoutHit[]>([]);
   const [active, setActive] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -63,14 +64,28 @@ export function Omnibox() {
     setQuery("");
     setResults([]);
     setActive(0);
+    setFullTextOverride(null);
   }, []);
 
+  const openSearch = useCallback(() => {
+    setFullTextOverride(null);
+    setQuery("");
+    setResults([]);
+    setActive(0);
+    setOpen(true);
+  }, []);
+
+  const toggleSearch = useCallback(() => {
+    if (open) close();
+    else openSearch();
+  }, [open, close, openSearch]);
+
   useEffect(() => {
-    const onEvent = () => setOpen(true);
+    const onEvent = () => openSearch();
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
-        setOpen((prev) => !prev);
+        toggleSearch();
       }
     };
     window.addEventListener(OMNIBOX_OPEN_EVENT, onEvent);
@@ -79,16 +94,11 @@ export function Omnibox() {
       window.removeEventListener(OMNIBOX_OPEN_EVENT, onEvent);
       window.removeEventListener("keydown", onKey);
     };
-  }, []);
+  }, [openSearch, toggleSearch]);
 
   useEffect(() => {
     if (open) inputRef.current?.focus();
   }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
-    setFullText(searchFullTextDefault);
-  }, [open, searchFullTextDefault]);
 
   useEffect(() => {
     if (!open || !projectId) return;
@@ -182,7 +192,7 @@ export function Omnibox() {
             aria-pressed={fullText}
             title={t("omnibox.fullTextHint")}
             onMouseDown={(e) => e.preventDefault()}
-            onClick={() => setFullText((v) => !v)}
+            onClick={() => setFullTextOverride((override) => !(override ?? searchFullTextDefault))}
           >
             <Icon icon={fullText ? CheckSquare : SquareIcon} size={13} />
             {t("omnibox.fullText")}
