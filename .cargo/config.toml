@@ -5,11 +5,11 @@ target-dir = ".cache/target"
 # Android linker is set per-build by scripts/build-android-aarch64.mjs via
 # CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER.
 
-# fdk-aac-sys 0.5.0 bundles libfdk-aac headers that recognize GCC/Clang's
-# __aarch64__ but not MSVC's _M_ARM64 on Windows ARM64. The fallback branch
-# uses #warning, which cl.exe rejects (C1021). Upstream libfdk-aac adds
-# _M_ARM64 checks; until fdk-aac-sys picks that up, supply the equivalent
-# ARMv8 characterization macros for aarch64-pc-windows-msvc builds.
+# fdk-aac-sys 0.5.0 bundles libfdk-aac that predates MSVC Windows-on-ARM support.
+# cl.exe defines _M_ARM64 but not __aarch64__, so FDK_archdef.h hits an unsupported
+# #warning (C1021). Forcing __arm__ via -D breaks hbe.cpp, which uses GCC attributes
+# cl.exe cannot parse. clang-cl defines __aarch64__, satisfies the bundled headers,
+# and accepts those attributes. GitHub's windows-11-arm image ships clang-cl on PATH.
 [env]
-CFLAGS_aarch64_pc_windows_msvc = "-D__arm__ -D__ARM_ARCH_8__"
-CXXFLAGS_aarch64_pc_windows_msvc = "-D__arm__ -D__ARM_ARCH_8__"
+CC_aarch64_pc_windows_msvc = "clang-cl"
+CXX_aarch64_pc_windows_msvc = "clang-cl"
