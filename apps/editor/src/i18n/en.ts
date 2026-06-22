@@ -188,6 +188,10 @@ export const en = {
     generate: "Generate ZIP",
     generating: "Generating…",
   },
+  shortcuts: {
+    omniboxOpen: "Open project search",
+    projectSave: "Save project",
+  },
   settings: {
     title: "Settings",
     appearanceKicker: "Appearance",
@@ -212,7 +216,7 @@ export const en = {
     searchTitle: "Project search",
     searchFullTextDefault: "Search full text by default",
     searchFullTextDefaultHint:
-      "When opening search (⌘K), also match node prose, choice labels, descriptions, and subtitles.",
+      "When opening search ({{shortcut}}), also match node prose, choice labels, descriptions, and subtitles.",
     mcpTitle: "Model Context Protocol",
     mcpHint:
       "Let local AI agents inspect, validate, simulate, and revision-safely edit registered Blackbox projects.",
@@ -766,7 +770,6 @@ export const en = {
     scout: {
       title: "Scout",
       short: "Jump to any node, item, character or asset",
-      shortcut: "⌘K",
       command: "blackbox-scout",
     },
     inspector: {

@@ -5,6 +5,7 @@ import { Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useScenarioStore } from "@/store/useScenarioStore.js";
 import { isActiveEditorPage, Page } from "@/lib/pages.js";
 import { editorNavigate, useActivityView, useEditorSearch } from "@/lib/routeHelpers.js";
+import { matchesShortcut } from "@/lib/shortcuts.js";
 import { useUserPrefs } from "@/hooks/useUserPrefs.js";
 import { useHeatmapHydration } from "@/hooks/useHeatmapHydration.js";
 import { confirmModal } from "@/lib/modalApi.js";
@@ -129,20 +130,20 @@ export function EditorShell() {
       return tag === "INPUT" || tag === "TEXTAREA" || el.isContentEditable;
     };
     const onKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "s") {
+      if (matchesShortcut(e, "projectSave")) {
         e.preventDefault();
         void save();
       }
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "z" && !isTextEntry(e.target)) {
-        e.preventDefault();
-        if (e.shiftKey) redo();
-        else undo();
+      if (!isTextEntry(e.target)) {
+        if (matchesShortcut(e, "historyRedo")) {
+          e.preventDefault();
+          redo();
+        } else if (matchesShortcut(e, "historyUndo")) {
+          e.preventDefault();
+          undo();
+        }
       }
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "y" && !isTextEntry(e.target)) {
-        e.preventDefault();
-        redo();
-      }
-      if (e.key === "Escape" && isActiveEditorPage(pathname, Page.EditorGraph)) {
+      if (matchesShortcut(e, "graphDeselect") && isActiveEditorPage(pathname, Page.EditorGraph)) {
         void editorNavigate(navigate, {
           to: Page.EditorGraph,
           search: (prev) => ({ ...prev, chapter: search.chapter, node: null }),

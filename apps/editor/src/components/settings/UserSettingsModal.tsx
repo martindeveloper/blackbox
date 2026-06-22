@@ -13,6 +13,7 @@ import type { CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/context/ThemeContext.js";
 import { useUserPrefs } from "@/hooks/useUserPrefs.js";
+import { formatShortcutKeys } from "@/lib/shortcuts.js";
 import {
   CUSTOM_IDE_ID,
   DEFAULT_IDE_ID,
@@ -239,7 +240,9 @@ export function UserSettingsModal({ onClose, initialView = "appearance" }: UserS
                 <header className="user-settings-section-head">
                   <h3 className="user-settings-section-title">{t("settings.searchTitle")}</h3>
                   <p className="user-settings-section-copy">
-                    {t("settings.searchFullTextDefaultHint")}
+                    {t("settings.searchFullTextDefaultHint", {
+                      shortcut: formatShortcutKeys("omniboxOpen"),
+                    })}
                   </p>
                 </header>
                 <Checkbox

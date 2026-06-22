@@ -3,6 +3,14 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/Button.js";
 import { Icon } from "@/components/icons/Icon.js";
+import {
+  GRAPH_HELP_SHORTCUTS,
+  matchesShortcut,
+  shortcutTitle,
+  SHORTCUTS,
+  formatShortcutVariants,
+  type ShortcutAction,
+} from "@/lib/shortcuts.js";
 
 const ROUTE_KINDS = [
   { kind: "goto", labelKey: "graph.help.direct" },
@@ -13,24 +21,27 @@ const ROUTE_KINDS = [
   { kind: "itemAction", labelKey: "graph.help.item" },
 ] as const;
 
-const SHORTCUTS = [
-  { keys: ["N"], labelKey: "graph.help.shortcuts.addNode" },
-  { keys: ["C"], labelKey: "graph.help.shortcuts.addChoice" },
-  { keys: ["⌫"], labelKey: "graph.help.shortcuts.deleteNode" },
-  { keys: ["L"], labelKey: "graph.help.shortcuts.arrange" },
-  { keys: ["F"], labelKey: "graph.help.shortcuts.fit" },
-  { keys: ["H"], labelKey: "graph.help.shortcuts.analytics" },
-  { keys: ["⌘", "Z"], labelKey: "graph.help.shortcuts.undo" },
-  { keys: ["⌘", "⇧", "Z"], labelKey: "graph.help.shortcuts.redo" },
-  { keys: ["Esc"], labelKey: "graph.help.shortcuts.deselect" },
-  { keys: ["?"], labelKey: "graph.help.shortcuts.help" },
-] as const;
-
 function isTextEntry(target: EventTarget | null) {
   const el = target as HTMLElement | null;
   if (!el) return false;
   const tag = el.tagName;
   return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || el.isContentEditable;
+}
+
+function ShortcutKeys({ action }: { action: ShortcutAction }) {
+  const variants = formatShortcutVariants(action);
+  return (
+    <>
+      {variants.map((keys, variantIndex) => (
+        <span key={variantIndex}>
+          {variantIndex > 0 ? " / " : null}
+          {keys.map((key, keyIndex) => (
+            <kbd key={keyIndex}>{key}</kbd>
+          ))}
+        </span>
+      ))}
+    </>
+  );
 }
 
 export function GraphHelp() {
@@ -47,7 +58,7 @@ export function GraphHelp() {
       }
     };
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
+      if (matchesShortcut(event, "graphDeselect")) setOpen(false);
     };
 
     document.addEventListener("mousedown", closeOnOutsideClick);
@@ -60,8 +71,7 @@ export function GraphHelp() {
 
   useEffect(() => {
     const toggleOnQuestionMark = (event: KeyboardEvent) => {
-      if (event.metaKey || event.ctrlKey || event.altKey) return;
-      if (event.key !== "?" || isTextEntry(event.target)) return;
+      if (!matchesShortcut(event, "graphHelp") || isTextEntry(event.target)) return;
       event.preventDefault();
       setOpen((value) => !value);
     };
@@ -79,7 +89,7 @@ export function GraphHelp() {
         aria-label={t("graph.help.open")}
         aria-expanded={open}
         aria-controls="graph-help-popover"
-        title={`${t("graph.help.open")} (?)`}
+        title={shortcutTitle(t("graph.help.open"), "graphHelp")}
         onClick={() => setOpen((value) => !value)}
       />
       {open ? (
@@ -125,14 +135,12 @@ export function GraphHelp() {
           <div className="graph-help-section">
             <div className="graph-help-kicker">{t("graph.help.shortcuts.kicker")}</div>
             <dl className="graph-help-shortcuts">
-              {SHORTCUTS.map(({ keys, labelKey }) => (
-                <div className="graph-help-shortcut" key={labelKey}>
+              {GRAPH_HELP_SHORTCUTS.map((action) => (
+                <div className="graph-help-shortcut" key={action}>
                   <dt>
-                    {keys.map((key, i) => (
-                      <kbd key={i}>{key}</kbd>
-                    ))}
+                    <ShortcutKeys action={action} />
                   </dt>
-                  <dd>{t(labelKey)}</dd>
+                  <dd>{t(SHORTCUTS[action].titleKey)}</dd>
                 </div>
               ))}
             </dl>

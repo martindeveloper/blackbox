@@ -26,6 +26,7 @@ import { BugReportButton, BugReportModal } from "@/components/support/BugReportM
 import { useScenarioStore } from "@/store/useScenarioStore.js";
 import { transitionToHome } from "@/lib/projectTransition.js";
 import { openOmnibox } from "@/lib/omnibox.js";
+import { formatShortcutKeys } from "@/lib/shortcuts.js";
 import { editorNavigate, navigateToTool } from "@/lib/routeHelpers.js";
 import { CONTRIBUTION_REVIEW_EVENT } from "@/lib/contributionReview.js";
 import type { ProjectContributionReview } from "@/lib/projectApi.js";
@@ -38,9 +39,6 @@ import { IconButton } from "@/components/ui/IconButton.js";
 import { StatusPill } from "@/components/ui/StatusPill.js";
 import { useModal } from "@/context/ModalProvider.js";
 import { VcsControl } from "@/components/vcs/VcsControl.js";
-
-const OMNIBOX_SHORTCUT =
-  typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform) ? "⌘K" : "Ctrl K";
 
 /**
  * The "Unsaved" pill plus a hover popover listing which documents are dirty.
@@ -233,7 +231,7 @@ export function TopBar() {
           >
             <Icon icon={Search} size={12} className="editor-omnibox-trigger-icon" />
             <span className="editor-omnibox-trigger-label">{t("omnibox.triggerLabel")}</span>
-            <kbd className="editor-omnibox-trigger-kbd">{OMNIBOX_SHORTCUT}</kbd>
+            <kbd className="editor-omnibox-trigger-kbd">{formatShortcutKeys("omniboxOpen")}</kbd>
           </button>
         ) : null}
       </div>

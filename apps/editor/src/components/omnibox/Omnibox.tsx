@@ -20,6 +20,7 @@ import { Icon } from "@/components/icons/Icon.js";
 import { Page } from "@/lib/pages.js";
 import { editorNavigate } from "@/lib/projectRoute.js";
 import { OMNIBOX_OPEN_EVENT, requestNodeFocus } from "@/lib/omnibox.js";
+import { matchesShortcut } from "@/lib/shortcuts.js";
 import { searchProject, type ScoutCategory, type ScoutHit } from "@/lib/toolsApi.js";
 import { useUserPrefs } from "@/hooks/useUserPrefs.js";
 import { useScenarioStore } from "@/store/useScenarioStore.js";
@@ -83,7 +84,7 @@ export function Omnibox() {
   useEffect(() => {
     const onEvent = () => openSearch();
     const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+      if (matchesShortcut(e, "omniboxOpen")) {
         e.preventDefault();
         toggleSearch();
       }

@@ -33,6 +33,7 @@ import { useModal } from "@/context/ModalProvider.js";
 import { Page } from "@/lib/pages.js";
 import { editorNavigate, useEditorSearch } from "@/lib/routeHelpers.js";
 import { consumeNodeFocus } from "@/lib/omnibox.js";
+import { matchesShortcut } from "@/lib/shortcuts.js";
 import { Subtitle } from "@/components/ui/Heading.js";
 import { NodeCard } from "./NodeCard.js";
 import { GraphToolbar } from "./GraphToolbar.js";
@@ -423,45 +424,39 @@ function ChapterGraphInner() {
     };
     const onKeyDown = (event: KeyboardEvent) => {
       if (!chapterId || search.globalNode === "death") return;
-      if (event.metaKey || event.ctrlKey || event.altKey) return;
       if (isTextEntry(event.target)) return;
 
-      switch (event.key) {
-        case "n":
-        case "N":
-          event.preventDefault();
-          handleAddNode();
-          break;
-        case "c":
-        case "C":
-          if (!nodeId) return;
-          event.preventDefault();
-          addChoice(chapterId, nodeId);
-          break;
-        case "Backspace":
-        case "Delete":
-          if (!nodeId) return;
-          event.preventDefault();
-          void handleDeleteNode();
-          break;
-        case "l":
-        case "L":
-          event.preventDefault();
-          handleAutoLayout();
-          break;
-        case "f":
-        case "F":
-          event.preventDefault();
-          void fitView({ padding: 0.18, maxZoom: 1, duration: 260 });
-          break;
-        case "h":
-        case "H":
-          if (!heatAvailable) return;
-          event.preventDefault();
-          setHeatmapEnabled((value) => !value);
-          break;
-        default:
-          break;
+      if (matchesShortcut(event, "graphAddNode")) {
+        event.preventDefault();
+        handleAddNode();
+        return;
+      }
+      if (matchesShortcut(event, "graphAddChoice")) {
+        if (!nodeId) return;
+        event.preventDefault();
+        addChoice(chapterId, nodeId);
+        return;
+      }
+      if (matchesShortcut(event, "graphDeleteNode")) {
+        if (!nodeId) return;
+        event.preventDefault();
+        void handleDeleteNode();
+        return;
+      }
+      if (matchesShortcut(event, "graphArrange")) {
+        event.preventDefault();
+        handleAutoLayout();
+        return;
+      }
+      if (matchesShortcut(event, "graphFit")) {
+        event.preventDefault();
+        void fitView({ padding: 0.18, maxZoom: 1, duration: 260 });
+        return;
+      }
+      if (matchesShortcut(event, "graphAnalytics")) {
+        if (!heatAvailable) return;
+        event.preventDefault();
+        setHeatmapEnabled((value) => !value);
       }
     };
     window.addEventListener("keydown", onKeyDown);

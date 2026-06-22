@@ -8,6 +8,7 @@ import { Panel, PanelBody, PanelHeader } from "@/components/ui/Panel.js";
 import { Page } from "@/lib/pages.js";
 import { editorNavigate, useEditorSearch, type ToolId } from "@/lib/routeHelpers.js";
 import { openOmnibox } from "@/lib/omnibox.js";
+import { formatShortcutKeys } from "@/lib/shortcuts.js";
 import { discoverTools } from "@/lib/toolsApi.js";
 import { useScenarioStore } from "@/store/useScenarioStore.js";
 import { toolDiscoveryInfo, useToolRunnerStore } from "@/store/useToolRunnerStore.js";
@@ -167,7 +168,7 @@ function ScoutListItem() {
         <span className="tools-sidebar-copy">
           <span className="tools-sidebar-label-row">
             <span className="tools-sidebar-label">{t("tools.scout.title")}</span>
-            <span className="tools-sidebar-source-tag">{t("tools.scout.shortcut")}</span>
+            <span className="tools-sidebar-source-tag">{formatShortcutKeys("omniboxOpen")}</span>
           </span>
           {unavailable ? (
             <span className="tools-sidebar-desc tools-sidebar-desc--error">

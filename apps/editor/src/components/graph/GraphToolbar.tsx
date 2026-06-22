@@ -7,6 +7,7 @@ import { useScenarioStore } from "@/store/useScenarioStore.js";
 import { Page } from "@/lib/pages.js";
 import type { GraphAnalyticsMode } from "@/lib/heatMap.js";
 import { editorNavigate, useEditorSearch } from "@/lib/routeHelpers.js";
+import { shortcutTitle } from "@/lib/shortcuts.js";
 import { Button } from "@/components/ui/Button.js";
 import { Input } from "@/components/ui/Input.js";
 import { Toolbar } from "@/components/ui/Toolbar.js";
@@ -132,7 +133,7 @@ export function GraphToolbar({
           icon
           leadingIcon={Undo2}
           disabled={!canUndo}
-          title={`${t("graph.undo")} (⌘Z)`}
+          title={shortcutTitle(t("graph.undo"), "historyUndo")}
           onClick={() => undo()}
         />
         <Button
@@ -141,7 +142,7 @@ export function GraphToolbar({
           icon
           leadingIcon={Redo2}
           disabled={!canRedo}
-          title={`${t("graph.redo")} (⌘⇧Z)`}
+          title={shortcutTitle(t("graph.redo"), "historyRedo")}
           onClick={() => redo()}
         />
         <Button
