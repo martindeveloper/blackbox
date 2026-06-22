@@ -29,7 +29,13 @@ export function PlatformIcon({ platform }: { platform: DownloadPlatform }) {
   }
 
   return (
-    <svg viewBox="0 0 304.998 304.998" width="22" height="22" fill="currentColor" aria-hidden="true">
+    <svg
+      viewBox="0 0 304.998 304.998"
+      width="22"
+      height="22"
+      fill="currentColor"
+      aria-hidden="true"
+    >
       <path d={LINUX_PATH} />
     </svg>
   );

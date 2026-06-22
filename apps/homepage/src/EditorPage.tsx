@@ -23,6 +23,11 @@ type ToolItem = {
   body: string;
 };
 
+type McpCapability = {
+  title: string;
+  body: string;
+};
+
 export function EditorPage() {
   const { t } = useTranslation();
   const authoringFeatures = t("editorPage.story.features", {
@@ -36,6 +41,10 @@ export function EditorPage() {
   const analyticsLenses = t("editorPage.tools.analytics.lenses", {
     returnObjects: true,
   }) as string[];
+  const mcpCapabilities = t("editorPage.mcp.capabilities", {
+    returnObjects: true,
+  }) as McpCapability[];
+  const mcpAudit = t("editorPage.mcp.audit.items", { returnObjects: true }) as string[];
   const frameFooter = t("editorPage.hero.frame.footer", { returnObjects: true }) as string[];
 
   return (
@@ -238,6 +247,101 @@ export function EditorPage() {
                 {analyticsLenses.map((lens) => (
                   <span key={lens}>{lens}</span>
                 ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="editor-page-section editor-page-mcp" id="mcp">
+          <div className="editor-page-mcp-grid" aria-hidden="true" />
+          <div className="container editor-page-mcp-inner">
+            <header className="editor-page-section-head editor-page-mcp-head">
+              <div>
+                <span className="section-label">{t("editorPage.mcp.label")}</span>
+                <h2>{t("editorPage.mcp.headline")}</h2>
+              </div>
+              <p>{t("editorPage.mcp.body")}</p>
+            </header>
+
+            <div className="editor-page-mcp-layout">
+              <div className="editor-page-mcp-copy">
+                <p>{t("editorPage.mcp.intro")}</p>
+                <div className="editor-page-mcp-capabilities">
+                  {mcpCapabilities.map((capability) => (
+                    <article key={capability.title}>
+                      <span aria-hidden="true" />
+                      <div>
+                        <h3>{capability.title}</h3>
+                        <p>{capability.body}</p>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+                <div className="editor-page-mcp-security">
+                  <span>{t("editorPage.mcp.security.label")}</span>
+                  <p>{t("editorPage.mcp.security.body")}</p>
+                </div>
+              </div>
+
+              <div
+                className="editor-page-mcp-console"
+                aria-label={t("editorPage.mcp.console.aria")}
+              >
+                <div className="editor-page-mcp-console-bar">
+                  <span>{t("editorPage.mcp.console.title")}</span>
+                  <span>
+                    <i />
+                    {t("editorPage.mcp.console.status")}
+                  </span>
+                </div>
+
+                <div className="editor-page-mcp-flow">
+                  <div>
+                    <span>01</span>
+                    <strong>{t("editorPage.mcp.flow.agent")}</strong>
+                    <small>{t("editorPage.mcp.flow.agentMeta")}</small>
+                  </div>
+                  <i aria-hidden="true" />
+                  <div>
+                    <span>02</span>
+                    <strong>{t("editorPage.mcp.flow.protocol")}</strong>
+                    <small>127.0.0.1 · bearer auth</small>
+                  </div>
+                  <i aria-hidden="true" />
+                  <div>
+                    <span>03</span>
+                    <strong>{t("editorPage.mcp.flow.editor")}</strong>
+                    <small>{t("editorPage.mcp.flow.editorMeta")}</small>
+                  </div>
+                </div>
+
+                <pre className="editor-page-mcp-config">
+                  <code>{`{
+  "mcpServers": {
+    "blackbox-editor": {
+      "type": "streamable-http",
+      "url": "http://127.0.0.1:••••/mcp",
+      "headers": { "Authorization": "Bearer ••••••••" }
+    }
+  }
+}`}</code>
+                </pre>
+
+                <div className="editor-page-mcp-audit">
+                  <div>
+                    <span>{t("editorPage.mcp.audit.label")}</span>
+                    <strong>{t("editorPage.mcp.audit.title")}</strong>
+                  </div>
+                  <ul>
+                    {mcpAudit.map((item, index) => (
+                      <li key={item}>
+                        <time>14:{String(32 - index * 3).padStart(2, "0")}</time>
+                        <span>{item}</span>
+                        <i>{index === 1 ? "18ms" : `${7 + index * 4}ms`}</i>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
             </div>
           </div>

@@ -668,6 +668,52 @@ export const en = {
         lenses: ["Path reach", "Visit frequency", "Story structure", "Ending signature"],
       },
     },
+    mcp: {
+      label: "Agent interface",
+      headline: "Let AI agents work inside the editor.",
+      body: "Blackbox Editor exposes a local Model Context Protocol server, giving compatible agents a structured, revision-safe way to understand and operate on narrative projects.",
+      intro:
+        "Instead of driving the interface or editing files blindly, agents use the same project service, validation rules, and native tools as the editor itself.",
+      capabilities: [
+        {
+          title: "Read the narrative model",
+          body: "Inspect projects, chapters, nodes, catalogs, and references as structured context without exposing unrestricted filesystem access.",
+        },
+        {
+          title: "Author with revision safety",
+          body: "Save authored JSON through atomic, revision-checked mutations. Unsaved editor changes block agent writes before work can collide.",
+        },
+        {
+          title: "Validate through the engine",
+          body: "Run lint and simulation tools, search story content, and investigate unreachable paths through focused MCP operations.",
+        },
+      ],
+      security: {
+        label: "Local by design",
+        body: "Disabled by default. The server binds only to localhost, requires a rotating bearer token, and keeps a persistent metadata-only audit trail beside the editor log.",
+      },
+      console: {
+        aria: "Blackbox Editor MCP connection and audit visualization",
+        title: "BLACKBOX / AGENT BRIDGE",
+        status: "LOCAL ENDPOINT READY",
+      },
+      flow: {
+        agent: "AI agent",
+        agentMeta: "Codex · Claude · MCP client",
+        protocol: "MCP transport",
+        editor: "Editor services",
+        editorMeta: "Projects · lint · simulate",
+      },
+      audit: {
+        label: "MCP AUDIT",
+        title: "Every operation leaves a receipt.",
+        items: [
+          "read_project · silent_archive",
+          "lint_project · revision 42",
+          "save_documents · chapter_03.json",
+        ],
+      },
+    },
     final: {
       label: "One continuous workflow",
       headline: "Write. Connect. Test. Ship.",
@@ -744,15 +790,13 @@ export const en = {
     outdated_notice: {
       label: "Stale build",
       title: "{{latest}} is out — you're still on {{requested}}",
-      body:
-        "Download links below point to {{requested}}. Switch to the latest build unless you need this specific release.",
+      body: "Download links below point to {{requested}}. Switch to the latest build unless you need this specific release.",
       cta: "Get {{latest}}",
     },
     unsigned: {
       macos: {
         title: "Unsigned macOS build",
-        note:
-          "The .app inside the DMG is not Apple-notarized or Developer ID signed yet. macOS may refuse to open it until you remove quarantine attributes and apply a local ad-hoc signature.",
+        note: "The .app inside the DMG is not Apple-notarized or Developer ID signed yet. macOS may refuse to open it until you remove quarantine attributes and apply a local ad-hoc signature.",
         steps: [
           "Download and open the .dmg, then drag Blackbox Editor.app to Applications.",
           "Run the commands below in Terminal (adjust the path if you installed elsewhere).",
@@ -767,8 +811,7 @@ codesign --force --deep --sign - "$APP"`,
       },
       windows: {
         title: "Self-signed MSIX sideload",
-        note:
-          "The MSIX package is signed with a development certificate that Windows does not trust by default. Each release bundle ships msix-signing.cer — install that certificate before Add-AppxPackage will succeed.",
+        note: "The MSIX package is signed with a development certificate that Windows does not trust by default. Each release bundle ships msix-signing.cer — install that certificate before Add-AppxPackage will succeed.",
         steps: [
           "Download and extract the sideload .zip (contains the .msix, msix-signing.cer, and helper scripts).",
           "Open PowerShell as Administrator in that folder.",

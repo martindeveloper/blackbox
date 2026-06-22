@@ -2,8 +2,7 @@ import type { ReactElement } from "react";
 
 type ShellLang = "bash" | "powershell";
 
-const PS_CMDLET =
-  /^(?:Import|Export|Add|Get|Set|Remove|New|Select|ForEach)-[A-Za-z]+/;
+const PS_CMDLET = /^(?:Import|Export|Add|Get|Set|Remove|New|Select|ForEach)-[A-Za-z]+/;
 
 function flushPlain(text: string, elements: ReactElement[], key: { n: number }) {
   if (text) {

@@ -15,10 +15,7 @@ function downloadPageUrl(version: string): string {
   return `${SITE_URL}/download?version=${encodeURIComponent(version)}`;
 }
 
-function editorVersionInfo(
-  version: string,
-  releaseUrl: string,
-): EditorVersionInfo {
+function editorVersionInfo(version: string, releaseUrl: string): EditorVersionInfo {
   return {
     version,
     releaseUrl,
@@ -42,9 +39,7 @@ export async function fetchEditorVersion(): Promise<EditorVersionInfo> {
   cacheTag(EDITOR_VERSION_CACHE_TAG);
 
   try {
-    const response = await fetch(
-      `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`,
-    );
+    const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`);
 
     if (!response.ok) {
       return fallbackEditorVersion();
@@ -55,9 +50,7 @@ export async function fetchEditorVersion(): Promise<EditorVersionInfo> {
       html_url?: string;
     };
     const version = data.tag_name ?? FALLBACK_RELEASE_TAG;
-    const releaseUrl =
-      data.html_url ??
-      `https://github.com/${GITHUB_REPO}/releases/tag/${version}`;
+    const releaseUrl = data.html_url ?? `https://github.com/${GITHUB_REPO}/releases/tag/${version}`;
 
     return editorVersionInfo(version, releaseUrl);
   } catch {

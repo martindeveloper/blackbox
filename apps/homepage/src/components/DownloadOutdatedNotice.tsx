@@ -13,11 +13,7 @@ export function DownloadOutdatedNotice({
   const { t } = useTranslation();
 
   return (
-    <aside
-      className="download-outdated"
-      role="status"
-      aria-labelledby="download-outdated-title"
-    >
+    <aside className="download-outdated" role="status" aria-labelledby="download-outdated-title">
       <div className="download-outdated-copy">
         <p className="download-outdated-label">{t("downloadPage.outdated_notice.label")}</p>
         <h2 id="download-outdated-title" className="download-outdated-title">

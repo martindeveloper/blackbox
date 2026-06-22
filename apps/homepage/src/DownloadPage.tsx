@@ -55,8 +55,7 @@ export function DownloadPage({ latestVersion }: { latestVersion: string }) {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
   const requestedVersion = normalizeReleaseTag(searchParams.get("version"));
-  const isOutdated =
-    requestedVersion !== null && isNewerVersion(latestVersion, requestedVersion);
+  const isOutdated = requestedVersion !== null && isNewerVersion(latestVersion, requestedVersion);
   const activeReleaseTag = requestedVersion ?? latestVersion;
   const [platform, setPlatform] = useState<DownloadPlatform>("macos");
   const [arch, setArch] = useState<DownloadArch>("arm64");
@@ -74,7 +73,7 @@ export function DownloadPage({ latestVersion }: { latestVersion: string }) {
 
       setPlatform(nextPlatform);
       const arches = PLATFORM_ARCHES[nextPlatform];
-      setArch(arches.includes(nextArch) ? nextArch : arches[0] ?? "x64");
+      setArch(arches.includes(nextArch) ? nextArch : (arches[0] ?? "x64"));
     });
 
     return () => {
@@ -144,7 +143,11 @@ export function DownloadPage({ latestVersion }: { latestVersion: string }) {
                 <span>{t("downloadPage.selector.platform_label")}</span>
               </header>
 
-              <div className="download-platforms" role="radiogroup" aria-label={t("downloadPage.selector.platform_aria")}>
+              <div
+                className="download-platforms"
+                role="radiogroup"
+                aria-label={t("downloadPage.selector.platform_aria")}
+              >
                 {PLATFORMS.map((item) => (
                   <button
                     key={item}
@@ -163,15 +166,21 @@ export function DownloadPage({ latestVersion }: { latestVersion: string }) {
                     <span className="download-platform-icon">
                       <PlatformIcon platform={item} />
                     </span>
-                    <span className="download-platform-label">{t(`downloadPage.platforms.${item}`)}</span>
-                    <span className="download-platform-meta">{t(`downloadPage.platforms.${item}_meta`)}</span>
+                    <span className="download-platform-label">
+                      {t(`downloadPage.platforms.${item}`)}
+                    </span>
+                    <span className="download-platform-meta">
+                      {t(`downloadPage.platforms.${item}_meta`)}
+                    </span>
                   </button>
                 ))}
               </div>
 
               {availableArches.length > 1 ? (
                 <div className="download-option-block">
-                  <span className="download-option-label">{t("downloadPage.selector.arch_label")}</span>
+                  <span className="download-option-label">
+                    {t("downloadPage.selector.arch_label")}
+                  </span>
                   <div
                     className="download-segment"
                     role="radiogroup"
@@ -195,7 +204,9 @@ export function DownloadPage({ latestVersion }: { latestVersion: string }) {
 
               {platform === "linux" ? (
                 <div className="download-option-block">
-                  <span className="download-option-label">{t("downloadPage.selector.format_label")}</span>
+                  <span className="download-option-label">
+                    {t("downloadPage.selector.format_label")}
+                  </span>
                   <div
                     className="download-segment"
                     role="radiogroup"
@@ -243,7 +254,10 @@ export function DownloadPage({ latestVersion }: { latestVersion: string }) {
                 </p>
               ) : null}
 
-              <ul className="download-requirements" aria-label={t("downloadPage.requirements_aria")}>
+              <ul
+                className="download-requirements"
+                aria-label={t("downloadPage.requirements_aria")}
+              >
                 {requirements.map((item) => (
                   <li key={item}>{item}</li>
                 ))}
@@ -252,7 +266,11 @@ export function DownloadPage({ latestVersion }: { latestVersion: string }) {
               <DownloadTrustGuide platform={platform} />
 
               <footer className="download-panel-footer">
-                <a href={releaseChecksumUrl(activeReleaseTag)} target="_blank" rel="noopener noreferrer">
+                <a
+                  href={releaseChecksumUrl(activeReleaseTag)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   {t("downloadPage.checksums")}
                   <ExternalIcon />
                 </a>
