@@ -2,6 +2,7 @@
 members = [
     "engine/bundler-cook",
     "engine/bundler",
+    "engine/convert",
     "engine/core",
     "apps/cli",
     "engine/ffi",

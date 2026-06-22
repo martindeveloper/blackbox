@@ -8,7 +8,13 @@ import { fileURLToPath } from "node:url";
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const REPO_ROOT = path.resolve(ROOT, "..", "..");
 const TOOLS_DIR = path.join(ROOT, "resources", "bin");
-const TOOLS = ["blackbox-lint", "blackbox-bundler", "blackbox-simulator", "blackbox-scout"];
+const TOOLS = [
+  "blackbox-lint",
+  "blackbox-bundler",
+  "blackbox-convert",
+  "blackbox-simulator",
+  "blackbox-scout",
+];
 const force = process.argv.includes("--force");
 
 // Rust sources whose changes must invalidate the staged binaries. The engine

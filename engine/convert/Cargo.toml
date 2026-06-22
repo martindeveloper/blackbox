@@ -1,0 +1,35 @@
+[package]
+name = "blackbox-convert"
+version = "0.1.0"
+edition = "2024"
+license.workspace = true
+
+[lints]
+workspace = true
+
+[[bin]]
+name = "blackbox-convert"
+path = "src/main.rs"
+
+[lib]
+name = "blackbox_convert"
+path = "src/lib.rs"
+
+[dependencies]
+anyhow = "1.0"
+blackbox-output = { path = "../output" }
+bytes = "1.12"
+fdk-aac = "0.8"
+hound = "3.5"
+image = { version = "0.25.10", default-features = false, features = ["jpeg", "png", "webp"] }
+mp4 = "0.14"
+opus-rs = "0.1.23"
+rubato = { version = "=0.16.2", default-features = false }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+symphonia = { version = "0.6.0", default-features = false, features = ["aac", "isomp4", "mp3", "ogg", "pcm", "vorbis", "wav"] }
+thiserror = "2.0"
+webp = { version = "0.3.1", default-features = false }
+
+[dev-dependencies]
+tempfile = "3.27"
