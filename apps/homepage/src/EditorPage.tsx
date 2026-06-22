@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { Footer } from "./components/Footer";
 import "./i18n/index";
@@ -281,6 +282,9 @@ export function EditorPage() {
                   <span>{t("editorPage.mcp.security.label")}</span>
                   <p>{t("editorPage.mcp.security.body")}</p>
                 </div>
+                <Link href="/docs" className="editor-page-docs-link">
+                  {t("editorPage.mcp.docsLink")}
+                </Link>
               </div>
 
               <div

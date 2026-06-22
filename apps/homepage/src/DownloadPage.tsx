@@ -106,7 +106,7 @@ export function DownloadPage({ latestVersion }: { latestVersion: string }) {
           <div className="download-hero-grid" aria-hidden="true" />
           <div className="download-hero-beam" aria-hidden="true" />
           <div className="container download-hero-inner">
-            <div className="download-hero-kicker">
+            <div className="download-hero-kicker download-hero-reveal">
               <span>{t("downloadPage.hero.kicker.product")}</span>
               <span>
                 {requestedVersion
@@ -115,7 +115,7 @@ export function DownloadPage({ latestVersion }: { latestVersion: string }) {
               </span>
             </div>
             <div className="download-hero-copy">
-              <h1>
+              <h1 className="download-hero-reveal download-hero-delay-1">
                 {t("downloadPage.hero.headline")
                   .split("\n")
                   .map((line, i) => (
@@ -125,7 +125,9 @@ export function DownloadPage({ latestVersion }: { latestVersion: string }) {
                     </span>
                   ))}
               </h1>
-              <p>{t("downloadPage.hero.description")}</p>
+              <p className="download-hero-reveal download-hero-delay-2">
+                {t("downloadPage.hero.description")}
+              </p>
             </div>
           </div>
         </section>

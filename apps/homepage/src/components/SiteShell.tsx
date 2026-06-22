@@ -20,6 +20,9 @@ function navItemsForPath(
   if (pathname === "/editor") {
     return t("nav.pages.editorPage", { returnObjects: true }) as NavItem[];
   }
+  if (pathname.startsWith("/docs")) {
+    return t("nav.pages.docs", { returnObjects: true }) as NavItem[];
+  }
   if (pathname === "/download") {
     return t("nav.pages.download", { returnObjects: true }) as NavItem[];
   }

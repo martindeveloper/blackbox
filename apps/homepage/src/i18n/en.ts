@@ -64,6 +64,17 @@ export const en = {
           "Shape branching stories visually, preview from source, and validate every path with the Blackbox Rust toolchain.",
       },
     },
+    docs: {
+      title: "Documentation",
+      description:
+        "Overview of Blackbox Editor documentation — headless CLI builds and the local MCP server for agents.",
+      openGraph: {
+        title: "Blackbox documentation",
+        description:
+          "Reference for CLI builds, CI pipelines, and MCP agent tooling on narrative projects.",
+        pageTitle: "{{title}} | Blackbox documentation",
+      },
+    },
     download: {
       title: "Download",
       description:
@@ -109,6 +120,14 @@ export const en = {
         { href: "#workspace", label: "Workspace" },
         { href: "#preview", label: "Preview" },
         { href: "#tools", label: "Tools" },
+        { href: "/docs", label: "Docs" },
+      ],
+      docs: [
+        { href: "/docs", label: "Overview" },
+        { href: "/docs/cli", label: "CLI" },
+        { href: "/docs/mcp", label: "MCP" },
+        { href: "/docs/grammar", label: "Grammar" },
+        { href: "/editor", label: "Editor" },
       ],
       download: [
         { href: "#download", label: "Download" },
@@ -692,6 +711,7 @@ export const en = {
         label: "Local by design",
         body: "Disabled by default. The server binds only to localhost, requires a rotating bearer token, and keeps a persistent metadata-only audit trail beside the editor log.",
       },
+      docsLink: "Read CLI & MCP reference →",
       console: {
         aria: "Blackbox Editor MCP connection and audit visualization",
         title: "BLACKBOX / AGENT BRIDGE",
@@ -718,6 +738,25 @@ export const en = {
       label: "One continuous workflow",
       headline: "Write. Connect. Test. Ship.",
       body: "Blackbox Editor keeps creative intent, source data, runtime behavior, and release validation in the same room.",
+    },
+  },
+  docsPage: {
+    rail: {
+      eyebrow: "Reference",
+      title: "Documentation",
+      aria: "Documentation",
+    },
+    nav: {
+      aria: "Sections",
+    },
+    related: {
+      label: "Related",
+      editor: "Editor overview",
+      download: "Download",
+    },
+    breadcrumb: {
+      aria: "Breadcrumb",
+      root: "Docs",
     },
   },
   downloadPage: {
