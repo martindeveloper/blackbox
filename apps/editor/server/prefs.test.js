@@ -13,6 +13,8 @@ test("user preferences default theme and preferred IDE", () => {
     searchFullTextDefault: false,
     saveAndSyncDefault: false,
     askSyncDescription: false,
+    vcsChecksEnabled: false,
+    vcsCheckIntervalMinutes: 5,
   });
   assert.deepEqual(sanitizePrefs({ theme: "dark", preferredIde: DEFAULT_IDE_ID }), {
     theme: "dark",
@@ -38,5 +40,14 @@ test("user preferences default theme and preferred IDE", () => {
   });
   assert.deepEqual(sanitizePrefs({ askSyncDescription: true }), {
     askSyncDescription: true,
+  });
+  assert.deepEqual(sanitizePrefs({ vcsChecksEnabled: true }), {
+    vcsChecksEnabled: true,
+  });
+  assert.deepEqual(sanitizePrefs({ vcsCheckIntervalMinutes: 10.7 }), {
+    vcsCheckIntervalMinutes: 11,
+  });
+  assert.deepEqual(sanitizePrefs({ vcsCheckIntervalMinutes: 0 }), {
+    vcsCheckIntervalMinutes: 1,
   });
 });

@@ -231,6 +231,8 @@ export const en = {
       "Choose whether the main Save button also creates and publishes a project version when sync is configured.",
     saveAndSyncDefault: "Use Save & sync as the primary save action",
     askSyncDescription: "Ask for a sync description from the primary Save & sync button",
+    vcsChecksEnabled: "Periodically check whether the project changed elsewhere",
+    vcsCheckInterval: "Check every minute(s)",
     mcpTitle: "Model Context Protocol",
     mcpHint:
       "Let local AI agents inspect, validate, simulate, and revision-safely edit registered Blackbox projects.",
@@ -1707,6 +1709,11 @@ export const en = {
     saveSuccess: "Project saved",
     syncSuccess: "Project saved and synced",
     syncSavedOnly: "Project saved as a version. Sync later: {{reason}}",
+    vcsRemoteChangesClean:
+      "Project updates are available from {{provider}}. Get latest before continuing.",
+    vcsRemoteChangesDirty:
+      "Project updates are available from {{provider}}. Your unsaved work is safe — save it before getting latest.",
+    viewProjectSync: "View sync",
     importSuccess: "File imported",
     deleteMediaSuccess: "File deleted",
     movedToTrash: '"{{name}}" moved to Trash',

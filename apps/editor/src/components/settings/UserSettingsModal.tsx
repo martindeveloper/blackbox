@@ -35,6 +35,7 @@ import {
 import { ModalShell } from "@/components/overlay/ModalShell.js";
 import { Button } from "@/components/ui/Button.js";
 import { Checkbox } from "@/components/ui/Checkbox.js";
+import { Input } from "@/components/ui/Input.js";
 import { McpAuditSection, McpSettingsSection } from "./McpSettingsSection.js";
 import { ThemePreferencePicker } from "./ThemePreferencePicker.js";
 
@@ -272,6 +273,27 @@ export function UserSettingsModal({ onClose, initialView = "appearance" }: UserS
                   onChange={(event) => updatePrefs({ askSyncDescription: event.target.checked })}
                   label={t("settings.askSyncDescription")}
                 />
+                <Checkbox
+                  checked={prefs.vcsChecksEnabled ?? false}
+                  onChange={(event) => updatePrefs({ vcsChecksEnabled: event.target.checked })}
+                  label={t("settings.vcsChecksEnabled")}
+                />
+                <label className="user-settings-inline-field">
+                  <span>{t("settings.vcsCheckInterval")}</span>
+                  <Input
+                    compact
+                    type="number"
+                    min={1}
+                    max={1440}
+                    step={1}
+                    value={prefs.vcsCheckIntervalMinutes ?? 5}
+                    onChange={(event) =>
+                      updatePrefs({
+                        vcsCheckIntervalMinutes: Number(event.target.value) || 5,
+                      })
+                    }
+                  />
+                </label>
               </div>
 
               <header className="user-settings-section-head">

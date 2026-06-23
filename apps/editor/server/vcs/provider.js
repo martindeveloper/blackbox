@@ -47,6 +47,20 @@ export class VcsProvider {
     throw new Error("status() is not implemented");
   }
 
+  async check(projectPath) {
+    const status = await this.status(projectPath);
+    const behind = Number(status.workspace?.behind ?? 0);
+    return {
+      status,
+      remote: {
+        hasChanges: behind > 0,
+        changeCount: behind,
+        label: status.workspace?.trackingLabel ?? null,
+        behind,
+      },
+    };
+  }
+
   async execute(_operation, _projectPath, _context) {
     throw new Error("execute() is not implemented");
   }

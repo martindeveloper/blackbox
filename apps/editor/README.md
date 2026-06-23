@@ -99,6 +99,14 @@ when the provider supports it. The Project sync drawer remains the advanced
 surface for setup, changed files, manual provider operations, and previous
 versions.
 
+Users can also enable periodic Project sync checks with a configurable interval.
+Checks run asynchronously through the provider API and never mutate editor
+documents. The Git adapter performs a non-interactive `fetch` with a timeout,
+then reports whether the project is behind; future centralized providers can
+map the same check to server-side status, locks, or incoming changelists. When
+updates are detected, the editor notifies the author and points them to Project
+sync instead of pulling over unsaved work.
+
 ## Full validation
 
 ```bash

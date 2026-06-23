@@ -13,6 +13,8 @@ export class ProcessError extends Error {
 
 export function runProcess(command, args, cwd, options = {}) {
   return new Promise((resolve, reject) => {
+    let settled = false;
+    let timer = null;
     const child = spawn(command, args, {
       cwd,
       env: { ...process.env, ...options.env },
@@ -29,13 +31,37 @@ export function runProcess(command, args, cwd, options = {}) {
     child.stderr.on("data", (chunk) => {
       stderr += chunk;
     });
-    child.once("error", reject);
+    const finish = (callback) => {
+      if (settled) return;
+      settled = true;
+      if (timer) clearTimeout(timer);
+      callback();
+    };
+    if (options.timeoutMs > 0) {
+      timer = setTimeout(() => {
+        child.kill("SIGTERM");
+        finish(() =>
+          reject(
+            new ProcessError(
+              command,
+              args,
+              -1,
+              stdout,
+              stderr || `Timed out after ${options.timeoutMs}ms`,
+            ),
+          ),
+        );
+      }, options.timeoutMs);
+    }
+    child.once("error", (error) => finish(() => reject(error)));
     child.once("close", (code) => {
-      if (code === 0 || options.allowFailure) {
-        resolve({ code: code ?? -1, stdout, stderr });
-        return;
-      }
-      reject(new ProcessError(command, args, code ?? -1, stdout, stderr));
+      finish(() => {
+        if (code === 0 || options.allowFailure) {
+          resolve({ code: code ?? -1, stdout, stderr });
+          return;
+        }
+        reject(new ProcessError(command, args, code ?? -1, stdout, stderr));
+      });
     });
   });
 }

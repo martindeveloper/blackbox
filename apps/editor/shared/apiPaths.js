@@ -36,6 +36,7 @@ export const ProjectRoutes = {
   BuildRunsStream: "/build/runs/stream",
   Vcs: "/vcs",
   VcsStatus: "/vcs/status",
+  VcsCheck: "/vcs/check",
   VcsSync: "/vcs/sync",
   VcsOperations: "/vcs/operations",
   VcsHistory: "/vcs/history",

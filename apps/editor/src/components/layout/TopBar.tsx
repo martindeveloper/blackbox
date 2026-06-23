@@ -30,7 +30,13 @@ import { openOmnibox } from "@/lib/omnibox.js";
 import { formatShortcutKeys } from "@/lib/shortcuts.js";
 import { editorNavigate, navigateToTool } from "@/lib/routeHelpers.js";
 import { CONTRIBUTION_REVIEW_EVENT } from "@/lib/contributionReview.js";
-import { getVcsStatus, type ProjectContributionReview, type VcsStatus } from "@/lib/projectApi.js";
+import {
+  checkVcsForRemoteChanges,
+  getVcsStatus,
+  type ProjectContributionReview,
+  type VcsStatus,
+} from "@/lib/projectApi.js";
+import { notify } from "@/lib/notifyApi.js";
 import { isActiveEditorPage, Page } from "@/lib/pages.js";
 import { CUSTOM_IDE_ID, DEFAULT_IDE_ID } from "@shared/ideRegistry.js";
 import { useToolRunnerStore } from "@/store/useToolRunnerStore.js";
@@ -41,7 +47,7 @@ import { StatusPill } from "@/components/ui/StatusPill.js";
 import { Textarea } from "@/components/ui/Textarea.js";
 import { ModalShell } from "@/components/overlay/ModalShell.js";
 import { useModal } from "@/context/ModalProvider.js";
-import { VcsControl } from "@/components/vcs/VcsControl.js";
+import { VCS_CONTROL_OPEN_EVENT, VcsControl } from "@/components/vcs/VcsControl.js";
 
 /**
  * The "Unsaved" pill plus a hover popover listing which documents are dirty.
@@ -134,6 +140,10 @@ export function TopBar() {
     projectId: string;
     status: VcsStatus | null;
   } | null>(null);
+  const vcsCheckRunningRef = useRef(false);
+  const lastVcsNoticeRef = useRef("");
+  const dirtyCountRef = useRef(0);
+  const savingRef = useRef(false);
   const { prefs } = useUserPrefs();
 
   const errorCount = validationIssues.filter((i) => i.severity === "error").length;
@@ -198,6 +208,79 @@ export function TopBar() {
       active = false;
     };
   }, [projectId, revision]);
+
+  useEffect(() => {
+    dirtyCountRef.current = dirty.size;
+    savingRef.current = saving;
+  }, [dirty.size, saving]);
+
+  useEffect(() => {
+    if (!projectId || prefs.vcsChecksEnabled !== true) return;
+
+    let cancelled = false;
+    const intervalMinutes = Math.min(
+      1440,
+      Math.max(1, Math.round(prefs.vcsCheckIntervalMinutes ?? 5)),
+    );
+    const intervalMs = intervalMinutes * 60_000;
+
+    const openProjectSync = () => {
+      window.dispatchEvent(new Event(VCS_CONTROL_OPEN_EVENT));
+    };
+
+    const runCheck = async () => {
+      if (document.visibilityState === "hidden" || vcsCheckRunningRef.current) return;
+      vcsCheckRunningRef.current = true;
+      try {
+        const result = await checkVcsForRemoteChanges(projectId);
+        if (cancelled) return;
+        setVcsState({ projectId, status: result.status });
+        if (!result.remote.hasChanges || result.remote.checkFailed) return;
+
+        const changeCount = result.remote.changeCount ?? result.remote.behind ?? 1;
+        const noticeKey = [
+          projectId,
+          result.provider,
+          result.remote.label ?? "",
+          changeCount,
+          dirtyCountRef.current > 0 || savingRef.current ? "dirty" : "clean",
+        ].join(":");
+        if (lastVcsNoticeRef.current === noticeKey) return;
+        lastVcsNoticeRef.current = noticeKey;
+
+        const hasLocalWork = dirtyCountRef.current > 0 || savingRef.current;
+        notify({
+          type: hasLocalWork ? "warning" : "info",
+          duration: 12_000,
+          message: t(
+            hasLocalWork
+              ? "notifications.vcsRemoteChangesDirty"
+              : "notifications.vcsRemoteChangesClean",
+            {
+              provider: result.status.activeProvider?.label ?? result.provider,
+            },
+          ),
+          action: {
+            label: t("notifications.viewProjectSync"),
+            onClick: openProjectSync,
+          },
+        });
+      } catch {
+        // Background VCS checks should never interrupt authoring. The Project
+        // sync drawer still surfaces explicit provider errors on demand.
+      } finally {
+        vcsCheckRunningRef.current = false;
+      }
+    };
+
+    const initial = setTimeout(() => void runCheck(), 1500);
+    const timer = setInterval(() => void runCheck(), intervalMs);
+    return () => {
+      cancelled = true;
+      clearTimeout(initial);
+      clearInterval(timer);
+    };
+  }, [prefs.vcsCheckIntervalMinutes, prefs.vcsChecksEnabled, projectId, t]);
 
   const runSaveAndSync = async (message: string) => {
     setSyncing(true);

@@ -36,6 +36,7 @@ export const ProjectRoutes: {
   readonly BuildRunsStream: "/build/runs/stream";
   readonly Vcs: "/vcs";
   readonly VcsStatus: "/vcs/status";
+  readonly VcsCheck: "/vcs/check";
   readonly VcsSync: "/vcs/sync";
   readonly VcsOperations: "/vcs/operations";
   readonly VcsHistory: "/vcs/history";

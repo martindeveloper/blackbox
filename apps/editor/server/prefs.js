@@ -6,6 +6,9 @@ import { DEFAULT_IDE_ID, isValidPreferredIde } from "../shared/ideRegistry.js";
 import { DEFAULT_MCP_PORT, isValidMcpPort } from "../shared/mcpConfig.js";
 
 const USER_PREFS_PATH = path.join(USER_DATA_ROOT, EDITOR_SIDECAR_DIR, USER_PREFS_BASENAME);
+const MIN_VCS_CHECK_INTERVAL_MINUTES = 1;
+const MAX_VCS_CHECK_INTERVAL_MINUTES = 24 * 60;
+
 export const DEFAULT_USER_PREFS = Object.freeze({
   theme: "device",
   preferredIde: DEFAULT_IDE_ID,
@@ -14,6 +17,8 @@ export const DEFAULT_USER_PREFS = Object.freeze({
   searchFullTextDefault: false,
   saveAndSyncDefault: false,
   askSyncDescription: false,
+  vcsChecksEnabled: false,
+  vcsCheckIntervalMinutes: 5,
 });
 
 export async function readUserPrefs() {
@@ -71,6 +76,18 @@ export function sanitizePrefs(raw) {
   }
   if (typeof raw.askSyncDescription === "boolean") {
     prefs.askSyncDescription = raw.askSyncDescription;
+  }
+  if (typeof raw.vcsChecksEnabled === "boolean") {
+    prefs.vcsChecksEnabled = raw.vcsChecksEnabled;
+  }
+  if (
+    typeof raw.vcsCheckIntervalMinutes === "number" &&
+    Number.isFinite(raw.vcsCheckIntervalMinutes)
+  ) {
+    prefs.vcsCheckIntervalMinutes = Math.min(
+      MAX_VCS_CHECK_INTERVAL_MINUTES,
+      Math.max(MIN_VCS_CHECK_INTERVAL_MINUTES, Math.round(raw.vcsCheckIntervalMinutes)),
+    );
   }
   return prefs;
 }

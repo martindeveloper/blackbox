@@ -130,6 +130,7 @@ class DistributedProvider extends VcsProvider {
     });
     this.files = [{ path: "scenario.json", status: "modified" }];
     this.executions = [];
+    this.behind = 0;
   }
 
   async availability() {
@@ -144,7 +145,7 @@ class DistributedProvider extends VcsProvider {
 
   async status() {
     return {
-      workspace: { label: "main", trackingLabel: "origin/main" },
+      workspace: { label: "main", trackingLabel: "origin/main", ahead: 0, behind: this.behind },
       files: this.files,
       operationStates: {
         record: { enabled: true, reason: null },
@@ -379,6 +380,27 @@ test("author sync publishes distributed changes after recording them", async () 
     );
     assert.equal(provider.executions[0].context.message, "Update scenario");
     assert.deepEqual(provider.executions[0].context.paths, ["scenario.json"]);
+  } finally {
+    await fs.rm(projectPath, { recursive: true, force: true });
+  }
+});
+
+test("checks provider remote state without changing the workspace", async () => {
+  const projectPath = await fs.mkdtemp(path.join(os.tmpdir(), "blackbox-vcs-check-"));
+  const project = { id: "project", path: projectPath };
+  const provider = new DistributedProvider();
+  const { service } = serviceFixture([provider]);
+  try {
+    await service.configure(project, { provider: "distributed" });
+    provider.behind = 2;
+
+    const checked = await service.check(project);
+
+    assert.equal(checked.provider, "distributed");
+    assert.equal(checked.remote.hasChanges, true);
+    assert.equal(checked.remote.changeCount, 2);
+    assert.equal(checked.status.workspace.behind, 2);
+    assert.deepEqual(provider.executions, []);
   } finally {
     await fs.rm(projectPath, { recursive: true, force: true });
   }

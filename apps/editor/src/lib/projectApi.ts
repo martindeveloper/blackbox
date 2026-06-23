@@ -161,6 +161,22 @@ export interface VcsSyncResult {
   status: VcsStatus;
 }
 
+export interface VcsRemoteCheck {
+  hasChanges: boolean;
+  changeCount?: number;
+  label?: string | null;
+  behind?: number;
+  checkFailed?: boolean;
+  reason?: string | null;
+}
+
+export interface VcsCheckResult {
+  provider: string;
+  checkedAt: string;
+  remote: VcsRemoteCheck;
+  status: VcsStatus;
+}
+
 const CLIENT_ID = crypto.randomUUID();
 
 export class ApiError extends Error {
@@ -374,6 +390,10 @@ export function subscribeProject(
 
 export async function getVcsStatus(projectId: string): Promise<VcsStatus> {
   return responseJson<VcsStatus>(await fetch(projectUrl(projectId, ProjectRoutes.VcsStatus)));
+}
+
+export function checkVcsForRemoteChanges(projectId: string): Promise<VcsCheckResult> {
+  return postJson(projectUrl(projectId, ProjectRoutes.VcsCheck), {});
 }
 
 export async function configureVcs(

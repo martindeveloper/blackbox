@@ -10,6 +10,8 @@ export interface UserPrefs {
   searchFullTextDefault?: boolean;
   saveAndSyncDefault?: boolean;
   askSyncDescription?: boolean;
+  vcsChecksEnabled?: boolean;
+  vcsCheckIntervalMinutes?: number;
 }
 
 export async function fetchUserPrefs(): Promise<UserPrefs> {

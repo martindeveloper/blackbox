@@ -5,6 +5,7 @@ import { runProcess } from "./process.js";
 
 const FIELD_SEPARATOR = "\x1f";
 const RECORD_SEPARATOR = "\x1e";
+const BACKGROUND_FETCH_TIMEOUT_MS = 20_000;
 
 const normalizePath = (value) => value.replaceAll("\\", "/");
 
@@ -191,6 +192,35 @@ export class GitProvider extends VcsProvider {
               ? null
               : "Add a single remote or set an upstream branch before pushing.",
         },
+      },
+    };
+  }
+
+  async check(projectPath) {
+    const remotes = (await git(projectPath, ["remote"])).stdout.split("\n").filter(Boolean);
+    let fetchError = null;
+    if (remotes.length > 0) {
+      const result = await git(projectPath, ["fetch", "--all", "--prune", "--quiet"], {
+        allowFailure: true,
+        timeoutMs: BACKGROUND_FETCH_TIMEOUT_MS,
+        env: {
+          GIT_TERMINAL_PROMPT: "0",
+          GIT_ASKPASS: "echo",
+        },
+      });
+      if (result.code !== 0) fetchError = (result.stderr || result.stdout).trim();
+    }
+    const status = await this.status(projectPath);
+    const behind = Number(status.workspace?.behind ?? 0);
+    return {
+      status,
+      remote: {
+        hasChanges: behind > 0,
+        changeCount: behind,
+        label: status.workspace?.trackingLabel ?? remotes[0] ?? null,
+        behind,
+        checkFailed: Boolean(fetchError),
+        reason: fetchError,
       },
     };
   }

@@ -39,6 +39,7 @@ interface VcsControlProps {
 }
 
 type Tab = "changes" | "history";
+export const VCS_CONTROL_OPEN_EVENT = "blackbox:vcs-control-open";
 
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat(undefined, {
@@ -113,6 +114,16 @@ export function VcsControl({ projectId, revision, dirty, onStatusChange }: VcsCo
       active = false;
     };
   }, [applyStatus, projectId, revision]);
+
+  useEffect(() => {
+    const openControl = () => {
+      placePopover();
+      setOpen(true);
+      void refresh();
+    };
+    window.addEventListener(VCS_CONTROL_OPEN_EVENT, openControl);
+    return () => window.removeEventListener(VCS_CONTROL_OPEN_EVENT, openControl);
+  });
 
   useEffect(() => {
     const reviewContribution = (event: Event) => {

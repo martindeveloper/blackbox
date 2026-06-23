@@ -352,6 +352,21 @@ export class VcsService {
     }
   }
 
+  async check(project) {
+    const provider = await this.requireConfigured(project);
+    try {
+      const result = await provider.check(project.path);
+      return {
+        provider: provider.id,
+        checkedAt: new Date().toISOString(),
+        remote: result.remote ?? { hasChanges: false, changeCount: 0, label: null },
+        status: await this.status(project),
+      };
+    } catch (error) {
+      throw publicError(error);
+    }
+  }
+
   async history(project, { path: filePath = null, limit = 50 } = {}) {
     const provider = await this.requireConfigured(project);
     if (!provider.features.history) {

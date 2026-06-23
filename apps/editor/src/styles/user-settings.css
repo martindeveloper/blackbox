@@ -150,6 +150,20 @@
   color: var(--editor-text-muted);
 }
 
+.user-settings-inline-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--editor-text-muted);
+  font-size: 10px;
+}
+
+.user-settings-inline-field .editor-input {
+  width: 76px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
 .user-settings-ide-list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
