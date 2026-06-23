@@ -24,7 +24,7 @@ export class McpHost {
   async status(prefs = null) {
     const currentPrefs = prefs ?? (await this.readPrefs());
     return {
-      ...this.server.status(),
+      ...(await this.server.status()),
       port: currentPrefs.mcpPort,
       error: this.error,
     };

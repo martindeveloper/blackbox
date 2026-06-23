@@ -141,33 +141,13 @@
   background: var(--editor-stage);
 }
 
-.tools-info {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  height: 100%;
-  padding: 18px;
-  background: var(--editor-stage);
-  color: var(--editor-text-muted);
-}
-
-.tools-info > svg {
-  flex-shrink: 0;
-  color: var(--editor-primary);
-}
-
-.tools-info h2 {
-  margin: 0 0 4px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--editor-text);
-}
-
-.tools-info p {
+.tools-convert-note {
   max-width: 62ch;
   margin: 0;
-  font-size: 10px;
+  padding: 14px;
+  font-size: 11px;
   line-height: 1.5;
+  color: var(--editor-text-muted);
 }
 
 .tools-runner-header {

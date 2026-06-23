@@ -11,14 +11,14 @@ import {
   type SimOptions,
   type ToolRun,
   type ToolResult,
+  type ToolRunName,
 } from "@/lib/toolsApi.js";
-import type { ToolId } from "@/lib/routeHelpers.js";
 import { useScenarioStore } from "@/store/useScenarioStore.js";
 
 export type ToolRunState = "idle" | "running" | "done" | "error";
 
 export function useToolRunner(
-  toolId: ToolId,
+  toolId: ToolRunName,
   ignoreMissing = false,
   lintOptions?: LintOptions,
   simOptions?: SimOptions,

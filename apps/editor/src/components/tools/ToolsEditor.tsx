@@ -12,12 +12,23 @@ export function ToolsEditor() {
 
   if (config.id === "convert") {
     return (
-      <div className="tools-info">
-        <Icon icon={config.icon} size={18} strokeWidth={1.75} />
-        <div>
-          <h2>{t(config.labelKey)}</h2>
-          <p>{t("tools.convert.description")}</p>
-        </div>
+      <div className="tools-runner">
+        <header className="tools-runner-header">
+          <span className="tools-runner-icon">
+            <Icon icon={config.icon} size={15} strokeWidth={2} />
+          </span>
+          <h1 className="tools-runner-title">{t(config.labelKey)}</h1>
+          <span className="tools-runner-header-spacer" />
+          <span className="tools-status">{t("tools.convert.automatic")}</span>
+        </header>
+        <section className="tools-output-shell">
+          <div className="tools-output-header">
+            <span className="tools-output-label">{t("tools.convert.command")}</span>
+          </div>
+          <div className="tools-output-body">
+            <p className="tools-convert-note">{t("tools.convert.description")}</p>
+          </div>
+        </section>
       </div>
     );
   }

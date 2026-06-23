@@ -14,13 +14,13 @@ import { useToolRunner } from "@/hooks/useToolRunner.js";
 import { translate } from "@/lib/i18n.js";
 import { Page } from "@/lib/pages.js";
 import { editorNavigate, useEditorSearch } from "@/lib/routeHelpers.js";
-import type { ToolId } from "@/lib/routeHelpers.js";
 import type {
   BundleToolResult,
   LintOptions,
   SimOptions,
   StoredAnalyticsMeta,
   ToolResult,
+  ToolRunName,
 } from "@/lib/toolsApi.js";
 import {
   DEFAULT_SIM_OPTIONS,
@@ -40,7 +40,7 @@ import { StoredHeatmapCard } from "./StoredHeatmapCard.js";
 import { ToolOptionToggle } from "./ToolOptionToggle.js";
 
 interface ToolRunnerViewProps {
-  toolId: ToolId;
+  toolId: ToolRunName;
   title: string;
   icon: LucideIcon;
   commandLabel: string;

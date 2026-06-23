@@ -702,6 +702,7 @@ export const en = {
       description:
         "Used by the bundler to convert textures and audio into the formats required by web, iOS, and Android builds.",
       command: "blackbox-convert",
+      automatic: "Automatic",
     },
     simulator: {
       title: "Simulator",
