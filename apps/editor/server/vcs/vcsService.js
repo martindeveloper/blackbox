@@ -288,6 +288,70 @@ export class VcsService {
     }
   }
 
+  async authorSync(project, payload = {}) {
+    const provider = await this.requireConfigured(project);
+    const recordOperation = this.operation(provider, "record");
+    const message =
+      typeof payload.message === "string" && payload.message.trim()
+        ? payload.message.trim()
+        : "Update project";
+    const phases = [];
+
+    try {
+      const providerStatus = await provider.status(project.path);
+      const recordState = providerStatus.operationStates?.record;
+      if (recordState?.enabled === false) {
+        throw new ProjectError(
+          "vcs_operation_unavailable",
+          recordState.reason || `${recordOperation.label} is currently unavailable`,
+        );
+      }
+
+      const paths = (providerStatus.files ?? []).map((file) => file.path).filter(isCommitEligible);
+      if (paths.length === 0) {
+        return {
+          ok: true,
+          provider: provider.id,
+          phases,
+          status: await this.status(project),
+        };
+      }
+
+      const recordResult = await provider.execute("record", project.path, {
+        message,
+        paths,
+        status: providerStatus,
+      });
+      phases.push({ operation: "record", result: recordResult });
+
+      if (provider.workflow === "distributed" && provider.operations.publish) {
+        const afterRecordStatus = await provider.status(project.path);
+        const publishState = afterRecordStatus.operationStates?.publish;
+        if (publishState?.enabled === false) {
+          phases.push({
+            operation: "publish",
+            skipped: true,
+            reason: publishState.reason || `${provider.operations.publish.label} is unavailable`,
+          });
+        } else {
+          phases.push({
+            operation: "publish",
+            result: await provider.execute("publish", project.path, { status: afterRecordStatus }),
+          });
+        }
+      }
+
+      return {
+        ok: true,
+        provider: provider.id,
+        phases,
+        status: await this.status(project),
+      };
+    } catch (error) {
+      throw publicError(error);
+    }
+  }
+
   async history(project, { path: filePath = null, limit = 50 } = {}) {
     const provider = await this.requireConfigured(project);
     if (!provider.features.history) {

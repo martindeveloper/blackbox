@@ -102,6 +102,68 @@ class CentralizedProvider extends VcsProvider {
   }
 }
 
+class DistributedProvider extends VcsProvider {
+  constructor() {
+    super({
+      id: "distributed",
+      label: "Distributed",
+      workflow: "distributed",
+      operations: {
+        record: {
+          label: "Commit",
+          busyLabel: "Committing…",
+          successMessage: "Changes committed.",
+          placement: "primary",
+          scope: "changes",
+          requiresMessage: true,
+          requiresChanges: true,
+        },
+        publish: {
+          label: "Push",
+          busyLabel: "Pushing…",
+          successMessage: "Changes pushed.",
+          placement: "footer",
+          scope: "workspace",
+        },
+      },
+      features: { initialize: true, history: true },
+    });
+    this.files = [{ path: "scenario.json", status: "modified" }];
+    this.executions = [];
+  }
+
+  async availability() {
+    return { available: true, version: "1.0" };
+  }
+
+  async isRepository() {
+    return true;
+  }
+
+  async initialize() {}
+
+  async status() {
+    return {
+      workspace: { label: "main", trackingLabel: "origin/main" },
+      files: this.files,
+      operationStates: {
+        record: { enabled: true, reason: null },
+        publish: { enabled: true, reason: null },
+      },
+    };
+  }
+
+  async execute(operation, _projectPath, context) {
+    this.executions.push({ operation, context });
+    if (operation === "record") this.files = [];
+    return { operation };
+  }
+
+  async history() {
+    return [];
+  }
+}
+
 function serviceFixture(providers) {
   const suppressed = [];
   const emitted = [];
@@ -272,6 +334,51 @@ test("stores only provider settings and exposes centralized capabilities", async
       service.execute(project, "publish"),
       (error) => error.code === "unsupported_vcs_operation",
     );
+  } finally {
+    await fs.rm(projectPath, { recursive: true, force: true });
+  }
+});
+
+test("author sync records centralized changes without a separate publish step", async () => {
+  const projectPath = await fs.mkdtemp(path.join(os.tmpdir(), "blackbox-vcs-author-central-"));
+  const project = { id: "project", path: projectPath };
+  const provider = new CentralizedProvider();
+  const { service } = serviceFixture([provider]);
+  try {
+    await service.configure(project, { provider: "central" });
+    provider.files = [{ path: "scenario.json", status: "modified" }];
+
+    const synced = await service.authorSync(project, { message: "Update intro" });
+
+    assert.equal(synced.ok, true);
+    assert.deepEqual(
+      provider.executions.map((execution) => execution.operation),
+      ["record"],
+    );
+    assert.equal(provider.executions[0].context.message, "Update intro");
+    assert.deepEqual(provider.executions[0].context.paths, ["scenario.json"]);
+  } finally {
+    await fs.rm(projectPath, { recursive: true, force: true });
+  }
+});
+
+test("author sync publishes distributed changes after recording them", async () => {
+  const projectPath = await fs.mkdtemp(path.join(os.tmpdir(), "blackbox-vcs-author-distributed-"));
+  const project = { id: "project", path: projectPath };
+  const provider = new DistributedProvider();
+  const { service } = serviceFixture([provider]);
+  try {
+    await service.configure(project, { provider: "distributed" });
+
+    const synced = await service.authorSync(project, { message: "Update scenario" });
+
+    assert.equal(synced.ok, true);
+    assert.deepEqual(
+      provider.executions.map((execution) => execution.operation),
+      ["record", "publish"],
+    );
+    assert.equal(provider.executions[0].context.message, "Update scenario");
+    assert.deepEqual(provider.executions[0].context.paths, ["scenario.json"]);
   } finally {
     await fs.rm(projectPath, { recursive: true, force: true });
   }

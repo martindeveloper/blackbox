@@ -6,6 +6,7 @@ import {
   emptyTrash as emptyTrashApi,
   restoreTrash,
   saveDocuments,
+  syncProjectChanges,
   subscribeProject,
   trashMedia,
   uploadMedia,
@@ -36,6 +37,7 @@ export function createProjectActions(
   | "permanentlyDeleteTrashItem"
   | "emptyTrash"
   | "save"
+  | "saveAndSync"
   | "markDirty"
 > {
   return {
@@ -270,7 +272,7 @@ export function createProjectActions(
       }
     },
 
-    save: async (force = false) => {
+    save: async (force = false, options = {}) => {
       const { projectId, revision, bundle, dirty, editVersion, conflict } = get();
       if (!projectId || revision === null || !bundle) return false;
       if (dirty.size === 0) return !conflict;
@@ -288,7 +290,7 @@ export function createProjectActions(
           conflict: null,
           validationIssues: validateBundle(get().bundle ?? bundle),
         });
-        notifySuccess(translate("notifications.saveSuccess"));
+        if (options.notify !== false) notifySuccess(translate("notifications.saveSuccess"));
         return true;
       } catch (error) {
         if (error instanceof ApiError && error.code === "revision_conflict") {
@@ -299,6 +301,30 @@ export function createProjectActions(
         } else {
           set({ saving: false });
         }
+        notifyFromError(error);
+        return false;
+      }
+    },
+
+    saveAndSync: async (message) => {
+      const projectId = get().projectId;
+      if (!projectId) return false;
+      const saved = await get().save(false, { notify: false });
+      if (!saved) return false;
+      try {
+        const result = await syncProjectChanges(projectId, { message });
+        const skippedPublish = result.phases.find(
+          (phase) => phase.operation === "publish" && phase.skipped,
+        );
+        if (skippedPublish) {
+          notifySuccess(
+            translate("notifications.syncSavedOnly", { reason: skippedPublish.reason }),
+          );
+        } else {
+          notifySuccess(translate("notifications.syncSuccess"));
+        }
+        return true;
+      } catch (error) {
         notifyFromError(error);
         return false;
       }

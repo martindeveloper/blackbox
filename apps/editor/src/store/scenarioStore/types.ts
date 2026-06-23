@@ -59,7 +59,8 @@ export interface ScenarioState {
   restoreTrashItem: (id: string) => Promise<void>;
   permanentlyDeleteTrashItem: (id: string) => Promise<void>;
   emptyTrash: () => Promise<void>;
-  save: (force?: boolean) => Promise<boolean>;
+  save: (force?: boolean, options?: { notify?: boolean }) => Promise<boolean>;
+  saveAndSync: (message: string) => Promise<boolean>;
   markDirty: (key: string) => void;
   updateScenario: (patch: Partial<LoadedBundle["scenario"]>) => void;
   addChapter: () => CreatedChapter | null;

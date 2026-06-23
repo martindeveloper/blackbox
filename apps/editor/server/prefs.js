@@ -12,6 +12,8 @@ export const DEFAULT_USER_PREFS = Object.freeze({
   mcpEnabled: false,
   mcpPort: DEFAULT_MCP_PORT,
   searchFullTextDefault: false,
+  saveAndSyncDefault: false,
+  askSyncDescription: false,
 });
 
 export async function readUserPrefs() {
@@ -63,6 +65,12 @@ export function sanitizePrefs(raw) {
   }
   if (typeof raw.searchFullTextDefault === "boolean") {
     prefs.searchFullTextDefault = raw.searchFullTextDefault;
+  }
+  if (typeof raw.saveAndSyncDefault === "boolean") {
+    prefs.saveAndSyncDefault = raw.saveAndSyncDefault;
+  }
+  if (typeof raw.askSyncDescription === "boolean") {
+    prefs.askSyncDescription = raw.askSyncDescription;
   }
   return prefs;
 }

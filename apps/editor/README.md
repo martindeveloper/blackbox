@@ -90,6 +90,15 @@ The server stores its project registry, revisions, and file index in
 `<user-data>/.blackbox/user.preferences.json`. In repository development, `<user-data>` defaults
 to the repository root; packaged Electron builds use the OS application-data directory.
 
+The UI keeps VCS terminology behind an author-facing sync intent. Users can
+opt into **Save & sync** as the primary editor action and choose whether that
+button asks for a version description before saving. When enabled and a
+provider is configured and healthy, Save & sync saves editor documents, asks
+the provider to create a project revision, and publishes distributed revisions
+when the provider supports it. The Project sync drawer remains the advanced
+surface for setup, changed files, manual provider operations, and previous
+versions.
+
 ## Full validation
 
 ```bash

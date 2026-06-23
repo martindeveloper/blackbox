@@ -257,6 +257,23 @@ export function UserSettingsModal({ onClose, initialView = "appearance" }: UserS
           {view === "workspace" && isElectron ? (
             <section className="user-settings-group">
               <span className="user-settings-section-kicker">{t("settings.workspaceKicker")}</span>
+              <div className="user-settings-section">
+                <header className="user-settings-section-head">
+                  <h3 className="user-settings-section-title">{t("settings.projectSyncTitle")}</h3>
+                  <p className="user-settings-section-copy">{t("settings.projectSyncHint")}</p>
+                </header>
+                <Checkbox
+                  checked={prefs.saveAndSyncDefault ?? false}
+                  onChange={(event) => updatePrefs({ saveAndSyncDefault: event.target.checked })}
+                  label={t("settings.saveAndSyncDefault")}
+                />
+                <Checkbox
+                  checked={prefs.askSyncDescription ?? false}
+                  onChange={(event) => updatePrefs({ askSyncDescription: event.target.checked })}
+                  label={t("settings.askSyncDescription")}
+                />
+              </div>
+
               <header className="user-settings-section-head">
                 <h3 className="user-settings-section-title">{t("settings.ideTitle")}</h3>
                 <p className="user-settings-section-copy">{t("settings.ideHint")}</p>

@@ -8,6 +8,8 @@ export interface UserPrefs {
   leftColumnWidth?: number;
   rightColumnWidth?: number;
   searchFullTextDefault?: boolean;
+  saveAndSyncDefault?: boolean;
+  askSyncDescription?: boolean;
 }
 
 export async function fetchUserPrefs(): Promise<UserPrefs> {

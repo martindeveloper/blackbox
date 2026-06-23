@@ -134,7 +134,11 @@ export const en = {
     themeDevice: "Device",
     open: "Open",
     save: "Save",
+    saveAndSync: "Save & sync",
+    saveAndSyncHint:
+      "Save your edits, create a version, and publish it when the project supports it.",
     saving: "Saving…",
+    syncing: "Syncing…",
     openIde: "Open in {{ide}}",
     openingIde: "Opening {{ide}}…",
     ideNotFound: "Install {{ide}}, then try again.",
@@ -151,8 +155,8 @@ export const en = {
     runTools: "Run engine tools",
   },
   vcs: {
-    title: "Version control",
-    provider: "Version control provider",
+    title: "Project sync",
+    provider: "Sync provider",
     loading: "Checking repository…",
     notConfigured: "Not configured",
     connectProvider: "Connect this {{provider}} workspace",
@@ -169,14 +173,19 @@ export const en = {
     providerUnavailableHint: "Install the provider or repair the repository, then refresh.",
     noTracking: "No tracked source",
     syncSummary: "{{ahead}} ahead · {{behind}} behind",
-    changes: "Changes",
-    history: "History",
-    clean: "Workspace clean",
+    changes: "Changed files",
+    history: "Previous versions",
+    clean: "Everything is synced",
     changeMessage: "Describe these changes",
     allFiles: "All files",
     loadingHistory: "Loading history…",
     noHistory: "No revisions yet.",
     saveBeforeOperation: "Save or discard editor changes before running this operation.",
+    authorSyncMessage: "Update {{changes}}",
+    authorSyncProjectMessage: "Update project",
+    syncDescriptionTitle: "Describe this sync",
+    syncDescriptionHint:
+      "This becomes the version description. Keep it short and useful for future you.",
   },
   bugReport: {
     title: "Bug report",
@@ -217,6 +226,11 @@ export const en = {
     searchFullTextDefault: "Search full text by default",
     searchFullTextDefaultHint:
       "When opening search ({{shortcut}}), also match node prose, choice labels, descriptions, and subtitles.",
+    projectSyncTitle: "Project sync",
+    projectSyncHint:
+      "Choose whether the main Save button also creates and publishes a project version when sync is configured.",
+    saveAndSyncDefault: "Use Save & sync as the primary save action",
+    askSyncDescription: "Ask for a sync description from the primary Save & sync button",
     mcpTitle: "Model Context Protocol",
     mcpHint:
       "Let local AI agents inspect, validate, simulate, and revision-safely edit registered Blackbox projects.",
@@ -1691,6 +1705,8 @@ export const en = {
   },
   notifications: {
     saveSuccess: "Project saved",
+    syncSuccess: "Project saved and synced",
+    syncSavedOnly: "Project saved as a version. Sync later: {{reason}}",
     importSuccess: "File imported",
     deleteMediaSuccess: "File deleted",
     movedToTrash: '"{{name}}" moved to Trash',

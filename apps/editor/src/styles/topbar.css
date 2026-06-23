@@ -235,6 +235,18 @@
   border-left: 1px solid color-mix(in srgb, var(--editor-border-2) 55%, transparent);
 }
 
+.save-sync-prompt {
+  display: flex;
+  min-width: min(420px, calc(100vw - 48px));
+  flex-direction: column;
+  gap: 10px;
+}
+
+.save-sync-prompt textarea.editor-input {
+  min-height: 84px;
+  resize: vertical;
+}
+
 .editor-tool-strip {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

@@ -11,7 +11,7 @@ import {
   Upload,
   type LucideIcon,
 } from "lucide-react";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -35,6 +35,7 @@ interface VcsControlProps {
   projectId: string;
   revision: number | null;
   dirty: boolean;
+  onStatusChange?: (status: VcsStatus | null) => void;
 }
 
 type Tab = "changes" | "history";
@@ -53,7 +54,7 @@ function operationIcon(operationId: string): LucideIcon {
   return RefreshCw;
 }
 
-export function VcsControl({ projectId, revision, dirty }: VcsControlProps) {
+export function VcsControl({ projectId, revision, dirty, onStatusChange }: VcsControlProps) {
   const { t } = useTranslation();
   const anchorRef = useRef<HTMLButtonElement>(null);
   const [status, setStatus] = useState<VcsStatus | null>(null);
@@ -66,6 +67,14 @@ export function VcsControl({ projectId, revision, dirty }: VcsControlProps) {
   const [historyPath, setHistoryPath] = useState("");
   const [history, setHistory] = useState<VcsHistoryEntry[]>([]);
 
+  const applyStatus = useCallback(
+    (next: VcsStatus | null) => {
+      setStatus(next);
+      onStatusChange?.(next);
+    },
+    [onStatusChange],
+  );
+
   const placePopover = () => {
     const rect = anchorRef.current?.getBoundingClientRect();
     if (rect) setCoords({ top: rect.bottom + 6, right: window.innerWidth - rect.right });
@@ -74,7 +83,7 @@ export function VcsControl({ projectId, revision, dirty }: VcsControlProps) {
   const refresh = async (showBusy = false) => {
     if (showBusy) setBusy("refresh");
     try {
-      setStatus(await getVcsStatus(projectId));
+      applyStatus(await getVcsStatus(projectId));
     } catch (error) {
       if (showBusy) notifyFromError(error);
     } finally {
@@ -97,13 +106,13 @@ export function VcsControl({ projectId, revision, dirty }: VcsControlProps) {
     let active = true;
     void getVcsStatus(projectId)
       .then((next) => {
-        if (active) setStatus(next);
+        if (active) applyStatus(next);
       })
       .catch(() => {});
     return () => {
       active = false;
     };
-  }, [projectId, revision]);
+  }, [applyStatus, projectId, revision]);
 
   useEffect(() => {
     const reviewContribution = (event: Event) => {
@@ -150,7 +159,7 @@ export function VcsControl({ projectId, revision, dirty }: VcsControlProps) {
     setBusy(operationId);
     try {
       const result = await executeVcsOperation(projectId, operationId, payload);
-      setStatus(result.status);
+      applyStatus(result.status);
       notifySuccess(operation.successMessage);
       return true;
     } catch (error) {
@@ -281,7 +290,7 @@ export function VcsControl({ projectId, revision, dirty }: VcsControlProps) {
                         if (!setupProvider) return;
                         setBusy("setup");
                         try {
-                          setStatus(
+                          applyStatus(
                             await configureVcs(
                               projectId,
                               setupProvider.id,

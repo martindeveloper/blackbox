@@ -39,7 +39,12 @@ export class EditorServerProcess {
         console.error(`[editor] server process exited unexpectedly (code ${code})`);
     });
 
-    await this.rpc.request("start", { socketPath, auditLogPath });
+    try {
+      await this.rpc.request("start", { socketPath, auditLogPath });
+    } catch (error) {
+      this.kill();
+      throw error;
+    }
   }
 
   setDirty(dirty) {

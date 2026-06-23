@@ -9,10 +9,11 @@ import {
   Save,
   Search,
   ShieldCheck,
+  UploadCloud,
   SquareTerminal,
   X,
 } from "lucide-react";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
@@ -29,7 +30,7 @@ import { openOmnibox } from "@/lib/omnibox.js";
 import { formatShortcutKeys } from "@/lib/shortcuts.js";
 import { editorNavigate, navigateToTool } from "@/lib/routeHelpers.js";
 import { CONTRIBUTION_REVIEW_EVENT } from "@/lib/contributionReview.js";
-import type { ProjectContributionReview } from "@/lib/projectApi.js";
+import { getVcsStatus, type ProjectContributionReview, type VcsStatus } from "@/lib/projectApi.js";
 import { isActiveEditorPage, Page } from "@/lib/pages.js";
 import { CUSTOM_IDE_ID, DEFAULT_IDE_ID } from "@shared/ideRegistry.js";
 import { useToolRunnerStore } from "@/store/useToolRunnerStore.js";
@@ -37,6 +38,8 @@ import { useUserPrefs } from "@/hooks/useUserPrefs.js";
 import { Button } from "@/components/ui/Button.js";
 import { IconButton } from "@/components/ui/IconButton.js";
 import { StatusPill } from "@/components/ui/StatusPill.js";
+import { Textarea } from "@/components/ui/Textarea.js";
+import { ModalShell } from "@/components/overlay/ModalShell.js";
 import { useModal } from "@/context/ModalProvider.js";
 import { VcsControl } from "@/components/vcs/VcsControl.js";
 
@@ -114,6 +117,7 @@ export function TopBar() {
   const saving = useScenarioStore((s) => s.saving);
   const validationIssues = useScenarioStore((s) => s.validationIssues);
   const save = useScenarioStore((s) => s.save);
+  const saveAndSync = useScenarioStore((s) => s.saveAndSync);
   const closeFolder = useScenarioStore((s) => s.closeFolder);
   const activeTool = useToolRunnerStore((s) => s.activeTool);
   const toolRunState = useToolRunnerStore((s) => s.runState);
@@ -123,6 +127,13 @@ export function TopBar() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settingsView, setSettingsView] = useState<"appearance" | "audit">("appearance");
   const [bugReportOpen, setBugReportOpen] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [syncPromptOpen, setSyncPromptOpen] = useState(false);
+  const [syncPromptMessage, setSyncPromptMessage] = useState("");
+  const [vcsState, setVcsState] = useState<{
+    projectId: string;
+    status: VcsStatus | null;
+  } | null>(null);
   const { prefs } = useUserPrefs();
 
   const errorCount = validationIssues.filter((i) => i.severity === "error").length;
@@ -140,6 +151,22 @@ export function TopBar() {
     .sort((a, b) => a.localeCompare(b));
 
   const projectTitle = bundle?.scenario.title ?? projectName;
+  const vcsStatus = vcsState?.projectId === projectId ? vcsState.status : null;
+  const saveAndSyncPreferred = prefs.saveAndSyncDefault === true;
+  const projectSyncReady =
+    saveAndSyncPreferred &&
+    vcsStatus?.configured === true &&
+    vcsStatus.unavailable !== true &&
+    vcsStatus.initialized !== false;
+  const primarySaveLabel = projectSyncReady ? t("topBar.saveAndSync") : t("topBar.save");
+  const primarySavingLabel = projectSyncReady ? t("topBar.syncing") : t("topBar.saving");
+  const saveMessage =
+    dirtyLabels.length > 0
+      ? t("vcs.authorSyncMessage", {
+          changes: dirtyLabels.slice(0, 3).join(", "),
+          count: dirtyLabels.length,
+        })
+      : t("vcs.authorSyncProjectMessage");
 
   useEffect(() => {
     const reviewContribution = (event: Event) => {
@@ -152,6 +179,54 @@ export function TopBar() {
     window.addEventListener(CONTRIBUTION_REVIEW_EVENT, reviewContribution);
     return () => window.removeEventListener(CONTRIBUTION_REVIEW_EVENT, reviewContribution);
   }, []);
+
+  useEffect(() => {
+    let active = true;
+    if (!projectId) {
+      return () => {
+        active = false;
+      };
+    }
+    void getVcsStatus(projectId)
+      .then((status) => {
+        if (active) setVcsState({ projectId, status });
+      })
+      .catch(() => {
+        if (active) setVcsState({ projectId, status: null });
+      });
+    return () => {
+      active = false;
+    };
+  }, [projectId, revision]);
+
+  const runSaveAndSync = async (message: string) => {
+    setSyncing(true);
+    try {
+      await saveAndSync(message.trim() || saveMessage);
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const handlePrimarySave = () => {
+    if (!projectSyncReady) {
+      void save();
+      return;
+    }
+    if (prefs.askSyncDescription === true) {
+      setSyncPromptMessage(saveMessage);
+      setSyncPromptOpen(true);
+      return;
+    }
+    void runSaveAndSync(saveMessage);
+  };
+
+  const handleVcsStatusChange = useCallback(
+    (status: VcsStatus | null) => {
+      if (projectId) setVcsState({ projectId, status });
+    },
+    [projectId],
+  );
 
   const handleClose = async () => {
     // Guard against silently discarding unsaved work. Three outcomes:
@@ -334,6 +409,7 @@ export function TopBar() {
                   projectId={projectId}
                   revision={revision}
                   dirty={dirty.size > 0 || saving}
+                  onStatusChange={handleVcsStatusChange}
                 />
               ) : null}
             </div>
@@ -352,6 +428,42 @@ export function TopBar() {
           {settingsOpen ? (
             <UserSettingsModal initialView={settingsView} onClose={() => setSettingsOpen(false)} />
           ) : null}
+          {syncPromptOpen ? (
+            <ModalShell
+              title={t("vcs.syncDescriptionTitle")}
+              onClose={() => setSyncPromptOpen(false)}
+              footer={
+                <>
+                  <Button variant="ghost" onClick={() => setSyncPromptOpen(false)}>
+                    {t("common.cancel")}
+                  </Button>
+                  <Button
+                    variant="primary"
+                    leadingIcon={UploadCloud}
+                    disabled={syncing}
+                    onClick={() => {
+                      setSyncPromptOpen(false);
+                      void runSaveAndSync(syncPromptMessage);
+                    }}
+                  >
+                    {syncing ? t("topBar.syncing") : t("topBar.saveAndSync")}
+                  </Button>
+                </>
+              }
+            >
+              <div className="save-sync-prompt">
+                <p className="modal-panel-message">{t("vcs.syncDescriptionHint")}</p>
+                <Textarea
+                  autoFocus
+                  rows={3}
+                  maxLength={500}
+                  value={syncPromptMessage}
+                  placeholder={t("vcs.changeMessage")}
+                  onChange={(event) => setSyncPromptMessage(event.target.value)}
+                />
+              </div>
+            </ModalShell>
+          ) : null}
           {projectPath && window.electronAPI ? (
             <Button
               variant="ghost"
@@ -369,11 +481,12 @@ export function TopBar() {
             <Button
               variant="primary"
               size="sm"
-              leadingIcon={Save}
-              disabled={!bundle || dirty.size === 0 || saving}
-              onClick={() => void save()}
+              leadingIcon={projectSyncReady ? UploadCloud : Save}
+              disabled={!bundle || dirty.size === 0 || saving || syncing}
+              title={projectSyncReady ? t("topBar.saveAndSyncHint") : undefined}
+              onClick={handlePrimarySave}
             >
-              {saving ? t("topBar.saving") : t("topBar.save")}
+              {saving || syncing ? primarySavingLabel : primarySaveLabel}
             </Button>
           ) : null}
         </div>

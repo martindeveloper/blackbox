@@ -183,6 +183,10 @@ export async function registerRoutes(app, service) {
     serverProjectRoute(ProjectRoutes.VcsStatus),
     projectRequest(service, (project) => vcs.status(project)),
   );
+  app.post(
+    serverProjectRoute(ProjectRoutes.VcsSync),
+    projectRequest(service, (project, request) => vcs.authorSync(project, request.body ?? {})),
+  );
   app.put(
     serverProjectRoute(ProjectRoutes.Vcs),
     projectRequest(service, (project, request) => vcs.configure(project, request.body ?? {})),

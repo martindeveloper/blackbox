@@ -147,6 +147,20 @@ export interface VcsHistoryEntry {
   summary: string;
 }
 
+export interface VcsSyncPhase {
+  operation: string;
+  result?: unknown;
+  skipped?: boolean;
+  reason?: string;
+}
+
+export interface VcsSyncResult {
+  ok: boolean;
+  provider: string;
+  phases: VcsSyncPhase[];
+  status: VcsStatus;
+}
+
 const CLIENT_ID = crypto.randomUUID();
 
 export class ApiError extends Error {
@@ -374,6 +388,13 @@ export async function configureVcs(
       body: JSON.stringify({ provider, initialize }),
     }),
   );
+}
+
+export function syncProjectChanges(
+  projectId: string,
+  payload: { message?: string } = {},
+): Promise<VcsSyncResult> {
+  return postJson(projectUrl(projectId, ProjectRoutes.VcsSync), payload);
 }
 
 export function executeVcsOperation(

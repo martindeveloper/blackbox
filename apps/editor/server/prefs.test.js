@@ -11,6 +11,8 @@ test("user preferences default theme and preferred IDE", () => {
     mcpEnabled: false,
     mcpPort: DEFAULT_MCP_PORT,
     searchFullTextDefault: false,
+    saveAndSyncDefault: false,
+    askSyncDescription: false,
   });
   assert.deepEqual(sanitizePrefs({ theme: "dark", preferredIde: DEFAULT_IDE_ID }), {
     theme: "dark",
@@ -30,5 +32,11 @@ test("user preferences default theme and preferred IDE", () => {
   assert.deepEqual(sanitizePrefs({ mcpPort: 70000 }), {});
   assert.deepEqual(sanitizePrefs({ searchFullTextDefault: true }), {
     searchFullTextDefault: true,
+  });
+  assert.deepEqual(sanitizePrefs({ saveAndSyncDefault: true }), {
+    saveAndSyncDefault: true,
+  });
+  assert.deepEqual(sanitizePrefs({ askSyncDescription: true }), {
+    askSyncDescription: true,
   });
 });
