@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
 import {
   app,
   BrowserWindow,
@@ -28,6 +28,7 @@ import { VERSION_API } from "../shared/versionApi.js";
 import { EDITOR_SIDECAR_DIR, MCP_CREDENTIALS_BASENAME } from "../shared/blackboxPaths.js";
 import { McpCredentialStore } from "./mcpCredentials.mjs";
 import { McpHost } from "./mcpHost.mjs";
+import { EditorServerProcess } from "./serverProcess.mjs";
 
 const ELECTRON_ROOT = path.dirname(fileURLToPath(import.meta.url));
 const CLIENT_ROOT = path.resolve(ELECTRON_ROOT, "..");
@@ -121,21 +122,16 @@ async function configureRuntimePaths() {
 }
 
 async function startServer() {
-  const serverEntry = pathToFileURL(path.join(CLIENT_ROOT, "server", "app.js")).href;
-  const { startEditorServer } = await import(serverEntry);
   editorSocketPath = createEditorSocketPath();
   await removeEditorSocket(editorSocketPath);
-  const server = await startEditorServer({
-    quiet: true,
+
+  const serverProcess = new EditorServerProcess();
+  await serverProcess.start({
     socketPath: editorSocketPath,
-    projectServiceOptions: {
-      trashItem: (target) => shell.trashItem(target),
-    },
+    auditLogPath: path.join(process.env.BLACKBOX_USER_DATA, "logs", "mcp-audit.jsonl"),
   });
-  const [{ EditorMcpServer }, { readUserPrefs, writeUserPrefs }] = await Promise.all([
-    import("../server/mcpServer.mjs"),
-    import("../server/prefs.js"),
-  ]);
+
+  const { readUserPrefs, writeUserPrefs } = await import("../server/prefs.js");
   const credentials = new McpCredentialStore({
     filePath: path.join(
       process.env.BLACKBOX_USER_DATA,
@@ -144,20 +140,16 @@ async function startServer() {
     ),
     safeStorage,
   });
-  const mcpServer = new EditorMcpServer({
-    projectService: server.projectService,
-    isRendererDirty: () => closeGuard.dirty,
-    auditLogPath: path.join(process.env.BLACKBOX_USER_DATA, "logs", "mcp-audit.jsonl"),
-  });
   editorMcpHost = new McpHost({
-    server: mcpServer,
+    server: serverProcess.mcp,
     credentials,
     readPrefs: readUserPrefs,
     writePrefs: writeUserPrefs,
   });
   await editorMcpHost.initialize();
+
   protocol.handle(EDITOR_SCHEME, createEditorProtocolHandler(editorSocketPath));
-  return server;
+  return serverProcess;
 }
 
 function requireMcpHost() {
@@ -246,23 +238,20 @@ async function createWindow() {
   await mainWindow.loadURL(EDITOR_ORIGIN);
 }
 
-// Terminate the process. The catch on macOS/Linux: a normal exit (app.exit /
-// process.exit) runs Node's environment teardown, which synchronously finalizes
-// the still-open node:sqlite DatabaseSync handle. That close performs a blocking
-// WAL checkpoint and wedges the main thread — and once the thread is blocked in
-// native code no timer or further JS can rescue it. That is the macOS Cmd+Q
-// freeze (the window closes, then the process hangs in teardown).
+// Terminate the process. The node:sqlite DatabaseSync handle now lives in the
+// server utilityProcess: kill() tears it down without running Node's teardown,
+// so the blocking WAL checkpoint that once wedged the main thread on macOS/Linux
+// (the Cmd+Q freeze) never executes. This is safe — SQLite WAL is crash-consistent
+// and the unix socket is removed at the start of the next launch.
 //
-// SIGKILL is delivered by the kernel and terminates immediately without running
-// any teardown, so the blocking close never executes. This is safe here: SQLite
-// WAL is crash-consistent (all writes autocommit and the DB recovers on next
-// open) and the unix socket is removed at the start of the next launch
-// (startServer -> removeEditorSocket). We destroy the windows first so the
-// renderer/GPU helper processes shut down cleanly before the browser process
-// disappears. Windows never exhibited the freeze, so it keeps the normal exit.
+// macOS/Linux then SIGKILL the browser process for the same reason; we destroy the
+// windows first so the renderer/GPU helpers shut down cleanly before it disappears.
+// Windows uses the normal exit, which it always tolerated.
 function forceExit() {
   if (shutdownDone) return;
   shutdownDone = true;
+
+  editorServer?.kill();
 
   if (process.platform === "win32") {
     app.exit(0);
@@ -430,6 +419,7 @@ if (cliArgs !== null) {
       ipcMain.on("editor:set-dirty", (event, dirty) => {
         if (event.sender !== mainWindow?.webContents) return;
         closeGuard.dirty = dirty === true;
+        editorServer?.setDirty(closeGuard.dirty);
       });
       ipcMain.on("editor:confirm-close", (event) => {
         if (event.sender !== mainWindow?.webContents) return;

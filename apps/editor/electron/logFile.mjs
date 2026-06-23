@@ -2,10 +2,11 @@ import fs from "node:fs";
 import path from "node:path";
 
 // The packaged editor (notably the MSIX build) is launched without an attached
-// console, and the in-process Fastify server runs with logging disabled, so every
-// console.* call and any error written to stderr would otherwise vanish. We tee
-// both standard streams to a file under userData/logs so failures like a preview
-// build error are recoverable after the fact.
+// console, and the Fastify server runs with logging disabled, so every console.*
+// call and any error written to stderr would otherwise vanish. We tee both standard
+// streams to a file under userData/logs so failures like a preview build error are
+// recoverable after the fact. The server process forwards its output through these
+// streams (serverProcess.mjs), so its logs land here too.
 
 let stream = null;
 

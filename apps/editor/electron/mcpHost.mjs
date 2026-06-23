@@ -45,8 +45,9 @@ export class McpHost {
     const prefs = await this.readPrefs();
     if (port === prefs.mcpPort) return this.status(prefs);
 
-    if (this.server.status().enabled) {
-      const token = this.server.status().token;
+    const current = await this.server.status();
+    if (current.enabled) {
+      const token = current.token;
       await this.server.stop();
       try {
         await this.server.start({ token, port });
@@ -67,7 +68,7 @@ export class McpHost {
   }
 
   async regenerateToken() {
-    if (!this.server.status().enabled) {
+    if (!(await this.server.status()).enabled) {
       throw new Error("Enable the MCP server before regenerating its token");
     }
     const token = await this.credentials.regenerate();
