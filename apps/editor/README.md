@@ -107,6 +107,13 @@ map the same check to server-side status, locks, or incoming changelists. When
 updates are detected, the editor notifies the author and points them to Project
 sync instead of pulling over unsaved work.
 
+External contributors feed a reusable author change review layer. When the
+editor has before/after project bundles, it translates JSON changes into
+author-facing concepts — chapters, nodes, choices, items, characters, assets,
+events, and flags — with field-level before/after details. AI, VCS, filesystem,
+and future provider changes can share the same review component instead of
+showing raw file diffs first.
+
 ## Full validation
 
 ```bash

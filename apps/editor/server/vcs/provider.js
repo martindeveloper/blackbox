@@ -2,6 +2,7 @@ export const VCS_OPERATION = Object.freeze({
   SYNC: "sync",
   RECORD: "record",
   PUBLISH: "publish",
+  REVERT: "revert",
 });
 
 export class VcsProvider {
@@ -18,6 +19,7 @@ export class VcsProvider {
       revert: features.revert === true,
       changelists: features.changelists === true,
       locking: features.locking === true,
+      diff: features.diff === true,
     };
   }
 
@@ -69,5 +71,9 @@ export class VcsProvider {
 
   async history(_projectPath, _options) {
     throw new Error("history() is not implemented");
+  }
+
+  async diff(_projectPath, _path) {
+    throw new Error("diff() is not implemented");
   }
 }

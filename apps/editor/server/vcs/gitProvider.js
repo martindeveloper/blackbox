@@ -135,8 +135,19 @@ export class GitProvider extends VcsProvider {
           scope: "workspace",
           requiresCleanEditor: true,
         },
+        revert: {
+          label: "Discard changes",
+          busyLabel: "Discarding…",
+          successMessage: "Changes discarded.",
+          placement: "file",
+          scope: "selection",
+          destructive: true,
+          changesWorkspace: true,
+          requiresChanges: true,
+          requiresCleanEditor: true,
+        },
       },
-      features: { initialize: true, history: true },
+      features: { initialize: true, history: true, diff: true, revert: true },
     });
   }
 
@@ -185,6 +196,7 @@ export class GitProvider extends VcsProvider {
           reason: status.workspace.trackingLabel ? null : "Set an upstream branch before pulling.",
         },
         record: { enabled: true, reason: null },
+        revert: { enabled: true, reason: null },
         publish: {
           enabled: Boolean(status.workspace.trackingLabel) || remotes.length === 1,
           reason:
@@ -262,12 +274,27 @@ export class GitProvider extends VcsProvider {
     return { output: (result.stdout || result.stderr).trim() };
   }
 
+  async revert(projectPath, paths) {
+    const targets = (paths ?? []).filter(Boolean);
+    if (targets.length === 0) return { changedPaths: [] };
+    // Unstage everything first, then restore each tracked file to HEAD
+    // (per-path so an untracked sibling can't abort the whole checkout), and
+    // finally remove any untracked leftovers among the targets.
+    await git(projectPath, ["reset", "--quiet", "--", ...targets], { allowFailure: true });
+    for (const target of targets) {
+      await git(projectPath, ["checkout", "HEAD", "--", target], { allowFailure: true });
+    }
+    await git(projectPath, ["clean", "-fd", "--", ...targets], { allowFailure: true });
+    return { changedPaths: targets.map(normalizePath) };
+  }
+
   async execute(operation, projectPath, context = {}) {
     if (operation === VCS_OPERATION.SYNC) return this.sync(projectPath);
     if (operation === VCS_OPERATION.RECORD) {
       return this.record(projectPath, context.message, context.paths);
     }
     if (operation === VCS_OPERATION.PUBLISH) return this.publish(projectPath);
+    if (operation === VCS_OPERATION.REVERT) return this.revert(projectPath, context.paths);
     throw new Error(`Unsupported Git operation: ${operation}`);
   }
 
@@ -277,5 +304,22 @@ export class GitProvider extends VcsProvider {
     if (path) args.push("--", path);
     const result = await git(projectPath, args, { allowFailure: true });
     return result.code === 0 ? parseHistory(result.stdout) : [];
+  }
+
+  async diff(projectPath, filePath) {
+    const [status, beforeResult] = await Promise.all([
+      this.status(projectPath),
+      git(projectPath, ["show", `HEAD:${filePath}`], { allowFailure: true }),
+    ]);
+    let after = "";
+    try {
+      after = await fs.readFile(path.join(projectPath, filePath), "utf8");
+    } catch {}
+    return {
+      path: filePath,
+      before: beforeResult.code === 0 ? beforeResult.stdout : "",
+      after,
+      status: status.files.find((file) => file.path === filePath) ?? null,
+    };
   }
 }

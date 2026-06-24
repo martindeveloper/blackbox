@@ -1,5 +1,6 @@
 import { diffDirtyKeys } from "@/lib/historyDiff.js";
 import { notifyContributionApplied } from "@/lib/contributionNotifications.js";
+import { buildAuthorDiff } from "@/lib/authorDiff.js";
 import type { ProjectEvent } from "@/lib/projectApi.js";
 import type { MediaCategory } from "@/lib/mediaLibrary.js";
 import type { LoadedBundle } from "@/lib/scenarioLoader.js";
@@ -46,11 +47,18 @@ export function applyHistorySnapshot(
   get().runValidation();
 }
 
-export function presentContribution(event: ProjectEvent, set: ScenarioSet, get: ScenarioGet): void {
+export function presentContribution(
+  event: ProjectEvent,
+  set: ScenarioSet,
+  get: ScenarioGet,
+  before?: LoadedBundle | null,
+  after?: LoadedBundle | null,
+): void {
   if (event.contribution?.status !== "applied") return;
   if (runtime.contributionTimer) clearTimeout(runtime.contributionTimer);
   set({ recentContribution: event });
-  notifyContributionApplied(event);
+  const diff = buildAuthorDiff(event, before, after);
+  notifyContributionApplied(event, { diff });
   runtime.contributionTimer = setTimeout(() => {
     if (get().recentContribution?.revision === event.revision) {
       set({ recentContribution: null });

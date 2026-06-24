@@ -244,18 +244,108 @@
   color: var(--editor-warning);
 }
 
+.vcs-list-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 28px;
+  padding: 0 10px 0 12px;
+  border-bottom: 1px solid var(--editor-border);
+  color: var(--editor-text-muted);
+  font-size: 10px;
+}
+
+.vcs-discard-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 7px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--editor-text-muted);
+  font: 600 10px/1 var(--font-sans);
+  cursor: pointer;
+  transition:
+    color 150ms ease,
+    background 150ms ease;
+}
+
+.vcs-discard-all:hover:not(:disabled) {
+  color: var(--editor-danger);
+  background: color-mix(in srgb, var(--editor-danger) 12%, transparent);
+}
+
+.vcs-discard-all:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.vcs-discard-all:focus-visible {
+  outline: 2px solid var(--editor-primary);
+  outline-offset: -2px;
+}
+
 .vcs-commit {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
-  gap: 7px;
-  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
   border-top: 1px solid var(--editor-border);
 }
 
 .vcs-commit textarea {
-  min-height: 48px;
+  min-height: 52px;
   resize: vertical;
+}
+
+.vcs-commit .editor-btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.vcs-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border-top: 1px solid var(--editor-border);
+  background: color-mix(in srgb, var(--editor-danger) 7%, transparent);
+}
+
+.vcs-confirm-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+}
+
+.vcs-confirm-body > svg {
+  flex: none;
+  margin-top: 1px;
+  color: var(--editor-danger);
+}
+
+.vcs-confirm-body > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.vcs-confirm-body strong {
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.vcs-confirm-body span {
+  color: var(--editor-text-muted);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.vcs-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
 }
 
 .vcs-actions {
@@ -394,6 +484,11 @@
   color: var(--editor-primary);
 }
 
+.vcs-file-actions button.vcs-file-action--danger:hover:not(:disabled) {
+  color: var(--editor-danger);
+  background: color-mix(in srgb, var(--editor-danger) 12%, transparent);
+}
+
 .vcs-file-actions button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
@@ -412,5 +507,9 @@
 @media (prefers-reduced-motion: reduce) {
   .vcs-spin {
     animation-duration: 1.6s;
+  }
+
+  .vcs-discard-all {
+    transition: none;
   }
 }

@@ -1,13 +1,16 @@
 import {
+  AlertTriangle,
   ArrowDown,
   ArrowUp,
   Check,
   ChevronDown,
   Clock3,
+  Eye,
   FileCheck2,
   GitBranch,
   Loader2,
   RefreshCw,
+  RotateCcw,
   Upload,
   type LucideIcon,
 } from "lucide-react";
@@ -17,6 +20,7 @@ import { useTranslation } from "react-i18next";
 import {
   configureVcs,
   executeVcsOperation,
+  getVcsFileDiff,
   getVcsHistory,
   getVcsStatus,
   type ProjectContributionReview,
@@ -24,7 +28,10 @@ import {
   type VcsOperation,
   type VcsStatus,
 } from "@/lib/projectApi.js";
+import { buildAuthorFileDiff } from "@/lib/authorDiff.js";
+import { requestAuthorChangeReview } from "@/lib/authorChangeReview.js";
 import { CONTRIBUTION_REVIEW_EVENT } from "@/lib/contributionReview.js";
+import type { LoadedBundle } from "@/lib/scenarioLoader.js";
 import { notifyFromError, notifySuccess } from "@/lib/notifyApi.js";
 import { Icon } from "@/components/icons/Icon.js";
 import { Button } from "@/components/ui/Button.js";
@@ -35,6 +42,7 @@ interface VcsControlProps {
   projectId: string;
   revision: number | null;
   dirty: boolean;
+  bundle?: LoadedBundle | null;
   onStatusChange?: (status: VcsStatus | null) => void;
 }
 
@@ -48,14 +56,25 @@ function formatDate(value: string): string {
   }).format(new Date(value));
 }
 
+function baseName(filePath: string): string {
+  return filePath.split(/[/\\]/).pop() || filePath;
+}
+
 function operationIcon(operationId: string): LucideIcon {
   if (operationId === "sync") return ArrowDown;
   if (operationId === "publish") return Upload;
   if (operationId === "record") return FileCheck2;
+  if (operationId === "revert") return RotateCcw;
   return RefreshCw;
 }
 
-export function VcsControl({ projectId, revision, dirty, onStatusChange }: VcsControlProps) {
+export function VcsControl({
+  projectId,
+  revision,
+  dirty,
+  bundle,
+  onStatusChange,
+}: VcsControlProps) {
   const { t } = useTranslation();
   const anchorRef = useRef<HTMLButtonElement>(null);
   const [status, setStatus] = useState<VcsStatus | null>(null);
@@ -67,6 +86,7 @@ export function VcsControl({ projectId, revision, dirty, onStatusChange }: VcsCo
   const [selectedProviderId, setSelectedProviderId] = useState("");
   const [historyPath, setHistoryPath] = useState("");
   const [history, setHistory] = useState<VcsHistoryEntry[]>([]);
+  const [confirming, setConfirming] = useState<{ paths: string[]; label: string } | null>(null);
 
   const applyStatus = useCallback(
     (next: VcsStatus | null) => {
@@ -181,6 +201,22 @@ export function VcsControl({ projectId, revision, dirty, onStatusChange }: VcsCo
     }
   };
 
+  const reviewFile = async (filePath: string) => {
+    const busyKey = `diff:${filePath}`;
+    setBusy(busyKey);
+    try {
+      const diff = await getVcsFileDiff(projectId, filePath);
+      setOpen(false);
+      requestAuthorChangeReview({
+        diff: buildAuthorFileDiff(diff.path, diff.before, diff.after, bundle),
+      });
+    } catch (error) {
+      notifyFromError(error);
+    } finally {
+      setBusy(null);
+    }
+  };
+
   const defaultProvider =
     status?.providers.find((provider) => provider.detected) ?? status?.providers[0];
   const setupProvider =
@@ -194,7 +230,30 @@ export function VcsControl({ projectId, revision, dirty, onStatusChange }: VcsCo
   const primaryOperation = operations.find(([, operation]) => operation.placement === "primary");
   const footerOperations = operations.filter(([, operation]) => operation.placement === "footer");
   const fileOperations = operations.filter(([, operation]) => operation.placement === "file");
+  const canReviewFiles = activeProvider?.features.diff === true;
   const operationState = (operationId: string) => status?.operationStates?.[operationId];
+  const revertEntry = operations.find(([, operation]) => operation.destructive === true);
+  const revertId = revertEntry?.[0];
+  const revertOperation = revertEntry?.[1];
+  const revertBlockedReason =
+    revertId && operationState(revertId)?.enabled === false
+      ? (operationState(revertId)?.reason ?? undefined)
+      : revertOperation?.requiresCleanEditor && dirty
+        ? t("vcs.saveBeforeDiscard")
+        : undefined;
+  const revertDisabled =
+    !revertOperation ||
+    operationState(revertId ?? "")?.enabled === false ||
+    (revertOperation.requiresCleanEditor && dirty) ||
+    files.length === 0 ||
+    busy !== null;
+
+  const confirmRevert = () => {
+    if (!confirming || !revertId || !revertOperation) return;
+    void runOperation(revertId, revertOperation, { paths: confirming.paths }).then((completed) => {
+      if (completed) setConfirming(null);
+    });
+  };
 
   return (
     <>
@@ -361,6 +420,7 @@ export function VcsControl({ projectId, revision, dirty, onStatusChange }: VcsCo
                         type="button"
                         className={tab === "history" ? "active" : ""}
                         onClick={() => {
+                          setConfirming(null);
                           setTab("history");
                           void loadHistory();
                         }}
@@ -372,6 +432,26 @@ export function VcsControl({ projectId, revision, dirty, onStatusChange }: VcsCo
 
                   {tab === "changes" ? (
                     <>
+                      {files.length > 0 && revertOperation ? (
+                        <div className="vcs-list-toolbar">
+                          <span>{t("vcs.changeCount", { count: changeCount })}</span>
+                          <button
+                            type="button"
+                            className="vcs-discard-all"
+                            disabled={revertDisabled}
+                            title={revertBlockedReason}
+                            onClick={() =>
+                              setConfirming({
+                                paths: files.map((file) => file.path),
+                                label: t("vcs.discardAllConfirm", { count: changeCount }),
+                              })
+                            }
+                          >
+                            <Icon icon={RotateCcw} size={11} />
+                            {t("vcs.discardAll")}
+                          </button>
+                        </div>
+                      ) : null}
                       <div className="vcs-file-list">
                         {files.length === 0 ? (
                           <div className="vcs-empty">
@@ -386,6 +466,7 @@ export function VcsControl({ projectId, revision, dirty, onStatusChange }: VcsCo
                                 className="vcs-file-main"
                                 disabled={!activeProvider?.features.history}
                                 onClick={() => {
+                                  setConfirming(null);
                                   setHistoryPath(file.path);
                                   setTab("history");
                                   void loadHistory(file.path);
@@ -397,23 +478,60 @@ export function VcsControl({ projectId, revision, dirty, onStatusChange }: VcsCo
                                 <span title={file.path}>{file.path}</span>
                                 {file.stateLabel ? <small>{file.stateLabel}</small> : null}
                               </button>
-                              {fileOperations.length > 0 ? (
+                              {canReviewFiles || fileOperations.length > 0 ? (
                                 <div className="vcs-file-actions">
+                                  {canReviewFiles ? (
+                                    <button
+                                      type="button"
+                                      title={t("vcs.reviewFile")}
+                                      disabled={busy !== null}
+                                      onClick={() => void reviewFile(file.path)}
+                                    >
+                                      <Icon
+                                        icon={busy === `diff:${file.path}` ? Loader2 : Eye}
+                                        size={11}
+                                        className={
+                                          busy === `diff:${file.path}` ? "vcs-spin" : undefined
+                                        }
+                                      />
+                                    </button>
+                                  ) : null}
                                   {fileOperations.map(([operationId, operation]) => (
                                     <button
                                       key={operationId}
                                       type="button"
-                                      title={operation.label}
+                                      className={
+                                        operation.destructive
+                                          ? "vcs-file-action--danger"
+                                          : undefined
+                                      }
+                                      title={
+                                        (operation.requiresCleanEditor && dirty
+                                          ? t("vcs.saveBeforeDiscard")
+                                          : null) ??
+                                        (operation.destructive
+                                          ? t("vcs.revertFile")
+                                          : operation.label)
+                                      }
                                       disabled={
                                         operationState(operationId)?.enabled === false ||
                                         (operation.requiresCleanEditor && dirty) ||
                                         busy !== null
                                       }
-                                      onClick={() =>
+                                      onClick={() => {
+                                        if (operation.destructive) {
+                                          setConfirming({
+                                            paths: [file.path],
+                                            label: t("vcs.discardFileConfirm", {
+                                              file: baseName(file.path),
+                                            }),
+                                          });
+                                          return;
+                                        }
                                         void runOperation(operationId, operation, {
                                           paths: [file.path],
-                                        })
-                                      }
+                                        });
+                                      }}
                                     >
                                       <Icon icon={operationIcon(operationId)} size={11} />
                                     </button>
@@ -424,7 +542,42 @@ export function VcsControl({ projectId, revision, dirty, onStatusChange }: VcsCo
                           ))
                         )}
                       </div>
-                      {primaryOperation ? (
+                      {confirming ? (
+                        <div
+                          className="vcs-confirm"
+                          role="alertdialog"
+                          aria-label={confirming.label}
+                        >
+                          <div className="vcs-confirm-body">
+                            <Icon icon={AlertTriangle} size={15} />
+                            <div>
+                              <strong>{confirming.label}</strong>
+                              <span>{t("vcs.discardHint")}</span>
+                            </div>
+                          </div>
+                          <div className="vcs-confirm-actions">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              disabled={busy !== null}
+                              onClick={() => setConfirming(null)}
+                            >
+                              {t("common.cancel")}
+                            </Button>
+                            <Button
+                              variant="danger"
+                              size="sm"
+                              leadingIcon={RotateCcw}
+                              disabled={revertDisabled}
+                              onClick={confirmRevert}
+                            >
+                              {revertId && busy === revertId
+                                ? revertOperation?.busyLabel
+                                : t("vcs.discard")}
+                            </Button>
+                          </div>
+                        </div>
+                      ) : primaryOperation ? (
                         <div className="vcs-commit">
                           {primaryOperation[1].requiresMessage ? (
                             <Textarea
@@ -436,9 +589,7 @@ export function VcsControl({ projectId, revision, dirty, onStatusChange }: VcsCo
                               }
                               onChange={(event) => setMessage(event.target.value)}
                             />
-                          ) : (
-                            <span />
-                          )}
+                          ) : null}
                           <Button
                             variant="primary"
                             size="sm"

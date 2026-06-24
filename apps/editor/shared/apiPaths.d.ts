@@ -40,6 +40,7 @@ export const ProjectRoutes: {
   readonly VcsSync: "/vcs/sync";
   readonly VcsOperations: "/vcs/operations";
   readonly VcsHistory: "/vcs/history";
+  readonly VcsDiff: "/vcs/diff";
 };
 
 export function globalApiUrl(route: string): string;

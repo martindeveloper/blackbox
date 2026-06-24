@@ -2,6 +2,7 @@ import { translate } from "./i18n.js";
 import { notify } from "./notifyApi.js";
 import type { ProjectEvent } from "./projectApi.js";
 import { requestContributionReview } from "./contributionReview.js";
+import { requestAuthorChangeReview, type AuthorChangeReviewPayload } from "./authorChangeReview.js";
 
 let lastBlockedAt = 0;
 
@@ -9,11 +10,19 @@ function contributorName(event: ProjectEvent): string {
   return event.contribution?.contributor.name || translate("notifications.contributorFallback");
 }
 
-export function notifyContributionApplied(event: ProjectEvent): void {
+export function notifyContributionApplied(
+  event: ProjectEvent,
+  authorReview?: AuthorChangeReviewPayload,
+): void {
   const contribution = event.contribution;
   if (!contribution) return;
   const count = contribution.changeCount ?? contribution.changes?.length ?? 0;
   const review = contribution.review;
+  const reviewHandler = authorReview
+    ? () => requestAuthorChangeReview(authorReview)
+    : review
+      ? () => requestContributionReview(review)
+      : null;
   notify({
     message:
       count > 0
@@ -26,11 +35,8 @@ export function notifyContributionApplied(event: ProjectEvent): void {
           }),
     type: "info",
     duration: 7200,
-    action: review
-      ? {
-          label: translate("notifications.viewContributorChanges"),
-          onClick: () => requestContributionReview(review),
-        }
+    action: reviewHandler
+      ? { label: translate("notifications.viewContributorChanges"), onClick: reviewHandler }
       : undefined,
   });
 }

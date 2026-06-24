@@ -91,6 +91,7 @@ export interface VcsOperation {
   requiresMessage?: boolean;
   messagePlaceholder?: string;
   requiresChanges?: boolean;
+  destructive?: boolean;
 }
 
 export interface VcsFeatures {
@@ -101,6 +102,7 @@ export interface VcsFeatures {
   revert: boolean;
   changelists: boolean;
   locking: boolean;
+  diff: boolean;
 }
 
 export interface VcsProviderInfo {
@@ -175,6 +177,14 @@ export interface VcsCheckResult {
   checkedAt: string;
   remote: VcsRemoteCheck;
   status: VcsStatus;
+}
+
+export interface VcsFileDiff {
+  provider: string;
+  path: string;
+  before: string;
+  after: string;
+  status?: VcsFile | null;
 }
 
 const CLIENT_ID = crypto.randomUUID();
@@ -438,6 +448,10 @@ export async function getVcsHistory(
     await fetch(`${projectUrl(projectId, ProjectRoutes.VcsHistory)}?${query}`),
   );
   return result.revisions;
+}
+
+export function getVcsFileDiff(projectId: string, filePath: string): Promise<VcsFileDiff> {
+  return postJson(projectUrl(projectId, ProjectRoutes.VcsDiff), { path: filePath });
 }
 
 export { projectApiUrl } from "@shared/apiPaths.js";

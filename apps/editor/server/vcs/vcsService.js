@@ -384,4 +384,26 @@ export class VcsService {
       throw publicError(error);
     }
   }
+
+  async diff(project, { path: filePath } = {}) {
+    const provider = await this.requireConfigured(project);
+    if (!provider.features.diff) {
+      throw new ProjectError("unsupported_vcs_operation", `${provider.label} has no diff API`);
+    }
+    if (typeof filePath !== "string" || !filePath.trim()) {
+      throw new ProjectError("invalid_request", "path is required");
+    }
+    const normalizedPath = this.projectService.resolvePath(project, filePath).relative;
+    if (!isCommitEligible(normalizedPath)) {
+      throw new ProjectError("invalid_request", "This file is not part of project sync");
+    }
+    try {
+      return {
+        provider: provider.id,
+        ...(await provider.diff(project.path, normalizedPath)),
+      };
+    } catch (error) {
+      throw publicError(error);
+    }
+  }
 }

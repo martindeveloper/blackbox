@@ -12,6 +12,7 @@ import { confirmModal } from "@/lib/modalApi.js";
 import { ActivityBar } from "./ActivityBar.js";
 import { FileTree } from "./FileTree.js";
 import { PreviewEventsSidebar } from "@/components/preview/PreviewEventsSidebar.js";
+import { ProjectChangeReview } from "@/components/review/ProjectChangeReview.js";
 import { ToolsSidebar } from "@/components/tools/ToolsSidebar.js";
 import { Omnibox } from "@/components/omnibox/Omnibox.js";
 import { InspectorPanel } from "./InspectorPanel.js";
@@ -253,6 +254,7 @@ export function EditorShell() {
   return (
     <div className="editor-shell flex h-full flex-col">
       <Omnibox />
+      <ProjectChangeReview />
       <TopBar />
       {conflict ? (
         <div className="flex items-center gap-3 border-b border-danger bg-danger/10 px-3 py-2 text-xs">

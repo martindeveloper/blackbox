@@ -126,7 +126,7 @@ class DistributedProvider extends VcsProvider {
           scope: "workspace",
         },
       },
-      features: { initialize: true, history: true },
+      features: { initialize: true, history: true, diff: true },
     });
     this.files = [{ path: "scenario.json", status: "modified" }];
     this.executions = [];
@@ -162,6 +162,15 @@ class DistributedProvider extends VcsProvider {
 
   async history() {
     return [];
+  }
+
+  async diff(_projectPath, filePath) {
+    return {
+      path: filePath,
+      before: '{"title":"Before"}\n',
+      after: '{"title":"After"}\n',
+      status: this.files.find((file) => file.path === filePath) ?? null,
+    };
   }
 }
 
@@ -401,6 +410,27 @@ test("checks provider remote state without changing the workspace", async () => 
     assert.equal(checked.remote.changeCount, 2);
     assert.equal(checked.status.workspace.behind, 2);
     assert.deepEqual(provider.executions, []);
+  } finally {
+    await fs.rm(projectPath, { recursive: true, force: true });
+  }
+});
+
+test("returns a provider-neutral file diff", async () => {
+  const projectPath = await fs.mkdtemp(path.join(os.tmpdir(), "blackbox-vcs-diff-"));
+  const project = { id: "project", path: projectPath };
+  const provider = new DistributedProvider();
+  const { service } = serviceFixture([provider]);
+  try {
+    await service.configure(project, { provider: "distributed" });
+    provider.files = [{ path: "scenario.json", status: "modified" }];
+
+    const diff = await service.diff(project, { path: "scenario.json" });
+
+    assert.equal(diff.provider, "distributed");
+    assert.equal(diff.path, "scenario.json");
+    assert.equal(diff.before, '{"title":"Before"}\n');
+    assert.equal(diff.after, '{"title":"After"}\n');
+    assert.deepEqual(diff.status, { path: "scenario.json", status: "modified" });
   } finally {
     await fs.rm(projectPath, { recursive: true, force: true });
   }

@@ -1,0 +1,511 @@
+.modal-panel:has(.project-review) {
+  width: min(960px, calc(100vw - 32px));
+  max-height: min(720px, calc(100vh - 32px));
+}
+
+.modal-panel:has(.project-review.is-single) {
+  width: min(680px, calc(100vw - 32px));
+}
+
+.modal-panel:has(.project-review) .modal-panel-body {
+  padding: 0;
+  overflow: hidden;
+}
+
+.project-review {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  color: var(--editor-text);
+}
+
+/* Summary --------------------------------------------------------------- */
+
+.project-review-summary {
+  display: flex;
+  min-height: 44px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--editor-border);
+}
+
+.project-review-source {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--editor-text-muted);
+  font: 500 11px/1 var(--font-mono);
+}
+
+.project-review-source svg {
+  color: var(--editor-text-subtle);
+}
+
+.project-review-counts {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-inline-start: auto;
+}
+
+.pr-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--editor-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.project-review-truncated {
+  flex-basis: 100%;
+  color: var(--editor-warning);
+  font-size: 10px;
+}
+
+/* Status dots / badges / pills ------------------------------------------ */
+
+.pr-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+}
+
+.pr-dot--added {
+  background: var(--editor-success);
+}
+.pr-dot--edited {
+  background: var(--editor-warning);
+}
+.pr-dot--removed {
+  background: var(--editor-danger);
+}
+
+.pr-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  border-radius: 7px;
+  color: var(--editor-text-muted);
+  background: var(--editor-surface-3);
+  box-shadow: inset 0 0 0 1px var(--editor-border);
+}
+
+.pr-badge--sm {
+  width: 26px;
+  height: 26px;
+}
+
+.pr-badge--lg {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+}
+
+.pr-badge--added {
+  color: var(--editor-success);
+  background: color-mix(in srgb, var(--editor-success) 13%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--editor-success) 26%, transparent);
+}
+.pr-badge--edited {
+  color: var(--editor-warning);
+  background: color-mix(in srgb, var(--editor-warning) 14%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--editor-warning) 28%, transparent);
+}
+.pr-badge--removed {
+  color: var(--editor-danger);
+  background: color-mix(in srgb, var(--editor-danger) 12%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--editor-danger) 26%, transparent);
+}
+
+.pr-pill {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.pr-pill--added {
+  color: var(--editor-success);
+  background: color-mix(in srgb, var(--editor-success) 14%, transparent);
+}
+.pr-pill--edited {
+  color: var(--editor-warning);
+  background: color-mix(in srgb, var(--editor-warning) 16%, transparent);
+}
+.pr-pill--removed {
+  color: var(--editor-danger);
+  background: color-mix(in srgb, var(--editor-danger) 14%, transparent);
+}
+
+/* Body / list ----------------------------------------------------------- */
+
+.project-review-body {
+  display: grid;
+  min-height: 0;
+  flex: 1;
+  grid-template-columns: 288px minmax(0, 1fr);
+}
+
+.project-review.is-single .project-review-body {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.project-review-list {
+  overflow-y: auto;
+  padding: 4px 0 8px;
+  border-right: 1px solid var(--editor-border);
+  background: color-mix(in srgb, var(--editor-surface-2) 88%, transparent);
+}
+
+.project-review-list section {
+  padding: 8px 8px 4px;
+}
+
+.project-review-list h3 {
+  margin: 0 0 6px;
+  padding: 0 6px;
+  color: var(--editor-text-subtle);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.project-review-list button {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 26px minmax(0, 1fr) 8px;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 8px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--editor-text);
+  text-align: left;
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+
+.project-review-list button:hover {
+  background: var(--editor-surface-3);
+}
+
+.project-review-list button.is-active {
+  background: color-mix(in srgb, var(--editor-primary) 13%, var(--editor-surface-3));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--editor-primary) 34%, transparent);
+}
+
+.project-review-list-text {
+  min-width: 0;
+}
+
+.project-review-list strong,
+.project-review-list small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-review-list strong {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.project-review-list small {
+  margin-top: 1px;
+  color: var(--editor-text-muted);
+  font-size: 10px;
+}
+
+.project-review-list .pr-dot {
+  align-self: center;
+  justify-self: center;
+}
+
+/* Detail ---------------------------------------------------------------- */
+
+.project-review-detail {
+  min-width: 0;
+  overflow-y: auto;
+  padding: 20px 22px 24px;
+}
+
+.project-review.is-single .project-review-detail {
+  max-width: 760px;
+  margin-inline: auto;
+}
+
+.project-review-detail > header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.project-review-detail > header > div {
+  min-width: 0;
+  flex: 1;
+}
+
+.project-review-detail-crumb {
+  display: block;
+  color: var(--editor-text-subtle);
+  font-size: 11px;
+}
+
+.project-review-detail h3 {
+  margin: 2px 0 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.3;
+  text-wrap: balance;
+}
+
+.project-review-detail-meta {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 9px;
+}
+
+/* Fields read top-to-bottom like a marked-up document, not card grid. */
+
+.project-review-fields {
+  margin-top: 16px;
+}
+
+.pr-field {
+  padding: 14px 0;
+  border-top: 1px solid var(--editor-border);
+}
+
+.pr-field:first-child {
+  padding-top: 4px;
+  border-top: 0;
+}
+
+.pr-field-label {
+  margin-bottom: 8px;
+  color: var(--editor-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Inline "old -> new" for short scalar values */
+
+.pr-scalar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 9px;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.pr-scalar-old {
+  color: var(--editor-text-muted);
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--editor-danger) 60%, transparent);
+}
+
+.pr-scalar-new {
+  color: var(--editor-text);
+  font-weight: 600;
+}
+
+.pr-scalar-arrow {
+  color: var(--editor-text-subtle);
+}
+
+/* Value chips for media / colour fields */
+
+.pr-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 3px 8px 3px 6px;
+  border: 1px solid var(--editor-border);
+  border-radius: 6px;
+  background: var(--editor-surface-3);
+  color: var(--editor-text);
+  font-size: 11px;
+}
+
+.pr-chip svg {
+  flex: none;
+  color: var(--editor-text-subtle);
+}
+
+.pr-chip code {
+  font: 11px/1 var(--font-mono);
+}
+
+.pr-chip-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+}
+
+.pr-chip--old {
+  color: var(--editor-text-muted);
+  background: color-mix(in srgb, var(--editor-surface-3) 60%, transparent);
+}
+
+.pr-swatch {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px var(--editor-border-2);
+}
+
+/* Count deltas (effects, choices, actions, …) */
+
+.pr-count-row {
+  align-items: baseline;
+  gap: 4px 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.pr-count-num {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.pr-count-num--old {
+  color: var(--editor-text-muted);
+}
+
+.pr-count-noun {
+  color: var(--editor-text-muted);
+  font-size: 12px;
+}
+
+.pr-tag {
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.pr-tag--added {
+  color: var(--editor-success);
+  background: color-mix(in srgb, var(--editor-success) 14%, transparent);
+}
+
+.pr-tag--removed {
+  color: var(--editor-danger);
+  background: color-mix(in srgb, var(--editor-danger) 14%, transparent);
+}
+
+/* Tracked-changes prose + code blocks */
+
+.pr-prose,
+.pr-code {
+  margin: 0;
+  padding: 11px 13px;
+  border: 1px solid var(--editor-border);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--editor-surface-2) 84%, transparent);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--editor-text);
+}
+
+.pr-prose {
+  max-width: 72ch;
+  font: 13px/1.65 var(--font-sans);
+  text-wrap: pretty;
+}
+
+.pr-code {
+  max-height: 260px;
+  overflow: auto;
+  font: 11px/1.6 var(--font-mono);
+}
+
+.pr-ins {
+  border-radius: 2px;
+  padding: 0 1px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+.pr-ins--remove {
+  color: color-mix(in srgb, var(--editor-danger) 72%, var(--editor-text));
+  background: color-mix(in srgb, var(--editor-danger) 15%, transparent);
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--editor-danger) 70%, transparent);
+}
+
+.pr-ins--add {
+  color: color-mix(in srgb, var(--editor-success) 72%, var(--editor-text));
+  background: color-mix(in srgb, var(--editor-success) 16%, transparent);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--editor-success) 70%, transparent);
+  text-underline-offset: 2px;
+}
+
+/* Empty states ---------------------------------------------------------- */
+
+.project-review-empty {
+  display: flex;
+  min-height: 200px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  margin: 0;
+  color: var(--editor-text-muted);
+  font-size: 12px;
+}
+
+.project-review-empty--inline {
+  min-height: 0;
+  margin-top: 14px;
+  padding: 18px;
+  border: 1px dashed var(--editor-border-2);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--editor-surface-2) 60%, transparent);
+}
+
+.project-review-empty svg {
+  color: var(--editor-text-subtle);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project-review-list button {
+    transition: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .project-review-body {
+    grid-template-columns: 1fr;
+  }
+
+  .project-review-list {
+    max-height: 220px;
+    border-right: 0;
+    border-bottom: 1px solid var(--editor-border);
+  }
+
+  .project-review-detail {
+    padding: 16px;
+  }
+}

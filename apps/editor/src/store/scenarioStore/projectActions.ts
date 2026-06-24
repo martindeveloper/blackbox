@@ -80,8 +80,9 @@ export function createProjectActions(
             return;
           }
           void (async () => {
+            const before = state.bundle ? structuredClone(state.bundle) : null;
             const reloaded = await get().reloadProject();
-            if (reloaded) presentContribution(event, set, get);
+            if (reloaded) presentContribution(event, set, get, before, get().bundle);
           })();
         });
         return true;

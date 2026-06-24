@@ -40,6 +40,7 @@ export const ProjectRoutes = {
   VcsSync: "/vcs/sync",
   VcsOperations: "/vcs/operations",
   VcsHistory: "/vcs/history",
+  VcsDiff: "/vcs/diff",
 };
 
 export function globalApiUrl(route) {

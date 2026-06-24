@@ -492,6 +492,7 @@ export function TopBar() {
                   projectId={projectId}
                   revision={revision}
                   dirty={dirty.size > 0 || saving}
+                  bundle={bundle}
                   onStatusChange={handleVcsStatusChange}
                 />
               ) : null}

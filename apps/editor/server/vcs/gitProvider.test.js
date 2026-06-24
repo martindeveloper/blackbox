@@ -53,6 +53,44 @@ test("initializes, commits, reports status, and filters history", async () => {
       history.map((entry) => entry.summary),
       ["Add chapter"],
     );
+
+    await fs.writeFile(path.join(root, "chapter.json"), '{"title":"Changed"}\n');
+    const diff = await provider.diff(root, "chapter.json");
+    assert.equal(diff.path, "chapter.json");
+    assert.match(diff.before, /^\{\}\n$/);
+    assert.match(diff.after, /Changed/);
+    assert.equal(diff.status.status, "modified");
+  } finally {
+    await fs.rm(root, { recursive: true, force: true });
+  }
+});
+
+test("reverts modified tracked files and removes untracked ones", async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "blackbox-git-revert-"));
+  const provider = new GitProvider();
+  try {
+    await provider.initialize(root);
+    await runProcess("git", ["config", "user.name", "Test Author"], root);
+    await runProcess("git", ["config", "user.email", "author@example.test"], root);
+    await fs.writeFile(path.join(root, "scenario.json"), "{}\n");
+    await provider.execute("record", root, {
+      message: "Initial story",
+      paths: ["scenario.json"],
+    });
+
+    // Modify a tracked file and add an untracked one.
+    await fs.writeFile(path.join(root, "scenario.json"), '{"title":"Edited"}\n');
+    await fs.writeFile(path.join(root, "draft.json"), "{}\n");
+    assert.equal((await provider.status(root)).files.length, 2);
+
+    const result = await provider.execute("revert", root, {
+      paths: ["scenario.json", "draft.json"],
+    });
+    assert.deepEqual(result.changedPaths.sort(), ["draft.json", "scenario.json"]);
+
+    assert.equal((await provider.status(root)).files.length, 0);
+    assert.equal(await fs.readFile(path.join(root, "scenario.json"), "utf8"), "{}\n");
+    await assert.rejects(fs.access(path.join(root, "draft.json")));
   } finally {
     await fs.rm(root, { recursive: true, force: true });
   }

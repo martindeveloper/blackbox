@@ -210,6 +210,10 @@ export async function registerRoutes(app, service) {
       }),
     ),
   );
+  app.post(
+    serverProjectRoute(ProjectRoutes.VcsDiff),
+    projectRequest(service, (project, request) => vcs.diff(project, request.body ?? {})),
+  );
 
   app.post(GlobalRoutes.ProjectsRevokeCodeTrust, () => service.revokeAllProjectCodeTrust());
 
