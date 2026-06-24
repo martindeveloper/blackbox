@@ -9,6 +9,12 @@ export function PreviewEventsSidebar() {
   const { t } = useTranslation();
   const events = usePreviewStore((state) => state.profilerEvents);
   const commandSender = usePreviewStore((state) => state.commandSender);
+  const clearProfilerEvents = usePreviewStore((state) => state.clearProfilerEvents);
+
+  const handleClearProfiler = () => {
+    clearProfilerEvents();
+    commandSender?.({ type: "clear-profiler" });
+  };
 
   return (
     <Panel className="preview-events-sidebar">
@@ -24,7 +30,7 @@ export function PreviewEventsSidebar() {
             disabled={!events.length}
             title={t("preview.clearProfiler")}
             aria-label={t("preview.clearProfiler")}
-            onClick={() => commandSender?.({ type: "clear-profiler" })}
+            onClick={handleClearProfiler}
           >
             <Icon icon={Trash2} size={11} />
           </button>

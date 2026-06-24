@@ -43,6 +43,7 @@ interface PreviewStore {
   setStorageState: (storageState: PreviewStorageState) => void;
   addProfilerEvent: (event: PreviewProfilerEvent) => void;
   setProfilerEvents: (events: PreviewProfilerEvent[]) => void;
+  clearProfilerEvents: () => void;
   addConsoleEntry: (entry: PreviewConsoleEntry) => void;
   setConsoleEntries: (entries: PreviewConsoleEntry[]) => void;
   commandSender: PreviewCommandSender | null;
@@ -65,6 +66,7 @@ export const usePreviewStore = create<PreviewStore>((set) => ({
     })),
   setProfilerEvents: (profilerEvents) =>
     set({ profilerEvents: profilerEvents.slice(-PREVIEW_PROFILER_HISTORY_LIMIT) }),
+  clearProfilerEvents: () => set({ profilerEvents: [] }),
   addConsoleEntry: (entry) =>
     set((state) => ({
       consoleEntries: [...state.consoleEntries, entry].slice(-PREVIEW_CONSOLE_HISTORY_LIMIT),

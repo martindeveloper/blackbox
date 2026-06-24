@@ -34,6 +34,11 @@ export function PreviewInspectorProfiler({
   const [query, setQuery] = useState("");
   const events = usePreviewStore((state) => state.profilerEvents);
   const commandSender = usePreviewStore((state) => state.commandSender);
+  const clearProfilerEvents = usePreviewStore((state) => state.clearProfilerEvents);
+  const handleClearProfiler = () => {
+    clearProfilerEvents();
+    commandSender?.({ type: "clear-profiler" });
+  };
   const categoryEvents = useMemo(
     () =>
       filter === "all" ? events : events.filter((event) => event.name.startsWith(`${filter}.`)),
@@ -42,6 +47,10 @@ export function PreviewInspectorProfiler({
   const filtered = useMemo(
     () => categoryEvents.filter((event) => profilerEventMatchesQuery(event, query)),
     [categoryEvents, query],
+  );
+  const newestFirst = useMemo(
+    () => [...filtered].sort((a, b) => b.at - a.at || b.id - a.id),
+    [filtered],
   );
   const emptyMessage =
     categoryEvents.length > 0 && query.trim()
@@ -62,7 +71,7 @@ export function PreviewInspectorProfiler({
             className="preview-profiler-clear"
             disabled={!events.length}
             title={t("preview.clearProfiler")}
-            onClick={() => commandSender?.({ type: "clear-profiler" })}
+            onClick={handleClearProfiler}
           >
             <Icon icon={Trash2} size={11} />
           </button>
@@ -94,7 +103,7 @@ export function PreviewInspectorProfiler({
         </div>
         <div className="preview-profiler-list">
           {filtered.length ? (
-            [...filtered].reverse().map((event) => {
+            newestFirst.map((event) => {
               const category = event.name.split(".")[0] ?? "event";
               return (
                 <article key={event.id} className={`preview-profiler-event is-${category}`}>
