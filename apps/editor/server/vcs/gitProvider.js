@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { VCS_OPERATION, VcsProvider } from "./provider.js";
+import { ensureGitIgnore } from "./gitIgnore.js";
 import { runProcess } from "./process.js";
 
 const FIELD_SEPARATOR = "\x1f";
@@ -147,7 +148,7 @@ export class GitProvider extends VcsProvider {
           requiresCleanEditor: true,
         },
       },
-      features: { initialize: true, history: true, diff: true, revert: true },
+      features: { initialize: true, prepareMutation: true, history: true, diff: true, revert: true },
     });
   }
 
@@ -181,6 +182,11 @@ export class GitProvider extends VcsProvider {
 
   async initialize(projectPath) {
     await git(projectPath, ["init"]);
+    await ensureGitIgnore(projectPath);
+  }
+
+  async prepareMutation(projectPath) {
+    await ensureGitIgnore(projectPath);
   }
 
   async status(projectPath) {

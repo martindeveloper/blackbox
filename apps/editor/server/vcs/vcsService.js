@@ -156,6 +156,8 @@ export class VcsService {
         throw new ProjectError("vcs_not_initialized", `${provider.label} is not initialized`);
       }
       await provider.initialize(project.path);
+    } else if (provider.features.prepareMutation) {
+      await provider.prepareMutation(project.path, []);
     }
     await this.writeConfig(project, provider.id);
     return this.status(project);

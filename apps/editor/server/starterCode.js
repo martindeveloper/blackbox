@@ -97,5 +97,23 @@ serves \`/preview-docs\` with the full component and config reference.
 
 Authored game data — chapters, items, characters, assets — lives in the JSON
 files at the project root, not in this folder.
+
+## Lint and format
+
+Run these from the Blackbox repository root. Set \`BLACKBOX_ADVENTURE\` to this
+project's folder (absolute path or relative to the repo), or pass
+\`--adventure=<path>\` after \`--\`:
+
+- \`npm run adventure:fmt --prefix apps/web\` — format \`src/\` with Oxfmt
+- \`npm run adventure:lint --prefix apps/web\` — Oxlint on \`src/\`
+- \`npm run adventure:lint:react-compiler --prefix apps/web\` — React Compiler ESLint rules
+- \`npm run adventure:check --prefix apps/web\` — all three checks (fmt check + lint + react-compiler)
+
+Example (project at \`data/my_game\`):
+
+\`\`\`bash
+BLACKBOX_ADVENTURE=data/my_game npm run adventure:fmt --prefix apps/web
+BLACKBOX_ADVENTURE=data/my_game npm run adventure:check --prefix apps/web
+\`\`\`
 `;
 }

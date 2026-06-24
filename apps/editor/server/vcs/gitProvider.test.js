@@ -30,15 +30,21 @@ test("initializes, commits, reports status, and filters history", async () => {
   const provider = new GitProvider();
   try {
     await provider.initialize(root);
+    const gitignore = await fs.readFile(path.join(root, ".gitignore"), "utf8");
+    assert.match(gitignore, /^\.DS_Store$/m);
+    assert.match(gitignore, /^node_modules\/$/m);
+    assert.match(gitignore, /^tsconfig\.json$/m);
     await runProcess("git", ["config", "user.name", "Test Author"], root);
     await runProcess("git", ["config", "user.email", "author@example.test"], root);
     await fs.writeFile(path.join(root, "scenario.json"), "{}\n");
     const first = await provider.status(root);
-    assert.equal(first.files[0]?.status, "untracked");
+    assert.ok(
+      first.files.some((file) => file.path === "scenario.json" && file.status === "untracked"),
+    );
 
     const committed = await provider.execute("record", root, {
       message: "Initial story",
-      paths: ["scenario.json"],
+      paths: [".gitignore", "scenario.json"],
     });
     assert.equal(committed.revision.summary, "Initial story");
     assert.equal((await provider.status(root)).files.length, 0);
@@ -75,7 +81,7 @@ test("reverts modified tracked files and removes untracked ones", async () => {
     await fs.writeFile(path.join(root, "scenario.json"), "{}\n");
     await provider.execute("record", root, {
       message: "Initial story",
-      paths: ["scenario.json"],
+      paths: [".gitignore", "scenario.json"],
     });
 
     // Modify a tracked file and add an untracked one.

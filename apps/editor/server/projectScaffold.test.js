@@ -65,9 +65,7 @@ test("ensureProjectIdeSetup generates IDE files against the editor SDK", async (
       await fs.readFile(path.join(game, ".vscode", "extensions.json"), "utf8"),
     );
     assert.deepEqual(extensions.recommendations, ["oxc.oxc-vscode"]);
-    const gitignore = await fs.readFile(path.join(game, ".gitignore"), "utf8");
-    assert.match(gitignore, /^tsconfig\.json$/m);
-    assert.match(gitignore, /^\.vscode\/settings\.json$/m);
+    await assert.rejects(fs.access(path.join(game, ".gitignore")));
 
     assert.equal(await ensureProjectIdeSetup(game, sdkRoot), false);
   } finally {
