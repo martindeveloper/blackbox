@@ -26,5 +26,6 @@
     "shared/**/*.d.ts",
     "players/**/*.ts",
     "rolldown.config.ts"
-  ]
+  ],
+  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx"]
 }
