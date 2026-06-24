@@ -70,6 +70,10 @@ Use `debug` for dev tooling (in-game console via `__BLACKBOX_DEV__`); `release` 
 | `npm run build:bundler`     | Cook scenario bundle (release: zstd archive)                               |
 | `npm run build:bundler:dev` | Cook scenario bundle (dev: verbose, skip missing assets, no zst)           |
 | `npm run check`             | Oxlint + Oxfmt check                                                       |
+| `npm run adventure:fmt`     | Format adventure UI (`BLACKBOX_ADVENTURE`, uses `apps/web` oxfmt config)   |
+| `npm run adventure:lint`    | Oxlint adventure UI (`BLACKBOX_ADVENTURE`, uses `apps/web` oxlint config) |
+| `npm run adventure:lint:react-compiler` | React Compiler ESLint on adventure UI (`BLACKBOX_ADVENTURE`) |
+| `npm run adventure:check`     | All three adventure UI checks (fmt check + oxlint + react-compiler)        |
 | `npm run deploy`            | Vercel production deploy from built `www/` (requires `BLACKBOX_ADVENTURE`) |
 | `npm run test:wasm`         | Smoke-test wasm-bindgen ABI                                                |
 
@@ -106,6 +110,16 @@ It does not ship with any game's scenario content. To dev-test a project locally
 ```bash
 BLACKBOX_ADVENTURE=../../data/silent_archive_game npm run dev
 ```
+
+Lint or format a project's custom UI (requires `src/game.ts`):
+
+```bash
+BLACKBOX_ADVENTURE=../../data/the_lesser_blood npm run adventure:fmt --prefix apps/web
+npm run adventure:fmt --prefix apps/web -- --adventure=../../data/the_lesser_blood
+npm run adventure:lint --prefix apps/web -- --adventure ../../data/the_lesser_blood
+```
+
+From `apps/web/`, drop `--prefix apps/web`. Paths resolve from cwd or the repo root.
 
 Projects with a local `src/game.ts` bundle that UI; otherwise the generic shell is used. Override
 only when needed with `BLACKBOX_WEB_PLAYER_GAME=<game-id>`.

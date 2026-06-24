@@ -1,5 +1,6 @@
 import { existsSync, statSync } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { resolveBuildConfiguration } from "../../../../scripts/lib/adventure.mjs";
 import {
   DEFAULT_WEB_PLAYER_GAME,
@@ -9,6 +10,40 @@ import {
   resolveGameSrcDir,
   shellSrcDir,
 } from "../../../../scripts/lib/gamePaths.mjs";
+
+const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..", "..");
+
+function resolveAdventureRoot(raw) {
+  let resolved = path.resolve(raw);
+  if (!existsSync(resolved)) {
+    const fromRepo = path.resolve(REPO_ROOT, raw);
+    if (existsSync(fromRepo)) resolved = fromRepo;
+  }
+  return resolved;
+}
+
+/** Read `--adventure <path>` or `--adventure=<path>` from argv (after npm `--`). */
+export function adventurePathFromArgv(argv = process.argv.slice(2)) {
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i];
+    if (arg === "--adventure") {
+      const value = argv[i + 1];
+      if (value && !value.startsWith("-")) return value;
+      throw new Error("--adventure requires a path");
+    }
+    if (arg.startsWith("--adventure=")) {
+      const value = arg.slice("--adventure=".length);
+      if (value) return value;
+      throw new Error("--adventure= requires a path");
+    }
+  }
+  return null;
+}
+
+function adventureEnv(env = process.env, argv = process.argv.slice(2)) {
+  const fromArg = adventurePathFromArgv(argv);
+  return fromArg ? { ...env, BLACKBOX_ADVENTURE: fromArg } : env;
+}
 
 /**
  * Resolve local web-player dev target from env:
@@ -21,7 +56,7 @@ export function resolveWebDevAdventure(env = process.env) {
   const raw = env.BLACKBOX_ADVENTURE ?? env.BLACKBOX_SCENARIO;
   if (!raw) return null;
 
-  const resolved = path.resolve(raw);
+  const resolved = resolveAdventureRoot(raw);
   let adventureRoot;
   let scenarioPath;
 
@@ -60,6 +95,21 @@ export function resolveWebOutDir(env = process.env) {
 
 export function resolveWebWwwDir(env = process.env) {
   return path.join(resolveWebOutDir(env), "www");
+}
+
+/** Custom adventure UI sources from `BLACKBOX_ADVENTURE`, `BLACKBOX_SCENARIO`, or `--adventure`. */
+export function resolveAdventureUiSrc(env = process.env, argv = process.argv.slice(2)) {
+  const adventure = resolveWebDevAdventure(adventureEnv(env, argv));
+  if (!adventure) {
+    throw new Error(
+      "Set BLACKBOX_ADVENTURE (or BLACKBOX_SCENARIO), or pass --adventure <path>",
+    );
+  }
+  const srcDir = localProjectSrcDir(adventure.adventureRoot);
+  if (!projectHasCustomCode(adventure.adventureRoot)) {
+    throw new Error(`No custom UI at ${srcDir} — expected game.ts`);
+  }
+  return { adventure, srcDir };
 }
 
 export function resolveWebPlayerGame(env = process.env, webRoot, repoRoot) {
