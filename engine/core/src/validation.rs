@@ -41,7 +41,27 @@ fn require_known_node(
     }
 }
 
+#[derive(Clone, Copy, Debug)]
+pub struct ValidationOptions {
+    pub error_on_missing_assets: bool,
+}
+
+impl Default for ValidationOptions {
+    fn default() -> Self {
+        Self {
+            error_on_missing_assets: true,
+        }
+    }
+}
+
 pub fn validate_content(content: &mut GameContent) -> Result<(), EngineError> {
+    validate_content_with_options(content, ValidationOptions::default())
+}
+
+pub fn validate_content_with_options(
+    content: &mut GameContent,
+    options: ValidationOptions,
+) -> Result<(), EngineError> {
     logging::debug_fields(
         "validation",
         "validating content",
@@ -67,6 +87,7 @@ pub fn validate_content(content: &mut GameContent) -> Result<(), EngineError> {
 
     if let Some(default_sfx) = &content.assets.default_choice_sfx
         && !content.assets.sfx.contains_key(default_sfx)
+        && options.error_on_missing_assets
     {
         return Err(EngineError::ValidationError(format!(
             "default choice sfx does not exist: {default_sfx}"
@@ -87,6 +108,7 @@ pub fn validate_content(content: &mut GameContent) -> Result<(), EngineError> {
         }
         if let Some(portrait_ref) = &character.portrait_ref
             && !content.assets.textures.contains_key(portrait_ref)
+            && options.error_on_missing_assets
         {
             return Err(EngineError::ValidationError(format!(
                 "character '{character_id}' references missing portrait texture '{portrait_ref}'"
@@ -134,10 +156,11 @@ pub fn validate_content(content: &mut GameContent) -> Result<(), EngineError> {
                     action.id
                 )));
             }
-            validate_item_action(content, item_id, action)?;
+            validate_item_action(content, item_id, action, options)?;
         }
         if let Some(icon_ref) = &item.icon_ref
             && !content.assets.textures.contains_key(icon_ref)
+            && options.error_on_missing_assets
         {
             return Err(EngineError::ValidationError(format!(
                 "item '{item_id}' references missing texture '{icon_ref}'"
@@ -224,6 +247,7 @@ pub fn validate_content(content: &mut GameContent) -> Result<(), EngineError> {
 
         if let Some(background_ref) = &node.background_ref
             && !content.assets.textures.contains_key(background_ref)
+            && options.error_on_missing_assets
         {
             return Err(EngineError::ValidationError(format!(
                 "node '{}' references missing background texture '{background_ref}'",
@@ -232,7 +256,7 @@ pub fn validate_content(content: &mut GameContent) -> Result<(), EngineError> {
         }
 
         for effect in &node.on_enter {
-            validate_effect(content, &node.id, "onEnter", effect)?;
+            validate_effect(content, &node.id, "onEnter", effect, options)?;
         }
 
         let mut seen_choices = HashSet::new();
@@ -277,15 +301,16 @@ pub fn validate_content(content: &mut GameContent) -> Result<(), EngineError> {
             }
 
             for effect in &choice.resolution.effects {
-                validate_effect(content, &node.id, choice_id, effect)?;
+                validate_effect(content, &node.id, choice_id, effect, options)?;
             }
 
             if let Some(check) = &choice.resolution.check {
-                validate_skill_check(content, &node.id, choice_id, check)?;
+                validate_skill_check(content, &node.id, choice_id, check, options)?;
             }
 
             if let Some(sfx_id) = &choice.presentation.sfx
                 && !content.assets.sfx.contains_key(sfx_id)
+                && options.error_on_missing_assets
             {
                 return Err(EngineError::ValidationError(format!(
                     "choice '{choice_id}' in node '{}' references missing sfx '{sfx_id}'",
@@ -384,6 +409,7 @@ fn validate_skill_check(
     node_id: &str,
     choice_id: &str,
     check: &crate::content::SkillCheckContent,
+    options: ValidationOptions,
 ) -> Result<(), EngineError> {
     if check.stat.is_empty() {
         return Err(EngineError::ValidationError(format!(
@@ -410,11 +436,32 @@ fn validate_skill_check(
         _ => {}
     }
 
-    validate_skill_outcome(content, node_id, choice_id, "onSuccess", &check.on_success)?;
-    validate_skill_outcome(content, node_id, choice_id, "onFailure", &check.on_failure)?;
+    validate_skill_outcome(
+        content,
+        node_id,
+        choice_id,
+        "onSuccess",
+        &check.on_success,
+        options,
+    )?;
+    validate_skill_outcome(
+        content,
+        node_id,
+        choice_id,
+        "onFailure",
+        &check.on_failure,
+        options,
+    )?;
 
     if let Some(exhausted) = &check.on_exhausted {
-        validate_skill_outcome(content, node_id, choice_id, "onExhausted", exhausted)?;
+        validate_skill_outcome(
+            content,
+            node_id,
+            choice_id,
+            "onExhausted",
+            exhausted,
+            options,
+        )?;
     }
 
     Ok(())
@@ -426,9 +473,16 @@ fn validate_skill_outcome(
     choice_id: &str,
     branch: &str,
     outcome: &SkillCheckOutcome,
+    options: ValidationOptions,
 ) -> Result<(), EngineError> {
     for effect in &outcome.effects {
-        validate_effect(content, node_id, &format!("{choice_id}.{branch}"), effect)?;
+        validate_effect(
+            content,
+            node_id,
+            &format!("{choice_id}.{branch}"),
+            effect,
+            options,
+        )?;
     }
 
     if let Some(target) = &outcome.goto {
@@ -454,6 +508,7 @@ fn validate_item_action(
     content: &GameContent,
     item_id: &str,
     action: &crate::content::ItemAction,
+    options: ValidationOptions,
 ) -> Result<(), EngineError> {
     let action_id = &action.id;
     if let Some(gate) = &action.gate.when
@@ -494,7 +549,13 @@ fn validate_item_action(
     }
 
     for effect in &action.effects {
-        validate_effect(content, item_id, &format!("{item_id}.{action_id}"), effect)?;
+        validate_effect(
+            content,
+            item_id,
+            &format!("{item_id}.{action_id}"),
+            effect,
+            options,
+        )?;
     }
 
     if let Some(target) = &action.goto {
@@ -519,6 +580,7 @@ fn validate_effect(
     node_id: &str,
     context: &str,
     effect: &Effect,
+    options: ValidationOptions,
 ) -> Result<(), EngineError> {
     match effect {
         Effect::SetFlag { flag, .. } if flag.starts_with(ACTOR_FLAG_PREFIX) => {
@@ -528,12 +590,16 @@ fn validate_effect(
                  use setActorPresent {{ characterId: \"{character_id}\" }} instead"
             )));
         }
-        Effect::PlayMusic { track } if !content.assets.music.contains_key(track) => {
+        Effect::PlayMusic { track }
+            if !content.assets.music.contains_key(track) && options.error_on_missing_assets =>
+        {
             return Err(EngineError::ValidationError(format!(
                 "effect playMusic in node '{node_id}' ({context}) references missing track '{track}'"
             )));
         }
-        Effect::PlaySfx { sfx } if !content.assets.sfx.contains_key(sfx) => {
+        Effect::PlaySfx { sfx }
+            if !content.assets.sfx.contains_key(sfx) && options.error_on_missing_assets =>
+        {
             return Err(EngineError::ValidationError(format!(
                 "effect playSfx in node '{node_id}' ({context}) references missing sfx '{sfx}'"
             )));

@@ -150,6 +150,52 @@ fn reachability_follows_open_load_menu_goto() {
 }
 
 #[test]
+fn reachability_handles_many_independent_item_branches() {
+    let choices = (0..24)
+        .map(|i| {
+            format!(
+                r#"{{
+                    "id": "take_item_{i}",
+                    "label": "Take item {i}",
+                    "effects": [{{ "type": "addItem", "itemId": "item_{i}", "count": 1 }}],
+                    "goto": "start"
+                }}"#
+            )
+        })
+        .collect::<Vec<_>>()
+        .join(",");
+    let item_defs = (0..24)
+        .map(|i| {
+            format!(
+                r#""item_{i}": {{
+                    "id": "item_{i}",
+                    "name": "Item {i}",
+                    "description": "An item."
+                }}"#
+            )
+        })
+        .collect::<Vec<_>>()
+        .join(",");
+    let scenario = format!(
+        r#"{{
+            "startNodeId": "start",
+            "nodes": {{
+                "start": {{
+                    "id": "start",
+                    "choices": [{choices}]
+                }}
+            }}
+        }}"#
+    );
+    let items = format!(r#"{{ "items": {{ {item_defs} }} }}"#);
+
+    let analysis = analyze_reachability(&decode(&scenario, &items));
+
+    assert_eq!(analysis.reachable_nodes.len(), 1);
+    assert_eq!(analysis.obtainable_items.len(), 24);
+}
+
+#[test]
 fn roll_store_flag_counts_as_set() {
     let scenario = r#"{
         "startNodeId": "start",

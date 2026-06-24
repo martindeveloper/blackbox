@@ -2,6 +2,7 @@ import {
   ProjectRoutes,
   projectApiUrl,
   projectScoutUrl,
+  projectToolsRunCancelUrl,
   projectToolsRunUrl,
 } from "@shared/apiPaths.js";
 
@@ -506,6 +507,11 @@ export async function getToolRun(projectId: string, tool: ToolRunName): Promise<
   const data = (await response.json()) as { run: ToolRun | null; message?: string };
   if (!response.ok) throw new Error(data.message ?? `HTTP ${response.status}`);
   return data.run;
+}
+
+export async function cancelToolRun(projectId: string, tool: ToolRunName): Promise<ToolRun> {
+  const response = await postJson<{ run: ToolRun }>(projectToolsRunCancelUrl(projectId, tool), {});
+  return response.run;
 }
 
 export async function runBundlerInspect(

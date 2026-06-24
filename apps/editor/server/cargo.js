@@ -32,8 +32,13 @@ async function resolveCargoTargetDir() {
   return path.join(REPO_ROOT, ".cache", "target");
 }
 
-export function runProcess(command, args, cwd, extraEnv = {}) {
+export function runProcess(command, args, cwd, extraEnv = {}, { signal } = {}) {
   return new Promise((resolve, reject) => {
+    if (signal?.aborted) {
+      resolve({ exitCode: -1, stdout: "", stderr: "Process killed" });
+      return;
+    }
+
     const child = spawn(command, args, {
       cwd,
       env: { ...process.env, ...extraEnv },
@@ -50,17 +55,28 @@ export function runProcess(command, args, cwd, extraEnv = {}) {
     child.stderr.on("data", (chunk) => {
       stderr += chunk.toString();
     });
+    const kill = () => {
+      if (!child.killed) child.kill();
+    };
+    signal?.addEventListener("abort", kill, { once: true });
     child.on("error", reject);
-    child.on("close", (code) => resolve({ exitCode: code ?? 1, stdout, stderr }));
+    child.on("close", (code) => {
+      signal?.removeEventListener("abort", kill);
+      resolve({
+        exitCode: signal?.aborted ? -1 : (code ?? 1),
+        stdout,
+        stderr: signal?.aborted && !stderr.trim() ? "Process killed" : stderr,
+      });
+    });
   });
 }
 
-export async function runCargo(packageName, cargoArgs, { release = false } = {}) {
+export async function runCargo(packageName, cargoArgs, { release = false, signal } = {}) {
   const args = ["run", "-p", packageName];
   if (release) args.push("--release");
   args.push("--", ...cargoArgs);
   const cargoTargetDir = await getCargoTargetDir();
-  return runProcess("cargo", args, REPO_ROOT, { CARGO_TARGET_DIR: cargoTargetDir });
+  return runProcess("cargo", args, REPO_ROOT, { CARGO_TARGET_DIR: cargoTargetDir }, { signal });
 }
 
 export function platformBin(name) {
@@ -83,10 +99,10 @@ export function runEngineTool(
   configuredPath,
   packageName,
   args,
-  { cwd = WORK_DIR, release = false } = {},
+  { cwd = WORK_DIR, release = false, signal } = {},
 ) {
   const bin = configuredPath ?? toolBinPath(packageName);
-  if (bin) return runProcess(platformBin(bin), args, cwd);
+  if (bin) return runProcess(platformBin(bin), args, cwd, {}, { signal });
   if (PACKAGED) {
     return Promise.reject(
       new Error(
@@ -94,7 +110,7 @@ export function runEngineTool(
       ),
     );
   }
-  return runCargo(packageName, args, { release });
+  return runCargo(packageName, args, { release, signal });
 }
 
 function spawnCwd() {

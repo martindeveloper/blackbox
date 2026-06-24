@@ -663,6 +663,7 @@ export const en = {
     openProject: "Open a project to run tools.",
     run: "Run {{command}}",
     running: "Running…",
+    kill: "Stop",
     waiting: "Waiting for engine output…",
     output: "Output",
     outputEmpty: "Run a tool to see stdout and stderr here.",

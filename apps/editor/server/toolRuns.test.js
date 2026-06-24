@@ -98,6 +98,40 @@ test("records rejected tool runs as errors", async () => {
   }
 });
 
+test("cancels an in-flight tool run", async () => {
+  const env = await registryFixture();
+  try {
+    let observedSignal;
+    const first = await env.registry.start(env.projectRoot, "linter", {}, (signal) => {
+      observedSignal = signal;
+      return new Promise(() => {});
+    });
+
+    assert.equal(first.state, "running");
+    await settle();
+    const canceled = await env.registry.cancel(env.projectRoot, "linter");
+    assert.equal(canceled.state, "error");
+    assert.equal(canceled.result.error, "Tool run was killed");
+    assert.equal(observedSignal.aborted, true);
+    assert.ok(canceled.completedAt >= canceled.startedAt);
+
+    const current = await env.registry.get(env.projectRoot, "linter");
+    assert.equal(current.id, first.id);
+    assert.equal(current.state, "error");
+  } finally {
+    await env.close();
+  }
+});
+
+test("cancel returns null when no tool run is active", async () => {
+  const env = await registryFixture();
+  try {
+    assert.equal(await env.registry.cancel(env.projectRoot, "bundle"), null);
+  } finally {
+    await env.close();
+  }
+});
+
 test("restores the latest completed run from disk", async () => {
   const env = await registryFixture();
   try {

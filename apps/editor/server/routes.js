@@ -16,6 +16,7 @@ import {
   serverProjectMediaRoute,
   serverProjectRoute,
   serverPreviewCheckpointRoute,
+  serverToolsRunCancelRoute,
   serverToolsRunRoute,
   serverVcsOperationRoute,
 } from "../shared/apiPaths.js";
@@ -494,10 +495,23 @@ export async function registerRoutes(app, service) {
         return reply.code(400).send({ code: "invalid_request", message: "invalid tool" });
       }
       const body = request.body ?? {};
-      const run = await toolRuns.start(project.path, tool, body, () =>
-        executeTool(service, project.id, tool, body),
+      const run = await toolRuns.start(project.path, tool, body, (signal) =>
+        executeTool(service, project.id, tool, body, signal),
       );
       return reply.code(run.state === "running" ? 202 : 200).send({ run });
+    }),
+  );
+
+  app.post(
+    serverToolsRunCancelRoute(),
+    projectRequest(service, async (project, request, reply) => {
+      const tool = parseTool(request.params.tool);
+      if (!tool) {
+        return reply.code(400).send({ code: "invalid_request", message: "invalid tool" });
+      }
+      const run = await toolRuns.cancel(project.path, tool);
+      if (!run) return reply.code(404).send({ code: "not_found", message: "No running tool" });
+      return { run };
     }),
   );
 
@@ -613,13 +627,13 @@ function parseTool(value) {
   return value === "linter" || value === "bundle" || value === "simulator" ? value : null;
 }
 
-function executeTool(service, projectId, tool, body) {
-  if (tool === "linter") return executeLinter(service, projectId, body);
-  if (tool === "simulator") return executeSimulator(service, projectId, body);
-  return executeBundle(service, projectId, body);
+function executeTool(service, projectId, tool, body, signal) {
+  if (tool === "linter") return executeLinter(service, projectId, body, signal);
+  if (tool === "simulator") return executeSimulator(service, projectId, body, signal);
+  return executeBundle(service, projectId, body, signal);
 }
 
-export function executeLinter(service, projectId, body) {
+export function executeLinter(service, projectId, body, signal) {
   return service.withRevision(projectId, body.expectedRevision, async (locked) => {
     const scenarioPath = path.join(locked.path, "scenario.json");
     const tools = locked.tools ?? nullTools();
@@ -628,7 +642,7 @@ export function executeLinter(service, projectId, body) {
     const only = Array.isArray(body.only) ? body.only : [];
     for (const id of ignore) if (typeof id === "string") args.push("--ignore", id);
     for (const id of only) if (typeof id === "string") args.push("--only", id);
-    const result = await runEngineTool(tools.linter, "blackbox-lint", args);
+    const result = await runEngineTool(tools.linter, "blackbox-lint", args, { signal });
     return { ...commandResult(result), parsed: parseLint(result.stdout) };
   });
 }
@@ -653,7 +667,7 @@ export async function executeScout(
   return { ...commandResult(result), parsed: parseScout(result.stdout) };
 }
 
-export function executeSimulator(service, projectId, body) {
+export function executeSimulator(service, projectId, body, signal) {
   return service.withRevision(projectId, body.expectedRevision, async (locked) => {
     const tools = locked.tools ?? nullTools();
     const args = [locked.path];
@@ -685,12 +699,12 @@ export function executeSimulator(service, projectId, body) {
     if (body.analytics === true) args.push("--analytics");
     args.push("--json");
 
-    const result = await runEngineTool(tools.simulator, "blackbox-simulator", args);
+    const result = await runEngineTool(tools.simulator, "blackbox-simulator", args, { signal });
     return { ...commandResult(result), parsed: parseSimulator(result.stdout) };
   });
 }
 
-export function executeBundle(service, projectId, body) {
+export function executeBundle(service, projectId, body, signal) {
   return service.withRevision(projectId, body.expectedRevision, async (locked) => {
     const defaultPlayerId = playersWith("bundle")[0]?.manifest.id;
     const playerId = typeof body.platform === "string" ? body.platform : defaultPlayerId;
@@ -711,6 +725,7 @@ export function executeBundle(service, projectId, body) {
       // also drops the self-ignoring .gitignore in case the Bundle tool runs before any build.
       bundleCache: path.join(ensureBuildCacheDir(locked.path), "bundle"),
       ignoreMissing: body.ignoreMissing === true,
+      signal,
     });
   });
 }

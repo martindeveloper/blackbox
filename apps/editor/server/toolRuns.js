@@ -16,6 +16,10 @@ function failedResult(error) {
   };
 }
 
+function killedResult() {
+  return failedResult("Tool run was killed");
+}
+
 function snapshot(record) {
   return {
     id: record.id,
@@ -124,6 +128,7 @@ export class ToolRunRegistry {
     const current = project.runs.get(tool);
     if (current?.state === "running") return snapshot(current);
 
+    const controller = new AbortController();
     const record = {
       id: randomUUID(),
       tool,
@@ -132,14 +137,19 @@ export class ToolRunRegistry {
       completedAt: null,
       result: null,
       request,
+      controller,
     };
     project.runs.set(tool, record);
     await this.persist(projectRoot, project);
 
     void Promise.resolve()
-      .then(execute)
+      .then(() => {
+        if (controller.signal.aborted) return killedResult();
+        return execute(controller.signal);
+      })
       .catch(failedResult)
       .then(async (result) => {
+        if (record.state !== "running") return;
         record.result = result;
         record.state = result.ok ? "done" : "error";
         record.completedAt = Date.now();
@@ -150,6 +160,18 @@ export class ToolRunRegistry {
         }
       });
 
+    return snapshot(record);
+  }
+
+  async cancel(projectRoot, tool) {
+    const project = await this.load(projectRoot);
+    const record = project.runs.get(tool);
+    if (!record || record.state !== "running") return null;
+    record.controller?.abort();
+    record.result = killedResult();
+    record.state = "error";
+    record.completedAt = Date.now();
+    await this.persist(projectRoot, project);
     return snapshot(record);
   }
 }

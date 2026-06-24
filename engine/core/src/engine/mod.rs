@@ -16,7 +16,7 @@ use crate::rng::DEFAULT_RANDOM_SEED;
 use crate::roll_log::RollLog;
 use crate::state::GameState;
 use crate::transition::ChoiceResolution;
-use crate::validation::validate_content;
+use crate::validation::{ValidationOptions, validate_content, validate_content_with_options};
 use crate::view::{GameView, ItemExamineView, SfxCue};
 
 use cache::ItemActionGateEntry;
@@ -42,6 +42,19 @@ pub struct Engine {
     gate_cache: Vec<ChoiceGateResult>,
     item_action_cache: Vec<ItemActionGateEntry>,
     skill_check_override: Option<SkillCheckOverride>,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct EngineOptions {
+    pub error_on_missing_assets: bool,
+}
+
+impl Default for EngineOptions {
+    fn default() -> Self {
+        Self {
+            error_on_missing_assets: true,
+        }
+    }
 }
 
 impl Engine {
@@ -76,8 +89,20 @@ impl Engine {
     }
 
     pub fn new_game(content: GameContent) -> Result<Self, EngineError> {
+        Self::new_game_with_options(content, EngineOptions::default())
+    }
+
+    pub fn new_game_with_options(
+        content: GameContent,
+        options: EngineOptions,
+    ) -> Result<Self, EngineError> {
         let mut content = content;
-        validate_content(&mut content)?;
+        validate_content_with_options(
+            &mut content,
+            ValidationOptions {
+                error_on_missing_assets: options.error_on_missing_assets,
+            },
+        )?;
         logging::info_fields(
             "engine",
             "ready",

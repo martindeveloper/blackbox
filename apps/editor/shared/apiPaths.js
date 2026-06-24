@@ -60,6 +60,10 @@ export function projectToolsRunUrl(projectId, tool) {
   return projectApiUrl(projectId, `${ProjectRoutes.ToolsRuns}/${tool}`);
 }
 
+export function projectToolsRunCancelUrl(projectId, tool) {
+  return projectApiUrl(projectId, `${ProjectRoutes.ToolsRuns}/${encodeURIComponent(tool)}/cancel`);
+}
+
 export function projectScoutUrl(
   projectId,
   { query = "", only = [], limit, fullText = false } = {},
@@ -87,6 +91,10 @@ export function serverProjectMediaRoute() {
 
 export function serverToolsRunRoute() {
   return `${serverProjectRoute(ProjectRoutes.ToolsRuns)}/:tool`;
+}
+
+export function serverToolsRunCancelRoute() {
+  return `${serverProjectRoute(ProjectRoutes.ToolsRuns)}/:tool/cancel`;
 }
 
 export function serverBuildRunCancelRoute() {

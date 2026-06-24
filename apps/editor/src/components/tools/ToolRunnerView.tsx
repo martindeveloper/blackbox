@@ -5,6 +5,7 @@ import {
   ListChecks,
   Loader2,
   Play,
+  Square,
   type LucideIcon,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -191,6 +192,7 @@ export function ToolRunnerView({ toolId, title, icon, commandLabel }: ToolRunner
     canRun,
     configReady,
     run,
+    cancel,
   } = useToolRunner(toolId, ignoreMissing, lintOptions, simOptions);
 
   const setToolRunState = useToolRunnerStore((s) => s.setToolRunState);
@@ -363,6 +365,11 @@ export function ToolRunnerView({ toolId, title, icon, commandLabel }: ToolRunner
         >
           {runState === "running" ? t("tools.running") : t("tools.run", { command: commandLabel })}
         </Button>
+        {runState === "running" && (
+          <Button variant="danger" leadingIcon={Square} onClick={() => void cancel()}>
+            {t("tools.kill")}
+          </Button>
+        )}
         {toolUnavailable ? (
           <span className="tools-run-blocker">
             {toolInfo?.error ?? t("tools.binaryNotAvailable")}

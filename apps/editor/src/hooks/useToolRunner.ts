@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { getDefaultBundlePlayerId } from "@/lib/playersApi.js";
 import {
   getToolRun,
+  cancelToolRun,
   runBundlerInspect,
   runLinter,
   runSimulator,
@@ -165,6 +166,15 @@ export function useToolRunner(
     }
   }, [applyRun, projectId, runState, conflict, toolId, ignoreMissing, lintOptions, simOptions]);
 
+  const cancel = useCallback(async () => {
+    if (!projectId || runState !== "running") return;
+    try {
+      applyRun(await cancelToolRun(projectId, toolId));
+    } catch (error) {
+      setConfigError(error instanceof Error ? error.message : String(error));
+    }
+  }, [applyRun, projectId, runState, toolId]);
+
   return {
     projectName,
     runState,
@@ -175,5 +185,6 @@ export function useToolRunner(
     canRun,
     configReady: Boolean(projectId) && hydrated,
     run,
+    cancel,
   };
 }

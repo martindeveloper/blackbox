@@ -17,7 +17,7 @@ use rustc_hash::FxHashSet;
 
 use anyhow::{Context, Result};
 use blackbox::content::NodeMode;
-use blackbox::{Engine, GameContent};
+use blackbox::{Engine, EngineOptions, GameContent};
 
 pub use analytics::SimAnalytics;
 pub use coverage::CoverageTracker;
@@ -210,6 +210,16 @@ pub fn run_simulation(config: SimConfig) -> Result<SimResult> {
     }
 }
 
+fn new_sim_engine(content: GameContent) -> Result<Engine> {
+    Engine::new_game_with_options(
+        content,
+        EngineOptions {
+            error_on_missing_assets: false,
+        },
+    )
+    .context("initial engine")
+}
+
 fn run_explore_simulation(config: SimConfig) -> Result<SimResult> {
     let content = config.content;
     let graph = GraphIndex::build(&content);
@@ -219,7 +229,7 @@ fn run_explore_simulation(config: SimConfig) -> Result<SimResult> {
     let do_analytics = config.analytics;
 
     let (initial_state, initial_words) = {
-        let mut eng = Engine::new_game(content.clone()).context("initial engine")?;
+        let mut eng = new_sim_engine(content.clone())?;
         let view = eng.get_current_view().context("initial view")?;
         let words = count_words_in_view(&view);
         let state = eng.get_state().clone();
@@ -251,7 +261,7 @@ fn run_explore_simulation(config: SimConfig) -> Result<SimResult> {
 
     let handles: Vec<_> = (0..config.threads)
         .map(|_| {
-            let engine = Engine::new_game(content.clone()).expect("worker engine init");
+            let engine = new_sim_engine(content.clone()).expect("worker engine init");
             let queue = Arc::clone(&queue);
             let shared = Arc::clone(&shared);
             let seen = Arc::clone(&seen);
@@ -553,12 +563,12 @@ struct SearchWorker {
 }
 
 impl SearchWorker {
-    fn new(content: &GameContent) -> Option<Self> {
-        let mut engine = Engine::new_game(content.clone()).ok()?;
-        let view = engine.get_current_view().ok()?;
+    fn new(content: &GameContent) -> Result<Self> {
+        let mut engine = new_sim_engine(content.clone())?;
+        let view = engine.get_current_view().context("initial view")?;
         let initial_words = count_words_in_view(&view);
         let initial_state = engine.get_state().clone();
-        Some(Self {
+        Ok(Self {
             engine,
             initial_state,
             initial_words,
@@ -586,7 +596,7 @@ fn parallel_targets<T: Send>(
     std::thread::scope(|scope| {
         for _ in 0..threads {
             scope.spawn(|| {
-                let Some(mut worker) = SearchWorker::new(content) else {
+                let Ok(mut worker) = SearchWorker::new(content) else {
                     return;
                 };
                 loop {
@@ -667,6 +677,7 @@ fn run_goals_simulation(config: SimConfig) -> Result<SimResult> {
     let do_analytics = config.analytics;
     let milestones = Arc::new(Milestones::from_content(&content, &graph));
     let abstraction = Arc::new(ValueAbstraction::build(&content));
+    let _initial_probe = SearchWorker::new(&content)?;
 
     let goal_ids = match &config.goal_target {
         GoalTarget::Filter(filter) => discover_goals(&content, *filter),
@@ -709,7 +720,7 @@ fn run_goals_simulation(config: SimConfig) -> Result<SimResult> {
 
                     // One engine per thread — constructing one clones and
                     // revalidates the whole content, far too costly per goal.
-                    let mut worker = SearchWorker::new(&content);
+                    let mut worker = SearchWorker::new(&content).expect("worker engine init");
 
                     for goal_id in chunk {
                         let plan = GoalPlan::build(&graph, &content, &goal_id);
@@ -739,36 +750,30 @@ fn run_goals_simulation(config: SimConfig) -> Result<SimResult> {
                         // Use progression-only distances already computed during plan
                         // construction — more accurate heuristic than all-edge distances
                         // (ignores restart/menu shortcuts) and costs nothing extra.
-                        let search = worker
-                            .as_mut()
-                            .ok_or(())
-                            .and_then(|w| {
-                                run_goal_search(GoalSearchConfig {
-                                    content: &content,
-                                    graph: &graph,
-                                    plan: &plan,
-                                    dist: &plan.preconditions.progression_distances,
-                                    milestones: &milestones,
-                                    abstraction: &abstraction,
-                                    max_states: goal_budget,
-                                    use_heuristic,
-                                    engine: &mut w.engine,
-                                    initial_state: &w.initial_state,
-                                    initial_words: w.initial_words,
-                                })
-                                .map_err(|_| ())
-                            })
-                            .unwrap_or_else(|_e| GoalSearchResult {
-                                reached: false,
-                                states_explored: 0,
-                                budget_exhausted: false,
-                                issues: Vec::new(),
-                                completed_path: None,
-                                closest_node: None,
-                                closest_milestone: None,
-                                missing_preconditions: Vec::new(),
-                                visited_views: Vec::new(),
-                            });
+                        let search = run_goal_search(GoalSearchConfig {
+                            content: &content,
+                            graph: &graph,
+                            plan: &plan,
+                            dist: &plan.preconditions.progression_distances,
+                            milestones: &milestones,
+                            abstraction: &abstraction,
+                            max_states: goal_budget,
+                            use_heuristic,
+                            engine: &mut worker.engine,
+                            initial_state: &worker.initial_state,
+                            initial_words: worker.initial_words,
+                        })
+                        .unwrap_or_else(|_e| GoalSearchResult {
+                            reached: false,
+                            states_explored: 0,
+                            budget_exhausted: false,
+                            issues: Vec::new(),
+                            completed_path: None,
+                            closest_node: None,
+                            closest_milestone: None,
+                            missing_preconditions: Vec::new(),
+                            visited_views: Vec::new(),
+                        });
 
                         states += search.states_explored;
                         budget_exhausted |= search.budget_exhausted;
@@ -909,4 +914,40 @@ fn run_goals_simulation(config: SimConfig) -> Result<SimResult> {
         goal_results,
         analytics: sim_analytics,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn content_with_missing_item_icon() -> GameContent {
+        blackbox_format::decode_scenario_bundle_json(
+            br#"{"spec":"com.blackbox.scenario","formatVersion":1,"startNodeId":"start","nodes":{"start":{"id":"start","choices":[{"id":"take","label":"Take","effects":[{"type":"addItem","itemId":"key","count":1}],"goto":"goal"}]},"goal":{"id":"goal","mode":"ending","choices":[]}}}"#,
+            br#"{"spec":"com.blackbox.items","formatVersion":1,"items":{"key":{"id":"key","name":"Key","description":"A key.","iconRef":"missing_icon"}}}"#,
+            br#"{"spec":"com.blackbox.characters","formatVersion":1,"characters":{}}"#,
+            br#"{"spec":"com.blackbox.assets.bundle","formatVersion":1,"textures":{},"music":{},"sfx":{}}"#,
+            None::<&[u8]>,
+            None::<&[u8]>,
+            Vec::<&[u8]>::new(),
+        )
+        .expect("decode")
+    }
+
+    #[test]
+    fn simulation_ignores_missing_render_assets() {
+        let result = run_simulation(SimConfig {
+            content: content_with_missing_item_icon(),
+            mode: SimMode::Goals,
+            threads: 1,
+            max_states: 100,
+            goal_budget: 100,
+            goal_target: GoalTarget::Filter(GoalFilter::Ending),
+            use_heuristic: true,
+            analytics: false,
+        })
+        .expect("simulation should ignore missing icon assets");
+
+        assert_eq!(result.goal_results.len(), 1);
+        assert!(result.goal_results[0].reached);
+    }
 }

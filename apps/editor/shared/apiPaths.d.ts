@@ -47,6 +47,7 @@ export function globalApiUrl(route: string): string;
 export function projectApiUrl(projectId: string, suffix?: string): string;
 export function projectMediaUrl(projectId: string, relativePath: string, revision: number): string;
 export function projectToolsRunUrl(projectId: string, tool: string): string;
+export function projectToolsRunCancelUrl(projectId: string, tool: string): string;
 export function projectScoutUrl(
   projectId: string,
   options?: { query?: string; only?: string[]; limit?: number; fullText?: boolean },
@@ -55,6 +56,7 @@ export function projectBuildRunCancelUrl(projectId: string, runId: string): stri
 export function serverProjectRoute(suffix: string): string;
 export function serverProjectMediaRoute(): string;
 export function serverToolsRunRoute(): string;
+export function serverToolsRunCancelRoute(): string;
 export function serverBuildRunCancelRoute(): string;
 export function serverPreviewCheckpointRoute(): string;
 export function serverVcsOperationRoute(): string;

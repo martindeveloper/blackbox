@@ -45,7 +45,7 @@ pub use check::SkillCheckOverride;
 pub use command::{CommandResult, PlayerCommand};
 pub use condition::{Condition, actor_flag_key};
 pub use content::{CharacterDefinition, ChoiceAction, GameContent, RollMode};
-pub use engine::Engine;
+pub use engine::{Engine, EngineOptions};
 pub use error::EngineError;
 pub use format::{
     ContentDecoder, FormatId, GameFormat, StateCodec, encode_command_delta_json,

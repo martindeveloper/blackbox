@@ -1,7 +1,7 @@
 #[path = "support.rs"]
 mod support;
 
-use blackbox::validation::validate_content;
+use blackbox::validation::{ValidationOptions, validate_content, validate_content_with_options};
 use blackbox::{EngineError, PlayerCommand, StateCodec};
 use blackbox_format::JsonFormat;
 
@@ -406,6 +406,83 @@ fn rejects_missing_per_choice_sfx() {
         error,
         EngineError::ValidationError(message) if message.contains("missing sfx")
     ));
+}
+
+#[test]
+fn relaxed_validation_allows_missing_media_refs() {
+    let scenario = r#"{
+        "startNodeId": "start",
+        "nodes": {
+            "start": {
+                "id": "start",
+                "backgroundRef": "missing_bg",
+                "onEnter": [
+                    { "type": "playMusic", "track": "missing_track" },
+                    { "type": "playSfx", "sfx": "missing_sfx" }
+                ],
+                "choices": [
+                    {
+                        "id": "go",
+                        "label": "Go",
+                        "sfx": "missing_choice_sfx",
+                        "goto": "next"
+                    }
+                ]
+            },
+            "next": { "id": "next", "choices": [] }
+        }
+    }"#;
+    let items = support::items_json(
+        r#""items": {
+            "key": {
+                "id": "key",
+                "name": "Key",
+                "description": "A key.",
+                "iconRef": "missing_icon"
+            }
+        }"#,
+    );
+    let characters = support::characters_json(
+        r#""characters": {
+            "guide": {
+                "id": "guide",
+                "name": "Guide",
+                "portraitRef": "missing_portrait"
+            }
+        }"#,
+    );
+    let assets = support::assets_json(
+        r#""defaultChoiceSfx": "missing_default",
+        "music": {},
+        "sfx": {},
+        "textures": {}"#,
+    );
+
+    let mut strict = FORMAT
+        .decode_bundle_str(
+            &support::scenario_json(scenario),
+            &items,
+            &characters,
+            &assets,
+        )
+        .unwrap();
+    assert!(validate_content(&mut strict).is_err());
+
+    let mut relaxed = FORMAT
+        .decode_bundle_str(
+            &support::scenario_json(scenario),
+            &items,
+            &characters,
+            &assets,
+        )
+        .unwrap();
+    validate_content_with_options(
+        &mut relaxed,
+        ValidationOptions {
+            error_on_missing_assets: false,
+        },
+    )
+    .expect("preview validation should tolerate missing media refs");
 }
 
 #[test]

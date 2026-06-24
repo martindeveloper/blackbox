@@ -3,7 +3,7 @@
 mod logging;
 
 use blackbox_engine::{
-    Engine, GameView, encode_command_delta_json, encode_view_revision_mismatch_json,
+    Engine, EngineOptions, GameView, encode_command_delta_json, encode_view_revision_mismatch_json,
     encode_view_snapshot_json,
 };
 #[cfg(feature = "preview-json")]
@@ -124,8 +124,13 @@ impl BlackboxEngine {
         if let Some(seed) = random_seed_override {
             content.random_seed = Some(seed);
         }
-        let engine =
-            Engine::new_game(content).map_err(|error| JsValue::from_str(&error.to_string()))?;
+        let engine = Engine::new_game_with_options(
+            content,
+            EngineOptions {
+                error_on_missing_assets: false,
+            },
+        )
+        .map_err(|error| JsValue::from_str(&error.to_string()))?;
 
         Ok(Self {
             engine,

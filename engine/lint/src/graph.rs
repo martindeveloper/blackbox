@@ -1,4 +1,4 @@
-use std::collections::{HashSet, VecDeque};
+use std::collections::HashSet;
 
 use blackbox::content::{
     ChoiceAction, ChoiceContent, Effect, GameContent, ItemAction, NodeContent,
@@ -13,46 +13,32 @@ pub struct ReachabilityAnalysis {
 pub fn analyze_reachability(content: &GameContent) -> ReachabilityAnalysis {
     let mut reachable_nodes = HashSet::new();
     let mut obtainable_items = HashSet::new();
-    let mut seen_states: HashSet<(String, Vec<String>)> = HashSet::new();
-    let mut queue = VecDeque::new();
-
-    let start_inventory = HashSet::new();
-    queue.push_back((content.start_node_id.clone(), start_inventory));
     reachable_nodes.insert(content.start_node_id.clone());
 
-    while let Some((node_id, inventory)) = queue.pop_front() {
-        let mut inventory_key: Vec<String> = inventory.iter().cloned().collect();
-        inventory_key.sort();
-        if !seen_states.insert((node_id.clone(), inventory_key)) {
-            continue;
-        }
+    let mut changed = true;
+    while changed {
+        changed = false;
 
-        for item_id in &inventory {
-            obtainable_items.insert(item_id.clone());
-        }
+        let current_nodes: Vec<String> = reachable_nodes.iter().cloned().collect();
+        for node_id in current_nodes {
+            let Some(node) = content.nodes.get(&node_id) else {
+                continue;
+            };
 
-        let Some(node) = content.nodes.get(&node_id) else {
-            continue;
-        };
+            changed |= apply_add_items(&node.on_enter, &mut obtainable_items);
 
-        let mut inv = inventory.clone();
-        apply_add_items(&node.on_enter, &mut inv);
-
-        for item_id in &inv {
-            obtainable_items.insert(item_id.clone());
-        }
-
-        for (item_id, action) in item_actions_for(content, &inv) {
-            if let Some(target) = follow_item_action(&action, &mut inv, &item_id) {
-                enqueue_state(&mut queue, &mut reachable_nodes, target, inv.clone());
+            for choice in &node.choices {
+                for branch in choice_branches(content, choice, &node_id) {
+                    changed |= apply_add_items(&branch.effects, &mut obtainable_items);
+                    changed |= reachable_nodes.insert(branch.target);
+                }
             }
         }
 
-        for choice in &node.choices {
-            for branch in choice_branches(content, choice, &node_id) {
-                let mut branch_inv = inv.clone();
-                apply_add_items(&branch.effects, &mut branch_inv);
-                enqueue_state(&mut queue, &mut reachable_nodes, branch.target, branch_inv);
+        let current_items: Vec<String> = obtainable_items.iter().cloned().collect();
+        for action in item_actions_for(content, &current_items) {
+            if let Some(target) = follow_item_action(action) {
+                changed |= reachable_nodes.insert(target);
             }
         }
     }
@@ -68,47 +54,28 @@ struct ChoiceBranch {
     effects: Vec<Effect>,
 }
 
-fn enqueue_state(
-    queue: &mut VecDeque<(String, HashSet<String>)>,
-    reachable_nodes: &mut HashSet<String>,
-    target: String,
-    inventory: HashSet<String>,
-) {
-    reachable_nodes.insert(target.clone());
-    queue.push_back((target, inventory));
-}
-
-fn apply_add_items(effects: &[Effect], inventory: &mut HashSet<String>) {
+fn apply_add_items(effects: &[Effect], inventory: &mut HashSet<String>) -> bool {
+    let mut changed = false;
     for effect in effects {
         if let Effect::AddItem { item_id, .. } = effect {
-            inventory.insert(item_id.clone());
+            changed |= inventory.insert(item_id.clone());
         }
     }
+    changed
 }
 
-fn follow_item_action(
-    action: &ItemAction,
-    inventory: &mut HashSet<String>,
-    item_id: &str,
-) -> Option<String> {
-    let target = action.goto.clone()?;
-    if action.consume {
-        inventory.remove(item_id);
-    }
-    Some(target)
+fn follow_item_action(action: &ItemAction) -> Option<String> {
+    action.goto.clone()
 }
 
-fn item_actions_for(
-    content: &GameContent,
-    inventory: &HashSet<String>,
-) -> Vec<(String, ItemAction)> {
+fn item_actions_for<'a>(content: &'a GameContent, inventory: &[String]) -> Vec<&'a ItemAction> {
     let mut actions = Vec::new();
     for item_id in inventory {
         let Some(item) = content.items.items.get(item_id) else {
             continue;
         };
         for action in &item.actions {
-            actions.push((item_id.clone(), action.clone()));
+            actions.push(action);
         }
     }
     actions

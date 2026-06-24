@@ -10,6 +10,7 @@ export async function runPlayerBundle({
   workDir,
   bundleCache,
   ignoreMissing = false,
+  signal,
 }) {
   const bundleWorkDir = path.join(workDir, ".cache");
   await fs.mkdir(bundleWorkDir, { recursive: true });
@@ -30,6 +31,7 @@ export async function runPlayerBundle({
     const bundle = await runEngineTool(tools.bundler, "blackbox-bundler", args, {
       cwd: workDir,
       release: true,
+      signal,
     });
     const stdout = [];
     const stderr = [];
@@ -41,6 +43,7 @@ export async function runPlayerBundle({
       inspect = await runEngineTool(tools.bundler, "blackbox-bundler", inspectArgs, {
         cwd: workDir,
         release: true,
+        signal,
       });
       appendOutput(stdout, "inspect", inspect);
       if (inspect.stderr) stderr.push(inspect.stderr);
