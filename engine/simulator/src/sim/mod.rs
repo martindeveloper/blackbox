@@ -282,7 +282,7 @@ fn run_explore_simulation(config: SimConfig) -> Result<SimResult> {
         .into_inner()
         .unwrap_or_else(|e| panic!("shared mutex poisoned: {e}"));
 
-    complete_coverage(
+    let completed_witnesses = complete_coverage(
         &content,
         &graph,
         &abstraction,
@@ -290,6 +290,12 @@ fn run_explore_simulation(config: SimConfig) -> Result<SimResult> {
         config.threads,
         &mut acc.coverage,
     );
+    for (terminal_id, path) in completed_witnesses {
+        if let (Some(counts), Some(witness)) = (&mut acc.path_counts, &path.witness) {
+            counts.record_path(&witness.steps, &terminal_id);
+        }
+        acc.completed_paths.push(path);
+    }
 
     for node_id in static_issues.dead_end_nodes {
         acc.issues
@@ -383,8 +389,9 @@ fn complete_coverage(
     goal_budget: usize,
     threads: usize,
     coverage: &mut CoverageTracker,
-) {
+) -> Vec<(String, CompletedPath)> {
     let milestones = Milestones::from_content(content, graph);
+    let completed_paths = Mutex::new(Vec::new());
 
     // Pass 1: directed node coverage, replaying each witness for choices.
     let pending: Vec<String> = coverage
@@ -429,6 +436,19 @@ fn complete_coverage(
             merge_views(&mut cov, &search.visited_views);
             if search.reached {
                 cov.visited_nodes.insert(target.clone());
+            }
+            if search.reached
+                && content
+                    .nodes
+                    .get(target)
+                    .is_some_and(|node| node.mode.is_terminal())
+            {
+                if let Some(path) = search.completed_path {
+                    completed_paths
+                        .lock()
+                        .expect("completed paths lock")
+                        .push((target.clone(), path));
+                }
             }
         },
     );
@@ -552,6 +572,10 @@ fn complete_coverage(
             merge_views(&mut cov, &search.visited_views);
         },
     );
+
+    completed_paths
+        .into_inner()
+        .unwrap_or_else(|e| panic!("completed paths mutex poisoned: {e}"))
 }
 
 /// Per-thread reusable search context: one engine (one content clone + one
@@ -949,5 +973,36 @@ mod tests {
 
         assert_eq!(result.goal_results.len(), 1);
         assert!(result.goal_results[0].reached);
+    }
+
+    #[test]
+    fn explore_analytics_include_directed_terminal_witnesses() {
+        let content = blackbox_format::decode_scenario_bundle_json(
+            br#"{"spec":"com.blackbox.scenario","formatVersion":1,"startNodeId":"start","nodes":{"start":{"id":"start","choices":[{"id":"finish","label":"Finish","goto":"goal"}]},"goal":{"id":"goal","mode":"ending","choices":[]}}}"#,
+            br#"{"spec":"com.blackbox.items","formatVersion":1,"items":{}}"#,
+            br#"{"spec":"com.blackbox.characters","formatVersion":1,"characters":{}}"#,
+            br#"{"spec":"com.blackbox.assets.bundle","formatVersion":1,"textures":{},"music":{},"sfx":{}}"#,
+            None::<&[u8]>,
+            None::<&[u8]>,
+            Vec::<&[u8]>::new(),
+        )
+        .expect("decode");
+
+        let result = run_simulation(SimConfig {
+            content,
+            mode: SimMode::Explore,
+            threads: 1,
+            max_states: 1,
+            goal_budget: 10,
+            goal_target: GoalTarget::Filter(GoalFilter::Ending),
+            use_heuristic: true,
+            analytics: true,
+        })
+        .expect("simulation");
+
+        assert_eq!(result.completed_paths.len(), 1);
+        let analytics = result.analytics.expect("analytics");
+        assert_eq!(analytics.path_counts.total, 1);
+        assert_eq!(analytics.path_counts.ending_counts.get("goal"), Some(&1));
     }
 }
