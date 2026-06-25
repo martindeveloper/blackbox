@@ -13,8 +13,6 @@ export const GITIGNORE_BASE_ENTRIES = [
   "ehthumbs.db",
   "tmp/",
   "node_modules/",
-  ".blackbox/build/",
-  ".blackbox/cache/",
 ];
 
 export function collectGitIgnoreEntries() {

@@ -14,6 +14,8 @@ test("ensureGitIgnore writes base entries for new projects", async () => {
     assert.match(gitignore, /^Thumbs\.db$/m);
     assert.match(gitignore, /^node_modules\/$/m);
     assert.match(gitignore, /^tsconfig\.json$/m);
+    assert.match(gitignore, /^\.blackbox\/build\/$/m);
+    assert.match(gitignore, /^\.blackbox\/cache\/$/m);
     assert.equal(await ensureGitIgnore(root), false);
   } finally {
     await fs.rm(root, { recursive: true, force: true });
@@ -38,4 +40,6 @@ test("collectGitIgnoreEntries includes IDE plugin entries", () => {
   const entries = collectGitIgnoreEntries();
   assert.ok(entries.includes(".vscode/settings.json"));
   assert.ok(entries.includes(".blackbox/user/"));
+  assert.ok(entries.includes(".blackbox/build/"));
+  assert.ok(entries.includes(".blackbox/cache/"));
 });

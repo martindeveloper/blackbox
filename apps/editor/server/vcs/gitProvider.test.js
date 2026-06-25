@@ -34,6 +34,8 @@ test("initializes, commits, reports status, and filters history", async () => {
     assert.match(gitignore, /^\.DS_Store$/m);
     assert.match(gitignore, /^node_modules\/$/m);
     assert.match(gitignore, /^tsconfig\.json$/m);
+    assert.match(gitignore, /^\.blackbox\/build\/$/m);
+    assert.match(gitignore, /^\.blackbox\/cache\/$/m);
     await runProcess("git", ["config", "user.name", "Test Author"], root);
     await runProcess("git", ["config", "user.email", "author@example.test"], root);
     await fs.writeFile(path.join(root, "scenario.json"), "{}\n");
