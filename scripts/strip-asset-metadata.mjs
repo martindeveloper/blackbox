@@ -149,12 +149,12 @@ function stripAudioFfmpeg(file, ext) {
     "+bitexact",
     "-codec:a",
     "copy",
-    tmp,
   ];
 
   if (ext === "mp3") {
-    args.splice(args.length - 2, 0, "-id3v2_version", "0", "-write_id3v1", "0");
+    args.push("-id3v2_version", "0", "-write_id3v1", "0");
   }
+  args.push(tmp);
 
   runSync("ffmpeg", args, { quiet: !verbose });
   renameSync(tmp, file);

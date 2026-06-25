@@ -3,9 +3,11 @@
 mod logging;
 
 use blackbox_engine::{
-    Engine, EngineOptions, GameView, encode_command_delta_json, encode_view_revision_mismatch_json,
+    Engine, GameView, encode_command_delta_json, encode_view_revision_mismatch_json,
     encode_view_snapshot_json,
 };
+#[cfg(feature = "preview-json")]
+use blackbox_engine::EngineOptions;
 #[cfg(feature = "preview-json")]
 use blackbox_format::decode_scenario_bundle_json;
 use blackbox_format::{JsonFormat, decode_catalog_document, decode_msgpack_bundle_bytes};
