@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { buildAuthorDiff, buildAuthorFileDiff } from "./authorDiff.ts";
+import { buildAuthorDiff, buildAuthorFileDiff, buildUndiffableFileDiff } from "./authorDiff.ts";
 import type { LoadedBundle } from "./scenarioLoader.js";
 import type { ProjectEvent } from "./projectApi.js";
 
@@ -40,6 +40,19 @@ test("falls back to a raw file diff when the content is not JSON", () => {
   assert.equal(change.entity, "File");
   assert.equal(change.action, "edited");
   assert.equal(change.fields[0].kind, "code");
+});
+
+test("represents binary file reviews without raw contents", () => {
+  const diff = buildUndiffableFileDiff("textures/cover.png", {
+    binary: true,
+    beforeSize: 1000,
+    afterSize: 1200,
+  });
+  assert.equal(diff.sourcePath, "textures/cover.png");
+  assert.equal(diff.changes.length, 1);
+  assert.equal(diff.changes[0].entity, "File");
+  assert.equal(diff.changes[0].fields[0].kind, "scalar");
+  assert.match(diff.changes[0].fields[0].after ?? "", /Binary\/media/);
 });
 
 test("diffs scenario metadata from raw JSON without a bundle", () => {

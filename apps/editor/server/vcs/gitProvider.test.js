@@ -73,6 +73,37 @@ test("initializes, commits, reports status, and filters history", async () => {
   }
 });
 
+test("does not load binary files as text diffs", async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "blackbox-git-binary-diff-"));
+  const provider = new GitProvider();
+  try {
+    await provider.initialize(root);
+    await runProcess("git", ["config", "user.name", "Test Author"], root);
+    await runProcess("git", ["config", "user.email", "author@example.test"], root);
+    await fs.writeFile(path.join(root, "textures.png"), Buffer.from([0x89, 0x50, 0x4e, 0x47]));
+    await provider.execute("record", root, {
+      message: "Add image",
+      paths: [".gitignore", "textures.png"],
+    });
+
+    await fs.writeFile(
+      path.join(root, "textures.png"),
+      Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x00, 0x01]),
+    );
+    const diff = await provider.diff(root, "textures.png");
+
+    assert.equal(diff.path, "textures.png");
+    assert.equal(diff.diffable, false);
+    assert.equal(diff.binary, true);
+    assert.equal(diff.before, "");
+    assert.equal(diff.after, "");
+    assert.equal(diff.beforeSize, 4);
+    assert.equal(diff.afterSize, 6);
+  } finally {
+    await fs.rm(root, { recursive: true, force: true });
+  }
+});
+
 test("reverts modified tracked files and removes untracked ones", async () => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "blackbox-git-revert-"));
   const provider = new GitProvider();

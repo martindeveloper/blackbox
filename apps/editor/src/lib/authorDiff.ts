@@ -438,6 +438,42 @@ function fileChange(filePath: string, before: string, after: string): AuthorChan
   };
 }
 
+export function buildUndiffableFileDiff(
+  filePath: string,
+  {
+    binary = false,
+    tooLarge = false,
+    beforeSize = 0,
+    afterSize = 0,
+  }: { binary?: boolean; tooLarge?: boolean; beforeSize?: number; afterSize?: number } = {},
+): AuthorDiff {
+  const reason = binary
+    ? "Binary/media file contents are not shown in author diff."
+    : tooLarge
+      ? "This file is too large to diff in the editor."
+      : "This file cannot be previewed as text.";
+  const size = Math.max(beforeSize, afterSize);
+  const sizeLabel = size > 0 ? ` Size: ${Math.ceil(size / 1024)} KB.` : "";
+  return {
+    title: filePath,
+    subtitle: "File contents not diffed",
+    sourcePath: filePath,
+    changes: [
+      {
+        id: `file:${filePath}:undiffable`,
+        group: "Technical file",
+        entity: "File",
+        title: filePath,
+        action: beforeSize > 0 ? (afterSize > 0 ? "edited" : "removed") : "added",
+        fields: [
+          { label: "Contents", before: reason, after: `${reason}${sizeLabel}`, kind: "scalar" },
+        ],
+      },
+    ],
+    truncated: false,
+  };
+}
+
 function changedBundle(
   bundle: LoadedBundle,
   filePath: string,

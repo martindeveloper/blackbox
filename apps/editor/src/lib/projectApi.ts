@@ -184,6 +184,11 @@ export interface VcsCheckResult {
 export interface VcsFileDiff {
   provider: string;
   path: string;
+  diffable?: boolean;
+  binary?: boolean;
+  tooLarge?: boolean;
+  beforeSize?: number;
+  afterSize?: number;
   before: string;
   after: string;
   status?: VcsFile | null;

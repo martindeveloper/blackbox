@@ -28,7 +28,7 @@ import {
   type VcsOperation,
   type VcsStatus,
 } from "@/lib/projectApi.js";
-import { buildAuthorFileDiff } from "@/lib/authorDiff.js";
+import { buildAuthorFileDiff, buildUndiffableFileDiff } from "@/lib/authorDiff.js";
 import { requestAuthorChangeReview } from "@/lib/authorChangeReview.js";
 import { CONTRIBUTION_REVIEW_EVENT } from "@/lib/contributionReview.js";
 import type { LoadedBundle } from "@/lib/scenarioLoader.js";
@@ -208,7 +208,10 @@ export function VcsControl({
       const diff = await getVcsFileDiff(projectId, filePath);
       setOpen(false);
       requestAuthorChangeReview({
-        diff: buildAuthorFileDiff(diff.path, diff.before, diff.after, bundle),
+        diff:
+          diff.diffable === false
+            ? buildUndiffableFileDiff(diff.path, diff)
+            : buildAuthorFileDiff(diff.path, diff.before, diff.after, bundle),
       });
     } catch (error) {
       notifyFromError(error);

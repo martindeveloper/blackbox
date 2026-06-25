@@ -7,8 +7,78 @@ import { runProcess } from "./process.js";
 const FIELD_SEPARATOR = "\x1f";
 const RECORD_SEPARATOR = "\x1e";
 const BACKGROUND_FETCH_TIMEOUT_MS = 20_000;
+const MAX_TEXT_DIFF_BYTES = 512 * 1024;
+const BINARY_EXTENSIONS = new Set([
+  ".avif",
+  ".bin",
+  ".bmp",
+  ".gif",
+  ".ico",
+  ".jpeg",
+  ".jpg",
+  ".m4a",
+  ".mp3",
+  ".mp4",
+  ".ogg",
+  ".otf",
+  ".pdf",
+  ".png",
+  ".ttf",
+  ".wav",
+  ".webm",
+  ".webp",
+  ".woff",
+  ".woff2",
+]);
 
 const normalizePath = (value) => value.replaceAll("\\", "/");
+
+function isProbablyBinaryPath(filePath) {
+  return BINARY_EXTENSIONS.has(path.extname(filePath).toLowerCase());
+}
+
+function bufferLooksBinary(buffer) {
+  const sample = buffer.subarray(0, Math.min(buffer.length, 8192));
+  return sample.includes(0);
+}
+
+async function readSample(absolutePath) {
+  const handle = await fs.open(absolutePath, "r");
+  try {
+    const buffer = Buffer.alloc(8192);
+    const { bytesRead } = await handle.read(buffer, 0, buffer.length, 0);
+    return buffer.subarray(0, bytesRead);
+  } finally {
+    await handle.close();
+  }
+}
+
+async function readWorktreeFile(projectPath, filePath) {
+  const absolute = path.join(projectPath, filePath);
+  try {
+    const stat = await fs.stat(absolute);
+    if (!stat.isFile()) return { text: "", size: 0, binary: false, tooLarge: false };
+    if (stat.size > MAX_TEXT_DIFF_BYTES || isProbablyBinaryPath(filePath)) {
+      const sample = await readSample(absolute);
+      return {
+        text: "",
+        size: stat.size,
+        binary: isProbablyBinaryPath(filePath) || bufferLooksBinary(sample),
+        tooLarge: stat.size > MAX_TEXT_DIFF_BYTES,
+      };
+    }
+    const buffer = await fs.readFile(absolute);
+    const binary = bufferLooksBinary(buffer);
+    return {
+      text: binary ? "" : buffer.toString("utf8"),
+      size: stat.size,
+      binary,
+      tooLarge: false,
+    };
+  } catch {
+    return { text: "", size: 0, binary: false, tooLarge: false };
+  }
+}
 
 function parseBranchHeader(line, state) {
   if (line.startsWith("# branch.head ")) state.branch = line.slice(14);
@@ -148,7 +218,13 @@ export class GitProvider extends VcsProvider {
           requiresCleanEditor: true,
         },
       },
-      features: { initialize: true, prepareMutation: true, history: true, diff: true, revert: true },
+      features: {
+        initialize: true,
+        prepareMutation: true,
+        history: true,
+        diff: true,
+        revert: true,
+      },
     });
   }
 
@@ -313,18 +389,29 @@ export class GitProvider extends VcsProvider {
   }
 
   async diff(projectPath, filePath) {
-    const [status, beforeResult] = await Promise.all([
+    const [status, beforeSizeResult, afterFile] = await Promise.all([
       this.status(projectPath),
-      git(projectPath, ["show", `HEAD:${filePath}`], { allowFailure: true }),
+      git(projectPath, ["cat-file", "-s", `HEAD:${filePath}`], { allowFailure: true }),
+      readWorktreeFile(projectPath, filePath),
     ]);
-    let after = "";
-    try {
-      after = await fs.readFile(path.join(projectPath, filePath), "utf8");
-    } catch {}
+    const beforeSize =
+      beforeSizeResult.code === 0 ? Number.parseInt(beforeSizeResult.stdout.trim(), 10) : 0;
+    const binary = afterFile.binary || isProbablyBinaryPath(filePath);
+    const tooLarge =
+      afterFile.tooLarge || (Number.isFinite(beforeSize) && beforeSize > MAX_TEXT_DIFF_BYTES);
+    const diffable = !binary && !tooLarge;
+    const beforeResult = diffable
+      ? await git(projectPath, ["show", `HEAD:${filePath}`], { allowFailure: true })
+      : { code: beforeSizeResult.code, stdout: "" };
     return {
       path: filePath,
+      diffable,
+      binary,
+      tooLarge,
+      beforeSize: Number.isFinite(beforeSize) ? beforeSize : 0,
+      afterSize: afterFile.size,
       before: beforeResult.code === 0 ? beforeResult.stdout : "",
-      after,
+      after: diffable ? afterFile.text : "",
       status: status.files.find((file) => file.path === filePath) ?? null,
     };
   }
