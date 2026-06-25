@@ -243,8 +243,9 @@ function ChangeList({
   onSelect: (change: AuthorChange) => void;
 }) {
   const groups = useMemo(() => groupChanges(diff.changes), [diff.changes]);
+  const { t } = useTranslation();
   return (
-    <nav className="project-review-list" aria-label="Changes">
+    <nav className="project-review-list" aria-label={t("review.changeList")}>
       {groups.map(([group, changes]) => (
         <section key={group}>
           <h3>{group}</h3>

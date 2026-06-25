@@ -1,5 +1,6 @@
 import { ArrowLeft, ArrowRight, FolderOpen, Plus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
 import { createProject } from "@/lib/projectApi.js";
 import { pickProjectFolder } from "@/lib/pickProjectFolder.js";
@@ -30,25 +31,10 @@ function slugify(text: string): string {
 
 type Direction = "forward" | "back";
 
-const STEPS = [
-  {
-    label: "Identity",
-    title: "Name your project",
-    subtitle: "Give this project a title and choose its folder name.",
-  },
-  {
-    label: "First Chapter",
-    title: "Opening chapter",
-    subtitle: "Every story needs a first scene. Set up the opening chapter.",
-  },
-  {
-    label: "Location",
-    title: "Choose location",
-    subtitle: "Pick the parent directory where your project folder will be created.",
-  },
-] as const;
+const STEP_KEYS = ["identity", "firstChapter", "location"] as const;
 
 export function NewProjectWizard({ onBack }: NewProjectWizardProps) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const openProject = useScenarioStore((state) => state.openProject);
 
@@ -140,6 +126,7 @@ export function NewProjectWizard({ onBack }: NewProjectWizardProps) {
   const bodyClass = `wizard-panel-body wizard-panel-body--animate-${direction === "forward" ? "forward" : "back"}`;
 
   const fullPath = parentPath && folderName ? `${parentPath}/${folderName}` : null;
+  const stepKey = STEP_KEYS[step]!;
 
   return (
     <div className="editor-welcome">
@@ -151,11 +138,11 @@ export function NewProjectWizard({ onBack }: NewProjectWizardProps) {
           <div className="wizard-panel-header">
             <button type="button" className="wizard-back-btn" onClick={onBack}>
               <Icon icon={ArrowLeft} size={10} />
-              Projects
+              {t("welcome.wizard.backToProjects")}
             </button>
 
             <div className="wizard-stepper">
-              {STEPS.flatMap((s, i) => {
+              {STEP_KEYS.flatMap((key, i) => {
                 const cls =
                   i < step
                     ? "wizard-step-dot wizard-step-dot--past"
@@ -164,14 +151,26 @@ export function NewProjectWizard({ onBack }: NewProjectWizardProps) {
                       : "wizard-step-dot wizard-step-dot--future";
                 const items = [];
                 if (i > 0) items.push(<div key={`conn-${i}`} className="wizard-step-connector" />);
-                items.push(<div key={`dot-${i}`} className={cls} title={s.label} />);
+                items.push(
+                  <div
+                    key={`dot-${i}`}
+                    className={cls}
+                    title={t(`welcome.wizard.steps.${key}.label`)}
+                  />,
+                );
                 return items;
               })}
             </div>
 
-            <div className="wizard-step-label">{`Step ${step + 1} of ${STEPS.length} — ${STEPS[step]!.label}`}</div>
-            <h2 className="wizard-panel-title">{STEPS[step]!.title}</h2>
-            <p className="wizard-panel-subtitle">{STEPS[step]!.subtitle}</p>
+            <div className="wizard-step-label">
+              {t("welcome.wizard.stepLabel", {
+                current: step + 1,
+                total: STEP_KEYS.length,
+                name: t(`welcome.wizard.steps.${stepKey}.label`),
+              })}
+            </div>
+            <h2 className="wizard-panel-title">{t(`welcome.wizard.steps.${stepKey}.title`)}</h2>
+            <p className="wizard-panel-subtitle">{t(`welcome.wizard.steps.${stepKey}.subtitle`)}</p>
           </div>
 
           <div key={animKey} className={bodyClass}>
@@ -179,32 +178,30 @@ export function NewProjectWizard({ onBack }: NewProjectWizardProps) {
               <>
                 <div className="wizard-field">
                   <label className="wizard-field-label" htmlFor="wiz-title">
-                    Project title
+                    {t("welcome.wizard.projectTitle")}
                   </label>
                   <input
                     id="wiz-title"
                     ref={titleInputRef}
                     className="editor-input"
                     type="text"
-                    placeholder="Silent Archive"
+                    placeholder={t("welcome.wizard.projectTitlePlaceholder")}
                     value={title}
                     onChange={(e) => handleTitleChange(e.target.value)}
                     maxLength={80}
                   />
-                  <span className="wizard-field-hint">
-                    The display name shown in the project picker.
-                  </span>
+                  <span className="wizard-field-hint">{t("welcome.wizard.projectTitleHint")}</span>
                 </div>
 
                 <div className="wizard-field">
                   <label className="wizard-field-label" htmlFor="wiz-folder">
-                    Folder name
+                    {t("welcome.wizard.folderName")}
                   </label>
                   <input
                     id="wiz-folder"
                     className="editor-input font-mono"
                     type="text"
-                    placeholder="my_project"
+                    placeholder={t("welcome.wizard.folderNamePlaceholder")}
                     value={folderName}
                     onChange={(e) => {
                       setFolderManuallyEdited(true);
@@ -212,22 +209,16 @@ export function NewProjectWizard({ onBack }: NewProjectWizardProps) {
                     }}
                     maxLength={64}
                   />
-                  <span className="wizard-field-hint">
-                    The directory name created on disk. Auto-derived from title.
-                  </span>
+                  <span className="wizard-field-hint">{t("welcome.wizard.folderNameHint")}</span>
                 </div>
 
                 <div className="wizard-field">
                   <Checkbox
                     checked={withCode}
                     onChange={(e) => setWithCode(e.target.checked)}
-                    label="Include custom code starter"
+                    label={t("welcome.wizard.includeCode")}
                   />
-                  <span className="wizard-field-hint">
-                    Scaffold a <code>src/</code> folder (React App, game config, styles) with
-                    commented starter files. For developers customising the UI — data-only projects
-                    can leave this off.
-                  </span>
+                  <span className="wizard-field-hint">{t("welcome.wizard.includeCodeHint")}</span>
                 </div>
               </>
             )}
@@ -236,32 +227,30 @@ export function NewProjectWizard({ onBack }: NewProjectWizardProps) {
               <>
                 <div className="wizard-field">
                   <label className="wizard-field-label" htmlFor="wiz-ch-title">
-                    Chapter title
+                    {t("welcome.wizard.chapterTitle")}
                   </label>
                   <input
                     id="wiz-ch-title"
                     className="editor-input"
                     type="text"
-                    placeholder="Prologue"
+                    placeholder={t("welcome.wizard.chapterTitlePlaceholder")}
                     value={chapterTitle}
                     onChange={(e) => handleChapterTitleChange(e.target.value)}
                     autoFocus
                     maxLength={80}
                   />
-                  <span className="wizard-field-hint">
-                    The title of the first chapter (displayed in-game).
-                  </span>
+                  <span className="wizard-field-hint">{t("welcome.wizard.chapterTitleHint")}</span>
                 </div>
 
                 <div className="wizard-field">
                   <label className="wizard-field-label" htmlFor="wiz-ch-id">
-                    Chapter ID
+                    {t("welcome.wizard.chapterId")}
                   </label>
                   <input
                     id="wiz-ch-id"
                     className="editor-input font-mono"
                     type="text"
-                    placeholder="prologue"
+                    placeholder={t("welcome.wizard.chapterIdPlaceholder")}
                     value={chapterId}
                     onChange={(e) => {
                       setChapterIdManuallyEdited(true);
@@ -269,22 +258,16 @@ export function NewProjectWizard({ onBack }: NewProjectWizardProps) {
                     }}
                     maxLength={48}
                   />
-                  <span className="wizard-field-hint">
-                    Unique machine identifier used in references and file names.
-                  </span>
+                  <span className="wizard-field-hint">{t("welcome.wizard.chapterIdHint")}</span>
                 </div>
 
                 <div className="wizard-field">
                   <Checkbox
                     checked={withExample}
                     onChange={(e) => setWithExample(e.target.checked)}
-                    label="Add example content"
+                    label={t("welcome.wizard.addExample")}
                   />
-                  <span className="wizard-field-hint">
-                    Fill the first chapter and a second chapter with a short, neutral guided tour —
-                    nodes, choices, items, a skill check, a game over, and an ending — that teaches
-                    the editor. Uncheck for a single empty chapter.
-                  </span>
+                  <span className="wizard-field-hint">{t("welcome.wizard.addExampleHint")}</span>
                 </div>
               </>
             )}
@@ -301,10 +284,12 @@ export function NewProjectWizard({ onBack }: NewProjectWizardProps) {
                     <span className="wizard-pick-btn-icon">
                       <Icon icon={FolderOpen} size={13} />
                     </span>
-                    {parentPath ? "Change parent folder…" : "Choose parent folder…"}
+                    {parentPath
+                      ? t("welcome.wizard.changeParent")
+                      : t("welcome.wizard.chooseParent")}
                   </button>
                   <span className="wizard-field-hint">
-                    Select the directory that will contain the new{" "}
+                    {t("welcome.wizard.parentHintPrefix")}{" "}
                     <code
                       style={{
                         fontFamily: "var(--font-mono)",
@@ -316,15 +301,17 @@ export function NewProjectWizard({ onBack }: NewProjectWizardProps) {
                         borderRadius: "2px",
                       }}
                     >
-                      {folderName || "project"}
+                      {folderName || t("welcome.wizard.parentHintDefaultFolder")}
                     </code>{" "}
-                    folder.
+                    {t("welcome.wizard.parentHintSuffix")}
                   </span>
                 </div>
 
                 {fullPath && (
                   <div className="wizard-location-preview">
-                    <div className="wizard-location-preview-label">Project will be created at</div>
+                    <div className="wizard-location-preview-label">
+                      {t("welcome.wizard.locationPreview")}
+                    </div>
                     <div className="wizard-location-preview-path">
                       {parentPath}/<strong>{folderName}</strong>
                     </div>
@@ -345,20 +332,20 @@ export function NewProjectWizard({ onBack }: NewProjectWizardProps) {
                 disabled={creating}
               >
                 <Icon icon={ArrowLeft} size={11} />
-                Back
+                {t("welcome.wizard.back")}
               </button>
             )}
 
             <div style={{ flex: 1 }} />
 
-            {step < STEPS.length - 1 ? (
+            {step < STEP_KEYS.length - 1 ? (
               <button
                 type="button"
                 className="wizard-primary-btn"
                 disabled={step === 0 ? !step1Valid : !step2Valid}
                 onClick={() => go(step + 1, "forward")}
               >
-                Continue
+                {t("welcome.wizard.continue")}
                 <Icon icon={ArrowRight} size={11} />
               </button>
             ) : (
@@ -369,7 +356,7 @@ export function NewProjectWizard({ onBack }: NewProjectWizardProps) {
                 onClick={() => void handleCreate()}
               >
                 <Icon icon={Plus} size={11} />
-                {creating ? "Creating…" : "Create project"}
+                {creating ? t("welcome.wizard.creating") : t("welcome.wizard.createProject")}
               </button>
             )}
           </div>
@@ -379,10 +366,14 @@ export function NewProjectWizard({ onBack }: NewProjectWizardProps) {
           <div className="splash-art" />
           <div className="splash-crt" />
           <div className="wizard-right-content">
-            <div className="wizard-right-eyebrow">New Project</div>
-            <h3 className="wizard-right-heading">{title || "Untitled Project"}</h3>
+            <div className="wizard-right-eyebrow">{t("welcome.wizard.rightEyebrow")}</div>
+            <h3 className="wizard-right-heading">
+              {title || t("welcome.wizard.untitledProject")}
+            </h3>
             {step === 1 && chapterTitle && (
-              <p className="wizard-right-tagline">Ch. 1 — {chapterTitle}</p>
+              <p className="wizard-right-tagline">
+                {t("welcome.wizard.chapterPreview", { title: chapterTitle })}
+              </p>
             )}
             {step === 2 && fullPath && (
               <p
@@ -392,11 +383,7 @@ export function NewProjectWizard({ onBack }: NewProjectWizardProps) {
                 {fullPath}
               </p>
             )}
-            {step === 0 && (
-              <p className="wizard-right-tagline">
-                Author game projects — manifests, chapter graphs, and media.
-              </p>
-            )}
+            {step === 0 && <p className="wizard-right-tagline">{t("welcome.subtitle")}</p>}
           </div>
         </div>
       </div>

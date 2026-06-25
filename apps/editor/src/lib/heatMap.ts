@@ -1,4 +1,5 @@
 import type { SimAnalytics, SimHotNode } from "./toolsApi.js";
+import { translate } from "./i18n.ts";
 
 export type GraphAnalyticsMode = "reach" | "visits" | "structure" | "route";
 export type GraphInsightTone = "reach" | "visits" | "importance" | "spine" | "split" | "route";
@@ -51,8 +52,11 @@ function trafficInsights(analytics: SimAnalytics, mode: "reach" | "visits"): Gra
       badge: mode === "reach" ? `${reach}%` : `${compactCount(row.visits)}x`,
       title:
         mode === "reach"
-          ? `Reached on ${reach}% of completed paths`
-          : `${compactCount(row.visits)} visits across ${reach}% of completed paths`,
+          ? translate("graph.heatmap.insights.reachTitle", { pct: reach })
+          : translate("graph.heatmap.insights.visitsTitle", {
+              visits: compactCount(row.visits),
+              pct: reach,
+            }),
       tone: mode,
       rank,
       markers: [],
@@ -87,22 +91,25 @@ function structureInsights(analytics: SimAnalytics): GraphInsightMap {
         : "importance";
     const pct = mandatory.has(id) ? 100 : (row?.pct ?? 0);
     const badge = mandatory.has(id)
-      ? "Spine"
+      ? translate("graph.heatmap.insights.badgeSpine")
       : split.has(id)
-        ? "Split"
+        ? translate("graph.heatmap.insights.badgeSplit")
         : row
-          ? `${Math.round(row.pct)}% ends`
+          ? translate("graph.heatmap.insights.badgeEnds", { pct: Math.round(row.pct) })
           : "";
     map.set(id, {
       intensity: clampUnit(pct / 100),
       badge,
       title: mandatory.has(id)
-        ? "Static path to every ending"
+        ? translate("graph.heatmap.insights.titleSpine")
         : split.has(id)
-          ? "High-traffic node with one authored choice"
+          ? translate("graph.heatmap.insights.titleSplit")
           : row
-            ? `Can reach ${row.count} of ${row.total} endings`
-            : "No structural hotspot detected",
+            ? translate("graph.heatmap.insights.titleReachEnds", {
+                count: row.count,
+                total: row.total,
+              })
+            : translate("graph.heatmap.insights.titleNoHotspot"),
       tone,
       rank: 0,
       markers,
@@ -124,7 +131,7 @@ function routeInsights(analytics: SimAnalytics, ending: string | null): GraphIns
     map.set(node.id, {
       intensity: clampUnit(node.reachPct / 100),
       badge: `${pct}%`,
-      title: `Distinctive to ${route.ending}; reached on ${pct}% of its paths`,
+      title: translate("graph.heatmap.insights.routeTitle", { ending: route.ending, pct }),
       tone: "route",
       rank,
       markers: [],
@@ -133,8 +140,10 @@ function routeInsights(analytics: SimAnalytics, ending: string | null): GraphIns
   });
   map.set(route.ending, {
     intensity: 1,
-    badge: "End",
-    title: `${compactCount(route.pathCount)} completed paths end here`,
+    badge: translate("graph.heatmap.insights.routeEndBadge"),
+    title: translate("graph.heatmap.insights.routeEndTitle", {
+      count: compactCount(route.pathCount),
+    }),
     tone: "route",
     rank: 0,
     markers: [],

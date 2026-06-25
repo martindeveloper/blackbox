@@ -9,6 +9,7 @@ import type {
   NodeContent,
   TextBlock,
 } from "@/types/wire.js";
+import { translate } from "./i18n.ts";
 
 export type AuthorChangeAction = "added" | "edited" | "removed";
 
@@ -53,12 +54,17 @@ export interface AuthorDiff {
 
 const MAX_CHANGES = 150;
 
+const fld = (key: string) => translate(`review.authorDiff.fields.${key}`);
+const ent = (key: string) => translate(`review.authorDiff.entities.${key}`);
+const grp = (key: string, options?: Record<string, unknown>) =>
+  translate(`review.authorDiff.groups.${key}`, options);
+
 function same(a: unknown, b: unknown): boolean {
   return JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
 }
 
 function text(value: unknown): string {
-  if (value === undefined || value === null || value === "") return "—";
+  if (value === undefined || value === null || value === "") return translate("common.emptyDash");
   if (typeof value === "string") return value;
   if (typeof value === "number" || typeof value === "boolean") return String(value);
   return JSON.stringify(value);
@@ -73,13 +79,16 @@ function textBlockText(block: unknown): string {
 
 function textBlockLabel(index: number, before: unknown, after: unknown): string {
   const block = (after ?? before) as Partial<TextBlock> | undefined;
-  const speaker = typeof block?.speaker === "string" && block.speaker ? ` · ${block.speaker}` : "";
-  return `Text block ${index + 1}${speaker}`;
+  const speaker =
+    typeof block?.speaker === "string" && block.speaker
+      ? translate("review.authorDiff.textBlockSpeaker", { speaker: block.speaker })
+      : "";
+  return translate("review.authorDiff.textBlock", { index: index + 1, speaker });
 }
 
-function count(value: unknown, singular: string): string {
+function count(value: unknown, singularKey: string): string {
   const n = Array.isArray(value) ? value.length : 0;
-  return `${n} ${singular}${n === 1 ? "" : "s"}`;
+  return translate(`review.authorDiff.count.${singularKey}`, { count: n });
 }
 
 /** Short single-line value (title, label, destination, mode, …). */
@@ -232,33 +241,38 @@ function compareRecords<T>(
 
 function nodeFields(before: NodeContent | undefined, after: NodeContent | undefined) {
   const fields: AuthorFieldChange[] = [];
-  pushField(fields, "Title", before?.title, after?.title);
-  pushField(fields, "Mode", before?.mode, after?.mode);
-  pushMedia(fields, "Background", before?.backgroundRef, after?.backgroundRef, "image");
+  pushField(fields, fld("title"), before?.title, after?.title);
+  pushField(fields, fld("mode"), before?.mode, after?.mode);
+  pushMedia(fields, fld("background"), before?.backgroundRef, after?.backgroundRef, "image");
   pushTextFields(fields, before?.text, after?.text);
-  pushCount(fields, "Entry effects", before?.onEnter, after?.onEnter, "effect");
-  pushCount(fields, "Choices", before?.choices, after?.choices, "choice");
+  pushCount(fields, fld("entryEffects"), before?.onEnter, after?.onEnter, "effect");
+  pushCount(fields, fld("choices"), before?.choices, after?.choices, "choice");
   return fields;
 }
 
 function choiceFields(before: ChoiceContent | undefined, after: ChoiceContent | undefined) {
   const fields: AuthorFieldChange[] = [];
-  pushField(fields, "Label", before?.label, after?.label);
-  pushField(fields, "Destination", before?.goto, after?.goto);
-  pushField(fields, "Action", before?.action, after?.action);
-  pushField(fields, "Condition", before?.when ?? before?.requires, after?.when ?? after?.requires);
-  pushCount(fields, "Effects", before?.effects, after?.effects, "effect");
-  pushCode(fields, "Skill check", before?.check, after?.check);
+  pushField(fields, fld("label"), before?.label, after?.label);
+  pushField(fields, fld("destination"), before?.goto, after?.goto);
+  pushField(fields, fld("action"), before?.action, after?.action);
+  pushField(
+    fields,
+    fld("condition"),
+    before?.when ?? before?.requires,
+    after?.when ?? after?.requires,
+  );
+  pushCount(fields, fld("effects"), before?.effects, after?.effects, "effect");
+  pushCode(fields, fld("skillCheck"), before?.check, after?.check);
   return fields;
 }
 
 function itemFields(before: ItemDefinition | undefined, after: ItemDefinition | undefined) {
   const fields: AuthorFieldChange[] = [];
-  pushField(fields, "Name", before?.name, after?.name);
-  pushProse(fields, "Description", before?.description, after?.description);
-  pushProse(fields, "Examine text", before?.examineText, after?.examineText);
-  pushMedia(fields, "Icon", before?.iconRef, after?.iconRef, "image");
-  pushCount(fields, "Actions", before?.actions, after?.actions, "action");
+  pushField(fields, fld("name"), before?.name, after?.name);
+  pushProse(fields, fld("description"), before?.description, after?.description);
+  pushProse(fields, fld("examineText"), before?.examineText, after?.examineText);
+  pushMedia(fields, fld("icon"), before?.iconRef, after?.iconRef, "image");
+  pushCount(fields, fld("actions"), before?.actions, after?.actions, "action");
   return fields;
 }
 
@@ -267,20 +281,20 @@ function characterFields(
   after: CharacterDefinition | undefined,
 ) {
   const fields: AuthorFieldChange[] = [];
-  pushField(fields, "Name", before?.name, after?.name);
-  pushField(fields, "Subtitle", before?.subtitle, after?.subtitle);
-  pushMedia(fields, "Portrait", before?.portraitRef, after?.portraitRef, "image");
-  pushMedia(fields, "Voice", before?.voiceRef, after?.voiceRef, "audio");
-  pushColor(fields, "Color", before?.color, after?.color);
-  pushCode(fields, "Relationships", before?.relationships, after?.relationships);
+  pushField(fields, fld("name"), before?.name, after?.name);
+  pushField(fields, fld("subtitle"), before?.subtitle, after?.subtitle);
+  pushMedia(fields, fld("portrait"), before?.portraitRef, after?.portraitRef, "image");
+  pushMedia(fields, fld("voice"), before?.voiceRef, after?.voiceRef, "audio");
+  pushColor(fields, fld("color"), before?.color, after?.color);
+  pushCode(fields, fld("relationships"), before?.relationships, after?.relationships);
   return fields;
 }
 
 function catalogFields(before: CatalogEntry | undefined, after: CatalogEntry | undefined) {
   const fields: AuthorFieldChange[] = [];
-  pushField(fields, "Title", before?.title, after?.title);
-  pushProse(fields, "Description", before?.description, after?.description);
-  pushField(fields, "Internal", before?.internal, after?.internal);
+  pushField(fields, fld("title"), before?.title, after?.title);
+  pushProse(fields, fld("description"), before?.description, after?.description);
+  pushField(fields, fld("internal"), before?.internal, after?.internal);
   return fields;
 }
 
@@ -289,9 +303,9 @@ function chapterFields(
   after: LoadedBundle["chapters"][string] | undefined,
 ) {
   const fields: AuthorFieldChange[] = [];
-  pushField(fields, "Title", before?.title, after?.title);
-  pushField(fields, "Start node", before?.startNodeId, after?.startNodeId);
-  pushField(fields, "Death node", before?.deathNodeId, after?.deathNodeId);
+  pushField(fields, fld("title"), before?.title, after?.title);
+  pushField(fields, fld("startNode"), before?.startNodeId, after?.startNodeId);
+  pushField(fields, fld("deathNode"), before?.deathNodeId, after?.deathNodeId);
   return fields;
 }
 
@@ -300,12 +314,14 @@ function compareNodes(changes: AuthorChange[], before: LoadedBundle, after: Load
   for (const chapterId of [...chapterIds].sort()) {
     const beforeChapter = before.chapters[chapterId];
     const afterChapter = after.chapters[chapterId];
-    const group = `Chapter “${afterChapter?.title ?? beforeChapter?.title ?? chapterId}”`;
+    const group = grp("chapterNamed", {
+      title: afterChapter?.title ?? beforeChapter?.title ?? chapterId,
+    });
     const nodeTitle = (id: string, node?: NodeContent) => node?.title || id;
     compareRecords(
       changes,
       group,
-      "Node",
+      ent("node"),
       beforeChapter?.nodes,
       afterChapter?.nodes,
       nodeTitle,
@@ -324,7 +340,7 @@ function compareNodes(changes: AuthorChange[], before: LoadedBundle, after: Load
       compareRecords(
         changes,
         group,
-        "Choice",
+        ent("choice"),
         Object.fromEntries((beforeNode.choices ?? []).map((choice) => [choice.id, choice])),
         Object.fromEntries((afterNode.choices ?? []).map((choice) => [choice.id, choice])),
         (id, choice) => choice?.label || id,
@@ -339,8 +355,8 @@ function compareBundle(before: LoadedBundle, after: LoadedBundle): AuthorChange[
   const changes: AuthorChange[] = [];
   compareRecords(
     changes,
-    "Chapters",
-    "Chapter",
+    grp("chapters"),
+    ent("chapter"),
     before.chapters,
     after.chapters,
     (id, chapter) => chapter?.title || id,
@@ -350,8 +366,8 @@ function compareBundle(before: LoadedBundle, after: LoadedBundle): AuthorChange[
   compareNodes(changes, before, after);
   compareRecords(
     changes,
-    "Items",
-    "Item",
+    grp("items"),
+    ent("item"),
     before.items.items,
     after.items.items,
     (id, item) => item?.name || id,
@@ -360,8 +376,8 @@ function compareBundle(before: LoadedBundle, after: LoadedBundle): AuthorChange[
   );
   compareRecords(
     changes,
-    "Characters",
-    "Character",
+    grp("characters"),
+    ent("character"),
     before.characters.characters,
     after.characters.characters,
     (id, character) => character?.name || id,
@@ -369,10 +385,12 @@ function compareBundle(before: LoadedBundle, after: LoadedBundle): AuthorChange[
     (id) => ({ page: "characters", id }),
   );
   for (const kind of ["music", "sfx", "textures"] as const) {
+    const assetEntity =
+      kind === "textures" ? ent("texture") : kind === "music" ? ent("music") : ent("sound");
     compareRecords(
       changes,
-      "Assets",
-      kind === "textures" ? "Texture" : kind === "music" ? "Music" : "Sound",
+      grp("assets"),
+      assetEntity,
       before.assets[kind],
       after.assets[kind],
       (id) => id,
@@ -380,13 +398,13 @@ function compareBundle(before: LoadedBundle, after: LoadedBundle): AuthorChange[
         const fields: AuthorFieldChange[] = [];
         pushField(
           fields,
-          "Source",
+          fld("source"),
           (a as { src?: string } | undefined)?.src,
           (b as { src?: string } | undefined)?.src,
         );
         pushField(
           fields,
-          "Usage",
+          fld("usage"),
           (a as { usage?: string } | undefined)?.usage,
           (b as { usage?: string } | undefined)?.usage,
         );
@@ -397,8 +415,8 @@ function compareBundle(before: LoadedBundle, after: LoadedBundle): AuthorChange[
   }
   compareRecords(
     changes,
-    "Events",
-    "Event",
+    grp("events"),
+    ent("event"),
     before.meta?.events,
     after.meta?.events,
     (id, entry) => entry?.title || id,
@@ -407,8 +425,8 @@ function compareBundle(before: LoadedBundle, after: LoadedBundle): AuthorChange[
   );
   compareRecords(
     changes,
-    "Flags",
-    "Flag",
+    grp("flags"),
+    ent("flag"),
     before.meta?.flags,
     after.meta?.flags,
     (id, entry) => entry?.title || id,
@@ -430,11 +448,11 @@ function parseJson(textValue: string): unknown {
 function fileChange(filePath: string, before: string, after: string): AuthorChange {
   return {
     id: `file:${filePath}`,
-    group: "Technical file",
-    entity: "File",
+    group: grp("technicalFile"),
+    entity: ent("file"),
     title: filePath,
     action: before ? (after ? "edited" : "removed") : "added",
-    fields: [{ label: "Contents", before: text(before), after: text(after), kind: "code" }],
+    fields: [{ label: fld("contents"), before: text(before), after: text(after), kind: "code" }],
   };
 }
 
@@ -448,25 +466,30 @@ export function buildUndiffableFileDiff(
   }: { binary?: boolean; tooLarge?: boolean; beforeSize?: number; afterSize?: number } = {},
 ): AuthorDiff {
   const reason = binary
-    ? "Binary/media file contents are not shown in author diff."
+    ? translate("review.authorDiff.undiffable.binary")
     : tooLarge
-      ? "This file is too large to diff in the editor."
-      : "This file cannot be previewed as text.";
+      ? translate("review.authorDiff.undiffable.tooLarge")
+      : translate("review.authorDiff.undiffable.notText");
   const size = Math.max(beforeSize, afterSize);
   const sizeLabel = size > 0 ? ` Size: ${Math.ceil(size / 1024)} KB.` : "";
   return {
     title: filePath,
-    subtitle: "File contents not diffed",
+    subtitle: translate("review.authorDiff.undiffable.subtitle"),
     sourcePath: filePath,
     changes: [
       {
         id: `file:${filePath}:undiffable`,
-        group: "Technical file",
-        entity: "File",
+        group: grp("technicalFile"),
+        entity: ent("file"),
         title: filePath,
         action: beforeSize > 0 ? (afterSize > 0 ? "edited" : "removed") : "added",
         fields: [
-          { label: "Contents", before: reason, after: `${reason}${sizeLabel}`, kind: "scalar" },
+          {
+            label: fld("contents"),
+            before: reason,
+            after: `${reason}${sizeLabel}`,
+            kind: "scalar",
+          },
         ],
       },
     ],
@@ -522,10 +545,10 @@ function changedBundle(
 
 function scenarioFields(before: GameContent | undefined, after: GameContent | undefined) {
   const fields: AuthorFieldChange[] = [];
-  pushField(fields, "Title", before?.title, after?.title);
-  pushField(fields, "Start node", before?.startNodeId, after?.startNodeId);
-  pushField(fields, "Revision", before?.revision, after?.revision);
-  pushCount(fields, "Chapters", before?.chapters, after?.chapters, "chapter");
+  pushField(fields, fld("title"), before?.title, after?.title);
+  pushField(fields, fld("startNode"), before?.startNodeId, after?.startNodeId);
+  pushField(fields, fld("revision"), before?.revision, after?.revision);
+  pushCount(fields, fld("chapters"), before?.chapters, after?.chapters, "chapter");
   return fields;
 }
 
@@ -553,8 +576,8 @@ export function buildAuthorFileDiff(
       const afterChapter = { detached: afterValue as LoadedBundle["chapters"][string] };
       compareRecords(
         changes,
-        "Chapter file",
-        "Chapter",
+        grp("chapterFile"),
+        ent("chapter"),
         beforeChapter,
         afterChapter,
         (_id, chapter) => chapter?.title || filePath,
@@ -584,8 +607,8 @@ export function buildAuthorFileDiff(
         changes = [
           {
             id: `scenario:${filePath}`,
-            group: "Scenario",
-            entity: "Project",
+            group: grp("scenario"),
+            entity: ent("project"),
             title:
               (afterValue as Partial<GameContent> | null)?.title ??
               (beforeValue as Partial<GameContent> | null)?.title ??
@@ -601,7 +624,7 @@ export function buildAuthorFileDiff(
   if (changes.length === 0) changes = [fileChange(filePath, beforeText, afterText)];
   return {
     title: filePath,
-    subtitle: `${changes.length} change${changes.length === 1 ? "" : "s"} in this file`,
+    subtitle: translate("review.authorDiff.fileChangeCount", { count: changes.length }),
     sourcePath: filePath,
     changes,
     truncated: changes.length >= MAX_CHANGES,
@@ -609,7 +632,9 @@ export function buildAuthorFileDiff(
 }
 
 function fallbackChange(change: ProjectChange): AuthorChange {
-  const group = change.chapterId ? `Chapter “${change.chapterId}”` : "Project";
+  const group = change.chapterId
+    ? grp("chapterById", { id: change.chapterId })
+    : grp("project");
   return {
     id: `${change.entity}:${change.chapterId ?? ""}:${change.id}:${change.action}`,
     group,
@@ -628,10 +653,11 @@ export function buildAuthorDiff(
   const fallback = (event.contribution?.changes ?? []).map(fallbackChange);
   const semantic = before && after ? compareBundle(before, after) : [];
   const changes = semantic.length > 0 ? semantic : fallback;
-  const contributor = event.contribution?.contributor.name ?? "Contributor";
+  const contributor =
+    event.contribution?.contributor.name ?? translate("review.authorDiff.contributorFallback");
   return {
-    title: `${contributor} changed the project`,
-    subtitle: `${changes.length} author-facing change${changes.length === 1 ? "" : "s"}`,
+    title: translate("review.authorDiff.contributorChangedTitle", { contributor }),
+    subtitle: translate("review.authorDiff.changeCount", { count: changes.length }),
     changes,
     truncated: changes.length >= MAX_CHANGES || event.contribution?.changesTruncated === true,
   };

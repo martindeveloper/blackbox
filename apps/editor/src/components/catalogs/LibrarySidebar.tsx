@@ -184,7 +184,9 @@ export function LibrarySidebar({ selectedKind, selectedEntry }: Props) {
                       <span className="library-item-id">{template.title || id}</span>
                     </span>
                     {template.$extends ? (
-                      <span className="library-item-preview">extends {template.$extends}</span>
+                      <span className="library-item-preview">
+                        {t("library.extendsLine", { id: template.$extends })}
+                      </span>
                     ) : null}
                   </span>
                 </ListItem>

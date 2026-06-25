@@ -68,13 +68,19 @@ export function NodeCard({ data, selected }: NodeProps) {
               {d.analyticsBadge}
             </span>
           ) : null}
-          {d.analyticsMarkers?.includes("spine") && d.analyticsBadge !== "Spine" ? (
-            <span className="graph-node-badge graph-node-analytics-marker" title="Mandatory spine">
+          {d.analyticsMarkers?.includes("spine") && d.analyticsBadge !== t("graph.heatmap.insights.badgeSpine") ? (
+            <span
+              className="graph-node-badge graph-node-analytics-marker"
+              title={t("graph.heatmap.markerSpine")}
+            >
               SP
             </span>
           ) : null}
-          {d.analyticsMarkers?.includes("split") && d.analyticsBadge !== "Split" ? (
-            <span className="graph-node-badge graph-node-analytics-marker" title="Split candidate">
+          {d.analyticsMarkers?.includes("split") && d.analyticsBadge !== t("graph.heatmap.insights.badgeSplit") ? (
+            <span
+              className="graph-node-badge graph-node-analytics-marker"
+              title={t("graph.heatmap.markerSplit")}
+            >
               BR
             </span>
           ) : null}
