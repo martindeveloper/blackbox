@@ -40,6 +40,11 @@ export function usePanelModals<Id extends string>({
   );
 
   useEffect(() => {
+    if (!openPanel) return;
+    openModal(createModal(openPanel, () => closePanel(openPanel)));
+  }, [openPanel, createModal, openModal, closePanel]);
+
+  useEffect(() => {
     function handleKey(event: KeyboardEvent) {
       if (isEditableTarget(event.target)) return;
       if (event.metaKey || event.ctrlKey || event.altKey || event.repeat) return;
