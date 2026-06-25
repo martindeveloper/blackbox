@@ -66,6 +66,12 @@ export function collectStateNotifications(
   const currentItemNames = Object.fromEntries(
     current.inventory_items.map((item) => [item.ref_id, item.name]),
   );
+  const previousItemIcons = Object.fromEntries(
+    previous.inventory_items.map((item) => [item.ref_id, item.icon]),
+  );
+  const currentItemIcons = Object.fromEntries(
+    current.inventory_items.map((item) => [item.ref_id, item.icon]),
+  );
   for (const itemRef of new Set([
     ...Object.keys(previous.inventory),
     ...Object.keys(current.inventory),
@@ -82,6 +88,7 @@ export function collectStateNotifications(
       itemName: currentItemNames[itemRef] ?? previousItemNames[itemRef] ?? formatRefId(itemRef),
       amount: Math.abs(amount),
       count: currentCount,
+      icon: currentItemIcons[itemRef] ?? previousItemIcons[itemRef],
     });
   }
 

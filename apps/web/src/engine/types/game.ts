@@ -148,6 +148,7 @@ export type UiNotification =
       itemName: string;
       amount: number;
       count: number;
+      icon?: TextureCue;
     };
 
 export interface ChoiceView {
