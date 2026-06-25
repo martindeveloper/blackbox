@@ -18,7 +18,14 @@ export type AuthorChangeAction = "added" | "edited" | "removed";
  * inline tracked-changes diff (prose vs. monospace); the rest get bespoke,
  * domain-aware renderers (colour swatch, media chip, count delta, value chips).
  */
-export type AuthorFieldKind = "text" | "scalar" | "color" | "media" | "count" | "code";
+export type AuthorFieldKind =
+  | "text"
+  | "scalar"
+  | "color"
+  | "media"
+  | "mediaFile"
+  | "count"
+  | "code";
 
 export interface AuthorFieldChange {
   label: string;
@@ -26,6 +33,9 @@ export interface AuthorFieldChange {
   after?: string;
   kind: AuthorFieldKind;
   media?: "image" | "audio";
+  mediaPath?: string;
+  hasBefore?: boolean;
+  hasAfter?: boolean;
 }
 
 export interface AuthorChange {
@@ -456,6 +466,27 @@ function fileChange(filePath: string, before: string, after: string): AuthorChan
   };
 }
 
+const IMAGE_EXTENSIONS = new Set([
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".webp",
+  ".gif",
+  ".svg",
+  ".avif",
+  ".bmp",
+  ".ico",
+]);
+const AUDIO_EXTENSIONS = new Set([".mp3", ".wav", ".ogg", ".m4a"]);
+const MAX_MEDIA_PREVIEW_BYTES = 64 * 1024 * 1024;
+
+function mediaKindForPath(filePath: string): "image" | "audio" | null {
+  const ext = filePath.slice(filePath.lastIndexOf(".")).toLowerCase();
+  if (IMAGE_EXTENSIONS.has(ext)) return "image";
+  if (AUDIO_EXTENSIONS.has(ext)) return "audio";
+  return null;
+}
+
 export function buildUndiffableFileDiff(
   filePath: string,
   {
@@ -465,13 +496,37 @@ export function buildUndiffableFileDiff(
     afterSize = 0,
   }: { binary?: boolean; tooLarge?: boolean; beforeSize?: number; afterSize?: number } = {},
 ): AuthorDiff {
-  const reason = binary
-    ? translate("review.authorDiff.undiffable.binary")
-    : tooLarge
-      ? translate("review.authorDiff.undiffable.tooLarge")
-      : translate("review.authorDiff.undiffable.notText");
-  const size = Math.max(beforeSize, afterSize);
-  const sizeLabel = size > 0 ? ` Size: ${Math.ceil(size / 1024)} KB.` : "";
+  const action = beforeSize > 0 ? (afterSize > 0 ? "edited" : "removed") : "added";
+  // Images and audio can't be diffed as text, but they *can* be previewed side
+  // by side (before/after thumbnails, or A/B audio players). This is independent
+  // of the `tooLarge` text-diff guard — media files are routinely > 512 KB and
+  // the browser streams them fine; only skip genuinely huge assets.
+  const mediaKind =
+    Math.max(beforeSize, afterSize) <= MAX_MEDIA_PREVIEW_BYTES ? mediaKindForPath(filePath) : null;
+  const field: AuthorFieldChange = mediaKind
+    ? {
+        label: fld("contents"),
+        kind: "mediaFile",
+        media: mediaKind,
+        mediaPath: filePath,
+        hasBefore: beforeSize > 0,
+        hasAfter: afterSize > 0,
+      }
+    : (() => {
+        const reason = binary
+          ? translate("review.authorDiff.undiffable.binary")
+          : tooLarge
+            ? translate("review.authorDiff.undiffable.tooLarge")
+            : translate("review.authorDiff.undiffable.notText");
+        const size = Math.max(beforeSize, afterSize);
+        const sizeLabel = size > 0 ? ` Size: ${Math.ceil(size / 1024)} KB.` : "";
+        return {
+          label: fld("contents"),
+          before: reason,
+          after: `${reason}${sizeLabel}`,
+          kind: "scalar" as const,
+        };
+      })();
   return {
     title: filePath,
     subtitle: translate("review.authorDiff.undiffable.subtitle"),
@@ -482,15 +537,8 @@ export function buildUndiffableFileDiff(
         group: grp("technicalFile"),
         entity: ent("file"),
         title: filePath,
-        action: beforeSize > 0 ? (afterSize > 0 ? "edited" : "removed") : "added",
-        fields: [
-          {
-            label: fld("contents"),
-            before: reason,
-            after: `${reason}${sizeLabel}`,
-            kind: "scalar",
-          },
-        ],
+        action,
+        fields: [field],
       },
     ],
     truncated: false,
@@ -632,9 +680,7 @@ export function buildAuthorFileDiff(
 }
 
 function fallbackChange(change: ProjectChange): AuthorChange {
-  const group = change.chapterId
-    ? grp("chapterById", { id: change.chapterId })
-    : grp("project");
+  const group = change.chapterId ? grp("chapterById", { id: change.chapterId }) : grp("project");
   return {
     id: `${change.entity}:${change.chapterId ?? ""}:${change.id}:${change.action}`,
     group,

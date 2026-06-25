@@ -42,11 +42,13 @@ export const ProjectRoutes: {
   readonly VcsOperations: "/vcs/operations";
   readonly VcsHistory: "/vcs/history";
   readonly VcsDiff: "/vcs/diff";
+  readonly VcsBlob: "/vcs/blob";
 };
 
 export function globalApiUrl(route: string): string;
 export function projectApiUrl(projectId: string, suffix?: string): string;
 export function projectMediaUrl(projectId: string, relativePath: string, revision: number): string;
+export function projectVcsBlobUrl(projectId: string, relativePath: string, ref?: string): string;
 export function projectToolsRunUrl(projectId: string, tool: string): string;
 export function projectToolsRunCancelUrl(projectId: string, tool: string): string;
 export function projectScoutUrl(

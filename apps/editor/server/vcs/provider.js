@@ -76,4 +76,8 @@ export class VcsProvider {
   async diff(_projectPath, _path) {
     throw new Error("diff() is not implemented");
   }
+
+  async showFile(_projectPath, _ref, _path) {
+    throw new Error("showFile() is not implemented");
+  }
 }

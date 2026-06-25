@@ -34,6 +34,27 @@ import { VcsService } from "./vcs/vcsService.js";
 
 const previewPlayer = playersWith("livePreview")[0] ?? null;
 
+function sendBytesWithRange(reply, data, mimeType, range) {
+  reply.header("Accept-Ranges", "bytes").type(mimeType);
+  if (!range) return reply.send(data);
+
+  const match = /^bytes=(\d*)-(\d*)$/.exec(range);
+  if (!match) {
+    return reply.code(416).header("Content-Range", `bytes */${data.length}`).send();
+  }
+  const start = match[1] ? Number(match[1]) : 0;
+  const end = match[2] ? Number(match[2]) : data.length - 1;
+  if (start > end || start >= data.length) {
+    return reply.code(416).header("Content-Range", `bytes */${data.length}`).send();
+  }
+  const boundedEnd = Math.min(end, data.length - 1);
+  return reply
+    .code(206)
+    .header("Content-Range", `bytes ${start}-${boundedEnd}/${data.length}`)
+    .header("Content-Length", String(boundedEnd - start + 1))
+    .send(data.subarray(start, boundedEnd + 1));
+}
+
 function toolDiscoverySource(defaultBinName, binPath) {
   if (!binPath) return "config";
   const bundled = toolBinPath(defaultBinName);
@@ -227,6 +248,18 @@ export async function registerRoutes(app, service) {
     serverProjectRoute(ProjectRoutes.VcsDiff),
     projectRequest(service, (project, request) => vcs.diff(project, request.body ?? {})),
   );
+  app.get(
+    serverProjectRoute(ProjectRoutes.VcsBlob),
+    projectRequest(service, async (project, request, reply) => {
+      const blob = await vcs.fileBlob(project, {
+        path: typeof request.query?.path === "string" ? request.query.path : "",
+        ref: typeof request.query?.ref === "string" ? request.query.ref : "HEAD",
+      });
+      if (!blob)
+        return reply.code(404).send({ code: "not_found", message: "File not in revision" });
+      return sendBytesWithRange(reply, blob.data, blob.mimeType, request.headers.range);
+    }),
+  );
 
   app.post(GlobalRoutes.ProjectsRevokeCodeTrust, () => service.revokeAllProjectCodeTrust());
 
@@ -309,25 +342,7 @@ export async function registerRoutes(app, service) {
     projectRequest(service, async (project, request, reply) => {
       const relativePath = request.params["*"];
       const media = await service.readMedia(project.id, relativePath);
-      const range = request.headers.range;
-      reply.header("Accept-Ranges", "bytes").type(media.mimeType);
-      if (!range) return reply.send(media.data);
-
-      const match = /^bytes=(\d*)-(\d*)$/.exec(range);
-      if (!match) {
-        return reply.code(416).header("Content-Range", `bytes */${media.data.length}`).send();
-      }
-      const start = match[1] ? Number(match[1]) : 0;
-      const end = match[2] ? Number(match[2]) : media.data.length - 1;
-      if (start > end || start >= media.data.length) {
-        return reply.code(416).header("Content-Range", `bytes */${media.data.length}`).send();
-      }
-      const boundedEnd = Math.min(end, media.data.length - 1);
-      return reply
-        .code(206)
-        .header("Content-Range", `bytes ${start}-${boundedEnd}/${media.data.length}`)
-        .header("Content-Length", String(boundedEnd - start + 1))
-        .send(media.data.subarray(start, boundedEnd + 1));
+      return sendBytesWithRange(reply, media.data, media.mimeType, request.headers.range);
     }),
   );
 

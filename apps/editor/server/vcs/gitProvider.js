@@ -3,6 +3,7 @@ import path from "node:path";
 import { VCS_OPERATION, VcsProvider } from "./provider.js";
 import { ensureGitIgnore } from "./gitIgnore.js";
 import { runProcess } from "./process.js";
+import { mimeFromName } from "../projectService/utils.js";
 
 const FIELD_SEPARATOR = "\x1f";
 const RECORD_SEPARATOR = "\x1e";
@@ -414,5 +415,14 @@ export class GitProvider extends VcsProvider {
       after: diffable ? afterFile.text : "",
       status: status.files.find((file) => file.path === filePath) ?? null,
     };
+  }
+
+  async showFile(projectPath, ref, filePath) {
+    const result = await git(projectPath, ["cat-file", "blob", `${ref}:${filePath}`], {
+      allowFailure: true,
+      encoding: "buffer",
+    });
+    if (result.code !== 0) return null;
+    return { data: result.stdout, mimeType: mimeFromName(filePath) };
   }
 }

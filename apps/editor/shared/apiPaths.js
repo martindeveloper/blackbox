@@ -42,6 +42,7 @@ export const ProjectRoutes = {
   VcsOperations: "/vcs/operations",
   VcsHistory: "/vcs/history",
   VcsDiff: "/vcs/diff",
+  VcsBlob: "/vcs/blob",
 };
 
 export function globalApiUrl(route) {
@@ -55,6 +56,11 @@ export function projectApiUrl(projectId, suffix = "") {
 export function projectMediaUrl(projectId, relativePath, revision) {
   const encoded = relativePath.split("/").map(encodeURIComponent).join("/");
   return `${projectApiUrl(projectId, `${ProjectRoutes.Media}/${encoded}`)}?revision=${revision}`;
+}
+
+export function projectVcsBlobUrl(projectId, relativePath, ref = "HEAD") {
+  const params = new URLSearchParams({ path: relativePath, ref });
+  return `${projectApiUrl(projectId, ProjectRoutes.VcsBlob)}?${params.toString()}`;
 }
 
 export function projectToolsRunUrl(projectId, tool) {

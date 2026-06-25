@@ -4,6 +4,7 @@ export const AUTHOR_CHANGE_REVIEW_EVENT = "blackbox:review-author-changes";
 
 export interface AuthorChangeReviewPayload {
   diff: AuthorDiff;
+  projectId?: string;
 }
 
 export function requestAuthorChangeReview(payload: AuthorChangeReviewPayload): void {

@@ -17,7 +17,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/Button.js";
 import { Icon } from "@/components/icons/Icon.js";
@@ -35,8 +35,11 @@ import type {
 import { Page } from "@/lib/pages.js";
 import { editorNavigate, navigateToCatalogEntry, navigateToMetaEntry } from "@/lib/routeHelpers.js";
 import type { MediaCategory } from "@/lib/mediaLibrary.js";
+import { projectVcsBlobUrl } from "@shared/apiPaths.js";
 
 type EditorNavigate = ReturnType<typeof useNavigate>;
+
+const ReviewProjectContext = createContext<string | null>(null);
 
 function mediaCategoryForEntity(entity: string): MediaCategory {
   if (entity === "Music") return "music";
@@ -342,6 +345,49 @@ function MediaChange({ field }: { field: AuthorFieldChange }) {
   );
 }
 
+function MediaFilePreview({
+  url,
+  media,
+  alt,
+}: {
+  url: string;
+  media: "image" | "audio";
+  alt: string;
+}) {
+  if (media === "audio") return <audio controls preload="none" src={url} />;
+  return <img src={url} alt={alt} loading="lazy" />;
+}
+
+function MediaFileChange({ field }: { field: AuthorFieldChange }) {
+  const { t } = useTranslation();
+  const projectId = useContext(ReviewProjectContext);
+  const media = field.media ?? "image";
+  const path = field.mediaPath;
+  if (!projectId || !path) return <MediaChange field={field} />;
+
+  const beforeUrl = field.hasBefore ? projectVcsBlobUrl(projectId, path, "HEAD") : null;
+  const afterUrl = field.hasAfter ? projectVcsBlobUrl(projectId, path, "WORKTREE") : null;
+  const sides: { key: "old" | "new"; url: string | null; label: string }[] = [
+    { key: "old", url: beforeUrl, label: t("review.before") },
+    { key: "new", url: afterUrl, label: t("review.after") },
+  ];
+
+  return (
+    <div className={`pr-mediafile pr-mediafile--${media}`}>
+      {sides.map(({ key, url, label }) => (
+        <figure key={key} className={`pr-mediafile-side pr-mediafile-side--${key}`}>
+          <figcaption>{label}</figcaption>
+          {url ? (
+            <MediaFilePreview url={url} media={media} alt={`${label}: ${path}`} />
+          ) : (
+            <span className="pr-mediafile-empty">{t("review.noPreview")}</span>
+          )}
+        </figure>
+      ))}
+    </div>
+  );
+}
+
 function parseCount(value: string): number | null {
   const match = /^(-?\d+)/.exec(value);
   return match ? Number(match[1]) : null;
@@ -399,6 +445,8 @@ function FieldBody({ field }: { field: AuthorFieldChange }) {
       return <ColorChange field={field} />;
     case "media":
       return <MediaChange field={field} />;
+    case "mediaFile":
+      return <MediaFileChange field={field} />;
     case "count":
       return <CountChange field={field} />;
     case "scalar":
@@ -558,19 +606,21 @@ export function ProjectChangeReview() {
         </Button>
       }
     >
-      <div className={`project-review${isSingle ? " is-single" : ""}`}>
-        <ChangeSummary diff={diff} source={source} />
-        <div className="project-review-body">
-          {isSingle ? null : (
-            <ChangeList
-              diff={diff}
-              selectedId={selected?.id ?? null}
-              onSelect={(change) => setSelectedId(change.id)}
-            />
-          )}
-          <ChangeDetail change={selected} onOpen={handleOpen} />
+      <ReviewProjectContext.Provider value={payload?.projectId ?? null}>
+        <div className={`project-review${isSingle ? " is-single" : ""}`}>
+          <ChangeSummary diff={diff} source={source} />
+          <div className="project-review-body">
+            {isSingle ? null : (
+              <ChangeList
+                diff={diff}
+                selectedId={selected?.id ?? null}
+                onSelect={(change) => setSelectedId(change.id)}
+              />
+            )}
+            <ChangeDetail change={selected} onOpen={handleOpen} />
+          </div>
         </div>
-      </div>
+      </ReviewProjectContext.Provider>
     </ModalShell>
   );
 }

@@ -10,6 +10,7 @@ import {
   VCS_CONFIG_PATH,
 } from "../../shared/blackboxPaths.js";
 import { ProjectError } from "../projectService.js";
+import { mimeFromName } from "../projectService/utils.js";
 import { GitProvider } from "./gitProvider.js";
 import { ProcessError } from "./process.js";
 
@@ -404,6 +405,32 @@ export class VcsService {
         provider: provider.id,
         ...(await provider.diff(project.path, normalizedPath)),
       };
+    } catch (error) {
+      throw publicError(error);
+    }
+  }
+
+  async fileBlob(project, { path: filePath, ref = "HEAD" } = {}) {
+    if (typeof filePath !== "string" || !filePath.trim()) {
+      throw new ProjectError("invalid_request", "path is required");
+    }
+    const resolved = this.projectService.resolvePath(project, filePath);
+    if (!isCommitEligible(resolved.relative)) {
+      throw new ProjectError("invalid_request", "This file is not part of project sync");
+    }
+    if (ref === "WORKTREE") {
+      const data = await fs.readFile(resolved.absolute).catch((error) => {
+        if (error?.code === "ENOENT") return null;
+        throw error;
+      });
+      return data ? { data, mimeType: mimeFromName(resolved.relative) } : null;
+    }
+    const provider = await this.requireConfigured(project);
+    if (!provider.features.diff) {
+      throw new ProjectError("unsupported_vcs_operation", `${provider.label} has no diff API`);
+    }
+    try {
+      return await provider.showFile(project.path, ref, resolved.relative);
     } catch (error) {
       throw publicError(error);
     }

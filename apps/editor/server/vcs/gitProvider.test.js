@@ -99,6 +99,12 @@ test("does not load binary files as text diffs", async () => {
     assert.equal(diff.after, "");
     assert.equal(diff.beforeSize, 4);
     assert.equal(diff.afterSize, 6);
+
+    const committedBlob = await provider.showFile(root, "HEAD", "textures.png");
+    assert.deepEqual(committedBlob.data, Buffer.from([0x89, 0x50, 0x4e, 0x47]));
+    assert.equal(committedBlob.mimeType, "image/png");
+
+    assert.equal(await provider.showFile(root, "HEAD", "missing.png"), null);
   } finally {
     await fs.rm(root, { recursive: true, force: true });
   }

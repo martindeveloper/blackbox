@@ -42,7 +42,7 @@ test("falls back to a raw file diff when the content is not JSON", () => {
   assert.equal(change.fields[0].kind, "code");
 });
 
-test("represents binary file reviews without raw contents", () => {
+test("previews image binaries as a before/after media field", () => {
   const diff = buildUndiffableFileDiff("textures/cover.png", {
     binary: true,
     beforeSize: 1000,
@@ -51,8 +51,59 @@ test("represents binary file reviews without raw contents", () => {
   assert.equal(diff.sourcePath, "textures/cover.png");
   assert.equal(diff.changes.length, 1);
   assert.equal(diff.changes[0].entity, "File");
+  const field = diff.changes[0].fields[0];
+  assert.equal(field.kind, "mediaFile");
+  assert.equal(field.media, "image");
+  assert.equal(field.mediaPath, "textures/cover.png");
+  assert.equal(field.hasBefore, true);
+  assert.equal(field.hasAfter, true);
+});
+
+test("previews audio binaries and flags missing sides", () => {
+  const diff = buildUndiffableFileDiff("music/theme.mp3", { binary: true, afterSize: 2048 });
+  const field = diff.changes[0].fields[0];
+  assert.equal(field.kind, "mediaFile");
+  assert.equal(field.media, "audio");
+  assert.equal(field.hasBefore, false);
+  assert.equal(field.hasAfter, true);
+  assert.equal(diff.changes[0].action, "added");
+});
+
+test("previews large media even when flagged too large for text diffing", () => {
+  const diff = buildUndiffableFileDiff("textures/characters/rennic.png", {
+    binary: true,
+    tooLarge: true,
+    afterSize: 2393 * 1024,
+  });
+  assert.equal(diff.changes[0].fields[0].kind, "mediaFile");
+  assert.equal(diff.changes[0].fields[0].media, "image");
+});
+
+test("falls back to a note for pathologically large media", () => {
+  const diff = buildUndiffableFileDiff("music/score.wav", {
+    binary: true,
+    afterSize: 200 * 1024 * 1024,
+  });
+  assert.equal(diff.changes[0].fields[0].kind, "scalar");
+});
+
+test("represents non-previewable binary reviews without raw contents", () => {
+  const diff = buildUndiffableFileDiff("data/blob.bin", {
+    binary: true,
+    beforeSize: 1000,
+    afterSize: 1200,
+  });
   assert.equal(diff.changes[0].fields[0].kind, "scalar");
   assert.match(diff.changes[0].fields[0].after ?? "", /Binary\/media/);
+});
+
+test("keeps oversized text files as a plain undiffable note", () => {
+  const diff = buildUndiffableFileDiff("notes/huge.txt", {
+    tooLarge: true,
+    beforeSize: 900_000,
+    afterSize: 1_000_000,
+  });
+  assert.equal(diff.changes[0].fields[0].kind, "scalar");
 });
 
 test("diffs scenario metadata from raw JSON without a bundle", () => {

@@ -79,11 +79,29 @@ function isVersionControlPath(relativePath) {
   );
 }
 
+const OS_JUNK_BASENAMES = new Set([
+  ".ds_store",
+  ".apdisk",
+  "thumbs.db",
+  "ehthumbs.db",
+  "desktop.ini",
+]);
+
+const OS_JUNK_DIRS = [".spotlight-v100", ".trashes", ".fseventsd", ".documentrevisions-v100"];
+
+function isOsJunkFile(relativePath) {
+  const lower = relativePath.toLowerCase();
+  if (OS_JUNK_DIRS.some((dir) => lower === dir || lower.startsWith(`${dir}/`))) return true;
+  const base = lower.split("/").pop() ?? "";
+  return OS_JUNK_BASENAMES.has(base) || base.startsWith("._");
+}
+
 export function isIgnoredProjectPath(relativePath) {
   return (
     isUserSidecar(relativePath) ||
     isGeneratedSidecar(relativePath) ||
-    isVersionControlPath(relativePath)
+    isVersionControlPath(relativePath) ||
+    isOsJunkFile(relativePath)
   );
 }
 
@@ -99,10 +117,9 @@ export async function walkFiles(root, relative = "") {
 
   const files = [];
   for (const entry of entries) {
-    if (entry.name === ".DS_Store") continue;
     const child = relative ? `${relative}/${entry.name}` : entry.name;
+    if (isIgnoredProjectPath(child)) continue;
     if (entry.isDirectory()) {
-      if (isIgnoredProjectPath(child)) continue;
       files.push(...(await walkFiles(root, child)));
     } else if (entry.isFile()) files.push(child);
   }

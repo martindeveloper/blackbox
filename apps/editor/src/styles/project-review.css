@@ -386,6 +386,73 @@
   box-shadow: inset 0 0 0 1px var(--editor-border-2);
 }
 
+.pr-mediafile {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.pr-mediafile--audio {
+  grid-template-columns: 1fr;
+}
+
+.pr-mediafile-side {
+  display: flex;
+  min-width: 0;
+  margin: 0;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pr-mediafile-side figcaption {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--editor-text-subtle);
+}
+
+.pr-mediafile-side--old figcaption {
+  color: var(--editor-text-muted);
+}
+
+.pr-mediafile-side img {
+  max-width: 100%;
+  max-height: 220px;
+  border: 1px solid var(--editor-border);
+  border-radius: 6px;
+  object-fit: contain;
+  background-color: var(--editor-surface-2);
+  background-image:
+    linear-gradient(45deg, var(--editor-surface-3) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--editor-surface-3) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--editor-surface-3) 75%),
+    linear-gradient(-45deg, transparent 75%, var(--editor-surface-3) 75%);
+  background-size: 16px 16px;
+  background-position:
+    0 0,
+    0 8px,
+    8px -8px,
+    -8px 0;
+}
+
+.pr-mediafile-side audio {
+  width: 100%;
+}
+
+.pr-mediafile-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
+  padding: 12px;
+  border: 1px dashed var(--editor-border);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--editor-surface-3) 50%, transparent);
+  color: var(--editor-text-subtle);
+  font-size: 11px;
+}
+
 /* Count deltas (effects, choices, actions, …) */
 
 .pr-count-row {

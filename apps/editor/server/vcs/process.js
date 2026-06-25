@@ -21,12 +21,15 @@ export function runProcess(command, args, cwd, options = {}) {
       stdio: ["ignore", "pipe", "pipe"],
       windowsHide: true,
     });
+    const wantsBuffer = options.encoding === "buffer";
+    const stdoutChunks = [];
     let stdout = "";
     let stderr = "";
-    child.stdout.setEncoding("utf8");
+    if (!wantsBuffer) child.stdout.setEncoding("utf8");
     child.stderr.setEncoding("utf8");
     child.stdout.on("data", (chunk) => {
-      stdout += chunk;
+      if (wantsBuffer) stdoutChunks.push(chunk);
+      else stdout += chunk;
     });
     child.stderr.on("data", (chunk) => {
       stderr += chunk;
@@ -57,7 +60,11 @@ export function runProcess(command, args, cwd, options = {}) {
     child.once("close", (code) => {
       finish(() => {
         if (code === 0 || options.allowFailure) {
-          resolve({ code: code ?? -1, stdout, stderr });
+          resolve({
+            code: code ?? -1,
+            stdout: wantsBuffer ? Buffer.concat(stdoutChunks) : stdout,
+            stderr,
+          });
           return;
         }
         reject(new ProcessError(command, args, code ?? -1, stdout, stderr));

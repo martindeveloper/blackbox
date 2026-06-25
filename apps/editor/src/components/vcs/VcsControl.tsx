@@ -208,6 +208,7 @@ export function VcsControl({
       const diff = await getVcsFileDiff(projectId, filePath);
       setOpen(false);
       requestAuthorChangeReview({
+        projectId,
         diff:
           diff.diffable === false
             ? buildUndiffableFileDiff(diff.path, diff)
