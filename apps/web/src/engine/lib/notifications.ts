@@ -80,6 +80,7 @@ export function collectStateNotifications(
     const currentCount = current.inventory[itemRef] ?? 0;
     const amount = currentCount - previousCount;
     if (amount === 0) continue;
+    const icon = currentItemIcons[itemRef] ?? previousItemIcons[itemRef];
     notifications.push({
       id: nextId(),
       category: "item",
@@ -88,7 +89,7 @@ export function collectStateNotifications(
       itemName: currentItemNames[itemRef] ?? previousItemNames[itemRef] ?? formatRefId(itemRef),
       amount: Math.abs(amount),
       count: currentCount,
-      icon: currentItemIcons[itemRef] ?? previousItemIcons[itemRef],
+      ...(icon?.src ? { icon } : {}),
     });
   }
 
