@@ -7,6 +7,7 @@ export const GlobalRoutes = {
   Projects: "/projects",
   ProjectsRegister: "/projects/register",
   ProjectsCreate: "/projects/create",
+  ProjectsRemoveRecent: "/projects/remove-recent",
   ProjectsRevokeCodeTrust: "/projects/revoke-code-trust",
 };
 
@@ -115,5 +116,6 @@ export const Api = {
   Projects: globalApiUrl(GlobalRoutes.Projects),
   ProjectsRegister: globalApiUrl(GlobalRoutes.ProjectsRegister),
   ProjectsCreate: globalApiUrl(GlobalRoutes.ProjectsCreate),
+  ProjectsRemoveRecent: globalApiUrl(GlobalRoutes.ProjectsRemoveRecent),
   ProjectsRevokeCodeTrust: globalApiUrl(GlobalRoutes.ProjectsRevokeCodeTrust),
 };

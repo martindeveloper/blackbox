@@ -495,6 +495,16 @@
   color: var(--editor-text);
 }
 
+.splash-recent-item--unavailable {
+  grid-template-columns: minmax(0, 1fr) 18px 18px;
+  color: color-mix(in srgb, var(--editor-text-muted) 72%, transparent);
+  background: color-mix(in srgb, var(--editor-warning) 6%, transparent);
+}
+
+.splash-recent-item--unavailable:hover {
+  background: color-mix(in srgb, var(--editor-warning) 11%, transparent);
+}
+
 .splash-recent-item--loading {
   opacity: 0.45;
   pointer-events: none;
@@ -565,6 +575,7 @@
   align-self: center;
 }
 
+.splash-recent-locate,
 .splash-recent-remove {
   width: 18px;
   height: 18px;
@@ -585,9 +596,21 @@
   cursor: pointer;
 }
 
+.splash-recent-locate {
+  color: color-mix(in srgb, var(--editor-warning) 78%, var(--editor-text-muted));
+}
+
 .splash-recent-item:hover .splash-recent-remove,
+.splash-recent-item:hover .splash-recent-locate,
+.splash-recent-locate:focus-visible,
 .splash-recent-remove:focus-visible {
   opacity: 0.55;
+}
+
+.splash-recent-locate:hover {
+  background: color-mix(in srgb, var(--editor-warning) 18%, transparent);
+  color: var(--editor-warning);
+  opacity: 1;
 }
 
 .splash-recent-remove:hover {

@@ -7,6 +7,7 @@ export const GlobalRoutes: {
   readonly Projects: "/projects";
   readonly ProjectsRegister: "/projects/register";
   readonly ProjectsCreate: "/projects/create";
+  readonly ProjectsRemoveRecent: "/projects/remove-recent";
   readonly ProjectsRevokeCodeTrust: "/projects/revoke-code-trust";
 };
 
@@ -67,5 +68,6 @@ export const Api: {
   readonly Projects: string;
   readonly ProjectsRegister: string;
   readonly ProjectsCreate: string;
+  readonly ProjectsRemoveRecent: string;
   readonly ProjectsRevokeCodeTrust: string;
 };

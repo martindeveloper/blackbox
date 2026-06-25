@@ -161,6 +161,18 @@ export async function registerRoutes(app, service) {
     }
   });
 
+  app.post(GlobalRoutes.ProjectsRemoveRecent, async (request, reply) => {
+    const projectId = typeof request.body?.id === "string" ? request.body.id.trim() : "";
+    if (!projectId) {
+      return reply.code(400).send({ code: "invalid_request", message: "id is required" });
+    }
+    try {
+      return service.removeRecentProject(projectId);
+    } catch (error) {
+      return sendError(reply, error);
+    }
+  });
+
   app.post(
     serverProjectRoute(ProjectRoutes.Open),
     projectRequest(service, (project, request) =>

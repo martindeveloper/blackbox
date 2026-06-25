@@ -1,4 +1,7 @@
 .modal-panel:has(.project-review) {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   width: min(960px, calc(100vw - 32px));
   max-height: min(720px, calc(100vh - 32px));
 }
@@ -7,7 +10,16 @@
   width: min(680px, calc(100vw - 32px));
 }
 
+/* Header/footer hold their natural height so the body absorbs all the
+ * leftover space (and all the overflow) instead of the list spilling out. */
+.modal-panel:has(.project-review) .modal-panel-header,
+.modal-panel:has(.project-review) .modal-panel-footer {
+  flex: none;
+}
+
 .modal-panel:has(.project-review) .modal-panel-body {
+  flex: 1;
+  min-height: 0;
   padding: 0;
   overflow: hidden;
 }

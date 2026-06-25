@@ -15,7 +15,8 @@
       "@preview-mode": ["./src/engine/lib/previewMode.stub.ts"],
       "@preview-reporter": ["./src/preview/PreviewReporter.stub.tsx"],
       "@platform": ["./src/engine/lib/platform.web.release.ts"],
-      "@preview-protocol": ["../editor/players/web/protocol.ts"]
+      "@preview-protocol": ["../editor/players/web/protocol.ts"],
+      "@wasm-module": ["../../.cache/wasm/clients-web/blackbox_wasm.d.ts"]
     }
   }
 }

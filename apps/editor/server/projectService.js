@@ -146,15 +146,32 @@ export class ProjectService {
   }
 
   async loadPersistedProjects() {
-    const rows = this.db.prepare("SELECT path FROM projects ORDER BY last_opened DESC").all();
+    const rows = this.db
+      .prepare(
+        "SELECT id, path, name, title, revision, last_opened, code_trusted FROM projects ORDER BY last_opened DESC",
+      )
+      .all();
     for (const row of rows) {
       try {
         await this.registerProject(row.path);
       } catch (error) {
-        if (error?.code === "ENOENT") {
-          this.db.prepare("DELETE FROM projects WHERE path = ?").run(row.path);
-        }
         console.warn(`Skipping persisted project at ${row.path}: ${error?.message ?? error}`);
+        this.projects.set(row.id, {
+          id: row.id,
+          path: row.path,
+          name: row.name || path.basename(row.path),
+          title: row.title ?? null,
+          editorVersion: null,
+          codeTrusted:
+            row.code_trusted === null || row.code_trusted === undefined
+              ? null
+              : row.code_trusted === 1,
+          revision: Number(row.revision ?? 1),
+          lastOpened: row.last_opened ?? null,
+          tools: null,
+          available: false,
+          unavailableReason: error?.code === "ENOENT" ? "missing" : "inaccessible",
+        });
       }
     }
   }
@@ -183,7 +200,14 @@ export class ProjectService {
         if (!entry.isDirectory()) continue;
         candidates.push(path.join(root, entry.name));
         if (entry.name === "scenarios") {
-          const nested = await fs.readdir(path.join(root, entry.name), { withFileTypes: true });
+          let nested = [];
+          try {
+            nested = await fs.readdir(path.join(root, entry.name), { withFileTypes: true });
+          } catch (error) {
+            console.warn(
+              `Skipping scenarios directory at ${path.join(root, entry.name)}: ${error?.message ?? error}`,
+            );
+          }
           candidates.push(
             ...nested
               .filter((item) => item.isDirectory())
@@ -195,7 +219,11 @@ export class ProjectService {
 
     for (const candidate of candidates) {
       if (!(await exists(path.join(candidate, "scenario.json")))) continue;
-      await this.registerProject(candidate);
+      try {
+        await this.registerProject(candidate);
+      } catch (error) {
+        console.warn(`Skipping discovered project at ${candidate}: ${error?.message ?? error}`);
+      }
     }
     return this.listProjects();
   }
@@ -290,6 +318,8 @@ export class ProjectService {
       revision: Number(existing?.revision ?? 1),
       lastOpened: existing?.last_opened ?? null,
       tools: config.tools,
+      available: true,
+      unavailableReason: null,
     };
     this.reconcileStaleProjectRows(project.id, project.path);
     this.projects.set(project.id, project);
@@ -330,6 +360,12 @@ export class ProjectService {
     return project;
   }
 
+  removeRecentProject(id) {
+    this.requireProject(id);
+    this.removeProjectRow(id);
+    return { ok: true };
+  }
+
   resolvePath(project, relativePath) {
     if (typeof relativePath !== "string" || !relativePath || relativePath.includes("\0")) {
       throw new ProjectError("invalid_path", "A relative project path is required");
@@ -356,6 +392,12 @@ export class ProjectService {
 
   async openProject(id, acceptEditorVersion = false) {
     const project = this.requireProject(id);
+    if (project.available === false) {
+      throw new ProjectError(
+        "project_unavailable",
+        "This project cannot be opened because its folder is missing or inaccessible",
+      );
+    }
     if (project.editorVersion !== EDITOR_VERSION) {
       if (!acceptEditorVersion) {
         throw new ProjectError(
@@ -431,11 +473,13 @@ export class ProjectService {
       title: project.title,
       revision: project.revision,
       lastOpened: project.lastOpened,
+      available: project.available !== false,
+      unavailableReason: project.unavailableReason ?? null,
       codeTrusted:
         project.codeTrusted === null || project.codeTrusted === undefined
           ? null
           : project.codeTrusted === true,
-      hasCustomCode: projectHasCustomCode(project.path),
+      hasCustomCode: project.available === false ? false : projectHasCustomCode(project.path),
     };
   }
 

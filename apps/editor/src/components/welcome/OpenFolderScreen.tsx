@@ -1,10 +1,11 @@
-import { FolderOpen, Plus, ShieldOff, Trash2 } from "lucide-react";
+import { FolderOpen, FolderSearch, Plus, ShieldOff, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import {
   listProjects,
   registerProject,
+  removeRecentProject,
   revokeAllProjectCodeTrust,
   type ProjectSummary,
 } from "@/lib/projectApi.js";
@@ -72,6 +73,43 @@ export function OpenFolderScreen() {
       await transitionToEditor(() =>
         editorNavigate(navigate, { to: Page.EditorDashboard, search: {} }),
       );
+    } finally {
+      setOpeningId(null);
+    }
+  };
+
+  const handleLocateUnavailable = async (project: ProjectSummary) => {
+    setOpeningId(`locate:${project.id}`);
+    try {
+      const folder = await pickProjectFolder();
+      if (!folder) return;
+      const replacement = await registerProject(folder);
+      if (replacement.id !== project.id) await removeRecentProject(project.id);
+      setProjects((current) => {
+        const next = current.filter(
+          (entry) => entry.id !== project.id && entry.id !== replacement.id,
+        );
+        return [replacement, ...next];
+      });
+      await handleOpen(replacement.id);
+    } catch (error) {
+      notifyFromError(error);
+    } finally {
+      setOpeningId(null);
+    }
+  };
+
+  const handleRemoveRecent = async (project: ProjectSummary) => {
+    setOpeningId(`remove:${project.id}`);
+    try {
+      await removeRecentProject(project.id);
+      setProjects((current) => current.filter((entry) => entry.id !== project.id));
+      notifySuccess(t("welcome.removeFromRecentSuccess", { name: project.title ?? project.name }));
+      if (requestedId === project.id) {
+        void editorNavigate(navigate, { to: Page.Home, search: {} });
+      }
+    } catch (error) {
+      notifyFromError(error);
     } finally {
       setOpeningId(null);
     }
@@ -164,41 +202,78 @@ export function OpenFolderScreen() {
               ) : null}
             </div>
             <div className="splash-recents-list">
-              {visibleProjects.map((project) => (
-                <div
-                  key={project.id}
-                  className={`splash-recent-item${openingId === project.id ? " splash-recent-item--loading" : ""}`}
-                >
-                  <button
-                    type="button"
-                    className="splash-recent-open"
-                    disabled={busy}
-                    onClick={() => void handleOpen(project.id)}
+              {visibleProjects.map((project) => {
+                const available = project.available !== false;
+                const projectBusy =
+                  openingId === project.id ||
+                  openingId === `locate:${project.id}` ||
+                  openingId === `remove:${project.id}`;
+                return (
+                  <div
+                    key={project.id}
+                    className={`splash-recent-item${projectBusy ? " splash-recent-item--loading" : ""}${!available ? " splash-recent-item--unavailable" : ""}`}
                   >
-                    <Icon icon={FolderOpen} size={10} className="splash-recent-icon" />
-                    <div className="splash-recent-info">
-                      <span className="splash-recent-title">{project.title ?? project.name}</span>
-                      <span className="splash-recent-path">{project.name}</span>
-                    </div>
-                    <span className="splash-recent-meta">
-                      {formatRelativeDate(project.lastOpened)}
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    className="splash-recent-remove"
-                    disabled={busy}
-                    title={t("welcome.deleteProject")}
-                    aria-label={t("welcome.deleteProject")}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      setDeleteTarget(project);
-                    }}
-                  >
-                    <Icon icon={Trash2} size={10} />
-                  </button>
-                </div>
-              ))}
+                    <button
+                      type="button"
+                      className="splash-recent-open"
+                      disabled={busy}
+                      onClick={() =>
+                        available
+                          ? void handleOpen(project.id)
+                          : void handleLocateUnavailable(project)
+                      }
+                    >
+                      <Icon
+                        icon={available ? FolderOpen : FolderSearch}
+                        size={10}
+                        className="splash-recent-icon"
+                      />
+                      <div className="splash-recent-info">
+                        <span className="splash-recent-title">{project.title ?? project.name}</span>
+                        <span className="splash-recent-path">
+                          {available ? project.name : project.path}
+                        </span>
+                      </div>
+                      <span className="splash-recent-meta">
+                        {available
+                          ? formatRelativeDate(project.lastOpened)
+                          : t("welcome.projectUnavailable")}
+                      </span>
+                    </button>
+                    {!available ? (
+                      <button
+                        type="button"
+                        className="splash-recent-locate"
+                        disabled={busy}
+                        title={t("welcome.locateProject")}
+                        aria-label={t("welcome.locateProject")}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          void handleLocateUnavailable(project);
+                        }}
+                      >
+                        <Icon icon={FolderSearch} size={10} />
+                      </button>
+                    ) : null}
+                    <button
+                      type="button"
+                      className="splash-recent-remove"
+                      disabled={busy}
+                      title={available ? t("welcome.deleteProject") : t("welcome.removeFromRecent")}
+                      aria-label={
+                        available ? t("welcome.deleteProject") : t("welcome.removeFromRecent")
+                      }
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        if (available) setDeleteTarget(project);
+                        else void handleRemoveRecent(project);
+                      }}
+                    >
+                      <Icon icon={available ? Trash2 : X} size={10} />
+                    </button>
+                  </div>
+                );
+              })}
               {!loading && visibleProjects.length === 0 ? (
                 <p className="splash-resume-hint">{t("welcome.noProjects")}</p>
               ) : null}

@@ -10,6 +10,8 @@ export interface ProjectSummary {
   path: string;
   revision: number;
   lastOpened: string | null;
+  available: boolean;
+  unavailableReason: "missing" | "inaccessible" | null;
   codeTrusted: boolean | null;
   hasCustomCode: boolean;
 }
@@ -254,6 +256,10 @@ export async function registerProject(projectPath: string): Promise<ProjectSumma
     path: projectPath,
   });
   return result.project;
+}
+
+export async function removeRecentProject(projectId: string): Promise<void> {
+  await postJson(Api.ProjectsRemoveRecent, { id: projectId });
 }
 
 export interface CreateProjectOptions {

@@ -997,8 +997,8 @@
   font-size: 10px;
   color: var(--editor-text-subtle);
   white-space: nowrap;
-  flex-shrink: 0;
-  width: 120px;
+  flex: 0 0 auto;
+  min-width: max-content;
   padding-top: 1px;
 }
 

@@ -377,6 +377,40 @@ test("standalone mode registers projects outside configured roots", async () => 
   }
 });
 
+test("keeps inaccessible recent projects without blocking startup", async () => {
+  const env = await fixture();
+  let reopened = null;
+
+  try {
+    const [project] = env.service.listProjects();
+    env.service.setProjectCodeTrust(project.id, false);
+    await env.service.openProject(project.id);
+    await env.service.close();
+    await fs.rm(env.projectPath, { recursive: true, force: true });
+
+    reopened = new ProjectService({
+      roots: [path.dirname(env.projectPath)],
+      dbPath: path.join(env.root, "editor.db"),
+    });
+    await reopened.start();
+
+    const [missing] = reopened.listProjects();
+    assert.equal(missing.id, project.id);
+    assert.equal(missing.available, false);
+    assert.equal(missing.unavailableReason, "missing");
+    await assert.rejects(
+      reopened.openProject(project.id),
+      (error) => error instanceof ProjectError && error.code === "project_unavailable",
+    );
+
+    assert.deepEqual(reopened.removeRecentProject(project.id), { ok: true });
+    assert.deepEqual(reopened.listProjects(), []);
+  } finally {
+    await reopened?.close();
+    await fs.rm(env.root, { recursive: true, force: true });
+  }
+});
+
 test("requires and persists a trust decision before opening any project", async () => {
   const env = await fixture();
   let reopened = null;
@@ -498,6 +532,31 @@ test("revokes UI trust through the projects API before reopening a recent projec
     assert.equal(reopen.statusCode, 400);
     assert.equal(reopen.json().code, "project_trust_required");
     assert.equal(env.service.listProjects().length, 1);
+  } finally {
+    await app.close();
+    await env.close();
+  }
+});
+
+test("removes recent projects through the projects API without touching files", async () => {
+  const env = await fixture();
+  const app = Fastify();
+
+  try {
+    const [project] = env.service.listProjects();
+    await app.register(async (routes) => registerRoutes(routes, env.service), {
+      prefix: "/api/v1",
+    });
+
+    const remove = await app.inject({
+      method: "POST",
+      url: "/api/v1/projects/remove-recent",
+      payload: { id: project.id },
+    });
+    assert.equal(remove.statusCode, 200);
+    assert.deepEqual(remove.json(), { ok: true });
+    assert.deepEqual(env.service.listProjects(), []);
+    await fs.access(env.projectPath);
   } finally {
     await app.close();
     await env.close();
