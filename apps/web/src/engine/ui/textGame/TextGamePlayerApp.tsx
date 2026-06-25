@@ -52,6 +52,21 @@ export interface NewGameConfirmationProps {
   onConfirm: () => void;
 }
 
+export type MenuTransitionIntent = "continue" | "new-game";
+
+export type MenuTransitionPhase = "covering" | "holding" | "revealing";
+
+export interface MenuTransitionProps {
+  phase: MenuTransitionPhase;
+  intent: MenuTransitionIntent;
+}
+
+export interface MenuTransitionTiming {
+  coverMs?: number;
+  holdMs?: number;
+  revealMs?: number;
+}
+
 export interface TextGamePlayerAppConfig<FadeKind extends string> {
   presentation: SessionPresentationAdapter;
   audio: AudioPlaybackConfig<FadeKind>;
@@ -68,6 +83,8 @@ export interface TextGamePlayerAppConfig<FadeKind extends string> {
   BootScreen?: (props: { errorMessage?: string }) => ReactNode;
   ChapterTransition?: (props: ChapterTransitionProps) => ReactNode;
   NewGameConfirmation?: (props: NewGameConfirmationProps) => ReactNode;
+  MenuTransition?: (props: MenuTransitionProps) => ReactNode;
+  menuTransitionTiming?: MenuTransitionTiming;
   saveModal?: {
     icon?: ReactNode;
     tone?: ModalTone;
@@ -248,6 +265,61 @@ export function TextGamePlayerApp<FadeKind extends string>({
     await restart();
   }, [resetMusic, restart]);
 
+  const MenuTransition = config.MenuTransition;
+  const transitionTiming = useMemo(
+    () => ({
+      coverMs: config.menuTransitionTiming?.coverMs ?? 760,
+      holdMs: config.menuTransitionTiming?.holdMs ?? 420,
+      revealMs: config.menuTransitionTiming?.revealMs ?? 900,
+    }),
+    [config.menuTransitionTiming],
+  );
+  const [menuTransition, setMenuTransition] = useState<{
+    phase: MenuTransitionPhase;
+    intent: MenuTransitionIntent;
+  } | null>(null);
+  const transitionRunRef = useRef(0);
+  useEffect(() => () => void (transitionRunRef.current += 1), []);
+
+  const runMenuTransition = useCallback(
+    (intent: MenuTransitionIntent, commit: () => void | Promise<void>) => {
+      if (!MenuTransition) {
+        void commit();
+        return;
+      }
+      const runId = (transitionRunRef.current += 1);
+      const alive = () => transitionRunRef.current === runId;
+      const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+      setMenuTransition({ phase: "covering", intent });
+      void (async () => {
+        await wait(transitionTiming.coverMs);
+        if (!alive()) return;
+        setMenuTransition({ phase: "holding", intent });
+        const heldFrom = Date.now();
+        try {
+          await commit();
+        } finally {
+          if (alive()) {
+            const remaining = transitionTiming.holdMs - (Date.now() - heldFrom);
+            if (remaining > 0) await wait(remaining);
+            if (alive()) {
+              setMenuTransition({ phase: "revealing", intent });
+              await wait(transitionTiming.revealMs);
+              if (alive()) setMenuTransition(null);
+            }
+          }
+        }
+      })();
+    },
+    [MenuTransition, transitionTiming],
+  );
+
+  const handleContinueSlot = useCallback(
+    (slotIndex: number) => runMenuTransition("continue", () => continueSlot(slotIndex)),
+    [continueSlot, runMenuTransition],
+  );
+
   const requestSlotRestart = useCallback(
     (slotIndex: number) => {
       const modalId = "new-game-confirmation";
@@ -269,7 +341,7 @@ export function TextGamePlayerApp<FadeKind extends string>({
             onConfirm={() => {
               closeModal(modalId);
               resetMusic();
-              restartSlot(slotIndex);
+              runMenuTransition("new-game", () => restartSlot(slotIndex));
             }}
           />
         ),
@@ -282,6 +354,7 @@ export function TextGamePlayerApp<FadeKind extends string>({
       openModal,
       resetMusic,
       restartSlot,
+      runMenuTransition,
       t,
     ],
   );
@@ -338,9 +411,9 @@ export function TextGamePlayerApp<FadeKind extends string>({
       <main className="text-game-player-main">
         {session.phase === "selecting_slot" ? (
           <MainMenu
-            menuLoading={menuLoading}
+            menuLoading={menuLoading || menuTransition !== null}
             initialSlot={session.returnedFromSlot}
-            onContinueSlot={continueSlot}
+            onContinueSlot={handleContinueSlot}
             onRestartSlot={requestSlotRestart}
             {...(SUPPORT_BUNDLE_ENABLED
               ? { onCreateSupportBundle: () => handleCreateSupportBundle(true) }
@@ -385,6 +458,10 @@ export function TextGamePlayerApp<FadeKind extends string>({
           </div>
         )}
       </main>
+
+      {MenuTransition && menuTransition && (
+        <MenuTransition phase={menuTransition.phase} intent={menuTransition.intent} />
+      )}
 
       <PreviewReporter
         session={session}

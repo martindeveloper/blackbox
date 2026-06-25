@@ -12,7 +12,7 @@ import {
   readLastUsedSlot,
   type SlotData,
 } from "../../lib/slots.js";
-import type { ChoiceView, ItemActionView } from "../../types/game.js";
+import { actionsByItem, dispatchChoice } from "../../lib/choices.js";
 import { useModal } from "../ModalContext.js";
 import { useTextGameComponents } from "./context.js";
 import type {
@@ -35,16 +35,6 @@ function LockReason({ reason }: { reason: string }) {
   return (
     <span className="bb-default-choice__lock">{t("choices.locked", { defaultValue: reason })}</span>
   );
-}
-
-function dispatchChoice(
-  choice: ChoiceView,
-  handlers: Pick<ChoicesProps, "onChoose" | "onRestart" | "onOpenLoad" | "onOpenMainMenu">,
-): void {
-  if (choice.action?.type === "openLoadMenu") handlers.onOpenLoad();
-  else if (choice.action?.type === "openMainMenu") handlers.onOpenMainMenu();
-  else if (choice.action?.type === "restartGame") handlers.onRestart();
-  else handlers.onChoose(choice.id);
 }
 
 export function DefaultChoices({
@@ -270,16 +260,6 @@ export function DefaultVitals({ playerStats, borderColor, controls }: VitalsProp
       {controls && <div className="bb-default-vitals__controls">{controls}</div>}
     </div>
   );
-}
-
-function actionsByItem(actions: ItemActionView[]): Map<string, ItemActionView[]> {
-  const result = new Map<string, ItemActionView[]>();
-  actions.forEach((action) => {
-    const entries = result.get(action.item_ref) ?? [];
-    entries.push(action);
-    result.set(action.item_ref, entries);
-  });
-  return result;
 }
 
 export function DefaultInventory({

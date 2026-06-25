@@ -9,6 +9,7 @@ import type {
   UiNotification,
 } from "../../types/game.js";
 import type { CharacterLookup } from "../../lib/characters.js";
+import type { DamagePulse } from "../../lib/resolutionPresentation.js";
 
 export interface ChoicesProps {
   view: GameView;
@@ -32,6 +33,7 @@ export interface NarrativeProps {
   characters: CharacterLookup;
   isGameOver: boolean;
   prevBlock?: TextBlock;
+  first?: boolean;
   onCharacterProfile?: (character: CharacterView) => void;
 }
 
@@ -45,6 +47,8 @@ export interface VitalsProps {
   playerStats: GameView["player_stats"];
   borderColor: string;
   controls?: ReactNode;
+  damagePulse?: DamagePulse | null;
+  onDamagePulseEnd?: () => void;
 }
 
 export interface InventoryProps {
