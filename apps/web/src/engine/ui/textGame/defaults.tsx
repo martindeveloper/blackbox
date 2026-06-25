@@ -378,6 +378,7 @@ function SupportBundleMenuButton({ onClick }: { onClick?: () => void }) {
 export function DefaultSystemMenu({
   isTerminal,
   onSave,
+  onOpenLoad,
   onOpenMainMenu,
   onRestart,
   onCreateSupportBundle,
@@ -388,6 +389,11 @@ export function DefaultSystemMenu({
       <button type="button" onClick={onSave}>
         {t("save.title")}
       </button>
+      {onOpenLoad && (
+        <button type="button" onClick={onOpenLoad}>
+          {t("save.dataTitle", { defaultValue: t("save.title") })}
+        </button>
+      )}
       <button type="button" onClick={onOpenMainMenu}>
         {t("choices.goToMainMenu")}
       </button>
@@ -488,6 +494,7 @@ export function DefaultGameScreen({
   notifications,
   commandPending,
   examine,
+  lastSavedAt,
   onChoose,
   onContinue,
   onExamine,
@@ -550,7 +557,9 @@ export function DefaultGameScreen({
         children: (
           <SystemMenu
             isTerminal={isTerminal}
+            lastSavedAt={lastSavedAt}
             onSave={onSave}
+            onOpenLoad={onOpenLoad}
             onOpenMainMenu={onOpenMainMenu}
             onRestart={onRestart}
             {...(onCreateSupportBundle ? { onCreateSupportBundle } : {})}

@@ -84,7 +84,8 @@ export const engineEn = {
     fail: "Failed",
   },
   save: {
-    title: "Save data",
+    title: "Save game",
+    dataTitle: "Backup / restore save",
     eyebrow: "Backup and restore",
     checkpoint: "Current save",
     copy: "Copy",

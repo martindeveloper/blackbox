@@ -26,6 +26,7 @@ export function useSlotNavigation(runtime: SessionRuntime) {
     setCommandPending,
     setChapterTransition,
     setAppStatus,
+    setLastSavedAt,
     reportBootError,
     cancelAutosave,
     clearTransientUi,
@@ -55,6 +56,7 @@ export function useSlotNavigation(runtime: SessionRuntime) {
         const nextView = restoreEngineState(engine, slotData.state.trim());
         activeSlotRef.current = index;
         lastAutosaveRef.current = slotData.state.trim();
+        setLastSavedAt(slotData.savedAt);
         startPlaytimeClock();
         startAnalyticsSession("continue", nextView, slotData.totalPlaytimeMs);
         setSession({ phase: "ready", engine, bundle: s.bundle, view: nextView });
@@ -85,6 +87,7 @@ export function useSlotNavigation(runtime: SessionRuntime) {
       lastAutosaveRef,
       sessionRef,
       setAppStatus,
+      setLastSavedAt,
       setMenuLoading,
       setSession,
       startAnalyticsSession,
@@ -122,6 +125,7 @@ export function useSlotNavigation(runtime: SessionRuntime) {
         startAnalyticsSession(hadExistingSlot ? "slot_restart" : "new_game", nextView, 0);
         setSession({ phase: "ready", engine: nextEngine, bundle: s.bundle, view: nextView });
         setSavedState(null);
+        setLastSavedAt(readSlot(activeSlotRef.current)?.savedAt ?? null);
         setAppStatus(t("status.online"), "ready");
         logger.info("session", "Slot restarted fresh", {
           slot: index,
@@ -147,6 +151,7 @@ export function useSlotNavigation(runtime: SessionRuntime) {
       sessionRef,
       setAppStatus,
       setChapterTransition,
+      setLastSavedAt,
       setMenuLoading,
       setSavedState,
       setSession,
@@ -184,6 +189,7 @@ export function useSlotNavigation(runtime: SessionRuntime) {
       startAnalyticsSession("full_restart", nextView, 0);
       setSession({ phase: "ready", engine: nextEngine, bundle: s.bundle, view: nextView });
       setSavedState(null);
+      setLastSavedAt(readSlot(activeSlotRef.current)?.savedAt ?? null);
       setAppStatus(t("status.online"), "ready");
       logger.info("session", "Game restarted", {
         slot: activeSlotRef.current,
@@ -201,6 +207,7 @@ export function useSlotNavigation(runtime: SessionRuntime) {
     sessionRef,
     setAppStatus,
     setChapterTransition,
+    setLastSavedAt,
     setSavedState,
     setSession,
     startAnalyticsSession,
@@ -230,7 +237,13 @@ export function useSlotNavigation(runtime: SessionRuntime) {
         checkpoint.state,
         checkpoint.chapterId,
       );
-      writeSlot(activeSlotRef.current, checkpoint.state, checkpoint.chapterId, checkpoint.location);
+      const savedAt = writeSlot(
+        activeSlotRef.current,
+        checkpoint.state,
+        checkpoint.chapterId,
+        checkpoint.location,
+      );
+      if (savedAt) setLastSavedAt(savedAt);
       lastAutosaveRef.current = checkpoint.state;
       startAnalyticsSession(
         "chapter_restart",
@@ -267,6 +280,7 @@ export function useSlotNavigation(runtime: SessionRuntime) {
     sessionRef,
     setAppStatus,
     setCommandPending,
+    setLastSavedAt,
     setSession,
     startAnalyticsSession,
     t,
@@ -288,6 +302,7 @@ export function useSlotNavigation(runtime: SessionRuntime) {
       returnedFromSlot: activeSlotRef.current,
     });
     setSavedState(null);
+    setLastSavedAt(null);
     setAppStatus(t("status.selectSlot"), "info");
     logger.info("session", "Returned to main menu");
   }, [
@@ -301,6 +316,7 @@ export function useSlotNavigation(runtime: SessionRuntime) {
     sessionRef,
     setAppStatus,
     setChapterTransition,
+    setLastSavedAt,
     setSavedState,
     setSession,
     t,
@@ -311,11 +327,31 @@ export function useSlotNavigation(runtime: SessionRuntime) {
     if (s.phase !== "ready" || commandPendingRef.current) return null;
     cancelAutosave();
     const stateStr = serializeEngineState(s.engine);
+    const savedAt = writeSlot(
+      activeSlotRef.current,
+      stateStr,
+      s.view.chapter_id ?? null,
+      s.view.title ?? s.view.chapter_title ?? null,
+      takePlaytimeDelta(),
+    );
     setSavedState(stateStr);
+    if (savedAt) setLastSavedAt(savedAt);
+    lastAutosaveRef.current = stateStr;
     setAppStatus(t("status.saved"), "ready");
-    logger.info("session", "State saved");
+    logger.info("session", "State saved", { slot: activeSlotRef.current });
     return stateStr;
-  }, [cancelAutosave, commandPendingRef, sessionRef, setAppStatus, setSavedState, t]);
+  }, [
+    activeSlotRef,
+    cancelAutosave,
+    commandPendingRef,
+    lastAutosaveRef,
+    sessionRef,
+    setAppStatus,
+    setLastSavedAt,
+    setSavedState,
+    t,
+    takePlaytimeDelta,
+  ]);
 
   const restore = useCallback(
     (stateJson: string) => {
@@ -327,6 +363,7 @@ export function useSlotNavigation(runtime: SessionRuntime) {
         const nextView = restoreEngineState(s.engine, stateJson.trim());
         setSession({ ...s, view: nextView });
         setSavedState(stateJson);
+        setLastSavedAt(null);
         lastAutosaveRef.current = stateJson.trim();
         setAppStatus(t("status.restored"), "ready");
         logger.info("session", t("status.restored"), { node: nextView.node_id });
@@ -342,6 +379,7 @@ export function useSlotNavigation(runtime: SessionRuntime) {
       lastAutosaveRef,
       sessionRef,
       setAppStatus,
+      setLastSavedAt,
       setSavedState,
       setSession,
       t,

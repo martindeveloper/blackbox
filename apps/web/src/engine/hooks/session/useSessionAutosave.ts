@@ -29,6 +29,7 @@ interface UseSessionAutosaveOptions {
   takePlaytimeDelta: () => number;
   setSession: Dispatch<SetStateAction<SessionPhase>>;
   setAppStatus: (message: string, kind?: StatusKind) => void;
+  setLastSavedAt: Dispatch<SetStateAction<string | null>>;
   t: TFunction;
 }
 
@@ -39,6 +40,7 @@ export function useSessionAutosave({
   takePlaytimeDelta,
   setSession,
   setAppStatus,
+  setLastSavedAt,
   t,
 }: UseSessionAutosaveOptions) {
   const autosaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -76,13 +78,14 @@ export function useSessionAutosave({
               logger.debug("session", "Skipped autosave — state unchanged");
               return;
             }
-            writeSlot(
+            const savedAt = writeSlot(
               activeSlotRef.current,
               stateStr,
               view.chapter_id ?? null,
               view.title ?? view.chapter_title ?? null,
               takePlaytimeDelta(),
             );
+            if (savedAt) setLastSavedAt(savedAt);
             lastAutosaveRef.current = stateStr;
             logger.debug("session", "Autosaved to slot", {
               slot: activeSlotRef.current,
@@ -106,7 +109,7 @@ export function useSessionAutosave({
         }
       }, AUTOSAVE_DEBOUNCE_MS);
     },
-    [activeSlotRef, commandPendingRef, lastAutosaveRef, takePlaytimeDelta],
+    [activeSlotRef, commandPendingRef, lastAutosaveRef, setLastSavedAt, takePlaytimeDelta],
   );
 
   useEffect(() => {

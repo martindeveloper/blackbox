@@ -367,9 +367,7 @@ export function NewProjectWizard({ onBack }: NewProjectWizardProps) {
           <div className="splash-crt" />
           <div className="wizard-right-content">
             <div className="wizard-right-eyebrow">{t("welcome.wizard.rightEyebrow")}</div>
-            <h3 className="wizard-right-heading">
-              {title || t("welcome.wizard.untitledProject")}
-            </h3>
+            <h3 className="wizard-right-heading">{title || t("welcome.wizard.untitledProject")}</h3>
             {step === 1 && chapterTitle && (
               <p className="wizard-right-tagline">
                 {t("welcome.wizard.chapterPreview", { title: chapterTitle })}

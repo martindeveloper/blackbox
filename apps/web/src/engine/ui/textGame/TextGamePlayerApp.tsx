@@ -172,6 +172,7 @@ export function TextGamePlayerApp<FadeKind extends string>({
     status,
     statusKind,
     savedState,
+    lastSavedAt,
     menuLoading,
     lastRolls,
     notifications,
@@ -239,7 +240,7 @@ export function TextGamePlayerApp<FadeKind extends string>({
     (currentSavedState: string | null) => {
       openModal({
         id: "save",
-        title: t("save.title"),
+        title: t("save.dataTitle", { defaultValue: t("save.title") }),
         eyebrow: t("save.eyebrow"),
         icon: config.saveModal?.icon,
         tone: config.saveModal?.tone,
@@ -359,8 +360,13 @@ export function TextGamePlayerApp<FadeKind extends string>({
     ],
   );
 
-  const handleSave = useCallback(() => openSaveModal(save()), [openSaveModal, save]);
-  const handleOpenLoad = useCallback(() => openSaveModal(savedState), [openSaveModal, savedState]);
+  const handleSave = useCallback(() => {
+    save();
+  }, [save]);
+  const handleOpenLoad = useCallback(
+    () => openSaveModal(save() ?? savedState),
+    [openSaveModal, save, savedState],
+  );
   const handleCreateSupportBundle = useCallback(
     (fromMenu = false) => {
       if (!SUPPORT_BUNDLE_ENABLED) return;
@@ -429,6 +435,7 @@ export function TextGamePlayerApp<FadeKind extends string>({
             resolutionEpoch={resolutionEpoch}
             commandPending={commandPending}
             examine={examine}
+            lastSavedAt={lastSavedAt}
             onChoose={choose}
             onContinue={continueStory}
             onExamine={examineItem}

@@ -32,6 +32,7 @@ export interface SessionRuntimeActions {
   setExamine: Dispatch<SetStateAction<ItemExamineView | null>>;
   setChapterTransition: Dispatch<SetStateAction<string | null>>;
   setSavedState: Dispatch<SetStateAction<string | null>>;
+  setLastSavedAt: Dispatch<SetStateAction<string | null>>;
   setMenuLoading: Dispatch<SetStateAction<boolean>>;
   setChapterLoading: Dispatch<SetStateAction<boolean>>;
   setChapterLoadingDone: Dispatch<SetStateAction<boolean>>;

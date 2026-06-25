@@ -54,6 +54,7 @@ export function useBlackboxSession({ onSfx, presentation }: UseBlackboxSessionOp
   const [status, setStatus] = useState(() => t("status.loading"));
   const [statusKind, setStatusKind] = useState<StatusKind>("info");
   const [savedState, setSavedState] = useState<string | null>(null);
+  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
   const [menuLoading, setMenuLoading] = useState(false);
 
   const [lastRolls, setLastRolls] = useState<RollRecord[]>([]);
@@ -108,6 +109,7 @@ export function useBlackboxSession({ onSfx, presentation }: UseBlackboxSessionOp
     takePlaytimeDelta,
     setSession,
     setAppStatus,
+    setLastSavedAt,
     t,
   });
 
@@ -155,6 +157,7 @@ export function useBlackboxSession({ onSfx, presentation }: UseBlackboxSessionOp
         setExamine,
         setChapterTransition,
         setSavedState,
+        setLastSavedAt,
         setMenuLoading,
         setChapterLoading,
         setChapterLoadingDone,
@@ -394,6 +397,7 @@ export function useBlackboxSession({ onSfx, presentation }: UseBlackboxSessionOp
     status,
     statusKind,
     savedState,
+    lastSavedAt,
     menuLoading,
     lastRolls,
     notifications,

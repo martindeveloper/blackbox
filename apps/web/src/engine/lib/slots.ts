@@ -77,13 +77,14 @@ export function writeSlot(
   chapterId: string | null = null,
   location: string | null = null,
   playtimeDeltaMs = 0,
-): void {
+): string | null {
   try {
     const preview = parseSavePreview(state);
     const existing = readSlot(index);
+    const savedAt = new Date().toISOString();
     const data: SlotData = {
       state,
-      savedAt: new Date().toISOString(),
+      savedAt,
       totalPlaytimeMs: (existing?.totalPlaytimeMs ?? 0) + normalizedPlaytime(playtimeDeltaMs),
       nodeId: preview?.nodeId ?? null,
       chapterId,
@@ -92,7 +93,10 @@ export function writeSlot(
       chapterCheckpoint: existing?.chapterCheckpoint ?? null,
     };
     writePlayerStorage(slotStorageKey(index), JSON.stringify(data));
-  } catch {}
+    return savedAt;
+  } catch {
+    return null;
+  }
 }
 
 export function writeChapterCheckpoint(

@@ -81,7 +81,9 @@ export interface MainMenuProps {
 
 export interface SystemMenuProps {
   isTerminal: boolean;
+  lastSavedAt?: string | null;
   onSave: () => void;
+  onOpenLoad?: () => void;
   onOpenMainMenu: () => void;
   onRestart: () => void;
   onCreateSupportBundle?: () => void;
@@ -96,6 +98,7 @@ export interface GameScreenProps {
   resolutionEpoch: number;
   commandPending: boolean;
   examine: ItemExamineView | null;
+  lastSavedAt?: string | null;
   onChoose: (choiceId: string) => void;
   onContinue: () => void;
   onExamine: (itemRef: string) => void;

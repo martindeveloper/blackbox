@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useId, useSyncExternalStore } from "react";
 import { assetManager, type AssetKind } from "../lib/assetManager.js";
 import type { CharacterView } from "../types/game.js";
 
@@ -46,20 +46,23 @@ export function useAssetScope(
   kind: AssetKind,
   src: string | undefined,
 ): ManagedAssetView {
+  const instanceId = useId();
+  const instanceScope = `${scope}:${instanceId}`;
+
   useEffect(() => {
-    assetManager.setScope(scope, kind, src);
-    return () => assetManager.clearScope(scope);
-  }, [scope, kind, src]);
+    assetManager.setScope(instanceScope, kind, src);
+    return () => assetManager.clearScope(instanceScope);
+  }, [instanceScope, kind, src]);
 
   // assetManager is an external mutable store: subscribe via useSyncExternalStore so
   // the latest url/status is read on every notification. A plain render-time read
   // here would be a Rules-of-React violation that the React Compiler caches stale.
   const subscribe = useCallback(
-    (onStoreChange: () => void) => assetManager.subscribe(scope, onStoreChange),
-    [scope],
+    (onStoreChange: () => void) => assetManager.subscribe(instanceScope, onStoreChange),
+    [instanceScope],
   );
-  const url = useSyncExternalStore(subscribe, () => assetManager.getScopeUrl(scope));
-  const status = useSyncExternalStore(subscribe, () => assetManager.getScopeStatus(scope));
+  const url = useSyncExternalStore(subscribe, () => assetManager.getScopeUrl(instanceScope));
+  const status = useSyncExternalStore(subscribe, () => assetManager.getScopeStatus(instanceScope));
 
   return { url, status };
 }
