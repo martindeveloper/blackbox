@@ -110,6 +110,22 @@ export function App() {
 }
 ```
 
+### Audio controls
+
+`@engine/sdk/v1/audio` exposes the player audio hook for custom shells and headers.
+`useAudio(...)` returns both mixer mute controls and music pause controls:
+
+- `muted` / `toggleMute` control the master audio mix. Muted audio keeps playback state
+  running silently.
+- `paused` / `togglePause` pause and resume the music channel. Pause fades down quickly,
+  stops advancing the current track, then resumes from the saved position.
+- `audioBlocked` is true while the browser still requires a user gesture before audio can
+  play.
+
+The default `TextGamePlayerApp` header props include the same `muted`, `toggleMute`,
+`paused`, `togglePause`, and `audioBlocked` values, so a custom `Header` can choose whether
+its button means mixer mute or music pause.
+
 ## Component slots
 
 A game provides any of these via `player.components`. Each slot receives a fixed props
