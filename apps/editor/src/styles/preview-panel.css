@@ -585,16 +585,38 @@
   background: #090a0c;
 }
 
+.preview-device-shell {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.preview-device-shell .preview-device-viewport {
+  width: 100%;
+  height: 100%;
+}
+
 .preview-stage--desktop .preview-device-viewport,
 .preview-stage--desktop .preview-frame {
   width: 100%;
   height: 100%;
 }
 
+.preview-stage--responsive .preview-device-viewport,
 .preview-stage--tablet .preview-device-viewport {
   border-radius: 8px;
   box-shadow:
     0 0 0 1px var(--editor-border-2),
+    0 14px 40px rgb(0 0 0 / 24%);
+}
+
+.preview-device-shell--resizable {
+  padding: 8px;
+  border-radius: 10px;
+}
+
+.preview-device-shell--resizable .preview-device-viewport {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--editor-primary) 42%, var(--editor-border-2)),
     0 14px 40px rgb(0 0 0 / 24%);
 }
 
@@ -605,10 +627,173 @@
     0 14px 40px rgb(0 0 0 / 28%);
 }
 
+.preview-resize-handle {
+  position: absolute;
+  z-index: 3;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  opacity: 0.78;
+  transition: opacity 100ms;
+}
+
+.preview-resize-handle::after {
+  position: absolute;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--editor-primary) 58%, var(--editor-text-subtle));
+  content: "";
+}
+
+.preview-resize-handle:hover,
+.preview-resize-handle:focus-visible {
+  opacity: 1;
+}
+
+.preview-resize-handle:focus-visible::after {
+  outline: 1px solid var(--editor-primary);
+  outline-offset: 2px;
+}
+
+.preview-resize-handle--n,
+.preview-resize-handle--s {
+  left: 18px;
+  right: 18px;
+  height: 8px;
+  cursor: ns-resize;
+}
+
+.preview-resize-handle--e,
+.preview-resize-handle--w {
+  top: 18px;
+  bottom: 18px;
+  width: 8px;
+  cursor: ew-resize;
+}
+
+.preview-resize-handle--n {
+  top: 0;
+}
+
+.preview-resize-handle--s {
+  bottom: 0;
+}
+
+.preview-resize-handle--e {
+  right: 0;
+}
+
+.preview-resize-handle--w {
+  left: 0;
+}
+
+.preview-resize-handle--n::after,
+.preview-resize-handle--s::after {
+  right: 0;
+  left: 0;
+  height: 1px;
+}
+
+.preview-resize-handle--e::after,
+.preview-resize-handle--w::after {
+  top: 0;
+  bottom: 0;
+  width: 1px;
+}
+
+.preview-resize-handle--n::after {
+  top: 3px;
+}
+
+.preview-resize-handle--s::after {
+  bottom: 3px;
+}
+
+.preview-resize-handle--e::after {
+  right: 3px;
+}
+
+.preview-resize-handle--w::after {
+  left: 3px;
+}
+
+.preview-resize-handle--ne,
+.preview-resize-handle--se,
+.preview-resize-handle--sw,
+.preview-resize-handle--nw {
+  width: 8px;
+  height: 8px;
+}
+
+.preview-resize-handle--ne::after,
+.preview-resize-handle--se::after,
+.preview-resize-handle--sw::after,
+.preview-resize-handle--nw::after {
+  width: 5px;
+  height: 5px;
+  border: 1px solid color-mix(in srgb, var(--editor-primary) 58%, var(--editor-text-subtle));
+  background: transparent;
+}
+
+.preview-resize-handle--ne {
+  top: 0;
+  right: 0;
+  cursor: nesw-resize;
+}
+
+.preview-resize-handle--se {
+  right: 0;
+  bottom: 0;
+  cursor: nwse-resize;
+}
+
+.preview-resize-handle--sw {
+  bottom: 0;
+  left: 0;
+  cursor: nesw-resize;
+}
+
+.preview-resize-handle--nw {
+  top: 0;
+  left: 0;
+  cursor: nwse-resize;
+}
+
+.preview-resize-handle--ne::after {
+  top: 1px;
+  right: 1px;
+  border-bottom: 0;
+  border-left: 0;
+}
+
+.preview-resize-handle--se::after {
+  right: 1px;
+  bottom: 1px;
+  border-top: 0;
+  border-left: 0;
+}
+
+.preview-resize-handle--sw::after {
+  bottom: 1px;
+  left: 1px;
+  border-top: 0;
+  border-right: 0;
+}
+
+.preview-resize-handle--nw::after {
+  top: 1px;
+  left: 1px;
+  border-right: 0;
+  border-bottom: 0;
+}
+
 .preview-device-dimensions {
   position: absolute;
   right: 10px;
   bottom: 8px;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   padding: 3px 6px;
   border: 1px solid var(--editor-border);
   border-radius: 3px;
@@ -617,6 +802,32 @@
   font-family: var(--font-mono);
   font-size: 8px;
   letter-spacing: 0.04em;
+}
+
+.preview-device-dimensions input {
+  width: 4.6ch;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--editor-text);
+  font: inherit;
+  letter-spacing: inherit;
+  text-align: right;
+}
+
+.preview-device-dimensions input:focus {
+  outline: 1px solid var(--editor-primary);
+  outline-offset: 2px;
+}
+
+.preview-device-dimensions input::-webkit-inner-spin-button,
+.preview-device-dimensions input::-webkit-outer-spin-button {
+  margin: 0;
+  appearance: none;
+}
+
+.preview-device-scale {
+  color: var(--editor-text-subtle);
 }
 
 @media (max-width: 1050px) {
