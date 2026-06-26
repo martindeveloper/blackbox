@@ -37,8 +37,10 @@ export interface TextGamePlayerHeaderProps {
   music?: MusicCue;
   musicLabel: string;
   muted: boolean;
+  paused: boolean;
   audioBlocked: boolean;
   toggleMute: () => void;
+  togglePause: () => void;
 }
 
 export interface ChapterTransitionProps {
@@ -102,17 +104,17 @@ export interface TextGamePlayerAppConfig<FadeKind extends string> {
 function DefaultHeader({
   scenarioTitle,
   status,
-  muted,
+  paused,
   audioBlocked,
-  toggleMute,
+  togglePause,
 }: TextGamePlayerHeaderProps) {
   const { t } = useTranslation();
   return (
     <header className="text-game-player-header">
       <h1>{scenarioTitle}</h1>
       <span>{status}</span>
-      <button type="button" onClick={toggleMute}>
-        {audioBlocked ? t("header.enableAudio") : muted ? t("header.unmute") : t("header.mute")}
+      <button type="button" onClick={togglePause}>
+        {audioBlocked ? t("header.enableAudio") : paused ? t("header.unmute") : t("header.mute")}
       </button>
     </header>
   );
@@ -204,9 +206,13 @@ export function TextGamePlayerApp<FadeKind extends string>({
     () => config.musicFadeKind?.({ session, chapterTransition }),
     [chapterTransition, config, session],
   );
-  const { playSfx, muted, toggleMute, audioBlocked } = useAudio(activeMusic, config.audio, {
-    fadeKind,
-  });
+  const { playSfx, muted, toggleMute, paused, togglePause, audioBlocked } = useAudio(
+    activeMusic,
+    config.audio,
+    {
+      fadeKind,
+    },
+  );
 
   useEffect(() => {
     playSfxRef.current = playSfx;
@@ -230,11 +236,11 @@ export function TextGamePlayerApp<FadeKind extends string>({
       if (isEditableTarget(event.target)) return;
       if (event.metaKey || event.ctrlKey || event.altKey || event.repeat) return;
       event.preventDefault();
-      toggleMute();
+      togglePause();
     }
     document.addEventListener("keydown", handleMuteShortcut);
     return () => document.removeEventListener("keydown", handleMuteShortcut);
-  }, [config.muteShortcut, toggleMute]);
+  }, [config.muteShortcut, togglePause]);
 
   const openSaveModal = useCallback(
     (currentSavedState: string | null) => {
@@ -404,8 +410,10 @@ export function TextGamePlayerApp<FadeKind extends string>({
         music={activeMusic}
         musicLabel={musicLabel}
         muted={muted}
+        paused={paused}
         audioBlocked={audioBlocked}
         toggleMute={toggleMute}
+        togglePause={togglePause}
       />
 
       <ChapterTransition

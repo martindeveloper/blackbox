@@ -42,14 +42,14 @@ function PreviewHeader({
   scenarioTitle,
   status,
   statusKind,
-  muted,
+  paused,
   audioBlocked,
-  toggleMute,
+  togglePause,
 }: TextGamePlayerHeaderProps) {
   const { t } = useTranslation();
   const audioLabel = audioBlocked
     ? t("header.enableAudio")
-    : muted
+    : paused
       ? t("header.unmute")
       : t("header.mute");
 
@@ -70,10 +70,10 @@ function PreviewHeader({
         <button
           type="button"
           className="preview-audio"
-          onClick={toggleMute}
+          onClick={togglePause}
           aria-label={audioLabel}
         >
-          <AudioIcon muted={muted || audioBlocked} />
+          <AudioIcon muted={paused || audioBlocked} />
           <span>{audioLabel}</span>
         </button>
       </div>

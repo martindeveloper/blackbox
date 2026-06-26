@@ -14,7 +14,7 @@ type MusicPlaybackContext = {
   fadeKind?: FadeKind | undefined;
 };
 const resetMusicTracking: () => void;
-const useAudio: <FadeKind extends string>(music: MusicCue | undefined, config: AudioPlaybackConfig<FadeKind>, playback?: MusicPlaybackContext<FadeKind>) => { playSfx: (sfx: import("game").SfxCue) => void; muted: boolean; toggleMute: () => void; audioBlocked: boolean; };
+const useAudio: <FadeKind extends string>(music: MusicCue | undefined, config: AudioPlaybackConfig<FadeKind>, playback?: MusicPlaybackContext<FadeKind>) => { playSfx: (sfx: import("game").SfxCue) => void; muted: boolean; toggleMute: () => void; paused: boolean; togglePause: () => void; audioBlocked: boolean; };
 
 // boot.ts
 const bootGame: (game: GameDefinition) => void;
@@ -547,9 +547,11 @@ type TextGamePlayerHeaderProps = {
   music?: MusicCue | undefined;
   musicLabel: string;
   muted: boolean;
+  paused: boolean;
   scenarioTitle: string;
   session: SessionPhase;
   status: string;
   statusKind: "ready" | "error" | "info";
   toggleMute: () => void;
+  togglePause: () => void;
 };

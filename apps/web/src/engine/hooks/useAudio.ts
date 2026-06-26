@@ -60,6 +60,9 @@ export function useAudio<FadeKind extends string>(
 ) {
   const { masterVolume, musicVolume, sfxVolume } = useAppSettings();
   const [muted, setMuted] = useState(() => getSharedEngine(config.defaultSfx).isMasterMuted());
+  const [paused, setPaused] = useState(() =>
+    getSharedEngine(config.defaultSfx).isChannelPaused(MUSIC_CHANNEL),
+  );
   const [audioBlocked, setAudioBlocked] = useState(() =>
     getSharedEngine(config.defaultSfx).isBlocked(),
   );
@@ -263,6 +266,26 @@ export function useAudio<FadeKind extends string>(
     setMuted(engine.isMasterMuted());
   }, [audioBlocked, config.defaultSfx]);
 
+  const togglePause = useCallback(() => {
+    const engine = getSharedEngine(config.defaultSfx);
+    if (audioBlocked) {
+      if (engine.isChannelPaused(MUSIC_CHANNEL)) {
+        engine.resumeChannel(MUSIC_CHANNEL, 0.25);
+        setPaused(false);
+      }
+      runUnlockRef.current();
+      return;
+    }
+    if (engine.isChannelPaused(MUSIC_CHANNEL)) {
+      engine.resumeChannel(MUSIC_CHANNEL, 0.25);
+      logger.debug("audio", "Music resumed");
+    } else {
+      engine.pauseChannel(MUSIC_CHANNEL, 0.25);
+      logger.debug("audio", "Music paused");
+    }
+    setPaused(engine.isChannelPaused(MUSIC_CHANNEL));
+  }, [audioBlocked, config.defaultSfx]);
+
   const playSfx = useCallback(
     (sfx: SfxCue) => {
       logger.debug("audio", `SFX → ${sfx.src}`, { ref_id: sfx.ref_id });
@@ -273,5 +296,5 @@ export function useAudio<FadeKind extends string>(
     [config.defaultSfx],
   );
 
-  return { playSfx, muted, toggleMute, audioBlocked };
+  return { playSfx, muted, toggleMute, paused, togglePause, audioBlocked };
 }

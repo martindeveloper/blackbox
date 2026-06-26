@@ -39,8 +39,10 @@ interface Channel {
   gain: GainNode | null;
   volume: number;
   muted: boolean;
+  paused: boolean;
   active: Track | null;
   outgoing: Track | null;
+  pauseTimer?: ReturnType<typeof setTimeout>;
 }
 
 const FADE_CURVE_STEPS = 128;
@@ -156,6 +158,7 @@ export class AudioEngine {
         gain: null,
         volume: 1,
         muted: false,
+        paused: false,
         active: null,
         outgoing: null,
       };
@@ -362,7 +365,7 @@ export class AudioEngine {
       .then((buffer) => {
         if (this._destroyed || ch.active !== track) return;
         track.buffer = buffer;
-        if (this._isRunning()) {
+        if (this._isRunning() && !ch.paused) {
           this._startTrack(ch, track);
         }
       })
@@ -409,6 +412,7 @@ export class AudioEngine {
 
   private _startTrack(ch: Channel, track: Track): void {
     if (!track.buffer || !track.playing || !this._isRunning()) return;
+    if (ch.paused) return;
     if (track.source || track.loopTimer !== undefined) return;
     const ctx = this._ctx!;
     const chGain = this._ensureChannelGain(ch);
@@ -504,6 +508,7 @@ export class AudioEngine {
 
   private _haltAllTracks(): void {
     for (const ch of this._channels.values()) {
+      this._clearChannelPauseTimer(ch);
       if (ch.outgoing) {
         this._destroyTrack(ch.outgoing);
         ch.outgoing = null;
@@ -520,8 +525,14 @@ export class AudioEngine {
       this._masterGain.gain.setValueAtTime(target, this._ctx.currentTime);
     }
     for (const ch of this._channels.values()) {
-      if (ch.active) this._startTrack(ch, ch.active);
+      if (!ch.paused && ch.active) this._startTrack(ch, ch.active);
     }
+  }
+
+  private _clearChannelPauseTimer(ch: Channel): void {
+    if (ch.pauseTimer === undefined) return;
+    clearTimeout(ch.pauseTimer);
+    ch.pauseTimer = undefined;
   }
 
   private _destroyTrack(track: Track): void {
@@ -625,6 +636,59 @@ export class AudioEngine {
 
   isChannelMuted(channelName: string): boolean {
     return this._channels.get(channelName)?.muted ?? false;
+  }
+
+  pauseChannel(channelName: string, fadeSecs = 0): void {
+    const ch = this._getChannel(channelName);
+    ch.paused = true;
+    this._clearChannelPauseTimer(ch);
+    if (!ch.gain) return;
+    const now = this._getCtx().currentTime;
+    if (fadeSecs > 0) {
+      ch.gain.gain.setValueAtTime(ch.gain.gain.value, now);
+      ch.gain.gain.linearRampToValueAtTime(0, now + fadeSecs);
+      ch.pauseTimer = setTimeout(() => {
+        ch.pauseTimer = undefined;
+        if (!ch.paused) return;
+        if (ch.outgoing) {
+          this._destroyTrack(ch.outgoing);
+          ch.outgoing = null;
+        }
+        if (ch.active) this._haltTrack(ch.active);
+      }, fadeSecs * 1000);
+      return;
+    }
+    ch.gain.gain.setValueAtTime(0, now);
+    if (ch.outgoing) {
+      this._destroyTrack(ch.outgoing);
+      ch.outgoing = null;
+    }
+    if (ch.active) this._haltTrack(ch.active);
+  }
+
+  resumeChannel(channelName: string, fadeSecs = 0): void {
+    const ch = this._getChannel(channelName);
+    ch.paused = false;
+    this._clearChannelPauseTimer(ch);
+    if (!ch.gain) return;
+    const ctx = this._getCtx();
+    const now = ctx.currentTime;
+    const targetVolume = ch.muted ? 0 : ch.volume;
+    if (fadeSecs > 0) {
+      ch.gain.gain.setValueAtTime(ch.gain.gain.value, now);
+      ch.gain.gain.linearRampToValueAtTime(targetVolume, now + fadeSecs);
+    } else {
+      ch.gain.gain.setValueAtTime(targetVolume, now);
+    }
+    if (!this._isRunning()) {
+      ctx.resume().catch(() => {});
+      return;
+    }
+    if (ch.active) this._startTrack(ch, ch.active);
+  }
+
+  isChannelPaused(channelName: string): boolean {
+    return this._channels.get(channelName)?.paused ?? false;
   }
 
   setMasterVolume(volume: number, fadeSecs = 0): void {
@@ -771,6 +835,7 @@ export class AudioEngine {
   destroy(): void {
     this._destroyed = true;
     for (const ch of this._channels.values()) {
+      this._clearChannelPauseTimer(ch);
       if (ch.active) this._destroyTrack(ch.active);
       if (ch.outgoing) this._destroyTrack(ch.outgoing);
     }
