@@ -5,12 +5,88 @@ import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { Footer } from "./components/Footer";
 import "./i18n/index";
+import "./styles/games-catalog.css";
 
 function ArrowIcon() {
   return (
-    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" aria-hidden="true">
       <path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" strokeWidth="1.7" />
     </svg>
+  );
+}
+
+type CaseFile = {
+  number: string;
+  status: string;
+  statusKind: "live" | "soon";
+  tags: string[];
+  location: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  href: string;
+  image: string;
+  imageAlt: string;
+  featured?: boolean;
+  priority?: boolean;
+  explore: string;
+  play?: { label: string; url: string };
+};
+
+function CaseFileCard(file: CaseFile) {
+  const soon = file.statusKind === "soon";
+  return (
+    <article
+      className={[
+        "game-card",
+        file.featured && "game-card--featured",
+        soon && "game-card--upcoming",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
+      <Link className="game-card-cover" href={file.href}>
+        <Image
+          src={file.image}
+          alt={file.imageAlt}
+          fill
+          priority={file.priority}
+          sizes="(max-width: 679px) 100vw, (max-width: 1039px) 50vw, 33vw"
+        />
+        <div className="game-card-wash" aria-hidden="true" />
+        <span className="game-card-number">{file.number}</span>
+        <span className={`game-card-badge${soon ? " game-card-badge--soon" : ""}`}>
+          <i />
+          {file.status}
+        </span>
+        <div className="game-card-headline">
+          <p className="game-card-location">{file.location}</p>
+          <h2>{file.title}</h2>
+          <p className="game-card-subtitle">{file.subtitle}</p>
+        </div>
+      </Link>
+
+      <div className="game-card-body">
+        <div className="game-card-tags">
+          {file.tags.map((tag) => (
+            <span key={tag}>{tag}</span>
+          ))}
+        </div>
+        <p className="game-card-desc">{file.description}</p>
+        <div className="game-card-actions">
+          <Link className="game-card-link" href={file.href}>
+            {file.explore}
+            <ArrowIcon />
+          </Link>
+          {file.play && (
+            <a className="game-card-link game-card-link--play" href={file.play.url}>
+              {file.play.label}
+              <ArrowIcon />
+            </a>
+          )}
+        </div>
+      </div>
+    </article>
   );
 }
 
@@ -28,6 +104,17 @@ export function GamesIndexPage() {
     explore: string;
     play: string;
     play_url: string;
+  };
+  const lesserBlood = t("gamesIndex.theLesserBlood", { returnObjects: true }) as {
+    image_alt: string;
+    number: string;
+    status: string;
+    tags: string[];
+    location: string;
+    title: string;
+    subtitle: string;
+    description: string;
+    explore: string;
   };
   const ledger = t("gamesIndex.ledger", { returnObjects: true }) as string[];
 
@@ -74,58 +161,45 @@ export function GamesIndexPage() {
               <p>{t("gamesIndex.catalog.subheading")}</p>
             </div>
 
-            <article className="game-catalog-card">
-              <Link
-                className="game-catalog-visual"
+            <div className="games-shelf">
+              <CaseFileCard
+                number={game.number}
+                status={game.status}
+                statusKind="live"
+                tags={game.tags}
+                location={game.location}
+                title={game.title}
+                subtitle={game.subtitle}
+                description={game.description}
                 href="/games/silent-archive"
-                style={{ position: "relative" }}
-              >
-                <Image
-                  src="/games/silent-archive/mainmenu.webp"
-                  alt={game.image_alt}
-                  fill
-                  priority
-                  sizes="(max-width: 767px) 100vw, 72vw"
-                />
-                <div className="game-catalog-image-wash" />
-                <span className="game-catalog-number">{game.number}</span>
-                <span className="game-catalog-status">
-                  <i />
-                  {game.status}
-                </span>
-              </Link>
+                image="/games/silent-archive/mainmenu.webp"
+                imageAlt={game.image_alt}
+                featured
+                priority
+                explore={game.explore}
+                play={{ label: game.play, url: game.play_url }}
+              />
 
-              <div className="game-catalog-body">
-                <div className="game-catalog-meta">
-                  {game.tags.map((tag) => (
-                    <span key={tag}>{tag}</span>
-                  ))}
-                </div>
-                <div className="game-catalog-copy">
-                  <div>
-                    <p className="game-catalog-location">{game.location}</p>
-                    <h2>{game.title}</h2>
-                    <p className="game-catalog-subtitle">{game.subtitle}</p>
-                  </div>
-                  <p>{game.description}</p>
-                </div>
-                <div className="game-catalog-actions">
-                  <Link className="game-catalog-detail" href="/games/silent-archive">
-                    {game.explore}
-                    <ArrowIcon />
-                  </Link>
-                  <a className="game-catalog-play" href={game.play_url}>
-                    {game.play}
-                    <ArrowIcon />
-                  </a>
-                </div>
-              </div>
-            </article>
+              <CaseFileCard
+                number={lesserBlood.number}
+                status={lesserBlood.status}
+                statusKind="soon"
+                tags={lesserBlood.tags}
+                location={lesserBlood.location}
+                title={lesserBlood.title}
+                subtitle={lesserBlood.subtitle}
+                description={lesserBlood.description}
+                href="/games/the-lesser-blood"
+                image="/games/the-lesser-blood/mood.webp"
+                imageAlt={lesserBlood.image_alt}
+                explore={lesserBlood.explore}
+              />
 
-            <div className="games-catalog-pending">
-              <span>{t("gamesIndex.pending.number")}</span>
-              <p>{t("gamesIndex.pending.message")}</p>
-              <strong>{t("gamesIndex.pending.label")}</strong>
+              <article className="game-card game-card--pending">
+                <span className="game-card-pending-num">{t("gamesIndex.pending.number")}</span>
+                <p>{t("gamesIndex.pending.message")}</p>
+                <span className="game-card-pending-label">{t("gamesIndex.pending.label")}</span>
+              </article>
             </div>
           </div>
         </section>

@@ -1,0 +1,569 @@
+.games-index-page {
+  --catalog-ink: #1a1008;
+  --catalog-paper: var(--product-page-paper);
+  --catalog-card: var(--product-page-panel);
+  --catalog-line: var(--product-page-line);
+  --catalog-rust: #d45f18;
+  --catalog-muted: rgba(58, 38, 24, 0.58);
+  --catalog-copy: rgba(26, 18, 11, 0.68);
+  --catalog-shadow: rgba(36, 22, 12, 0.12);
+  background: var(--catalog-paper);
+  color: var(--catalog-ink);
+  transition:
+    background-color 240ms ease,
+    color 240ms ease;
+}
+
+.games-index-hero {
+  position: relative;
+  overflow: hidden;
+  padding: var(--product-hero-padding-top) 0 clamp(2.5rem, 6vw, 4rem);
+  border-bottom: 1px solid var(--catalog-line);
+  background:
+    radial-gradient(circle at 12% 18%, rgba(212, 95, 24, 0.22), transparent 28rem),
+    radial-gradient(circle at 88% 0%, rgba(118, 85, 48, 0.1), transparent 22rem),
+    var(--catalog-paper);
+  transition:
+    background-color 240ms ease,
+    border-color 240ms ease;
+}
+
+.games-index-grid {
+  position: absolute;
+  inset: 0;
+  opacity: 0.22;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--catalog-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--catalog-line) 1px, transparent 1px);
+  background-size: var(--product-hero-grid-size) var(--product-hero-grid-size);
+  mask-image: linear-gradient(to bottom, black, transparent 72%);
+}
+
+.games-index-hero-inner {
+  position: relative;
+  z-index: 1;
+}
+
+.games-index-eyebrow,
+.games-catalog-heading,
+.games-index-ledger {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.games-index-eyebrow {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid var(--catalog-line);
+  color: var(--catalog-muted);
+}
+
+.games-index-eyebrow span:first-child {
+  color: var(--catalog-rust);
+}
+
+.games-index-title-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(17rem, 0.45fr);
+  gap: clamp(2rem, 8vw, 7rem);
+  align-items: end;
+  padding: var(--product-hero-copy-padding);
+}
+
+.games-index-title-row h1 {
+  font-family: var(--font-display);
+  font-size: clamp(4.8rem, 12vw, 10.5rem);
+  line-height: 0.77;
+  letter-spacing: -0.015em;
+  text-transform: uppercase;
+}
+
+.games-index-title-row p {
+  padding-left: 1.25rem;
+  border-left: 2px solid var(--catalog-rust);
+  color: var(--catalog-copy);
+  font-size: clamp(0.95rem, 1.6vw, 1.08rem);
+  line-height: 1.8;
+}
+
+.games-index-ledger {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--catalog-line);
+  border-bottom: 1px solid var(--catalog-line);
+}
+
+.games-index-ledger span {
+  padding: 1rem 1.1rem;
+  border-right: 1px solid var(--catalog-line);
+  color: var(--catalog-muted);
+}
+
+.games-index-ledger span:last-child {
+  border-right: none;
+}
+
+.games-catalog {
+  padding-block: clamp(4rem, 9vw, 8rem);
+}
+
+.games-catalog-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--catalog-line);
+  color: var(--catalog-muted);
+}
+
+.games-catalog-heading span {
+  color: var(--catalog-rust);
+}
+
+/* ── Catalog shelf — capsule grid so every record stays in view ── */
+.games-shelf {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(1.1rem, 2vw, 1.75rem);
+  margin-top: clamp(2rem, 4vw, 3.25rem);
+}
+
+@media (min-width: 680px) {
+  .games-shelf {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1040px) {
+  .games-shelf {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.game-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--catalog-card);
+  border: 1px solid var(--catalog-line);
+  box-shadow: 0 1rem 2.5rem var(--catalog-shadow);
+  transition:
+    transform 240ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    border-color 240ms ease,
+    box-shadow 240ms ease;
+}
+
+.game-card:hover {
+  transform: translateY(-6px);
+  border-color: color-mix(in srgb, var(--catalog-rust) 60%, var(--catalog-line));
+  box-shadow: 0 1.75rem 4rem var(--catalog-shadow);
+}
+
+/* the released flagship: a quiet rust accent, same footprint as the rest */
+.game-card--featured {
+  border-color: color-mix(in srgb, var(--catalog-rust) 42%, var(--catalog-line));
+}
+
+.game-card--featured::after {
+  content: "";
+  position: absolute;
+  inset: -1px -1px auto -1px;
+  height: 3px;
+  z-index: 4;
+  background: linear-gradient(90deg, var(--catalog-rust), transparent 78%);
+}
+
+.game-card-cover {
+  position: relative;
+  display: block;
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+  background: #0a0908;
+}
+
+.game-card-cover img {
+  object-fit: cover;
+  object-position: center 45%;
+  filter: saturate(0.78) contrast(1.05);
+  transition:
+    transform 900ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    filter 900ms ease;
+}
+
+.game-card:hover .game-card-cover img {
+  transform: scale(1.045);
+  filter: saturate(0.95);
+}
+
+.game-card-wash {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      0deg,
+      rgba(6, 5, 4, 0.9) 0%,
+      rgba(6, 5, 4, 0.52) 22%,
+      rgba(6, 5, 4, 0.08) 50%,
+      transparent 74%
+    ),
+    linear-gradient(90deg, rgba(6, 5, 4, 0.24), transparent 46%);
+}
+
+.game-card--upcoming .game-card-wash {
+  background:
+    linear-gradient(
+      0deg,
+      rgba(9, 6, 4, 0.92) 0%,
+      rgba(9, 6, 4, 0.5) 24%,
+      rgba(9, 6, 4, 0.1) 52%,
+      transparent 78%
+    ),
+    linear-gradient(90deg, rgba(9, 6, 4, 0.28), transparent 48%);
+}
+
+.game-card-number {
+  position: absolute;
+  top: 0.85rem;
+  left: 1rem;
+  z-index: 2;
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 4vw, 3.2rem);
+  line-height: 1;
+  color: rgba(244, 233, 214, 0.4);
+  text-shadow: 0 3px 14px rgba(0, 0, 0, 0.55);
+}
+
+.game-card-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid rgba(244, 233, 214, 0.2);
+  border-radius: 999px;
+  background: rgba(12, 9, 6, 0.55);
+  backdrop-filter: blur(6px);
+  color: rgba(244, 233, 214, 0.86);
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.game-card-badge i {
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 50%;
+  background: var(--catalog-rust);
+  box-shadow: 0 0 0.6rem var(--catalog-rust);
+}
+
+.game-card-badge--soon i {
+  background: #e7b54f;
+  box-shadow: 0 0 0.6rem #e7b54f;
+  animation: games-soon-pulse 2.6s ease-in-out infinite;
+}
+
+@keyframes games-soon-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  45% {
+    opacity: 0.55;
+    transform: scale(0.82);
+  }
+}
+
+.game-card-headline {
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: 2;
+  padding: 1.35rem 1.3rem 1.3rem;
+}
+
+.game-card-location {
+  margin-bottom: 0.6rem;
+  color: var(--catalog-rust);
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.game-card-headline h2 {
+  font-family: var(--font-display);
+  font-size: clamp(2.1rem, 3.4vw, 2.9rem);
+  line-height: 0.96;
+  letter-spacing: 0.012em;
+  text-transform: uppercase;
+  color: #f4ead5;
+}
+
+.game-card-subtitle {
+  margin-top: 0.65rem;
+  color: rgba(244, 233, 214, 0.66);
+  font-size: 0.82rem;
+  letter-spacing: 0.07em;
+}
+
+.game-card-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 1.15rem;
+  padding: clamp(1.3rem, 2.2vw, 1.65rem) clamp(1.3rem, 2.2vw, 1.6rem) clamp(1.4rem, 2.4vw, 1.7rem);
+}
+
+.game-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem 1.05rem;
+  color: var(--catalog-muted);
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.game-card-desc {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--catalog-copy);
+  font-size: 0.95rem;
+  line-height: 1.78;
+}
+
+.game-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: auto;
+  padding-top: 0.3rem;
+}
+
+.game-card-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.62rem 0.95rem;
+  border: 1px solid color-mix(in srgb, var(--catalog-ink) 26%, transparent);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition:
+    background 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.game-card-link:hover {
+  transform: translateY(-2px);
+  background: color-mix(in srgb, var(--catalog-ink) 6%, transparent);
+}
+
+.game-card-link--play {
+  background: var(--catalog-ink);
+  border-color: var(--catalog-ink);
+  color: #f1e5d3;
+}
+
+.game-card-link--play:hover {
+  background: var(--catalog-rust);
+  border-color: var(--catalog-rust);
+  color: #120c08;
+}
+
+/* pending placeholder fills a shelf cell so the catalog reads as ongoing */
+.game-card--pending {
+  justify-content: center;
+  gap: 0.8rem;
+  min-height: 13rem;
+  padding: clamp(1.5rem, 3vw, 2.25rem);
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--catalog-ink) 24%, transparent);
+  background: transparent;
+  box-shadow: none;
+}
+
+.game-card--pending:hover {
+  transform: none;
+  border-color: color-mix(in srgb, var(--catalog-rust) 40%, transparent);
+}
+
+.game-card-pending-num {
+  font-family: var(--font-display);
+  font-size: clamp(2.6rem, 5vw, 3.6rem);
+  line-height: 1;
+  color: color-mix(in srgb, var(--catalog-ink) 32%, transparent);
+}
+
+.game-card--pending p {
+  max-width: 26ch;
+  color: var(--catalog-muted);
+  line-height: 1.7;
+}
+
+.game-card-pending-label {
+  color: var(--catalog-rust);
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 900px) {
+  .games-index-title-row {
+    grid-template-columns: 1fr;
+  }
+
+  .games-index-title-row p {
+    max-width: 42rem;
+  }
+
+  .games-index-ledger {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .games-index-ledger span:nth-child(2) {
+    border-right: none;
+  }
+
+  .games-index-ledger span:nth-child(-n + 2) {
+    border-bottom: 1px solid var(--catalog-line);
+  }
+}
+
+@media (max-width: 767px) {
+  .games-index-title-row h1 {
+    font-size: clamp(4.1rem, 21vw, 6.5rem);
+  }
+
+  .games-index-ledger {
+    grid-template-columns: 1fr;
+  }
+
+  .games-index-ledger span,
+  .games-index-ledger span:nth-child(2) {
+    border-right: none;
+    border-bottom: 1px solid var(--catalog-line);
+  }
+
+  .games-index-ledger span:last-child {
+    border-bottom: none;
+  }
+
+  .games-catalog-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .game-card-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .game-card-link {
+    justify-content: center;
+  }
+}
+
+:root[data-theme="dark"] .games-index-page {
+  --catalog-ink: #f4ebe2;
+  --catalog-paper: var(--product-page-paper);
+  --catalog-card: var(--product-page-panel);
+  --catalog-line: var(--product-page-line);
+  --catalog-rust: #ff7a2f;
+  --catalog-muted: rgba(244, 235, 226, 0.58);
+  --catalog-copy: rgba(229, 214, 191, 0.7);
+  --catalog-shadow: rgba(0, 0, 0, 0.35);
+}
+
+:root[data-theme="dark"] .games-index-hero {
+  background:
+    radial-gradient(circle at 12% 18%, rgba(255, 122, 47, 0.18), transparent 28rem),
+    radial-gradient(circle at 88% 0%, rgba(118, 85, 48, 0.14), transparent 22rem),
+    var(--catalog-paper);
+}
+
+:root[data-theme="dark"] .game-card {
+  box-shadow:
+    0 1.25rem 3.5rem rgba(0, 0, 0, 0.44),
+    inset 0 1px rgba(255, 255, 255, 0.025);
+}
+
+:root[data-theme="dark"] .game-card:hover {
+  box-shadow: 0 1.75rem 4.5rem rgba(0, 0, 0, 0.55);
+}
+
+:root[data-theme="dark"] .game-card-cover img {
+  filter: saturate(0.72) brightness(0.9) contrast(1.05);
+}
+
+:root[data-theme="dark"] .game-card:hover .game-card-cover img {
+  filter: saturate(0.9) brightness(1) contrast(1.01);
+}
+
+:root[data-theme="dark"] .game-card-link--play {
+  background: var(--catalog-rust);
+  border-color: var(--catalog-rust);
+  color: #100b08;
+}
+
+:root[data-theme="dark"] .game-card-link--play:hover {
+  background: transparent;
+  color: var(--catalog-rust);
+}
+
+:root[data-theme="dark"] .game-card-link:hover {
+  background: rgba(229, 214, 191, 0.07);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .games-index-reveal {
+    animation: games-index-reveal 760ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  .games-index-delay-1 {
+    animation-delay: 80ms;
+  }
+
+  .games-index-delay-2 {
+    animation-delay: 160ms;
+  }
+
+  .games-index-delay-3 {
+    animation-delay: 240ms;
+  }
+}
+
+@keyframes games-index-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-card-badge--soon i {
+    animation: none;
+  }
+}

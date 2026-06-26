@@ -54,6 +54,22 @@ export const en = {
           "Investigate Archive Complex 7-Meridian in a choice-driven dark sci-fi noir narrative.",
       },
     },
+    theLesserBlood: {
+      title: "The Lesser Blood",
+      description:
+        "Return to Greyfen Hold in The Lesser Blood, a grounded dark-fantasy narrative RPG of inheritance, debt, and the price of a name. Coming soon.",
+      openGraph: {
+        title: "The Lesser Blood — A Blackbox Narrative RPG",
+        description:
+          "The heir is dead. The house is in debt. You are summoned home because your blood became useful. Coming soon.",
+        imageAlt: "The council hall of Greyfen Hold, candlelit over the house ledgers",
+      },
+      twitter: {
+        title: "The Lesser Blood — A Blackbox Narrative RPG",
+        description:
+          "A grounded dark-fantasy story of inheritance, debt, and what you let a noble house become. Coming soon.",
+      },
+    },
     editorPage: {
       title: "Editor",
       description:
@@ -410,7 +426,7 @@ export const en = {
     description:
       "Choice-driven worlds built on the Blackbox narrative engine. Every decision is state. Every consequence stays written.",
     ledger_aria: "Catalog summary",
-    ledger: ["01 published work", "07 chapters", "Browser playable", "More records pending"],
+    ledger: ["01 published work", "01 in progress", "14 chapters drafted", "Browser playable"],
     catalog: {
       heading: "Current releases",
       subheading: "Open an entry to inspect the case file.",
@@ -429,9 +445,21 @@ export const en = {
       play: "Play now",
       play_url: "https://silentarchive.onbbx.com",
     },
-    pending: {
+    theLesserBlood: {
+      image_alt: "The candlelit council hall of Greyfen Hold, ledgers open on the table",
       number: "002",
-      message: "Next transmission not yet cleared for release.",
+      status: "Coming soon",
+      tags: ["Grounded dark fantasy", "Narrative RPG", "In development"],
+      location: "Greyfen Hold · Veyrholm",
+      title: "The Lesser Blood",
+      subtitle: "The Price of a Name",
+      description:
+        "The heir is dead, the house is in debt, and the old road is valuable again. You are the spare child of House Ardent, called home because your blood became useful.",
+      explore: "View the record",
+    },
+    pending: {
+      number: "003",
+      message: "Further records not yet cleared for release.",
       label: "Record pending",
     },
   },
@@ -526,6 +554,51 @@ export const en = {
       copy: "Follow the records. Question the categories. Decide what belongs in the final report — and what the report is allowed to call true.",
       cta: "Play Silent Archive",
       external: "silentarchive.onbbx.com",
+    },
+  },
+  theLesserBlood: {
+    hero: {
+      image_alt:
+        "The council hall of Greyfen Hold at night, a single candle burning over the open house ledgers",
+      crest_aria: "Seal of House Ardent",
+      house: "House Ardent",
+      seat: "Greyfen Hold",
+      record: "Record 002 — settlement pending",
+      title: "The Lesser\nBlood",
+      thesis: "A house does not need monsters to devour its own.",
+      subtitle: "A grounded dark-fantasy of inheritance, debt, and the quiet arithmetic of a name.",
+      status: "Coming soon — the seal is not yet broken",
+      register_aria: "Estate record",
+      register: [
+        { label: "Realm", value: "Veyrholm" },
+        { label: "Seat", value: "Greyfen Hold" },
+        { label: "House", value: "Ardent" },
+        { label: "Chapters", value: "VII" },
+        { label: "Format", value: "Choice-driven" },
+        { label: "Engine", value: "Blackbox" },
+      ],
+    },
+    deed: {
+      index: "01 / The matter at hand",
+      inscription_mark: "“",
+      inscription:
+        "A noble house is not only a family. It is a machine for turning blood, land, debt, marriage, and reputation into survival.",
+      inscription_source: "— the rule of the lesser blood",
+      account: [
+        "The heir is dead. The house is in debt. The old road has become valuable again — and that has drawn polite predators to a damp keep that looks more respectable from the road than from inside. You are the spare child of House Ardent: sent away when you were inconvenient, summoned home now that your blood is useful.",
+        "No one need draw a sword to narrow a life here. Ruin arrives already signed — a missing name, a closed register, an inherited debt, a marriage clause blessed in proper order. The question was never how to save the house. It is what you are willing to let it become, and who pays for that decision.",
+      ],
+    },
+    writ: {
+      seal_word: "Unsealed",
+      headline: "The settlement is not yet filed.",
+      body: "Greyfen's record is still being written. When the seal breaks, the house will open its doors, its ledgers, and its debts to you.",
+      warning_label: "On the record",
+      warning:
+        "Explores debt, coercion, class and legitimacy, grief, and morally compromised choices. No clean hands are promised.",
+      back: "Return to the catalog",
+      meanwhile: "Play Silent Archive while you wait",
+      meanwhile_url: "https://silentarchive.onbbx.com",
     },
   },
   editorPage: {

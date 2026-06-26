@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useTranslation } from "react-i18next";
 import { Footer } from "./components/Footer";
 import "./i18n/index";
+import "./styles/silent-archive.css";
 
 type EvidenceItem = {
   id: string;
