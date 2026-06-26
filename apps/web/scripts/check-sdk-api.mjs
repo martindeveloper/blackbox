@@ -39,6 +39,10 @@ function normalize(text) {
   });
 }
 
+function normalizeSnapshot(text) {
+  return text.replace(/\r\n?/g, "\n");
+}
+
 const FORMAT_FLAGS =
   ts.TypeFormatFlags.NoTruncation | ts.TypeFormatFlags.WriteTypeArgumentsOfSignature;
 
@@ -139,7 +143,9 @@ if (update) {
 }
 
 const prev = fs.existsSync(GOLDEN) ? fs.readFileSync(GOLDEN, "utf8") : "";
-if (prev === next) {
+const prevNormalized = normalizeSnapshot(prev);
+const nextNormalized = normalizeSnapshot(next);
+if (prevNormalized === nextNormalized) {
   console.log("SDK v1 API surface matches the snapshot.");
   process.exit(0);
 }
@@ -148,8 +154,8 @@ console.error(
   "SDK v1 API surface changed. If this is intentional, run:\n  npm run check:api -- --update\n",
 );
 // Minimal line diff for the failure output.
-const a = prev.split("\n");
-const b = next.split("\n");
+const a = prevNormalized.split("\n");
+const b = nextNormalized.split("\n");
 const max = Math.max(a.length, b.length);
 for (let i = 0; i < max; i++) {
   if (a[i] !== b[i]) {
