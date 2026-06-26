@@ -18,5 +18,7 @@ export const metadata: Metadata = {
 export default function Page() {
   const nav = listDocs();
   const doc = getDoc("index");
-  return <DocsPage doc={doc} nav={nav} prose={<DocsProse content={doc.content} />} />;
+  return (
+    <DocsPage doc={doc} nav={nav} prose={<DocsProse key={doc.slug} content={doc.content} />} />
+  );
 }

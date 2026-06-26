@@ -52,14 +52,14 @@ async function fixture() {
       await fs.mkdir(src, { recursive: true });
       await fs.writeFile(
         path.join(src, "game.ts"),
-        `import type { GameDefinition } from "@engine/boot.js";
+        `import type { GameDefinition } from "@engine/sdk/v1/boot.js";
 import { App } from "./App.js";
 export const game: GameDefinition = { id: "${folder}", App, i18nResources: {}, player: {} };
 `,
       );
       await fs.writeFile(
         path.join(src, "App.tsx"),
-        `import { TextGamePlayerApp } from "@engine/ui/textGame/TextGamePlayerApp.js";
+        `import { TextGamePlayerApp } from "@engine/sdk/v1/ui/player-app.js";
 export function App() {
   return <TextGamePlayerApp config={{}} />;
 }

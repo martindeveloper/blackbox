@@ -8,7 +8,7 @@ export function starterGameTsDoc(gameId) {
 //
 // Full reference: open the editor's Preview pane and visit /preview-docs.
 
-import type { GameDefinition } from "@engine/boot.js";
+import type { GameDefinition } from "@engine/sdk/v1/boot.js";
 import { App } from "./App.js";
 
 export const game: GameDefinition = {
@@ -43,7 +43,7 @@ export function starterAppTsxDoc() {
 import {
   TextGamePlayerApp,
   type TextGamePlayerAppConfig,
-} from "@engine/ui/textGame/TextGamePlayerApp.js";
+} from "@engine/sdk/v1/ui/player-app.js";
 
 const config: TextGamePlayerAppConfig<string> = {
   // How per-turn state changes become on-screen notifications. Returning an

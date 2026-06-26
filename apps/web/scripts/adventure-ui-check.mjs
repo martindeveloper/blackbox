@@ -34,11 +34,9 @@ function runLint(srcDir) {
 }
 
 function runReactCompilerLint(srcDir) {
-  run(
-    bin("eslint"),
-    ["-c", path.join(WEB_ROOT, "eslint.adventure-react-compiler.mjs"), "."],
-    { cwd: srcDir },
-  );
+  run(bin("eslint"), ["-c", path.join(WEB_ROOT, "eslint.adventure-react-compiler.mjs"), "."], {
+    cwd: srcDir,
+  });
 }
 
 const mode = process.argv[2] ?? "check";

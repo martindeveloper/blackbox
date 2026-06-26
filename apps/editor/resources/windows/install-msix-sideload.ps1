@@ -41,4 +41,4 @@ Import-Certificate `
 Write-Host "Installing $($msix.Name)..."
 Add-AppxPackage -Path $msix.FullName
 
-Write-Host "Done. Blackbox Editor is installed."
+Write-Host "Done. BlackboxEditor is installed."

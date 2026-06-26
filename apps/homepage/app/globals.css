@@ -1799,22 +1799,23 @@ a {
 }
 
 .tok-key {
-  color: #d4a070;
+  color: #f09a55;
+  font-weight: 650;
 }
 .tok-str {
-  color: #88b878;
+  color: #8fcf8a;
 }
 .tok-num {
-  color: #e8c870;
+  color: #f0cf70;
 }
 .tok-brace {
-  color: #d86828;
+  color: #d9c3a8;
 }
 .tok-punct {
-  color: #584838;
+  color: #7c6750;
 }
 .tok-comment {
-  color: #5a7050;
+  color: #6d8a61;
   font-style: italic;
 }
 .tok-cmd {
@@ -1825,6 +1826,47 @@ a {
 }
 .tok-var {
   color: #c9a878;
+}
+.tok-tag {
+  color: #ff825c;
+  font-weight: 650;
+}
+.tok-type {
+  color: #caa4f0;
+}
+.tok-key--control {
+  color: #ff7f92;
+}
+.tok-key--module {
+  color: #ffb45d;
+}
+.tok-key--decl {
+  color: #7fc8ff;
+}
+.tok-template {
+  color: #98d8b0;
+}
+.tok-decorator {
+  color: #f0cf70;
+}
+.tok-attr {
+  color: #f1b36c;
+}
+.tok-fn,
+.tok-method {
+  color: #87cfff;
+}
+.tok-prop {
+  color: #d7b98a;
+}
+.tok-builtin {
+  color: #8bd4e8;
+}
+.tok-const {
+  color: #f4d06f;
+}
+.tok-op {
+  color: #b77cff;
 }
 
 /* ─── Footer ───────────────────────────────────────────────────── */
@@ -7024,7 +7066,7 @@ body:has(.docs-shell) {
   margin-top: 0.4rem;
 }
 
-.docs-shell-prose code {
+.docs-shell-prose :not(pre) > code {
   font-family: var(--font-mono);
   font-size: 0.82em;
   padding: 0.14em 0.4em;
@@ -7034,8 +7076,21 @@ body:has(.docs-shell) {
   color: var(--color-accent-dark);
 }
 
-/* code blocks read as small framed terminals (reusing the snippet dot bar) */
-.docs-shell-prose pre {
+.docs-code-block {
+  margin-block: 1.5rem;
+}
+
+.docs-code-block .snippet-code {
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+
+.docs-code-block .snippet-filename {
+  color: #6a5848;
+}
+
+/* Non-shell code blocks keep the compact framed treatment. */
+.docs-shell-prose pre:not(.snippet-code) {
   position: relative;
   margin-block: 1.5rem;
   padding: 2.15rem 1.2rem 1.1rem;
@@ -7046,7 +7101,7 @@ body:has(.docs-shell) {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
-.docs-shell-prose pre::before {
+.docs-shell-prose pre:not(.snippet-code)::before {
   content: "";
   position: absolute;
   inset: 0 0 auto;
@@ -7060,7 +7115,7 @@ body:has(.docs-shell) {
   pointer-events: none;
 }
 
-.docs-shell-prose pre code {
+.docs-shell-prose pre:not(.snippet-code) code {
   display: block;
   overflow-x: auto;
   padding: 0;

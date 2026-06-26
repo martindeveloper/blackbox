@@ -84,7 +84,7 @@ function cliNotes(content: string): string {
   return joinNotes(
     actions.length > 0 ? `Actions: ${actions.join(", ")}.` : undefined,
     `Platforms: ${platforms}.`,
-    "Invoke as `node cli.js <action>` in a repo checkout or `Blackbox Editor --cli <action>` from a packaged build.",
+    "Invoke as `node cli.js <action>` in a repo checkout or `BlackboxEditor --cli <action>` from a packaged build.",
   );
 }
 

@@ -62,20 +62,20 @@ Use `debug` for dev tooling (in-game console via `__BLACKBOX_DEV__`); `release` 
 
 ## Common commands
 
-| Command                     | Purpose                                                                    |
-| --------------------------- | -------------------------------------------------------------------------- |
-| `npm run build`             | Full release dist; requires `BLACKBOX_ADVENTURE`                           |
-| `npm run dev`               | Watch + live reload; requires `BLACKBOX_ADVENTURE`                         |
-| `npm run build:wasm`        | Rebuild wasm-bindgen pkg only                                              |
-| `npm run build:bundler`     | Cook scenario bundle (release: zstd archive)                               |
-| `npm run build:bundler:dev` | Cook scenario bundle (dev: verbose, skip missing assets, no zst)           |
-| `npm run check`             | Oxlint + Oxfmt check                                                       |
-| `npm run adventure:fmt`     | Format adventure UI (`BLACKBOX_ADVENTURE`, uses `apps/web` oxfmt config)   |
-| `npm run adventure:lint`    | Oxlint adventure UI (`BLACKBOX_ADVENTURE`, uses `apps/web` oxlint config) |
-| `npm run adventure:lint:react-compiler` | React Compiler ESLint on adventure UI (`BLACKBOX_ADVENTURE`) |
-| `npm run adventure:check`     | All three adventure UI checks (fmt check + oxlint + react-compiler)        |
-| `npm run deploy`            | Vercel production deploy from built `www/` (requires `BLACKBOX_ADVENTURE`) |
-| `npm run test:wasm`         | Smoke-test wasm-bindgen ABI                                                |
+| Command                                 | Purpose                                                                    |
+| --------------------------------------- | -------------------------------------------------------------------------- |
+| `npm run build`                         | Full release dist; requires `BLACKBOX_ADVENTURE`                           |
+| `npm run dev`                           | Watch + live reload; requires `BLACKBOX_ADVENTURE`                         |
+| `npm run build:wasm`                    | Rebuild wasm-bindgen pkg only                                              |
+| `npm run build:bundler`                 | Cook scenario bundle (release: zstd archive)                               |
+| `npm run build:bundler:dev`             | Cook scenario bundle (dev: verbose, skip missing assets, no zst)           |
+| `npm run check`                         | SDK v1 API contract + Oxlint + React Compiler lint + Oxfmt check           |
+| `npm run adventure:fmt`                 | Format adventure UI (`BLACKBOX_ADVENTURE`, uses `apps/web` oxfmt config)   |
+| `npm run adventure:lint`                | Oxlint adventure UI (`BLACKBOX_ADVENTURE`, uses `apps/web` oxlint config)  |
+| `npm run adventure:lint:react-compiler` | React Compiler ESLint on adventure UI (`BLACKBOX_ADVENTURE`)               |
+| `npm run adventure:check`               | All three adventure UI checks (fmt check + oxlint + react-compiler)        |
+| `npm run deploy`                        | Vercel production deploy from built `www/` (requires `BLACKBOX_ADVENTURE`) |
+| `npm run test:wasm`                     | Smoke-test wasm-bindgen ABI                                                |
 
 ## Engine API
 

@@ -25,6 +25,36 @@ export async function ensureWebProjectIdeSetup(projectPath, sdkRootOverride) {
       changed = true;
     }
 
+    // Flag use of unstable engine internals: game code should import from the
+    // stable @engine/sdk/v1/* API. Raw @engine/* still works (warn, not error) but
+    // may change without a version bump. See apps/web/src/engine/sdk/v1/README.md.
+    const oxlintContents = `${JSON.stringify(
+      {
+        rules: {
+          "no-restricted-imports": [
+            "warn",
+            {
+              patterns: [
+                {
+                  group: ["@engine/**", "!@engine/sdk/v1/**"],
+                  message:
+                    "Use the stable @engine/sdk/v1/* API. Raw @engine/* modules are internal and may change without a version bump.",
+                },
+              ],
+            },
+          ],
+        },
+      },
+      null,
+      2,
+    )}\n`;
+    const oxlintTarget = path.join(projectPath, ".oxlintrc.json");
+    const existingOxlint = await fs.readFile(oxlintTarget, "utf8").catch(() => null);
+    if (existingOxlint !== oxlintContents) {
+      await fs.writeFile(oxlintTarget, oxlintContents);
+      changed = true;
+    }
+
     const typescriptLibCandidates = [
       path.join(sdkRoot, "node_modules", "typescript", "lib"),
       path.join(sdkRoot, "pkg", "node_modules", "typescript", "lib"),

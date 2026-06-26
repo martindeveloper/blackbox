@@ -11,6 +11,19 @@ Reusable browser host code for Blackbox games:
 - character indexing, stat deltas, and `GameView` notification diffing
 - engine wire and view types
 
+## Public SDK surface (`sdk/v1`)
+
+Game code imports from the **stable public API** under [`sdk/v1/`](./sdk/v1/README.md), e.g.
+`@engine/sdk/v1/state/save-load.js`, `@engine/sdk/v1/ui/player-app.js`. Those modules are thin
+wrappers (Win32-over-syscalls): they create the surface and forward to the internals in
+`lib/`, `hooks/`, `ui/`, which are free to change. Every internal change must keep the
+`v1` exports' shapes intact - absorb drift inside the wrapper. A change that can't be
+absorbed is breaking: add `sdk/v2` next to `sdk/v1` and keep `v1` working.
+
+Raw `@engine/lib/*`, `@engine/hooks/*`, `@engine/ui/*` imports still resolve, but are
+**internal / unstable** - game projects get an oxlint `no-restricted-imports` warning for
+them (seeded by [`apps/editor/players/web/scaffold.mjs`](../../../editor/players/web/scaffold.mjs)).
+
 Games configure player-owned behavior in their `game.ts` manifest:
 
 ```ts

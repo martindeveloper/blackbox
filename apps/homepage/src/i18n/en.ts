@@ -57,9 +57,9 @@ export const en = {
     editorPage: {
       title: "Editor",
       description:
-        "Explore Blackbox Editor, a local-first visual workspace for authoring, previewing, validating, simulating, and bundling narrative game projects.",
+        "Explore BlackboxEditor, a local-first visual workspace for authoring, previewing, validating, simulating, and bundling narrative game projects.",
       openGraph: {
-        title: "Blackbox Editor",
+        title: "BlackboxEditor",
         description:
           "Shape branching stories visually, preview from source, and validate every path with the Blackbox Rust toolchain.",
       },
@@ -67,7 +67,7 @@ export const en = {
     docs: {
       title: "Documentation",
       description:
-        "Overview of Blackbox Editor documentation — headless CLI builds and the local MCP server for agents.",
+        "Overview of BlackboxEditor documentation — headless CLI builds and the local MCP server for agents.",
       openGraph: {
         title: "Blackbox documentation",
         description:
@@ -78,14 +78,14 @@ export const en = {
     download: {
       title: "Download",
       description:
-        "Download Blackbox Editor for macOS, Windows, and Linux. Choose your platform and architecture to get the latest release.",
+        "Download BlackboxEditor for macOS, Windows, and Linux. Choose your platform and architecture to get the latest release.",
       openGraph: {
-        title: "Download Blackbox Editor",
+        title: "Download BlackboxEditor",
         description:
           "Get the local-first narrative authoring workspace for macOS, Windows, and Linux.",
       },
       twitter: {
-        title: "Download Blackbox Editor",
+        title: "Download BlackboxEditor",
         description:
           "Get the local-first narrative authoring workspace for macOS, Windows, and Linux.",
       },
@@ -312,7 +312,7 @@ export const en = {
         label: "Project Picker",
         caption: "Open recent projects or create a new scenario bundle from the launcher.",
         src: "/editor_project_picker.webp",
-        alt: "Blackbox Editor project picker screen",
+        alt: "BlackboxEditor project picker screen",
       },
       {
         id: "graph",
@@ -320,7 +320,7 @@ export const en = {
         caption:
           "Visual chapter flow — every node, branch, and edge visible at once. Orange lines are conditional paths.",
         src: "/editor_graph.webp",
-        alt: "Blackbox Editor node graph view showing chapter structure",
+        alt: "BlackboxEditor node graph view showing chapter structure",
       },
       {
         id: "items",
@@ -328,7 +328,7 @@ export const en = {
         caption:
           "Manage inventory items with art, descriptions, and metadata. Drag to reorder, inspect on the right.",
         src: "/editor_items.webp",
-        alt: "Blackbox Editor items and media library",
+        alt: "BlackboxEditor items and media library",
       },
       {
         id: "simulator",
@@ -336,7 +336,7 @@ export const en = {
         caption:
           "Run the full scenario headlessly. Coverage heatmaps, narrative path analysis, and split-candidate detection.",
         src: "/editor_tools_simulator.webp",
-        alt: "Blackbox Editor simulator with narrative analytics",
+        alt: "BlackboxEditor simulator with narrative analytics",
       },
     ],
   },
@@ -531,7 +531,7 @@ export const en = {
   editorPage: {
     hero: {
       kicker: {
-        brand: "Blackbox Editor",
+        brand: "BlackboxEditor",
         version: "Creator workspace / 0.1",
       },
       headline: "See the story.\nShape every path.",
@@ -543,7 +543,7 @@ export const en = {
       frame: {
         bar: "CHAPTER / STORY GRAPH",
         status: "PROJECT READY",
-        image_alt: "Blackbox Editor visual chapter graph with branching narrative nodes",
+        image_alt: "BlackboxEditor visual chapter graph with branching narrative nodes",
         footer: ["Pan · zoom · connect · inspect", "Analytics lenses available after simulation"],
       },
     },
@@ -615,11 +615,11 @@ export const en = {
       shot: {
         label: "CATALOG VIEW",
         title: "Items & media",
-        alt: "Blackbox Editor item catalog with inventory artwork and inspector",
+        alt: "BlackboxEditor item catalog with inventory artwork and inspector",
       },
     },
     preview: {
-      alt: "Blackbox Editor live preview showing Silent Archive with responsive viewport controls and runtime state inspector",
+      alt: "BlackboxEditor live preview showing Silent Archive with responsive viewport controls and runtime state inspector",
       caption:
         "Desktop, tablet, and mobile viewports with console, save-state controls, and live runtime inspection.",
       label: "Fast feedback",
@@ -658,7 +658,7 @@ export const en = {
           body: "Search for endings and game overs or sweep reachable state. Tune budgets and threads, enforce strict exits, and inspect coverage, blocked goals, hot paths, story spines, and split candidates.",
         },
       ],
-      shot_alt: "Blackbox Editor simulator showing narrative analytics and path coverage",
+      shot_alt: "BlackboxEditor simulator showing narrative analytics and path coverage",
       analytics: {
         label: "Simulation feeds authoring",
         headline: "Turn playthrough data into a map you can read.",
@@ -670,7 +670,7 @@ export const en = {
     mcp: {
       label: "Agent interface",
       headline: "Let AI agents work inside the editor.",
-      body: "Blackbox Editor exposes a local Model Context Protocol server, giving compatible agents a structured, revision-safe way to understand and operate on narrative projects.",
+      body: "BlackboxEditor exposes a local Model Context Protocol server, giving compatible agents a structured, revision-safe way to understand and operate on narrative projects.",
       intro:
         "Instead of driving the interface or editing files blindly, agents use the same project service, validation rules, and native tools as the editor itself.",
       capabilities: [
@@ -693,7 +693,7 @@ export const en = {
       },
       docsLink: "Read CLI & MCP reference →",
       console: {
-        aria: "Blackbox Editor MCP connection and audit visualization",
+        aria: "BlackboxEditor MCP connection and audit visualization",
         title: "BLACKBOX / AGENT BRIDGE",
         status: "LOCAL ENDPOINT READY",
       },
@@ -717,7 +717,7 @@ export const en = {
     final: {
       label: "One continuous workflow",
       headline: "Write. Connect. Test. Ship.",
-      body: "Blackbox Editor keeps creative intent, source data, runtime behavior, and release validation in the same room.",
+      body: "BlackboxEditor keeps creative intent, source data, runtime behavior, and release validation in the same room.",
     },
   },
   docsPage: {
@@ -742,7 +742,7 @@ export const en = {
   downloadPage: {
     hero: {
       kicker: {
-        product: "Blackbox Editor",
+        product: "BlackboxEditor",
         channel: "Release channel",
         pinned: "Pinned · {{version}}",
       },
@@ -760,7 +760,7 @@ export const en = {
     },
     platforms: {
       macos: "macOS",
-      macos_meta: ".dmg · unsigned .app",
+      macos_meta: ".dmg · unsigned BlackboxEditor.app",
       windows: "Windows",
       windows_meta: ".msix + .cer bundle",
       linux: "Linux",
@@ -782,20 +782,20 @@ export const en = {
     },
     download_cta: "Download for",
     file_note:
-      "Hosted on GitHub Releases. macOS and Windows builds are not notarized or commercially signed yet — see the install guide below.",
+      "Hosted on GitHub Releases. BlackboxEditor macOS and Windows builds are not notarized or commercially signed yet — see the install guide below.",
     alternate_format: "Also available as",
     requirements_aria: "System requirements",
     requirements: {
       macos: [
         "macOS 12 Monterey or later",
         "Apple Silicon or Intel processor",
-        "Gatekeeper may block the unsigned .app until you trust it locally",
+        "Gatekeeper may block BlackboxEditor.app until you trust it locally",
         "~400 MB disk space",
       ],
       windows: [
         "Windows 10 version 1809 or later",
         "ARM64 or x64 processor",
-        "MSIX sideload bundle includes msix-signing.cer — trust it before install",
+        "BlackboxEditor MSIX sideload bundle includes msix-signing.cer — trust it before install",
         "~400 MB disk space",
       ],
       linux: [
@@ -815,22 +815,22 @@ export const en = {
     unsigned: {
       macos: {
         title: "Unsigned macOS build",
-        note: "The .app inside the DMG is not Apple-notarized or Developer ID signed yet. macOS may refuse to open it until you remove quarantine attributes and apply a local ad-hoc signature.",
+        note: "BlackboxEditor.app in the DMG is not Apple-notarized or Developer ID signed yet. macOS may refuse to open it until you remove quarantine attributes and apply a local ad-hoc signature.",
         steps: [
-          "Download and open the .dmg, then drag Blackbox Editor.app to Applications.",
+          "Download and open the .dmg, then drag BlackboxEditor.app to Applications.",
           "Run the commands below in Terminal (adjust the path if you installed elsewhere).",
           "Open the app from Applications or Spotlight.",
         ],
         shell_filename: "trust-app.sh",
         commands: `# trust the unsigned app locally
-APP="/Applications/Blackbox Editor.app"
+APP="/Applications/BlackboxEditor.app"
 
 xattr -dr com.apple.quarantine "$APP"
 codesign --force --deep --sign - "$APP"`,
       },
       windows: {
         title: "Self-signed MSIX sideload",
-        note: "The MSIX package is signed with a development certificate that Windows does not trust by default. Each release bundle ships msix-signing.cer — install that certificate before Add-AppxPackage will succeed.",
+        note: "The BlackboxEditor MSIX package is signed with a development certificate that Windows does not trust by default. Each release bundle ships msix-signing.cer — install that certificate before Add-AppxPackage will succeed.",
         steps: [
           "Download and extract the sideload .zip (contains the .msix, msix-signing.cer, and helper scripts).",
           "Open PowerShell as Administrator in that folder.",

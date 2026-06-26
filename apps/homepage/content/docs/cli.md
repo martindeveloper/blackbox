@@ -17,12 +17,12 @@ node cli.js <action> [options]
 **Packaged editor** (development or release binary)
 
 ```bash
-Blackbox\ Editor --cli <action> [options]
-Blackbox\ Editor --cli -- lint --project=./my-game --platform=web   # optional `--` separator
-Blackbox\ Editor --cli --help
+BlackboxEditor --cli <action> [options]
+BlackboxEditor --cli -- lint --project=./my-game --platform=web   # optional `--` separator
+BlackboxEditor --cli --help
 ```
 
-In CI, quote the executable on Windows: `"Blackbox Editor.exe" --cli build ...`.
+In CI, quote the executable on Windows: `"BlackboxEditor.exe" --cli build ...`.
 
 ## Actions
 
@@ -138,7 +138,7 @@ node cli.js build \
 ```yaml
 - name: Build web release
   run: |
-    "./Blackbox Editor" --cli build \
+    "./BlackboxEditor" --cli build \
       --project="${{ github.workspace }}/games/my-adventure" \
       --platform=web \
       --configuration=release
@@ -163,7 +163,7 @@ Successful stages may emit a machine-readable artifact path:
 
 ## Packaged vs checkout
 
-| Capability                    | `node cli.js` (repo)                       | `Blackbox Editor --cli`     |
+| Capability                    | `node cli.js` (repo)                       | `BlackboxEditor --cli`     |
 | ----------------------------- | ------------------------------------------ | --------------------------- |
 | Lint / bundle / simulate WASM | Built from source or prior `npm run build` | Pre-bundled in the app      |
 | Rust toolchain on runner      | Required for engine rebuilds               | Not required                |

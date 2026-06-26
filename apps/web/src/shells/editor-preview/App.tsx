@@ -1,8 +1,5 @@
-import { collectStateNotifications } from "@engine/lib/notifications.js";
-import {
-  TextGamePlayerApp,
-  type TextGamePlayerHeaderProps,
-} from "@engine/ui/textGame/TextGamePlayerApp.js";
+import { collectStateNotifications } from "@engine/sdk/v1/notifications.js";
+import { TextGamePlayerApp, type TextGamePlayerHeaderProps } from "@engine/sdk/v1/ui/player-app.js";
 import { useTranslation } from "react-i18next";
 
 const PREVIEW_PRESENTATION = {

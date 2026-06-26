@@ -1,4 +1,4 @@
-import type { GameDefinition } from "@engine/boot.js";
+import type { GameDefinition } from "@engine/sdk/v1/boot.js";
 import { App } from "./App.js";
 import { en } from "./en.js";
 

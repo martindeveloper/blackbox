@@ -1,0 +1,555 @@
+// audio.ts
+type AudioPlaybackConfig = {
+  defaultSfx?: string | undefined;
+  musicLoopDelayMs: number;
+  resolveMusicFade: (fadeKind: FadeKind | undefined, hadTrack: boolean) => MusicFade;
+};
+const DEFAULT_CHOICE_SFX: "sfx/click.wav";
+const musicAssetLabel: (src: string) => string;
+type MusicFade = {
+  fadeIn: number;
+  fadeOut: number;
+};
+type MusicPlaybackContext = {
+  fadeKind?: FadeKind | undefined;
+};
+const resetMusicTracking: () => void;
+const useAudio: <FadeKind extends string>(music: MusicCue | undefined, config: AudioPlaybackConfig<FadeKind>, playback?: MusicPlaybackContext<FadeKind>) => { playSfx: (sfx: import("game").SfxCue) => void; muted: boolean; toggleMute: () => void; audioBlocked: boolean; };
+
+// boot.ts
+const bootGame: (game: GameDefinition) => void;
+type GameDefinition = {
+  App: ComponentType;
+  bundlePath?: string | undefined;
+  i18nResources: I18nResources;
+  id: string;
+  player?: WebPlayerOptions | undefined;
+};
+type WebPlayerOptions = {
+  assets?: { fallbackPortrait?: string; fallbackBackground?: string; } | undefined;
+  components?: Partial<import("types").TextGameComponents> | undefined;
+  mobile?: { requirePortrait?: boolean; maxShortEdgePx?: number; } | undefined;
+  saves?: { slots?: number; } | undefined;
+  settings?: { themes?: readonly PlayerTheme[]; defaultTheme?: PlayerTheme; analytics?: { available?: boolean; defaultEnabled?: boolean; }; defaultVolumes?: { master?: number; music?: number; sfx?: number; }; } | undefined;
+  storage?: { prefix?: string; migrateLegacy?: boolean; } | undefined;
+};
+
+// characters.ts
+const characterAccentColor: (character: CharacterView | undefined, fallback: string) => string;
+const characterBySpeaker: (lookup: CharacterLookup, speakerId: string | undefined) => CharacterView | undefined;
+type CharacterLookup = characters.CharacterLookup;
+const indexCharacters: (list: CharacterView[]) => CharacterLookup;
+
+// choices.ts
+const actionsByItem: (actions: ItemActionView[]) => Map<string, ItemActionView[]>;
+type ChoiceActionHandlers = {
+  onChoose: (choiceId: string) => void;
+  onOpenLoad: () => void;
+  onOpenMainMenu: () => void;
+  onRestart: () => void;
+};
+const dispatchChoice: (choice: ChoiceView, handlers: ChoiceActionHandlers) => void;
+const isFlagGatedDisabledChoice: (choice: ChoiceView) => boolean;
+const playerVisibleChoices: (list: ChoiceView[]) => ChoiceView[];
+const REQUIRES_FLAG_REASON_PREFIX: "Requires flag:";
+
+// format.ts
+const activeFlagKeys: (flags: Record<string, unknown>) => string[];
+const activeIntelKeys: (flags: Record<string, unknown>, meta: MetaCatalog) => string[];
+const formatPlaytime: (totalPlaytimeMs: number) => string;
+const formatRefId: (id: string) => string;
+const relativeTime: (isoString: string, t: TFunction) => string;
+
+// hooks/assets.ts
+type AssetKind = AssetKindInternal;
+type ManagedAssetView = {
+  status: "loading" | "ready" | "error" | undefined;
+  url: string | undefined;
+};
+type ManagedTexture = {
+  ready: boolean;
+  url: string | undefined;
+};
+const useAssetScope: (scope: string, kind: AssetKind, src: string | undefined) => ManagedAssetView;
+const useCharacterPortrait: (character: CharacterView | undefined) => ReturnType<typeof useCharacterPortraitInternal>;
+const useManagedTexture: (scope: string, src: string | undefined) => ManagedTexture;
+
+// hooks/panel-modals.ts
+type PanelModalsOptions = {
+  createModal: (id: Id, onClose: () => void) => ModalDescriptor;
+  panelIds: readonly Id[];
+  primaryPanelId?: Id | undefined;
+  primaryShortcut?: string | undefined;
+  shortcuts: Partial<Record<Id, string>>;
+};
+const usePanelModals: <Id extends string>(options: PanelModalsOptions<Id>) => { showPanel: (id: Id) => void; };
+
+// hooks/resolution.ts
+type DamagePulse = {
+  id: number;
+  strength: number;
+};
+type ResolutionPresentationOptions = {
+  authoritativeStats: Record<string, number>;
+  baselineStats: Record<string, number>;
+  nodeId: string;
+  notifications: UiNotification[];
+  resolutionEpoch: number;
+  rolls: RollRecord[];
+  textBlockCount: number;
+  timing: UiTiming;
+};
+type ResolutionPresentationResult = {
+  clearDamagePulse: () => void;
+  damagePulse: DamagePulse | null;
+  displayStats: Record<string, number>;
+  showChoices: boolean;
+  showNarrative: boolean;
+  showResolution: boolean;
+};
+type SequencePhase = SequencePhaseInternal;
+const useResolutionPresentation: (options: ResolutionPresentationOptions) => ResolutionPresentationResult;
+
+// i18n.ts
+const i18n: import("i18next").i18n;
+type I18nResources = I18nResourcesInternal;
+
+// keyboard.ts
+const isEditableTarget: (target: EventTarget | null) => boolean;
+const matchesShortcut: (event: KeyboardEvent, key: string) => boolean;
+const useNumberKeySelect: (count: number, onSelect: (index: number) => void, enabled: boolean) => void;
+
+// notifications.ts
+const collectStateNotifications: (previous: GameView, current: GameView, nextId: () => number, options?: StateNotificationOptions) => UiNotification[];
+type StateNotificationOptions = {
+  statOrder?: readonly string[] | undefined;
+};
+
+// settings.ts
+type AppSettings = {
+  analyticsAvailable: boolean;
+  analyticsEnabled: boolean;
+  availableThemes: readonly PlayerTheme[];
+  canToggleTheme: boolean;
+  cycleLogLevel: () => void;
+  logLevel: LogLevel;
+  masterVolume: number;
+  musicVolume: number;
+  setMasterVolume: (volume: number) => void;
+  setMusicVolume: (volume: number) => void;
+  setSfxVolume: (volume: number) => void;
+  sfxVolume: number;
+  theme: PlayerTheme;
+  toggleAnalytics: () => void;
+  toggleTheme: () => void;
+};
+type LogLevel = LogLevelInternal;
+type Theme = import("playerConfig").PlayerTheme;
+const useAppSettings: () => AppSettings;
+
+// state/save-load.ts
+type ChapterCheckpoint = {
+  chapterId: string | null;
+  location: string | null;
+  savedAt: string;
+  state: string;
+};
+const clearAllPlayerData: () => void;
+const clearSlot: (index: number) => void;
+const getSlotCount: () => number;
+const persistLastUsedSlot: (index: number | null) => void;
+const readAllSlots: () => (SlotData | null)[];
+const readLastUsedSlot: () => number | null;
+const readSlot: (index: number) => SlotData | null;
+type SlotData = {
+  chapterCheckpoint: ChapterCheckpoint | null;
+  chapterId: string | null;
+  location: string | null;
+  nodeId: string | null;
+  randomSeed: string | null;
+  savedAt: string;
+  state: string;
+  totalPlaytimeMs: number;
+};
+
+// timing.ts
+const createUiTiming: (values: UiTimingValues) => UiTiming;
+type MusicFade = {
+  fadeIn: number;
+  fadeOut: number;
+};
+type MusicFadeKind = uiTiming.MusicFadeKind;
+type UiTiming = {
+  cssVars: UiCssVars;
+  musicChapterCrossfadeSecs: () => number;
+  musicDeathFadeOutSecs: () => number;
+  narrativeSequenceMs: (textBlockCount: number) => number;
+  notificationsSequenceMs: (notificationCount: number) => number;
+  resolutionLeadMs: () => number;
+  resolutionSequenceMs: (notificationCount: number, rollCount: number) => number;
+  resolveMusicFade: (kind: MusicFadeKind | undefined, hadTrack: boolean) => MusicFade;
+  rollsSequenceMs: (rollCount: number) => number;
+  values: UiTimingValues;
+};
+type UiTimingValues = {
+  backgroundFadeMs: number;
+  chapterTransitionMs: number;
+  choiceFadeMs: number;
+  choiceInitialDelayMs: number;
+  choiceResolvingSweepMs: number;
+  choiceStaggerMs: number;
+  damageCriticalPulseMs: number;
+  damageHitMs: number;
+  locationFadeMs: number;
+  musicCrossfadeSecs: number;
+  musicLoopDelayMs: number;
+  narrativeBufferMs: number;
+  narrativeFadeMs: number;
+  narrativeInitialDelayMs: number;
+  narrativeMaxDelayMs: number;
+  narrativeStaggerMs: number;
+  notificationBufferMs: number;
+  notificationFadeMs: number;
+  notificationScanDelayMs: number;
+  notificationScanMs: number;
+  notificationStaggerMs: number;
+  resolutionEntryFadeMs: number;
+  responseHeaderFadeMs: number;
+  rollDurationMs: number;
+  rollPipIntervalMs: number;
+  rollSequenceBufferMs: number;
+  rollSettleMs: number;
+  rollStaggerMs: number;
+  rollVerdictFadeMs: number;
+  stageDirectionFadeMs: number;
+};
+
+// types.ts
+type CatalogEntry = {
+  description?: string | undefined;
+  internal: boolean;
+  title?: string | undefined;
+};
+type CharacterView = {
+  color?: string | undefined;
+  metrics: RelationshipMetricView[];
+  name: string;
+  portrait?: TextureCue | undefined;
+  ref_id: string;
+  subtitle?: string | undefined;
+  voiceRef?: string | undefined;
+};
+type CheckPreview = {
+  attemptsUsed?: number | undefined;
+  difficulty: number;
+  label?: string | undefined;
+  maxAttempts?: number | undefined;
+  rollMode?: RollMode | undefined;
+  stat: string;
+};
+type ChoiceAction = Wire.ChoiceAction;
+type ChoiceView = {
+  action?: ChoiceAction | undefined;
+  check?: CheckPreview | undefined;
+  disabledReason?: string | undefined;
+  enabled: boolean;
+  id: string;
+  label: string;
+  sfx?: SfxCue | undefined;
+};
+type CommandResult = {
+  chapter_changed?: boolean | undefined;
+  error?: EngineError | undefined;
+  examine?: ItemExamineView | undefined;
+  ok: boolean;
+  rolls?: RollRecord[] | undefined;
+  selected_sfx?: SfxCue | undefined;
+  triggered_sfx?: SfxCue | undefined;
+  view?: GameView | undefined;
+};
+type DialogueSide = Wire.DialogueSide;
+type EngineError = Wire.EngineError;
+type GameView = {
+  background?: TextureCue | undefined;
+  chapter_id?: string | undefined;
+  chapter_title?: string | undefined;
+  characters: CharacterView[];
+  choices: ChoiceView[];
+  events: string[];
+  flags: Record<string, unknown>;
+  inventory: Record<string, number>;
+  inventory_items: InventoryItemView[];
+  item_actions: ItemActionView[];
+  meta: MetaCatalog;
+  mode: NodeMode;
+  music?: MusicCue | undefined;
+  node_id: string;
+  player_stats: Record<string, number>;
+  relationships: RelationshipCharacterView[];
+  scenario_title?: string | undefined;
+  text: TextBlock[];
+  title?: string | undefined;
+};
+type InventoryItemView = {
+  count: number;
+  icon?: TextureCue | undefined;
+  name: string;
+  ref_id: string;
+};
+type ItemActionView = {
+  action_id: string;
+  disabledReason?: string | undefined;
+  enabled: boolean;
+  item_ref: string;
+  label: string;
+};
+type ItemExamineView = {
+  description: string;
+  examine_text: string;
+  icon?: TextureCue | undefined;
+  name: string;
+  ref_id: string;
+};
+type MetaCatalog = {
+  events: Record<string, CatalogEntry>;
+  flags: Record<string, CatalogEntry>;
+};
+type MusicCue = {
+  loop: boolean;
+  ref_id: string;
+  src: string;
+};
+type NodeMode = Wire.NodeMode;
+type RelationshipCharacterView = {
+  color?: string | undefined;
+  metrics: RelationshipMetricView[];
+  name: string;
+  ref_id: string;
+  subtitle?: string | undefined;
+};
+type RelationshipMetricView = {
+  key: string;
+  value: number;
+};
+type RollMode = Wire.RollMode;
+type RollRecord = Wire.RollRecord;
+type ScenarioBundle = {
+  assets: Uint8Array<ArrayBufferLike>;
+  characters: Uint8Array<ArrayBufferLike>;
+  items: Uint8Array<ArrayBufferLike>;
+  project?: { chapters: Array<{ id: string; title: string; }>; startChapterId: string; } | undefined;
+  scenario: Uint8Array<ArrayBufferLike>;
+};
+type SfxCue = {
+  ref_id: string;
+  src: string;
+};
+type TextBlock = {
+  emotion?: string | undefined;
+  kind: string;
+  side?: DialogueSide | undefined;
+  speaker?: string | undefined;
+  text: string;
+};
+type TextureCue = {
+  ref_id: string;
+  src: string;
+};
+type UiNotification = Wire.UiNotification;
+
+// ui/components.ts
+type ChoicesProps = {
+  borderColor: string;
+  choiceClass: string;
+  isEnding: boolean;
+  isGameOver: boolean;
+  isRolling: boolean;
+  isTerminal: boolean;
+  onChoose: (choiceId: string) => void;
+  onContinue: () => void;
+  onOpenLoad: () => void;
+  onOpenMainMenu: () => void;
+  onRestart: () => void;
+  onReturnToChapterStart: () => void;
+  view: GameView;
+  visible: boolean;
+};
+type GameScreenProps = {
+  commandPending: boolean;
+  examine: ItemExamineView | null;
+  lastRolls: RollRecord[];
+  lastSavedAt?: string | null | undefined;
+  notifications: UiNotification[];
+  onChoose: (choiceId: string) => void;
+  onContinue: () => void;
+  onCreateSupportBundle?: (() => void) | undefined;
+  onExamine: (itemRef: string) => void;
+  onOpenLoad: () => void;
+  onOpenMainMenu: () => void;
+  onRestart: () => void;
+  onReturnToChapterStart: () => void;
+  onSave: () => void;
+  onUseItem: (itemRef: string, actionId: string) => void;
+  presentationBaselineStats: Record<string, number>;
+  presentationLocation?: string | undefined;
+  resolutionEpoch: number;
+  view: GameView;
+};
+type IntelProps = {
+  initialIntelRef?: string | undefined;
+  memories: string[];
+  meta: MetaCatalog;
+};
+type InventoryProps = {
+  commandPending: boolean;
+  examine: ItemExamineView | null;
+  initialItemRef?: string | undefined;
+  onExamine: (itemRef: string) => void;
+  onUse: (itemRef: string, actionId: string) => void;
+  view: GameView;
+};
+type JournalProps = {
+  events: string[];
+  meta: MetaCatalog;
+};
+type MainMenuProps = {
+  initialSlot?: number | undefined;
+  menuLoading: boolean;
+  onContinueSlot: (index: number) => void;
+  onCreateSupportBundle?: (() => void) | undefined;
+  onRestartSlot: (index: number) => void;
+};
+type NarrativeProps = {
+  block: TextBlock;
+  characters: CharacterLookup;
+  first?: boolean | undefined;
+  isGameOver: boolean;
+  onCharacterProfile?: ((character: CharacterView) => void) | undefined;
+  prevBlock?: TextBlock | undefined;
+};
+type ResolutionProps = {
+  notifications: UiNotification[];
+  onNotificationActivate?: ((notification: UiNotification) => void) | undefined;
+  rolls: RollRecord[];
+};
+type SystemMenuProps = {
+  isTerminal: boolean;
+  lastSavedAt?: string | null | undefined;
+  onCreateSupportBundle?: (() => void) | undefined;
+  onOpenLoad?: (() => void) | undefined;
+  onOpenMainMenu: () => void;
+  onRestart: () => void;
+  onSave: () => void;
+};
+type TextGameComponentOverrides = Partial<Slots.TextGameComponents>;
+type TextGameComponents = {
+  Choices: ComponentType<ChoicesProps>;
+  GameScreen: ComponentType<GameScreenProps>;
+  Intel: ComponentType<IntelProps>;
+  Inventory: ComponentType<InventoryProps>;
+  Journal: ComponentType<JournalProps>;
+  MainMenu: ComponentType<MainMenuProps>;
+  Narrative: ComponentType<NarrativeProps>;
+  Resolution: ComponentType<ResolutionProps>;
+  SystemMenu: ComponentType<SystemMenuProps>;
+  Vitals: ComponentType<VitalsProps>;
+};
+const useTextGameComponents: () => TextGameComponents;
+type VitalsProps = {
+  borderColor: string;
+  controls?: ReactNode;
+  damagePulse?: DamagePulse | null | undefined;
+  onDamagePulseEnd?: (() => void) | undefined;
+  playerStats: Record<string, number>;
+};
+
+// ui/menu.tsx
+const MenuButton: (props: MenuButtonProps) => import("react").JSX.Element;
+type MenuButtonProps = {
+  active?: boolean | undefined;
+  autoFocus?: boolean | undefined;
+  blocked?: boolean | undefined;
+  children: ReactNode;
+  danger?: boolean | undefined;
+  dim?: boolean | undefined;
+  index: number;
+  loading?: boolean | undefined;
+  onClick: () => void;
+};
+const SettingsPanel: () => import("react").JSX.Element;
+
+// ui/modal.ts
+type ModalApi = {
+  closeModal: (id: string) => void;
+  closeTopModal: () => void;
+  hasOpenModals: () => boolean;
+  openModal: (descriptor: ModalDescriptor) => void;
+};
+type ModalDescriptor = {
+  accentColor?: string | undefined;
+  children: ReactNode;
+  dismissOnBackdrop?: boolean | undefined;
+  eyebrow?: ReactNode;
+  icon?: ReactNode;
+  id: string;
+  onClose?: (() => void) | undefined;
+  showClose?: boolean | undefined;
+  size?: ModalSize | undefined;
+  title: ReactNode;
+  tone?: ModalTone | undefined;
+};
+type ModalSize = ModalSizeInternal;
+type ModalTone = ModalToneInternal;
+const useModal: () => ModalApi;
+
+// ui/player-app.tsx
+type ChapterTransitionProps = {
+  loading: boolean;
+  loadingDone: boolean;
+  title: string | null;
+};
+type MenuTransitionIntent = MenuTransitionIntentInternal;
+type MenuTransitionPhase = MenuTransitionPhaseInternal;
+type MenuTransitionProps = {
+  intent: MenuTransitionIntent;
+  phase: MenuTransitionPhase;
+};
+type MenuTransitionTiming = {
+  coverMs?: number | undefined;
+  holdMs?: number | undefined;
+  revealMs?: number | undefined;
+};
+type NewGameConfirmationProps = {
+  onCancel: () => void;
+  onConfirm: () => void;
+};
+const TextGamePlayerApp: <FadeKind extends string>(props: { config: TextGamePlayerAppConfig<FadeKind>; }) => import("react").JSX.Element;
+type TextGamePlayerAppConfig = {
+  audio: AudioPlaybackConfig<FadeKind>;
+  BootScreen?: ((props: { errorMessage?: string; }) => ReactNode) | undefined;
+  ChapterTransition?: ((props: ChapterTransitionProps) => ReactNode) | undefined;
+  Header?: ((props: TextGamePlayerHeaderProps) => ReactNode) | undefined;
+  mainMenuMusic?: MusicCue | undefined;
+  MenuTransition?: ((props: MenuTransitionProps) => ReactNode) | undefined;
+  menuTransitionTiming?: MenuTransitionTiming | undefined;
+  musicFadeKind?: ((context: { session: SessionPhase; chapterTransition: string | null; }) => FadeKind | undefined) | undefined;
+  muteShortcut?: string | undefined;
+  NewGameConfirmation?: ((props: NewGameConfirmationProps) => ReactNode) | undefined;
+  newGameModal?: { title?: ReactNode; titleKey?: string; eyebrow?: ReactNode; eyebrowKey?: string; icon?: ReactNode; tone?: ModalTone; } | undefined;
+  presentation: SessionPresentationAdapter;
+  resetMusicTracking?: (() => void) | undefined;
+  rootClassName?: string | undefined;
+  rootStyle?: CSSProperties | undefined;
+  saveModal?: { icon?: ReactNode; tone?: ModalTone; } | undefined;
+};
+type TextGamePlayerHeaderProps = {
+  audioBlocked: boolean;
+  music?: MusicCue | undefined;
+  musicLabel: string;
+  muted: boolean;
+  scenarioTitle: string;
+  session: SessionPhase;
+  status: string;
+  statusKind: "ready" | "error" | "info";
+  toggleMute: () => void;
+};

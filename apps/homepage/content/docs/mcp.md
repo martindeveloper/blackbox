@@ -4,7 +4,7 @@ description: Let AI agents read, patch, validate, and simulate projects through 
 order: 2
 ---
 
-Blackbox Editor exposes a **Model Context Protocol** server so compatible agents (Cursor, Codex, Claude Desktop, and other MCP clients) can work on narrative projects with structured tools instead of raw filesystem access.
+BlackboxEditor exposes a **Model Context Protocol** server so compatible agents (Cursor, Codex, Claude Desktop, and other MCP clients) can work on narrative projects with structured tools instead of raw filesystem access.
 
 The server is **disabled by default**, binds only to `127.0.0.1`, and authenticates every request with a persistent bearer token stored through the operating system's secure credential protection.
 
@@ -156,6 +156,6 @@ Built-in server instructions echo this: _"Call describe_schema (or read blackbox
 
 ## Requirements
 
-- Blackbox Editor must be **running** with MCP enabled.
+- BlackboxEditor must be **running** with MCP enabled.
 - The target project must be **opened or registered** in the editor session.
 - For mutations, the user must have **no unsaved editor changes** in the active view.

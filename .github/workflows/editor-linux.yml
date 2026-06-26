@@ -84,6 +84,12 @@ jobs:
       - name: Install editor dependencies
         run: npm ci --prefix apps/editor
 
+      - name: Check web player
+        run: npm run check --prefix apps/web
+
+      - name: Check editor
+        run: npm run check --prefix apps/editor
+
       - name: Build Linux editor
         run: npm run electron:release --prefix apps/editor -- --platform linux --arch ${{ inputs.architecture }}
 

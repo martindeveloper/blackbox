@@ -11,7 +11,13 @@ import {
   shellSrcDir,
 } from "../../../../scripts/lib/gamePaths.mjs";
 
-const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..", "..");
+const REPO_ROOT = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "..",
+  "..",
+  "..",
+  "..",
+);
 
 function resolveAdventureRoot(raw) {
   let resolved = path.resolve(raw);
@@ -101,9 +107,7 @@ export function resolveWebWwwDir(env = process.env) {
 export function resolveAdventureUiSrc(env = process.env, argv = process.argv.slice(2)) {
   const adventure = resolveWebDevAdventure(adventureEnv(env, argv));
   if (!adventure) {
-    throw new Error(
-      "Set BLACKBOX_ADVENTURE (or BLACKBOX_SCENARIO), or pass --adventure <path>",
-    );
+    throw new Error("Set BLACKBOX_ADVENTURE (or BLACKBOX_SCENARIO), or pass --adventure <path>");
   }
   const srcDir = localProjectSrcDir(adventure.adventureRoot);
   if (!projectHasCustomCode(adventure.adventureRoot)) {

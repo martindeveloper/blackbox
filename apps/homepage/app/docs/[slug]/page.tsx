@@ -41,7 +41,9 @@ export default async function Page({ params }: Props) {
   try {
     const nav = listDocs();
     const doc = getDoc(slug);
-    return <DocsPage doc={doc} nav={nav} prose={<DocsProse content={doc.content} />} />;
+    return (
+      <DocsPage doc={doc} nav={nav} prose={<DocsProse key={doc.slug} content={doc.content} />} />
+    );
   } catch {
     notFound();
   }

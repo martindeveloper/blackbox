@@ -88,8 +88,12 @@ test("bootstrapStarterCode scaffolds a commented src/ starter without clobbering
     const gameTs = await fs.readFile(path.join(projectPath, "src", "game.ts"), "utf8");
     assert.match(gameTs, /id: "my_game"/);
     assert.match(gameTs, /GameDefinition/);
+    assert.match(gameTs, /@engine\/sdk\/v1\/boot\.js/);
+    assert.doesNotMatch(gameTs, /@engine\/boot\.js/);
     const appTsx = await fs.readFile(path.join(projectPath, "src", "App.tsx"), "utf8");
     assert.match(appTsx, /TextGamePlayerApp/);
+    assert.match(appTsx, /@engine\/sdk\/v1\/ui\/player-app\.js/);
+    assert.doesNotMatch(appTsx, /@engine\/ui\/textGame\/TextGamePlayerApp\.js/);
 
     await fs.writeFile(path.join(projectPath, "src", "game.ts"), "// my edits\n");
     const second = await bootstrapStarterCode(projectPath);

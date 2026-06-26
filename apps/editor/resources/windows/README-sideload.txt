@@ -1,4 +1,4 @@
-Blackbox Editor — Windows sideload install
+BlackboxEditor — Windows sideload install
 ==========================================
 
 1. Extract this zip to a folder.
