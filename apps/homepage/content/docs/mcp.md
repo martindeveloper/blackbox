@@ -50,36 +50,36 @@ Agents share the editor's **project service** — the same code paths that power
 
 ## Resources
 
-| URI                   | Content                                                                                          |
-| --------------------- | ------------------------------------------------------------------------------------------------ |
-| `blackbox://projects` | JSON list of registered projects                                                                 |
+| URI                   | Content                                                                                        |
+| --------------------- | ---------------------------------------------------------------------------------------------- |
+| `blackbox://projects` | JSON list of registered projects                                                               |
 | `blackbox://schema`   | Authoring grammar: document layout, nodes, text blocks, choices, conditions, effects, and more |
 
 ## Tools
 
 ### Read-only
 
-| Tool               | Description                                                                                    |
-| ------------------ | ---------------------------------------------------------------------------------------------- |
-| `list_projects`    | List projects registered in the running editor                                                 |
-| `describe_schema`  | Return the authoring grammar. Call before writing content so conditions and effects are valid |
-| `read_project`     | Read scenario, chapters, and catalogs. Optional `includeLayout` and `includeMedia`             |
-| `get_node`         | Read one node by `chapterId` and `nodeId`. Use `chapterId: "scenario"` for legacy inline nodes |
-| `search_project`   | Search string values across the project (max 100 matches)                                      |
+| Tool               | Description                                                                                                                 |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------- |
+| `list_projects`    | List projects registered in the running editor                                                                              |
+| `describe_schema`  | Return the authoring grammar. Call before writing content so conditions and effects are valid                               |
+| `read_project`     | Read scenario, chapters, and catalogs. Optional `includeLayout` and `includeMedia`                                          |
+| `get_node`         | Read one node by `chapterId` and `nodeId`. Use `chapterId: "scenario"` for legacy inline nodes                              |
+| `search_project`   | Search string values across the project (max 100 matches)                                                                   |
 | `bundle_project`   | Run the bundler at `expectedRevision` to surface build errors. Optional `platform` and `ignoreMissing`. Output is discarded |
-| `lint_project`     | Run Blackbox validation at `expectedRevision`. Supports `ignore` and `only` rule filters     |
-| `simulate_project` | Explore reachability and endings at `expectedRevision`. Modes: `goals` or `explore`; tunable budgets and analytics |
+| `lint_project`     | Run Blackbox validation at `expectedRevision`. Supports `ignore` and `only` rule filters                                    |
+| `simulate_project` | Explore reachability and endings at `expectedRevision`. Modes: `goals` or `explore`; tunable budgets and analytics          |
 
 `bundle_project`, `lint_project`, and `simulate_project` require the exact `expectedRevision` from a recent `read_project` call.
 
 ### Mutations
 
-| Tool              | Description                                                                                                               |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `save_documents`  | Atomically save one or more authored JSON documents at `expectedRevision`                                                 |
+| Tool              | Description                                                                                                                                                                                                                                           |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `save_documents`  | Atomically save one or more authored JSON documents at `expectedRevision`                                                                                                                                                                             |
 | `patch_documents` | Apply targeted ops: `set_node`, `remove_node`, `set_choice`, `remove_choice`, `set_record`, `remove_record` (max 500 ops). Catalog collections: `item`, `character`, `event`, `flag`, `texture`, `music`, `sound`, `snippet`, `template`, `condition` |
-| `add_chapter`     | Create a chapter file with a start node and register it in `scenario.json` at `expectedRevision`. Optional `startNodeId` and `startNodeTitle` |
-| `upload_media`    | Write a base64-encoded asset into `textures`, `music`, or `sfx` at `expectedRevision`                                     |
+| `add_chapter`     | Create a chapter file with a start node and register it in `scenario.json` at `expectedRevision`. Optional `startNodeId` and `startNodeTitle`                                                                                                         |
+| `upload_media`    | Write a base64-encoded asset into `textures`, `music`, or `sfx` at `expectedRevision`                                                                                                                                                                 |
 
 `upload_media` accepts a larger request body than other tools (up to 24 MB decoded per asset).
 

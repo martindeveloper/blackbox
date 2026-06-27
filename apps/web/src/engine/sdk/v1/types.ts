@@ -1,5 +1,3 @@
-// @engine/sdk/v1/types - owned public type surface (Blackbox engine API v1).
-//
 // FOUNDATION: v1 owns every public type *name*. Today each is an alias of the
 // internal wire type, so they are structurally identical and zero-cost. The value
 // is the declaration site: when an internal type changes shape, freeze the old

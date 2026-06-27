@@ -1,4 +1,3 @@
-// @engine/sdk/v1/hooks/panel-modals - panel-modal hook (Blackbox engine API v1).
 import { usePanelModals as usePanelModalsInternal } from "@engine/hooks/usePanelModals.js";
 import type { PanelModalsOptions as PanelModalsOptionsInternal } from "@engine/hooks/usePanelModals.js";
 

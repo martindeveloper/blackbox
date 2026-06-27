@@ -1,4 +1,3 @@
-// @engine/sdk/v1/state/save-load - save-slot API (Blackbox engine API v1).
 import * as slots from "@engine/lib/slots.js";
 
 export type SlotData = slots.SlotData;

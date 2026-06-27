@@ -1,4 +1,3 @@
-// @engine/sdk/v1/format - string/format helpers (Blackbox engine API v1).
 import type { TFunction } from "i18next";
 import type { MetaCatalog } from "./types.js";
 import * as format from "@engine/lib/format.js";

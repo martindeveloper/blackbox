@@ -1,5 +1,3 @@
-// @engine/sdk/v1/ui/components - component-slot contract (Blackbox engine API v1).
-//
 // The presentation-slot system: games provide components for these slots via the game
 // manifest, and a custom GameScreen pulls sibling slots back via useTextGameComponents.
 // v1 owns the prop types that define each slot's contract.

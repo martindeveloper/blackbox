@@ -1,4 +1,3 @@
-// @engine/sdk/v1/ui/menu - shared menu components (Blackbox engine API v1).
 import type { ComponentProps } from "react";
 import {
   MenuButton as MenuButtonInternal,

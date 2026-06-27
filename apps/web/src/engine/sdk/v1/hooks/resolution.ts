@@ -1,4 +1,3 @@
-// @engine/sdk/v1/hooks/resolution - resolution-presentation hook (Blackbox engine API v1).
 import { useResolutionPresentation as useResolutionPresentationInternal } from "@engine/hooks/useResolutionPresentation.js";
 import type {
   SequencePhase as SequencePhaseInternal,

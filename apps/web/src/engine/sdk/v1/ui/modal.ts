@@ -1,4 +1,3 @@
-// @engine/sdk/v1/ui/modal - modal API (Blackbox engine API v1).
 import { useModal as useModalInternal } from "@engine/ui/ModalContext.js";
 import type {
   ModalDescriptor as ModalDescriptorInternal,

@@ -1,4 +1,3 @@
-// @engine/sdk/v1/characters - character lookup helpers (Blackbox engine API v1).
 import type { CharacterView } from "./types.js";
 import * as characters from "@engine/lib/characters.js";
 

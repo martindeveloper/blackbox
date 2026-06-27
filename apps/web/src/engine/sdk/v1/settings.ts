@@ -1,4 +1,3 @@
-// @engine/sdk/v1/settings - player-settings hook (Blackbox engine API v1).
 import { useAppSettings as useAppSettingsInternal } from "@engine/context/AppSettings.js";
 import type {
   Theme as ThemeInternal,

@@ -1,4 +1,3 @@
-// @engine/sdk/v1/audio - audio API (Blackbox engine API v1).
 import type { MusicCue } from "./types.js";
 import {
   useAudio as useAudioInternal,

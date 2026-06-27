@@ -1,4 +1,3 @@
-// @engine/sdk/v1/notifications - state-notification diffing (Blackbox engine API v1).
 import type { GameView, UiNotification } from "./types.js";
 import * as notifications from "@engine/lib/notifications.js";
 

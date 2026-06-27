@@ -1,5 +1,3 @@
-// @engine/sdk/v1/ui/player-app - player application shell (Blackbox engine API v1).
-//
 // Wrapper component: v1 owns the config/prop types and renders the internal shell, so
 // prop translation can be inserted here without changing the public surface.
 import { TextGamePlayerApp as TextGamePlayerAppInternal } from "@engine/ui/textGame/TextGamePlayerApp.js";

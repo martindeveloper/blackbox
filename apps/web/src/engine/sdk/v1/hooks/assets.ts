@@ -1,4 +1,3 @@
-// @engine/sdk/v1/hooks/assets - managed-asset hooks (Blackbox engine API v1).
 import type { CharacterView } from "../types.js";
 import {
   useManagedTexture as useManagedTextureInternal,

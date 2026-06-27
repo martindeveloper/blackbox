@@ -1,4 +1,3 @@
-// @engine/sdk/v1/keyboard - keyboard helpers (Blackbox engine API v1).
 import * as keyboard from "@engine/lib/keyboard.js";
 import { useNumberKeySelect as useNumberKeySelectInternal } from "@engine/hooks/useNumberKeySelect.js";
 

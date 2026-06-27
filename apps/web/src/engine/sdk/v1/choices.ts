@@ -1,4 +1,3 @@
-// @engine/sdk/v1/choices - choice dispatch/query helpers (Blackbox engine API v1).
 import type { ChoiceView, ItemActionView } from "./types.js";
 import * as choices from "@engine/lib/choices.js";
 

@@ -163,7 +163,7 @@ Successful stages may emit a machine-readable artifact path:
 
 ## Packaged vs checkout
 
-| Capability                    | `node cli.js` (repo)                       | `BlackboxEditor --cli`     |
+| Capability                    | `node cli.js` (repo)                       | `BlackboxEditor --cli`      |
 | ----------------------------- | ------------------------------------------ | --------------------------- |
 | Lint / bundle / simulate WASM | Built from source or prior `npm run build` | Pre-bundled in the app      |
 | Rust toolchain on runner      | Required for engine rebuilds               | Not required                |

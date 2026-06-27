@@ -310,8 +310,7 @@ export function PreviewPanel() {
         target.removeEventListener("lostpointercapture", onLostPointerCapture);
         try {
           if (target.hasPointerCapture(pointerId)) target.releasePointerCapture(pointerId);
-        } catch {
-        }
+        } catch {}
         if (activeViewportResizeRef.current === cleanup) activeViewportResizeRef.current = null;
       };
       const onPointerMove = (event: PointerEvent) => {
@@ -354,8 +353,7 @@ export function PreviewPanel() {
       activeViewportResizeRef.current = cleanup;
       try {
         target.setPointerCapture(pointerId);
-      } catch {
-      }
+      } catch {}
       window.addEventListener("pointermove", onPointerMove, true);
       window.addEventListener("pointerup", onPointerUp, true);
       window.addEventListener("pointercancel", onPointerCancel, true);
@@ -548,12 +546,7 @@ export function PreviewPanel() {
                         }`}
                         aria-label={t("preview.resizeViewport")}
                         onPointerDown={(event) => {
-                          startViewportResize(
-                            handle,
-                            event,
-                            viewportSizes.responsive,
-                            scale,
-                          );
+                          startViewportResize(handle, event, viewportSizes.responsive, scale);
                         }}
                       />
                     ))

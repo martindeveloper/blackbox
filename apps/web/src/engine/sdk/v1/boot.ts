@@ -1,4 +1,3 @@
-// @engine/sdk/v1/boot - game bootstrap surface (Blackbox engine API v1).
 import { bootGame as bootGameInternal } from "@engine/boot.js";
 import type {
   GameDefinition as GameDefinitionInternal,
