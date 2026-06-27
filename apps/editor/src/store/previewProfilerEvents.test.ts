@@ -4,6 +4,7 @@ import { test } from "node:test";
 import {
   afterProfilerClear,
   newestProfilerEvents,
+  profilerEventKey,
   type OrderedPreviewProfilerEvent,
 } from "./previewProfilerEvents.ts";
 
@@ -30,4 +31,12 @@ test("profiler history older than the last clear is discarded", () => {
     afterProfilerClear([event(1, 100), event(2, 200), event(3, 300)], 200).map((item) => item.id),
     [3],
   );
+});
+
+test("profiler event keys survive iframe profiler id resets", () => {
+  assert.notEqual(profilerEventKey(event(1, 100), 0), profilerEventKey(event(1, 200), 0));
+});
+
+test("profiler event keys are unique even when events share timestamp and id", () => {
+  assert.notEqual(profilerEventKey(event(1, 100), 0), profilerEventKey(event(1, 100), 1));
 });

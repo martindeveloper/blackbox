@@ -585,9 +585,17 @@
   background: #090a0c;
 }
 
-.preview-device-shell {
+.preview-device-scale-box {
   position: relative;
   flex-shrink: 0;
+}
+
+.preview-device-shell {
+  position: absolute;
+  top: 0;
+  left: 0;
+  flex-shrink: 0;
+  transform-origin: top left;
 }
 
 .preview-device-shell .preview-device-viewport {
@@ -612,12 +620,25 @@
 .preview-device-shell--resizable {
   padding: 8px;
   border-radius: 10px;
+  touch-action: none;
 }
 
 .preview-device-shell--resizable .preview-device-viewport {
   box-shadow:
     0 0 0 1px color-mix(in srgb, var(--editor-primary) 42%, var(--editor-border-2)),
     0 14px 40px rgb(0 0 0 / 24%);
+}
+
+.preview-device-shell--resizable.is-resizing {
+  user-select: none;
+}
+
+.preview-resize-shield {
+  position: absolute;
+  inset: 8px;
+  z-index: 2;
+  background: transparent;
+  touch-action: none;
 }
 
 .preview-stage--mobile .preview-device-viewport {
@@ -634,6 +655,7 @@
   padding: 0;
   background: transparent;
   opacity: 0.78;
+  touch-action: none;
   transition: opacity 100ms;
 }
 
@@ -645,7 +667,8 @@
 }
 
 .preview-resize-handle:hover,
-.preview-resize-handle:focus-visible {
+.preview-resize-handle:focus-visible,
+.preview-resize-handle.is-active {
   opacity: 1;
 }
 
@@ -662,11 +685,21 @@
   cursor: ns-resize;
 }
 
+.preview-resize-shield--n,
+.preview-resize-shield--s {
+  cursor: ns-resize;
+}
+
 .preview-resize-handle--e,
 .preview-resize-handle--w {
   top: 18px;
   bottom: 18px;
   width: 8px;
+  cursor: ew-resize;
+}
+
+.preview-resize-shield--e,
+.preview-resize-shield--w {
   cursor: ew-resize;
 }
 
@@ -740,9 +773,19 @@
   cursor: nesw-resize;
 }
 
+.preview-resize-shield--ne,
+.preview-resize-shield--sw {
+  cursor: nesw-resize;
+}
+
 .preview-resize-handle--se {
   right: 0;
   bottom: 0;
+  cursor: nwse-resize;
+}
+
+.preview-resize-shield--se,
+.preview-resize-shield--nw {
   cursor: nwse-resize;
 }
 

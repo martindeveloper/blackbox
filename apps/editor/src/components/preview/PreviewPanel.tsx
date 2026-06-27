@@ -1,15 +1,15 @@
-import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
-import type { FormEvent, KeyboardEvent } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { FormEvent, KeyboardEvent, PointerEvent as ReactPointerEvent } from "react";
 import {
   Database,
   ExternalLink,
   Hammer,
+  Maximize,
   Monitor,
   RotateCw,
   Smartphone,
   Terminal,
   type LucideIcon,
-  type LucideProps,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { isPreviewPlayerMessage, postPreviewHostMessage } from "@players/web/protocol.js";
@@ -37,39 +37,11 @@ interface DevicePreset {
   labelKey: string;
 }
 
-const ResponsiveIcon: LucideIcon = forwardRef<SVGSVGElement, LucideProps>(
-  ({ color = "currentColor", size = 24, strokeWidth = 2, className, ...props }, ref) => (
-    <svg
-      ref={ref}
-      xmlns="http://www.w3.org/2000/svg"
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke={color}
-      strokeWidth={strokeWidth}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden
-      focusable={false}
-      {...props}
-    >
-      <rect x="3" y="5" width="18" height="14" rx="2" />
-      <path d="M8 9h8" />
-      <path d="M8 15h8" />
-      <path d="M5 12h14" />
-    </svg>
-  ),
-);
-
-ResponsiveIcon.displayName = "ResponsiveIcon";
-
 const DEVICE_PRESETS: readonly DevicePreset[] = [
   { id: "desktop", icon: Monitor, labelKey: "preview.deviceDesktop" },
   {
     id: "responsive",
-    icon: ResponsiveIcon,
+    icon: Maximize,
     labelKey: "preview.deviceResponsive",
   },
   {
@@ -118,9 +90,11 @@ export function PreviewPanel() {
   const conflict = useScenarioStore((s) => s.conflict);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
+  const activeViewportResizeRef = useRef<((commit?: boolean) => void) | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
   const [building, setBuilding] = useState(false);
   const [device, setDevice] = useState<PreviewDevice>("desktop");
+  const [resizingViewport, setResizingViewport] = useState<ResizeHandle | null>(null);
   const [stageSize, setStageSize] = useState({ width: 0, height: 0 });
   const [viewportSizes, setViewportSizes] =
     useState<Record<FramedPreviewDevice, ViewportSize>>(DEFAULT_VIEWPORT_SIZES);
@@ -292,23 +266,57 @@ export function PreviewPanel() {
     [],
   );
 
+  useEffect(() => {
+    return () => activeViewportResizeRef.current?.(false);
+  }, []);
+
   const startViewportResize = useCallback(
     (
       handle: ResizeHandle,
-      startX: number,
-      startY: number,
+      event: ReactPointerEvent<HTMLButtonElement>,
       startSize: ViewportSize,
       resizeScale: number,
     ) => {
       if (device !== "responsive") return;
+      if (event.button !== 0) return;
+      activeViewportResizeRef.current?.();
+      event.preventDefault();
+
+      const target = event.currentTarget;
+      const pointerId = event.pointerId;
+      const startX = event.clientX;
+      const startY = event.clientY;
       let frameId: number | null = null;
       let pendingSize = startSize;
+      let finished = false;
       const scaleFactor = Math.max(resizeScale, 0.1);
       const applyPendingSize = () => {
         frameId = null;
         updateViewportSize("responsive", pendingSize);
       };
-      const onMouseMove = (event: MouseEvent) => {
+      const cleanup = (commit = true) => {
+        if (finished) return;
+        finished = true;
+        if (frameId !== null) cancelAnimationFrame(frameId);
+        if (commit) {
+          applyPendingSize();
+          setResizingViewport(null);
+        }
+        window.removeEventListener("pointermove", onPointerMove, true);
+        window.removeEventListener("pointerup", onPointerUp, true);
+        window.removeEventListener("pointercancel", onPointerCancel, true);
+        window.removeEventListener("blur", onWindowBlur);
+        window.removeEventListener("contextmenu", onContextMenu, true);
+        target.removeEventListener("lostpointercapture", onLostPointerCapture);
+        try {
+          if (target.hasPointerCapture(pointerId)) target.releasePointerCapture(pointerId);
+        } catch {
+        }
+        if (activeViewportResizeRef.current === cleanup) activeViewportResizeRef.current = null;
+      };
+      const onPointerMove = (event: PointerEvent) => {
+        if (event.pointerId !== pointerId) return;
+        event.preventDefault();
         const deltaX = (event.clientX - startX) / scaleFactor;
         const deltaY = (event.clientY - startY) / scaleFactor;
         const movesWest = handle.includes("w");
@@ -327,14 +335,33 @@ export function PreviewPanel() {
         };
         if (frameId === null) frameId = requestAnimationFrame(applyPendingSize);
       };
-      const onMouseUp = () => {
-        if (frameId !== null) cancelAnimationFrame(frameId);
-        applyPendingSize();
-        window.removeEventListener("mousemove", onMouseMove);
-        window.removeEventListener("mouseup", onMouseUp);
+      const onPointerUp = (event: PointerEvent) => {
+        if (event.pointerId !== pointerId) return;
+        cleanup();
       };
-      window.addEventListener("mousemove", onMouseMove);
-      window.addEventListener("mouseup", onMouseUp);
+      const onPointerCancel = (event: PointerEvent) => {
+        if (event.pointerId !== pointerId) return;
+        cleanup();
+      };
+      const onLostPointerCapture = () => cleanup();
+      const onWindowBlur = () => cleanup();
+      const onContextMenu = (event: MouseEvent) => {
+        event.preventDefault();
+        cleanup();
+      };
+
+      setResizingViewport(handle);
+      activeViewportResizeRef.current = cleanup;
+      try {
+        target.setPointerCapture(pointerId);
+      } catch {
+      }
+      window.addEventListener("pointermove", onPointerMove, true);
+      window.addEventListener("pointerup", onPointerUp, true);
+      window.addEventListener("pointercancel", onPointerCancel, true);
+      window.addEventListener("blur", onWindowBlur);
+      window.addEventListener("contextmenu", onContextMenu, true);
+      target.addEventListener("lostpointercapture", onLostPointerCapture);
     },
     [device, updateViewportSize],
   );
@@ -357,11 +384,12 @@ export function PreviewPanel() {
 
   const src = `/preview?project=${encodeURIComponent(projectId)}&api=${API_PREFIX}`;
   const viewportSize = isFramedDevice(device) ? viewportSizes[device] : null;
+  const responsiveFramePadding = device === "responsive" ? 16 : 0;
   const scale =
     viewportSize && effectiveStageSize.width > 0 && effectiveStageSize.height > 0
       ? Math.min(
-          (effectiveStageSize.width - 32) / viewportSize.width,
-          (effectiveStageSize.height - 32) / viewportSize.height,
+          (effectiveStageSize.width - 32) / (viewportSize.width + responsiveFramePadding),
+          (effectiveStageSize.height - 32) / (viewportSize.height + responsiveFramePadding),
           1,
         )
       : 1;
@@ -466,55 +494,71 @@ export function PreviewPanel() {
         <div ref={stageRef} className={`preview-stage preview-stage--${device}`}>
           {viewportSize ? (
             <div
-              className={
-                device === "responsive"
-                  ? "preview-device-shell preview-device-shell--resizable"
-                  : "preview-device-shell"
-              }
+              className="preview-device-scale-box"
               style={{
-                width: viewportSize.width * scale,
-                height: viewportSize.height * scale,
+                width: (viewportSize.width + responsiveFramePadding) * scale,
+                height: (viewportSize.height + responsiveFramePadding) * scale,
               }}
             >
-              <div className="preview-device-viewport">
-                <iframe
-                  ref={iframeRef}
-                  key={reloadKey}
-                  className="preview-frame"
-                  style={{
-                    width: viewportSize.width,
-                    height: viewportSize.height,
-                    transform: `scale(${scale})`,
-                  }}
-                  src={src}
-                  title={t("preview.title")}
-                  allow="autoplay"
-                  onLoad={() => {
-                    setConnected(false);
-                    setRuntimeState({ phase: "loading" });
-                  }}
-                />
+              <div
+                className={
+                  device === "responsive"
+                    ? `preview-device-shell preview-device-shell--resizable${
+                        resizingViewport ? " is-resizing" : ""
+                      }`
+                    : "preview-device-shell"
+                }
+                style={{
+                  width: viewportSize.width,
+                  height: viewportSize.height,
+                  transform: `scale(${scale})`,
+                }}
+              >
+                <div className="preview-device-viewport">
+                  <iframe
+                    ref={iframeRef}
+                    key={reloadKey}
+                    className="preview-frame"
+                    style={{
+                      width: viewportSize.width,
+                      height: viewportSize.height,
+                    }}
+                    src={src}
+                    title={t("preview.title")}
+                    allow="autoplay"
+                    onLoad={() => {
+                      setConnected(false);
+                      setRuntimeState({ phase: "loading" });
+                    }}
+                  />
+                </div>
+                {resizingViewport ? (
+                  <div
+                    className={`preview-resize-shield preview-resize-shield--${resizingViewport}`}
+                    aria-hidden
+                  />
+                ) : null}
+                {device === "responsive"
+                  ? RESIZE_HANDLES.map((handle) => (
+                      <button
+                        key={handle}
+                        type="button"
+                        className={`preview-resize-handle preview-resize-handle--${handle}${
+                          resizingViewport === handle ? " is-active" : ""
+                        }`}
+                        aria-label={t("preview.resizeViewport")}
+                        onPointerDown={(event) => {
+                          startViewportResize(
+                            handle,
+                            event,
+                            viewportSizes.responsive,
+                            scale,
+                          );
+                        }}
+                      />
+                    ))
+                  : null}
               </div>
-              {device === "responsive"
-                ? RESIZE_HANDLES.map((handle) => (
-                    <button
-                      key={handle}
-                      type="button"
-                      className={`preview-resize-handle preview-resize-handle--${handle}`}
-                      aria-label={t("preview.resizeViewport")}
-                      onMouseDown={(event) => {
-                        event.preventDefault();
-                        startViewportResize(
-                          handle,
-                          event.clientX,
-                          event.clientY,
-                          viewportSizes.responsive,
-                          scale,
-                        );
-                      }}
-                    />
-                  ))
-                : null}
             </div>
           ) : (
             <div className="preview-device-viewport">

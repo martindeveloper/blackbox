@@ -18,3 +18,7 @@ export function afterProfilerClear<T extends OrderedPreviewProfilerEvent>(
   if (profilerClearedAt <= 0) return events;
   return events.filter((event) => event.at > profilerClearedAt);
 }
+
+export function profilerEventKey(event: OrderedPreviewProfilerEvent, occurrence: number): string {
+  return `${event.at}:${event.id}:${occurrence}`;
+}

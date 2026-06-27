@@ -1,7 +1,8 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Activity, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { usePreviewStore, type PreviewProfilerEvent } from "@/store/usePreviewStore.js";
+import { profilerEventKey } from "@/store/previewProfilerEvents.js";
 import { Icon } from "@/components/icons/Icon.js";
 import { Input } from "@/components/ui/Input.js";
 import { displayValue, SectionTitle } from "./previewInspectorUtils.js";
@@ -25,17 +26,27 @@ function profilerEventMatchesQuery(event: PreviewProfilerEvent, query: string): 
 export function PreviewInspectorProfiler({
   dock = false,
   showHeader = true,
+  events: eventsProp,
+  onClear,
 }: {
   dock?: boolean;
   showHeader?: boolean;
+  events?: PreviewProfilerEvent[];
+  onClear?: () => void;
 }) {
   const { t } = useTranslation();
   const [filter, setFilter] = useState<ProfilerFilter>("all");
   const [query, setQuery] = useState("");
-  const events = usePreviewStore((state) => state.profilerEvents);
+  const listRef = useRef<HTMLDivElement>(null);
+  const storeEvents = usePreviewStore((state) => state.profilerEvents);
   const commandSender = usePreviewStore((state) => state.commandSender);
   const clearProfilerEvents = usePreviewStore((state) => state.clearProfilerEvents);
+  const events = eventsProp ?? storeEvents;
   const handleClearProfiler = () => {
+    if (onClear) {
+      onClear();
+      return;
+    }
     clearProfilerEvents();
     commandSender?.({ type: "clear-profiler" });
   };
@@ -52,6 +63,11 @@ export function PreviewInspectorProfiler({
     () => [...filtered].sort((a, b) => b.at - a.at || b.id - a.id),
     [filtered],
   );
+  const newestEventKey =
+    newestFirst.length > 0 ? profilerEventKey(newestFirst[0] as PreviewProfilerEvent, 0) : "empty";
+  useEffect(() => {
+    if (dock) listRef.current?.scrollTo({ top: 0 });
+  }, [dock, newestEventKey]);
   const emptyMessage =
     categoryEvents.length > 0 && query.trim()
       ? t("preview.profilerFilterEmpty")
@@ -101,12 +117,15 @@ export function PreviewInspectorProfiler({
             onChange={(event) => setQuery(event.target.value)}
           />
         </div>
-        <div className="preview-profiler-list">
+        <div ref={listRef} className="preview-profiler-list">
           {filtered.length ? (
-            newestFirst.map((event) => {
+            newestFirst.map((event, index) => {
               const category = event.name.split(".")[0] ?? "event";
               return (
-                <article key={event.id} className={`preview-profiler-event is-${category}`}>
+                <article
+                  key={profilerEventKey(event, index)}
+                  className={`preview-profiler-event is-${category}`}
+                >
                   <time>{new Date(event.at).toLocaleTimeString()}</time>
                   <div>
                     <strong>{event.name}</strong>

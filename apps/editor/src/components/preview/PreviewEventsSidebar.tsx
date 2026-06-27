@@ -37,7 +37,12 @@ export function PreviewEventsSidebar() {
         </span>
       </PanelHeader>
       <PanelBody className="flex min-h-0 flex-col">
-        <PreviewInspectorProfiler dock showHeader={false} />
+        <PreviewInspectorProfiler
+          dock
+          showHeader={false}
+          events={events}
+          onClear={handleClearProfiler}
+        />
       </PanelBody>
     </Panel>
   );
