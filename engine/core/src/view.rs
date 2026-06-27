@@ -3,6 +3,7 @@ use std::fmt;
 use std::sync::Arc;
 
 use crate::content::MetaCatalog;
+use crate::rng::DEFAULT_DIE_SIDES;
 
 #[derive(Debug, Clone, Default)]
 pub struct ResolvedAssetCatalog {
@@ -98,6 +99,7 @@ pub struct CheckPreview {
     pub stat: String,
     pub difficulty: i32,
     pub label: Option<String>,
+    pub sides: u32,
     pub roll_mode: RollMode,
     pub max_attempts: Option<u32>,
     pub attempts_used: u32,
@@ -109,6 +111,7 @@ pub enum RollRecord {
         label: Option<String>,
         stat: String,
         difficulty: i32,
+        sides: Option<u32>,
         roll: i32,
         modifier: i32,
         total: i32,
@@ -151,6 +154,7 @@ impl fmt::Display for RollRecord {
                 label,
                 stat,
                 difficulty,
+                sides,
                 roll,
                 modifier,
                 total,
@@ -166,7 +170,8 @@ impl fmt::Display for RollRecord {
                 };
                 write!(
                     f,
-                    "skill check {title}{mode}: d20={roll} + {modifier} = {total} vs DC {difficulty} ({outcome})"
+                    "skill check {title}{mode}: d{}={roll} + {modifier} = {total} vs DC {difficulty} ({outcome})",
+                    sides.unwrap_or(DEFAULT_DIE_SIDES)
                 )
             }
             RollRecord::Roll { label, total, .. } => {

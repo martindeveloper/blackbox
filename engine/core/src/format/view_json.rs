@@ -13,6 +13,7 @@ use serde::{Serialize, Serializer};
 use crate::command::CommandResult;
 use crate::content::{ChoiceAction, DialogueSide, NodeMode, RollMode, TextBlock};
 use crate::error::EngineError;
+use crate::rng::DEFAULT_DIE_SIDES;
 use crate::value::DynamicValue;
 use crate::view::{
     CharacterView, CheckPreview, ChoiceView, GameView, InventoryItemView, ItemActionView,
@@ -684,11 +685,14 @@ impl Serialize for RollMode {
 
 impl Serialize for CheckPreview {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        let mut state = serializer.serialize_struct("CheckPreview", 6)?;
+        let mut state = serializer.serialize_struct("CheckPreview", 7)?;
         state.serialize_field("stat", &self.stat)?;
         state.serialize_field("difficulty", &self.difficulty)?;
         if let Some(value) = &self.label {
             state.serialize_field("label", value)?;
+        }
+        if self.sides != DEFAULT_DIE_SIDES {
+            state.serialize_field("sides", &self.sides)?;
         }
         if self.roll_mode != RollMode::Normal {
             state.serialize_field("rollMode", &self.roll_mode)?;
@@ -765,19 +769,23 @@ impl Serialize for RollRecord {
                 label,
                 stat,
                 difficulty,
+                sides,
                 roll,
                 modifier,
                 total,
                 success,
                 roll_mode,
             } => {
-                let mut state = serializer.serialize_struct("SkillCheck", 9)?;
+                let mut state = serializer.serialize_struct("SkillCheck", 10)?;
                 state.serialize_field("kind", "skillCheck")?;
                 if let Some(value) = label {
                     state.serialize_field("label", value)?;
                 }
                 state.serialize_field("stat", stat)?;
                 state.serialize_field("difficulty", difficulty)?;
+                if let Some(value) = sides {
+                    state.serialize_field("sides", value)?;
+                }
                 state.serialize_field("roll", roll)?;
                 state.serialize_field("modifier", modifier)?;
                 state.serialize_field("total", total)?;

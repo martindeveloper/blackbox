@@ -201,6 +201,7 @@ export interface SkillCheckContent {
   difficulty: number;
   modifier?: ExprInput;
   label?: string;
+  sides?: number;
   rollMode?: RollMode;
   maxAttempts?: number;
   onSuccess: SkillCheckOutcome;

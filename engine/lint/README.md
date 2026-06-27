@@ -158,6 +158,19 @@ Reuses `blackbox::validation::validate_content` — the same rules applied when 
 
 **Codes:** `validation`, `expression`, `engine`
 
+### Skill check balance
+
+Warns when a skill check appears impossible or guaranteed using the stat value from
+`defaultStats`, the check die `sides`, and a conservative modifier range. Boolean
+terms such as `hasFlag(...)`, `hasItem(...)`, `visited(...)`, and relationship
+comparisons are treated as `0..1`; unbounded numeric terms and path-dependent stat
+changes are skipped.
+
+- Impossible checks where `sides + stat + modifier` is still below `difficulty`
+- Guaranteed checks where `1 + stat + modifier` already meets `difficulty`
+
+**Codes:** `skill-check-impossible`, `skill-check-guaranteed`
+
 ### Reachability and graph structure
 
 Forward analysis from `startNodeId` explores choice branches, skill-check outcomes, restart targets, `openLoadMenu` + `goto`, stay-on-node effects, and **item actions** (when inventory allows). Inventory is tracked optimistically along paths (gates are not evaluated).

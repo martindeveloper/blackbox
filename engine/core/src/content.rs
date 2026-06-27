@@ -295,6 +295,7 @@ pub struct SkillCheckContent {
     pub difficulty: i32,
     pub modifier: Option<ExprInput>,
     pub label: Option<String>,
+    pub sides: u32,
     /// How many dice are rolled (one vs two with keep-best / keep-worst).
     pub roll_mode: RollMode,
     /// When set, tracks per-choice attempt counts in state. After this many

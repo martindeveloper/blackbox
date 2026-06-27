@@ -488,6 +488,8 @@ pub(crate) struct SkillCheckContentWire {
     pub modifier: Option<ExprInputWire>,
     #[serde(default)]
     pub label: Option<String>,
+    #[serde(default = "default_die_sides")]
+    pub sides: u32,
     #[serde(default, rename = "rollMode")]
     pub roll_mode: RollModeWire,
     #[serde(default, rename = "maxAttempts")]

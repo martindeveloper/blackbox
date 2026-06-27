@@ -107,6 +107,27 @@ cargo run -p blackbox-lint -- data/silent_archive_game/scenario.json
 
 The web player runs at [http://localhost:8080](http://localhost:8080).
 
+## Maintaining grammar docs
+
+When adding or changing a JSON grammar feature, update every public surface that describes or
+validates it:
+
+1. Engine format structs and parsing rules in `engine/format/src/json/`.
+2. Runtime/editor/web consumers that read or edit the feature.
+3. Linter checks in `engine/lint/` when the feature can be invalid, unreachable, impossible, or
+   inconsistent.
+4. Authoring docs in `FEATURES.md` for behavior, examples, and design notes.
+5. The generated grammar source of truth in `apps/editor/server/mcpSchema.mjs`.
+
+`GRAMMAR.md` and `apps/homepage/content/docs/grammar.md` are generated from
+`apps/editor/server/mcpSchema.mjs`, which is also the MCP grammar reference. After editing the
+schema reference, run:
+
+```bash
+node scripts/write-grammar.mjs
+node --test apps/editor/server/mcpSchema.test.js
+```
+
 ## License
 
 [MIT](LICENSE)

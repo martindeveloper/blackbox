@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import {
   PREVIEW_CONSOLE_HISTORY_LIMIT,
-  PREVIEW_PROFILER_HISTORY_LIMIT,
   type PreviewConsoleEntry,
   type PreviewProfilerEvent,
   type PreviewRuntimeState,
@@ -9,6 +8,7 @@ import {
 } from "@players/web/protocol.js";
 import { PreviewCommandError } from "./previewCommandErrors.js";
 import { cancelPreviewRpc, type PreviewCommandSender } from "./previewCommandRpc.js";
+import { afterProfilerClear, newestProfilerEvents } from "./previewProfilerEvents.js";
 
 export type {
   PreviewConsoleEntry,
@@ -50,20 +50,6 @@ interface PreviewStore {
   commandSender: PreviewCommandSender | null;
   setCommandSender: (commandSender: PreviewCommandSender | null) => void;
   reset: () => void;
-}
-
-function newestProfilerEvents(events: PreviewProfilerEvent[]): PreviewProfilerEvent[] {
-  return [...events]
-    .sort((a, b) => b.at - a.at || b.id - a.id)
-    .slice(0, PREVIEW_PROFILER_HISTORY_LIMIT);
-}
-
-function afterProfilerClear(
-  events: PreviewProfilerEvent[],
-  profilerClearedAt: number,
-): PreviewProfilerEvent[] {
-  if (profilerClearedAt <= 0) return events;
-  return events.filter((event) => event.at > profilerClearedAt);
 }
 
 export const usePreviewStore = create<PreviewStore>((set) => ({

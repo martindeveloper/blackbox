@@ -3,7 +3,10 @@ mod support;
 
 use blackbox::validation::validate_content;
 use blackbox::view::RollRecord;
-use blackbox::{EngineError, PlayerCommand, RollMode, SkillCheckOverride, StateCodec};
+use blackbox::{
+    EngineError, PlayerCommand, RollMode, SkillCheckOverride, StateCodec,
+    encode_command_result_json,
+};
 use blackbox_format::JsonFormat;
 
 fn load(scenario_inner: &str) -> blackbox::Engine {
@@ -117,6 +120,145 @@ fn check_preview_shows_normal_roll_mode_by_default() {
         .as_ref()
         .expect("should have check preview");
     assert_eq!(check.roll_mode, RollMode::Normal);
+    assert_eq!(check.sides, 20);
+}
+
+#[test]
+fn check_preview_shows_custom_die_sides() {
+    let mut engine = load(
+        r#"
+        "startNodeId": "start",
+        "nodes": {
+            "start": {
+                "id": "start",
+                "choices": [{
+                    "id": "go",
+                    "label": "Try.",
+                    "check": {
+                        "stat": "logic",
+                        "difficulty": 5,
+                        "sides": 8,
+                        "onSuccess": { "goto": "pass" },
+                        "onFailure": { "goto": "fail" }
+                    }
+                }]
+            },
+            "pass": { "id": "pass", "choices": [{ "id": "end", "label": "End.", "goto": "pass" }] },
+            "fail": { "id": "fail", "choices": [{ "id": "end", "label": "End.", "goto": "fail" }] }
+        }
+    "#,
+    );
+
+    let view = engine.get_current_view().unwrap();
+    let check = view.choices[0]
+        .check
+        .as_ref()
+        .expect("should have check preview");
+    assert_eq!(check.sides, 8);
+}
+
+#[test]
+fn skill_check_uses_d20_when_sides_are_omitted() {
+    let mut engine = load(
+        r#"
+        "startNodeId": "start",
+        "nodes": {
+            "start": {
+                "id": "start",
+                "choices": [{
+                    "id": "go",
+                    "label": "Try.",
+                    "check": {
+                        "stat": "logic",
+                        "difficulty": 30,
+                        "onSuccess": { "goto": "pass" },
+                        "onFailure": { "goto": "fail" }
+                    }
+                }]
+            },
+            "pass": { "id": "pass", "choices": [] },
+            "fail": { "id": "fail", "choices": [] }
+        }
+    "#,
+    );
+
+    let result = choose(&mut engine, "go");
+    assert!(matches!(
+        result.rolls[0],
+        RollRecord::SkillCheck {
+            sides: Some(20),
+            ..
+        }
+    ));
+}
+
+#[test]
+fn skill_check_uses_custom_die_sides() {
+    let mut engine = load(
+        r#"
+        "startNodeId": "start",
+        "nodes": {
+            "start": {
+                "id": "start",
+                "choices": [{
+                    "id": "go",
+                    "label": "Try.",
+                    "check": {
+                        "stat": "logic",
+                        "difficulty": 7,
+                        "sides": 6,
+                        "onSuccess": { "goto": "pass" },
+                        "onFailure": { "goto": "fail" }
+                    }
+                }]
+            },
+            "pass": { "id": "pass", "choices": [] },
+            "fail": { "id": "fail", "choices": [] }
+        }
+    "#,
+    );
+
+    let result = choose(&mut engine, "go");
+    assert!(matches!(
+        result.rolls[0],
+        RollRecord::SkillCheck {
+            sides: Some(6),
+            roll: 1..=6,
+            ..
+        }
+    ));
+}
+
+#[test]
+fn skill_check_result_json_includes_die_sides() {
+    let mut engine = load(
+        r#"
+        "startNodeId": "start",
+        "nodes": {
+            "start": {
+                "id": "start",
+                "choices": [{
+                    "id": "go",
+                    "label": "Try.",
+                    "check": {
+                        "stat": "logic",
+                        "difficulty": 7,
+                        "sides": 12,
+                        "onSuccess": { "goto": "pass" },
+                        "onFailure": { "goto": "fail" }
+                    }
+                }]
+            },
+            "pass": { "id": "pass", "choices": [] },
+            "fail": { "id": "fail", "choices": [] }
+        }
+    "#,
+    );
+
+    let result = choose(&mut engine, "go");
+    let json = encode_command_result_json(&result).unwrap();
+    let parsed: serde_json::Value = serde_json::from_str(&json).unwrap();
+    assert_eq!(parsed["rolls"][0]["sides"], 12);
 }
 
 #[test]

@@ -2,7 +2,7 @@ use crate::content::{RollMode, SkillCheckContent, SkillCheckOutcome};
 use crate::effect::{EffectSideEffects, apply_effect};
 use crate::error::EngineError;
 use crate::expr::{self, EvalContext};
-use crate::rng::{DEFAULT_DIE_SIDES, roll_skill_check};
+use crate::rng::roll_skill_check;
 use crate::roll_log::RollLog;
 use crate::state::GameState;
 use crate::transition::ChoiceResolution;
@@ -64,6 +64,7 @@ pub fn resolve_skill_check(
         check.difficulty,
         Some(label),
         modifier,
+        check.sides,
         check.roll_mode,
         rolls,
     );
@@ -108,8 +109,9 @@ fn record_forced_skill_check(
         .label
         .clone()
         .unwrap_or_else(|| format!("{} check (forced)", check.stat));
+    let sides = check.sides.max(1);
     let (success, roll) = match override_outcome {
-        SkillCheckOverride::ForceSuccess => (true, DEFAULT_DIE_SIDES as i32),
+        SkillCheckOverride::ForceSuccess => (true, sides as i32),
         SkillCheckOverride::ForceFailure => (false, 1),
         SkillCheckOverride::ForceExhausted => (false, 0),
     };
@@ -117,6 +119,7 @@ fn record_forced_skill_check(
         label: Some(label),
         stat: check.stat.clone(),
         difficulty: check.difficulty,
+        sides: Some(sides),
         roll,
         modifier: 0,
         total: roll,

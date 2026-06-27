@@ -1,5 +1,5 @@
 use crate::checks::{
-    assets, cook, dead_ends, death_nodes, items, reachability, references, validate,
+    assets, cook, dead_ends, death_nodes, items, reachability, references, skill_checks, validate,
 };
 use crate::report::LintReport;
 use crate::rules::{LintContext, catalog, characters, library, relationships, wire};
@@ -132,6 +132,12 @@ pub fn all_rules() -> &'static [Rule] {
             "engine",
             RulePhase::Content,
             validate::check_engine_validation_rule,
+        ),
+        Rule::new(
+            "skill-check-balance",
+            "engine",
+            RulePhase::Content,
+            skill_checks::check_skill_checks_rule,
         ),
         Rule::new(
             "reachability",

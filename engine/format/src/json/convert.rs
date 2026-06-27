@@ -922,6 +922,7 @@ fn skill_check_from_wire(wire: SkillCheckContentWire) -> Result<SkillCheckConten
         difficulty: wire.difficulty,
         modifier: wire.modifier.map(expr_input_from_wire),
         label: wire.label,
+        sides: wire.sides,
         roll_mode: roll_mode_from_wire(wire.roll_mode),
         max_attempts: wire.max_attempts,
         on_success: skill_check_outcome_from_wire(wire.on_success)?,

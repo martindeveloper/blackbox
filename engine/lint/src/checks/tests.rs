@@ -4,7 +4,9 @@ use blackbox::content::{CatalogEntry, MetaCatalog};
 use blackbox::validation::validate_content;
 use blackbox_format::JsonFormat;
 
-use crate::checks::{items::check_items, references::check_references};
+use crate::checks::{
+    items::check_items, references::check_references, skill_checks::check_skill_checks,
+};
 use crate::graph::analyze_reachability;
 use crate::refs::collect_content_refs;
 use crate::report::LintReport;
@@ -233,6 +235,196 @@ fn roll_store_flag_counts_as_set() {
             .flags_read
             .difference(&refs.flags_set)
             .any(|flag| flag == "dice_result")
+    );
+}
+
+#[test]
+fn skill_check_impossible_is_reported() {
+    let scenario = r#"{
+        "startNodeId": "start",
+        "defaultStats": { "logic": 3 },
+        "nodes": {
+            "start": {
+                "id": "start",
+                "choices": [{
+                    "id": "try",
+                    "label": "Try",
+                    "check": {
+                        "stat": "logic",
+                        "difficulty": 12,
+                        "sides": 6,
+                        "onSuccess": { "goto": "pass" },
+                        "onFailure": { "goto": "fail" }
+                    }
+                }]
+            },
+            "pass": { "id": "pass", "choices": [] },
+            "fail": { "id": "fail", "choices": [] }
+        }
+    }"#;
+
+    let mut report = LintReport::default();
+    check_skill_checks(&decode(scenario, r#"{ "items": {} }"#), &mut report);
+
+    assert!(
+        report
+            .issues
+            .iter()
+            .any(|issue| issue.code == "skill-check-impossible"),
+        "expected impossible check warning, got: {:?}",
+        report.issues
+    );
+}
+
+#[test]
+fn skill_check_guaranteed_is_reported() {
+    let scenario = r#"{
+        "startNodeId": "start",
+        "defaultStats": { "logic": 3 },
+        "nodes": {
+            "start": {
+                "id": "start",
+                "choices": [{
+                    "id": "try",
+                    "label": "Try",
+                    "check": {
+                        "stat": "logic",
+                        "difficulty": 4,
+                        "sides": 6,
+                        "onSuccess": { "goto": "pass" },
+                        "onFailure": { "goto": "fail" }
+                    }
+                }]
+            },
+            "pass": { "id": "pass", "choices": [] },
+            "fail": { "id": "fail", "choices": [] }
+        }
+    }"#;
+
+    let mut report = LintReport::default();
+    check_skill_checks(&decode(scenario, r#"{ "items": {} }"#), &mut report);
+
+    assert!(
+        report
+            .issues
+            .iter()
+            .any(|issue| issue.code == "skill-check-guaranteed"),
+        "expected guaranteed check warning, got: {:?}",
+        report.issues
+    );
+}
+
+#[test]
+fn skill_check_impossible_accounts_for_dynamic_modifier_range() {
+    let scenario = r#"{
+        "startNodeId": "start",
+        "defaultStats": { "logic": 3 },
+        "nodes": {
+            "start": {
+                "id": "start",
+                "choices": [{
+                    "id": "try",
+                    "label": "Try",
+                    "check": {
+                        "stat": "logic",
+                        "difficulty": 13,
+                        "sides": 6,
+                        "modifier": "(hasFlag('a')) + (hasFlag('b')) + (relationship('elian','trust') >= 3)",
+                        "onSuccess": { "goto": "pass" },
+                        "onFailure": { "goto": "fail" }
+                    }
+                }]
+            },
+            "pass": { "id": "pass", "choices": [] },
+            "fail": { "id": "fail", "choices": [] }
+        }
+    }"#;
+
+    let mut report = LintReport::default();
+    check_skill_checks(&decode(scenario, r#"{ "items": {} }"#), &mut report);
+
+    assert!(
+        report
+            .issues
+            .iter()
+            .any(|issue| issue.code == "skill-check-impossible"),
+        "expected impossible check warning, got: {:?}",
+        report.issues
+    );
+}
+
+#[test]
+fn skill_check_guaranteed_accounts_for_dynamic_modifier_range() {
+    let scenario = r#"{
+        "startNodeId": "start",
+        "defaultStats": { "empathy": 8 },
+        "nodes": {
+            "start": {
+                "id": "start",
+                "choices": [{
+                    "id": "try",
+                    "label": "Try",
+                    "check": {
+                        "stat": "empathy",
+                        "difficulty": 7,
+                        "sides": 12,
+                        "modifier": "(hasFlag('helped')) - (hasFlag('hurt')) - (relationship('tessa','trust') < 0)",
+                        "onSuccess": { "goto": "pass" },
+                        "onFailure": { "goto": "fail" }
+                    }
+                }]
+            },
+            "pass": { "id": "pass", "choices": [] },
+            "fail": { "id": "fail", "choices": [] }
+        }
+    }"#;
+
+    let mut report = LintReport::default();
+    check_skill_checks(&decode(scenario, r#"{ "items": {} }"#), &mut report);
+
+    assert!(
+        report
+            .issues
+            .iter()
+            .any(|issue| issue.code == "skill-check-guaranteed"),
+        "expected guaranteed check warning, got: {:?}",
+        report.issues
+    );
+}
+
+#[test]
+fn skill_check_balance_skips_unbounded_numeric_modifier() {
+    let scenario = r#"{
+        "startNodeId": "start",
+        "defaultStats": { "logic": 3 },
+        "nodes": {
+            "start": {
+                "id": "start",
+                "choices": [{
+                    "id": "try",
+                    "label": "Try",
+                    "check": {
+                        "stat": "logic",
+                        "difficulty": 99,
+                        "sides": 6,
+                        "modifier": "itemCount('clue')",
+                        "onSuccess": { "goto": "pass" },
+                        "onFailure": { "goto": "fail" }
+                    }
+                }]
+            },
+            "pass": { "id": "pass", "choices": [] },
+            "fail": { "id": "fail", "choices": [] }
+        }
+    }"#;
+
+    let mut report = LintReport::default();
+    check_skill_checks(&decode(scenario, r#"{ "items": {} }"#), &mut report);
+
+    assert!(
+        report.issues.is_empty(),
+        "expected unbounded modifier to be skipped, got: {:?}",
+        report.issues
     );
 }
 

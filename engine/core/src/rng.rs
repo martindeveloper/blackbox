@@ -88,20 +88,22 @@ pub fn roll_skill_check(
     difficulty: i32,
     label: Option<String>,
     modifier: i32,
+    sides: u32,
     roll_mode: RollMode,
     rolls: &mut RollLog,
 ) -> (i32, bool) {
-    let sides = DEFAULT_DIE_SIDES.max(1) as u64;
+    let sides = sides.max(1);
+    let span = sides as u64;
     let roll = match roll_mode {
-        RollMode::Normal => 1 + roll_offset(state, sides),
+        RollMode::Normal => 1 + roll_offset(state, span),
         RollMode::Advantage => {
-            let a = 1 + roll_offset(state, sides);
-            let b = 1 + roll_offset(state, sides);
+            let a = 1 + roll_offset(state, span);
+            let b = 1 + roll_offset(state, span);
             a.max(b)
         }
         RollMode::Disadvantage => {
-            let a = 1 + roll_offset(state, sides);
-            let b = 1 + roll_offset(state, sides);
+            let a = 1 + roll_offset(state, span);
+            let b = 1 + roll_offset(state, span);
             a.min(b)
         }
     };
@@ -111,6 +113,7 @@ pub fn roll_skill_check(
         label,
         stat: stat.to_string(),
         difficulty,
+        sides: Some(sides),
         roll,
         modifier,
         total,

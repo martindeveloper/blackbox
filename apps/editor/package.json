@@ -12,7 +12,7 @@
     "build": "node ./scripts/sync-build-stages.mjs && npm run build:icon && npm run build:js && npm run build:css && node ./scripts/sync-dist.mjs && node ./players/registry.mjs syncBuildAssets",
     "build:css": "tailwindcss -i ./src/app.css -o ./dist/style.css",
     "build:icon": "node ./scripts/build-icon.mjs && node ./scripts/build-appx-assets.mjs",
-    "build:js": "rolldown -c rolldown.config.ts",
+    "build:js": "node ./scripts/clean-js-dist.mjs && rolldown -c rolldown.config.ts",
     "check": "npm run lint && npm run lint:react-compiler && npm run fmt:check",
     "dev": "npm run build && concurrently -k -n js,css,server -c blue,magenta,green \"npm run watch:js\" \"npm run watch:css\" \"node --watch server.js --dev\"",
     "electron:dev": "node ./scripts/ensure-electron.mjs && node ./scripts/ensure-tools.mjs && npm run build && electron .",

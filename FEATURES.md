@@ -523,11 +523,10 @@ Adds `amount` (or `amountExpr` result) to the stat. Stats floor at `0` after the
 ### `addEvent`
 
 ```json
-{ "type": "addEvent", "event": "You take 2 damage from static." }
-{ "type": "addEvent", "eventExpr": "\"HP now \" + stat.hp" }
+{ "type": "addEvent", "eventId": "static_damage_taken" }
 ```
 
-Appends a line to the persistent **event log** (shown in `GameView.events`). The log is never cleared by the engine.
+Appends a catalog event id to the persistent **event log** (shown in `GameView.events`). The log is never cleared by the engine.
 
 ### `playMusic`
 
@@ -592,11 +591,11 @@ When a choice has `check`, the normal `goto` is ignored. Resolution uses the che
     "label": "Panel hack",
     "modifier": 0,
     "onSuccess": {
-      "effects": [{ "type": "addEvent", "event": "Access granted." }],
+      "effects": [{ "type": "addEvent", "eventId": "access_granted" }],
       "goto": "inside"
     },
     "onFailure": {
-      "effects": [{ "type": "addEvent", "event": "Alarm triggered." }],
+      "effects": [{ "type": "addEvent", "eventId": "alarm_triggered" }],
       "goto": "caught"
     }
   }
@@ -605,13 +604,14 @@ When a choice has `check`, the normal `goto` is ignored. Resolution uses the che
 
 | Field | Description |
 |-------|-------------|
-| `stat` | Stat name added as bonus to the d20 roll. |
-| `difficulty` | Target number (DC). Success when `d20 + modifier >= difficulty`. |
+| `stat` | Stat name added as bonus to the die roll. |
+| `difficulty` | Target number (DC). Success when `d{sides} + modifier >= difficulty`. |
+| `sides` | Die sides for the check roll (default `20`). |
 | `label` | Roll label in `CommandResult.rolls` (defaults to `"<stat> check"`). |
 | `modifier` | Optional extra modifier expression (may use RNG). |
 | `onSuccess` / `onFailure` | Branch with `effects` and/or `goto`. Each branch must have at least one. |
 
-**Resolution:** `total = d20 + stat_value + modifier`. Recorded as a `skillCheck` roll in command results.
+**Resolution:** `total = d{sides} + stat_value + modifier`. Recorded as a `skillCheck` roll in command results.
 
 **Order:** Choice `effects` run first, then the skill check roll and branch effects, then navigation.
 
@@ -888,8 +888,10 @@ Insert a snippet by id in a node's `text` array:
 Alternate object form:
 
 ```json
-{ "$snippet": "hud_vitals" }
+{ "$snippet": "hud_vitals", "params": { "extra": "Empathy {stat.empathy}" } }
 ```
+
+`params` values are literal text substitutions for `{param.KEY}` placeholders inside the snippet's `text` and `else` strings. Normal runtime interpolation, such as `{stat.hp}`, still happens after substitution.
 
 Snippet ids must start with a letter or underscore and contain only letters, digits, and underscores.
 

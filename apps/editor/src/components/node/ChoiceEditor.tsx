@@ -188,6 +188,22 @@ export function ChoiceEditor({ choice, chapterIds, onChange, onRemove }: ChoiceE
               }
             />
           </FormField>
+          <FormField label={t("choice.checkSides")}>
+            <Input
+              type="number"
+              min={1}
+              value={choice.check.sides ?? ""}
+              placeholder="20"
+              onChange={(e) => {
+                const val = e.target.value;
+                const sides = val ? Math.max(1, Number(val)) : undefined;
+                onChange({
+                  ...choice,
+                  check: { ...choice.check!, sides: sides === 20 ? undefined : sides },
+                });
+              }}
+            />
+          </FormField>
           <FormField label={t("choice.rollMode")}>
             <Select
               options={[

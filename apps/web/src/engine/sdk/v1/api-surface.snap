@@ -245,6 +245,7 @@ type CheckPreview = {
   label?: string | undefined;
   maxAttempts?: number | undefined;
   rollMode?: RollMode | undefined;
+  sides?: number | undefined;
   stat: string;
 };
 type ChoiceAction = Wire.ChoiceAction;

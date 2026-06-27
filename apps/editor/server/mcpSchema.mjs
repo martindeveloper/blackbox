@@ -25,10 +25,14 @@ export const SCHEMA_REFERENCE = {
         formatVersion: "number (1)",
         title: "string",
         revision: 'string, e.g. "1.0" (story version label, not the editor revision)',
+        startNodeId: "node id for new games in single-file scenarios; omitted when using chapters",
+        nodes: "object of nodeId -> Node for single-file scenarios; omitted when using chapters",
         randomSeed: "integer (optional)",
         defaultStats: "object of stat name -> integer, e.g. { resolve: 2, insight: 2 }",
         itemsRef: "string path, default items.json",
         charactersRef: "string path, default characters.json",
+        relationshipOverrides:
+          "object of characterId -> relationship metric overrides for new games (optional)",
         assetsRef: "string path, default assets.json",
         catalogRef: "string path to events/flags catalog, e.g. catalog.json (optional)",
         libraryRef: "string path, default library.json",
@@ -44,28 +48,31 @@ export const SCHEMA_REFERENCE = {
         id: "string, matches the scenario chapter id",
         title: "string",
         startNodeId: "string, id of the node the chapter opens on",
+        deathNodeId:
+          "node id for this chapter's death fallback; requires scenario deathNode (optional)",
         nodes: "object of nodeId -> Node (see node shape)",
       },
     },
     "items.json": {
       spec: "com.blackbox.items",
       fields: {
-        items: "object of itemId -> { id, name, description?, examineText?, iconRef? }",
+        items: "object of itemId -> { id, name, description, examineText?, iconRef?, actions? }",
       },
     },
     "characters.json": {
       spec: "com.blackbox.characters",
       fields: {
         characters:
-          "object of characterId -> { id, name, subtitle?, color?, portraitRef?, voiceRef? }",
+          "object of characterId -> { id, name, subtitle?, color?, portraitRef?, voiceRef?, relationships? }",
       },
     },
     "assets.json": {
       spec: "com.blackbox.assets.bundle",
       fields: {
-        textures: "object of id -> texture descriptor (path under textures/)",
-        music: "object of id -> music descriptor (path under music/)",
-        sfx: "object of id -> sfx descriptor (path under sfx/)",
+        textures: "object of id -> { src, usage?: internal|external }",
+        music: "object of id -> { src, loop?: true, usage?: internal|external }",
+        sfx: "object of id -> { src, usage?: internal|external }",
+        defaultChoiceSfx: "sfx id played for choices that omit sfx (optional)",
       },
       note: "Upload the binary files with upload_media before referencing them here.",
     },
@@ -81,7 +88,7 @@ export const SCHEMA_REFERENCE = {
       spec: "com.blackbox.library",
       fields: {
         snippets:
-          'object of id -> reusable text block(s); reference as "@<id>" or { "$snippet": "<id>" }',
+          'object of id -> reusable text block(s); reference as "@<id>" or { "$snippet": "<id>", params?: { KEY: "literal text" } }; params substitute {param.KEY} placeholders',
         templates: 'object of id -> node template; reference via node "$extends"',
         conditions:
           'object of name -> named gate; reference via { "type": "condition", "id": "<name>" }',
@@ -115,7 +122,9 @@ export const SCHEMA_REFERENCE = {
       speaker: "character id (for dialogue/thought)",
       side: '"left" | "right" | "center" (speaker placement)',
       when: "Gate; block only shows when the gate passes",
+      unless: "Gate; block is hidden when the gate passes",
       else: "string shown instead when `when` fails",
+      emotion: "host styling mood tag (optional)",
       actor: "character id; sugar for when: { type: hasFlag, flag: _actor_<id> }",
     },
   },
@@ -140,7 +149,9 @@ export const SCHEMA_REFERENCE = {
       unlessDisabledReason: "string shown when `unless` matches but you still want it visible",
       check: "SkillCheck; resolves the choice via a dice roll (see check)",
     },
-    note: "A choice needs exactly one resolution: goto, action, or check.",
+    note:
+      "A choice needs at least one resolution path: effects, goto, action, or check. " +
+      "Use action or check instead of normal goto; effects may accompany goto or run before a check.",
   },
 
   gates: {
@@ -179,10 +190,28 @@ export const SCHEMA_REFERENCE = {
       playMusic: "{ type: playMusic, track }",
       stopMusic: "{ type: stopMusic }",
       playSfx: "{ type: playSfx, sfx }",
-      roll: "{ type: roll, ..., storeFlag? } (advanced; stores a dice result into a flag)",
+      roll: "{ type: roll, sides?: 20, label?, storeFlag? }",
       modifyRelationship:
         "{ type: modifyRelationship, characterId, metric, amount } or { ..., amountExpr }",
-      setActorPresent: "{ type: setActorPresent, characterId, present }",
+      setActorPresent: "{ type: setActorPresent, characterId, value }",
+    },
+  },
+
+  itemActions: {
+    description:
+      "Actions attached to items. They use the same gates/effects/goto semantics as choices and consume one item by default.",
+    fields: {
+      id: "string (unique within the item)",
+      label: "string shown to the player",
+      requires: "Gate; when unmet the action is hidden, or disabled if disabledReason is set",
+      when: "Gate; action only appears when it passes",
+      unless: "Gate; action is hidden when it passes",
+      disabledReason: "string shown when `requires` is unmet",
+      whenDisabledReason: "string shown when `when` is unmet but you still want it visible",
+      unlessDisabledReason: "string shown when `unless` matches but you still want it visible",
+      effects: "array of Effect applied when the item action is used",
+      goto: "target nodeId in the current chapter (optional)",
+      consume: "bool; removes one item after use when true (default true)",
     },
   },
 
@@ -202,6 +231,7 @@ export const SCHEMA_REFERENCE = {
     fields: {
       stat: "string stat name",
       difficulty: "integer target number",
+      sides: "integer die sides (optional, defaults to 20)",
       modifier: "expression added to the roll (optional)",
       label: "string shown during the check (optional)",
       rollMode: '"normal" (default) | "advantage" | "disadvantage"',
@@ -210,6 +240,44 @@ export const SCHEMA_REFERENCE = {
       onFailure: "{ effects?: Effect[], goto?: nodeId }",
       onExhausted: "{ effects?: Effect[], goto?: nodeId } when maxAttempts is used (optional)",
     },
+  },
+
+  expressions: {
+    description:
+      "String expressions are used by effect *Expr fields, skill-check modifier, and text interpolation.",
+    forms: {
+      string: '"stat.logic + dice(4)"',
+      ast: "advanced JSON expression objects with lit, var, call, or op",
+    },
+    variables: {
+      "stat.<name>": "number; stat value",
+      "item.<itemId>": "number; inventory count",
+      "flag.<name>": "bool/number/string; missing flag is false",
+      "visited.<nodeId>": "bool; whether node was visited",
+      "relationship.<characterId>.<metric>": "number; declared relationship score",
+    },
+    functions: {
+      "stat(name)": "number; stat value",
+      "hasItem(id, count?)": "bool; inventory has count (default 1)",
+      "itemCount(id)": "number; inventory count",
+      "hasFlag(flag, value?)": "bool; flag present / equals value",
+      "visited(nodeId)": "bool; node was visited",
+      "relationship(characterId, metric)": "number; declared relationship score",
+      "not(x)": "bool; negation",
+      "random(min, max)": "number; inclusive random integer, advances RNG",
+      "dice(sides)": "number; rolls one die, advances RNG",
+    },
+    operators: {
+      "==, !=, eq, neq": "equality",
+      ">, >=, <, <=, gt, gte, lt, lte": "comparison",
+      "+, -, *, /": "arithmetic",
+      "and, &&, or, ||, not, !": "boolean logic",
+    },
+    notes: [
+      "Boolean results can be used as numbers in modifiers: false is 0, true is 1.",
+      "Effect expressions and skill-check modifiers may use random() and dice(); gates and text interpolation are read-only and cannot use RNG.",
+      "String literals may use single or double quotes.",
+    ],
   },
 
   conventions: {
@@ -281,11 +349,24 @@ function renderGrammarBody(reference, { banner } = {}) {
   section("Effects", reference.effects);
   table("Type", "Shape", reference.effects.types);
 
+  section("Item actions", reference.itemActions);
+  table("Field", "Type", reference.itemActions.fields);
+
   section("Actions", reference.actions);
   table("Type", "Shape", reference.actions.types);
 
   section("Skill check", reference.check);
   table("Field", "Type", reference.check.fields);
+
+  section("Expressions", reference.expressions);
+  table("Form", "Shape", reference.expressions.forms);
+  table("Variable", "Meaning", reference.expressions.variables);
+  table("Function", "Meaning", reference.expressions.functions);
+  table("Operators", "Meaning", reference.expressions.operators);
+  for (const value of reference.expressions.notes) {
+    lines.push(`- ${value}`);
+  }
+  blank();
 
   lines.push("## Conventions", "");
   for (const value of Object.values(reference.conventions)) {

@@ -1530,6 +1530,7 @@ export const en = {
     resolutionAction: "Action",
     resolutionOpenLoadMenu: "Open load menu",
     checkLabel: "Check label",
+    checkSides: "Die sides",
     rollMode: "Roll mode",
     rollModeNormal: "Normal",
     rollModeAdvantage: "Advantage (roll twice, take higher)",

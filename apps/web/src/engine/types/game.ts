@@ -84,6 +84,7 @@ export interface CheckPreview {
   stat: string;
   difficulty: number;
   label?: string;
+  sides?: number;
   rollMode?: RollMode;
   maxAttempts?: number;
   attemptsUsed?: number;
@@ -95,6 +96,7 @@ export type RollRecord =
       label?: string;
       stat: string;
       difficulty: number;
+      sides?: number;
       roll: number;
       modifier: number;
       total: number;

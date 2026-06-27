@@ -253,6 +253,7 @@ fn build_choice_view(
             stat: check.stat.clone(),
             difficulty: check.difficulty,
             label: check.label.clone(),
+            sides: check.sides,
             roll_mode: check.roll_mode,
             max_attempts: check.max_attempts,
             attempts_used,
