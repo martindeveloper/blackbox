@@ -98,32 +98,13 @@
   width: 100%;
 }
 
-.tlb-hero-grid {
-  display: grid;
-  gap: clamp(2rem, 5vw, 3.25rem);
-}
-
 .tlb-hero-headline {
   min-width: 0;
+  max-width: 52rem;
 }
 
-.tlb-hero-aside {
-  display: flex;
-  flex-direction: column;
-  gap: clamp(1.25rem, 2.6vw, 1.85rem);
-  min-width: 0;
-}
-
-@media (min-width: 900px) {
-  .tlb-hero-grid {
-    grid-template-columns: minmax(0, 1.42fr) minmax(20rem, 0.92fr);
-    align-items: end;
-    gap: clamp(2.5rem, 5vw, 4.5rem);
-  }
-
-  .tlb-hero-aside {
-    padding-bottom: 0.4rem;
-  }
+.tlb-status {
+  margin-top: clamp(1.5rem, 3.5vw, 2.25rem);
 }
 
 .tlb-crest {
@@ -241,13 +222,6 @@
   border-radius: 2px;
 }
 
-.tlb-subtitle {
-  font-size: clamp(1rem, 2vw, 1.18rem);
-  line-height: 1.55;
-  color: var(--tlb-parchment-dim);
-  max-width: 46ch;
-}
-
 .tlb-status {
   display: inline-flex;
   align-items: center;
@@ -300,6 +274,353 @@
   font-weight: 400;
   color: var(--tlb-parchment);
   margin: 0;
+}
+
+/* Estate record — solid panel that continues the hero's fade into colour */
+.tlb-estate {
+  position: relative;
+  background: linear-gradient(
+    180deg,
+    var(--tlb-void) 0%,
+    var(--tlb-ground) 52%,
+    var(--tlb-void) 100%
+  );
+  padding: clamp(3.25rem, 8vw, 6.5rem) 0;
+  border-top: 1px solid var(--tlb-line-soft);
+}
+
+.tlb-estate-inner {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(2.25rem, 5vw, 3.5rem);
+}
+
+.tlb-estate-lead {
+  max-width: 36rem;
+}
+
+.tlb-estate-lead .tlb-index {
+  margin-bottom: clamp(1.25rem, 3vw, 1.75rem);
+}
+
+.tlb-estate-lede {
+  font-family: var(--tlb-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(1.5rem, 3.4vw, 2.45rem);
+  line-height: 1.18;
+  color: var(--tlb-parchment);
+  margin: 0;
+}
+
+.tlb-estate .tlb-register {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  max-width: none;
+  width: 100%;
+}
+
+.tlb-estate .tlb-register > div {
+  background: rgba(15, 10, 6, 0.5);
+  padding: 1rem 1.1rem 1.05rem;
+}
+
+/* Prospect — the estate hung as a painting in Greyfen's long gallery */
+.tlb-prospect {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  border-block: 1px solid var(--tlb-line-soft);
+  padding: clamp(4.5rem, 10vw, 8rem) 0 clamp(4rem, 9vw, 7rem);
+  background:
+    radial-gradient(130% 90% at 50% -12%, rgba(232, 176, 86, 0.12), transparent 56%),
+    linear-gradient(180deg, #130d08 0%, #0b0805 58%, #0f0a06 100%);
+}
+
+/* Picture light spilling down the gallery wall */
+.tlb-gallery-light {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    58% 46% at 50% 11%,
+    rgba(246, 208, 132, 0.22),
+    rgba(246, 208, 132, 0.07) 42%,
+    transparent 72%
+  );
+  mix-blend-mode: screen;
+  animation: tlb-gallery-breath 7.5s ease-in-out infinite;
+}
+
+.tlb-gallery {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  gap: clamp(2.75rem, 6vw, 4.5rem);
+  align-items: center;
+}
+
+@media (min-width: 780px) {
+  .tlb-gallery {
+    grid-template-columns: minmax(0, 1.22fr) minmax(0, 0.86fr);
+    gap: clamp(3rem, 6vw, 5.5rem);
+  }
+}
+
+/* A tipped-in plate — the estate view mounted into the house's records.
+   Tilted, paper border, and tarnished corners: kept artifact, not screen. */
+.tlb-plate {
+  position: relative;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 38rem;
+  padding: clamp(0.85rem, 2.8vw, 1.4rem) clamp(0.85rem, 2.8vw, 1.4rem) clamp(2.5rem, 5vw, 3.4rem);
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.34'/%3E%3C/svg%3E"),
+    radial-gradient(140% 120% at 22% 8%, rgba(216, 178, 90, 0.08), transparent 46%),
+    radial-gradient(90% 80% at 83% 92%, rgba(0, 0, 0, 0.42), transparent 58%),
+    linear-gradient(158deg, #23160d 0%, #160d07 58%, #0d0805 100%);
+  background-blend-mode: soft-light, normal, multiply, normal;
+  border: 1px solid rgba(165, 124, 56, 0.22);
+  border-radius: 1px 5px 2px 3px;
+  box-shadow:
+    inset 0 1px 0 rgba(216, 178, 90, 0.11),
+    inset 0 -18px 42px rgba(0, 0, 0, 0.28),
+    0 34px 64px -20px rgba(0, 0, 0, 0.82),
+    0 14px 30px rgba(0, 0, 0, 0.5);
+  transform: rotate(-1.4deg);
+}
+
+.tlb-plate::before {
+  position: absolute;
+  inset: 0.35rem;
+  z-index: -1;
+  content: "";
+  border: 1px solid rgba(228, 184, 94, 0.08);
+  transform: rotate(0.8deg);
+}
+
+.tlb-plate::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(255, 237, 178, 0.07), transparent 18% 82%, rgba(0, 0, 0, 0.22)),
+    linear-gradient(180deg, rgba(255, 237, 178, 0.05), transparent 24% 76%, rgba(0, 0, 0, 0.26));
+  clip-path: polygon(
+    0.4% 0,
+    22% 0.45%,
+    48% 0.1%,
+    71% 0.58%,
+    99.4% 0,
+    100% 28%,
+    99.35% 53%,
+    100% 78%,
+    99.1% 100%,
+    68% 99.45%,
+    42% 99.9%,
+    18% 99.35%,
+    0 100%,
+    0.52% 71%,
+    0 44%,
+    0.6% 17%
+  );
+}
+
+/* Aged paper mount around the print — stained, foxed, worn at the edges */
+.tlb-plate-mount {
+  position: relative;
+  padding: clamp(0.55rem, 2vw, 1rem);
+  background-color: #e3d8ba;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)' opacity='0.42'/%3E%3C/svg%3E"),
+    radial-gradient(64% 52% at 15% 13%, rgba(150, 108, 56, 0.22), transparent 52%),
+    radial-gradient(44% 38% at 87% 84%, rgba(120, 78, 38, 0.24), transparent 56%),
+    radial-gradient(132% 130% at 50% 50%, transparent 54%, rgba(72, 46, 18, 0.6) 100%),
+    linear-gradient(155deg, #e8ddc0 0%, #d1bf95 100%);
+  background-blend-mode: multiply, multiply, multiply, multiply, normal;
+  border-radius: 2px 1px 4px 1px;
+  box-shadow:
+    inset 0 0 0 1px rgba(86, 56, 24, 0.42),
+    inset 0 0 20px rgba(64, 40, 16, 0.4),
+    0 2px 8px rgba(0, 0, 0, 0.5);
+  clip-path: polygon(
+    0.65% 0,
+    17% 0.5%,
+    35% 0.08%,
+    58% 0.55%,
+    76% 0.16%,
+    99.35% 0,
+    100% 18%,
+    99.5% 39%,
+    100% 62%,
+    99.25% 84%,
+    99.65% 100%,
+    78% 99.45%,
+    61% 99.85%,
+    43% 99.35%,
+    21% 99.9%,
+    0.45% 100%,
+    0 82%,
+    0.55% 57%,
+    0.05% 34%,
+    0.72% 14%
+  );
+}
+
+.tlb-plate-mount::before,
+.tlb-plate-mount::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+}
+
+.tlb-plate-mount::before {
+  background:
+    radial-gradient(circle at 18% 24%, rgba(83, 46, 17, 0.18) 0 0.08rem, transparent 0.11rem),
+    radial-gradient(circle at 72% 17%, rgba(96, 52, 21, 0.16) 0 0.06rem, transparent 0.1rem),
+    radial-gradient(circle at 83% 72%, rgba(70, 39, 16, 0.18) 0 0.07rem, transparent 0.11rem),
+    linear-gradient(90deg, rgba(70, 39, 16, 0.24), transparent 4% 96%, rgba(70, 39, 16, 0.28)),
+    linear-gradient(180deg, rgba(70, 39, 16, 0.22), transparent 5% 94%, rgba(70, 39, 16, 0.34));
+  mix-blend-mode: multiply;
+}
+
+.tlb-plate-mount::after {
+  inset: clamp(0.32rem, 1.2vw, 0.58rem);
+  border: 1px solid rgba(80, 47, 19, 0.36);
+  box-shadow: inset 0 0 18px rgba(80, 47, 19, 0.2);
+}
+
+.tlb-plate-window {
+  position: relative;
+  z-index: 1;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: #0b0805;
+  border-radius: 1px;
+  box-shadow:
+    inset 0 0 0 1px rgba(20, 12, 6, 0.85),
+    inset 0 0 34px rgba(0, 0, 0, 0.6);
+}
+
+.tlb-plate-image {
+  object-fit: cover;
+  object-position: 34% 58%;
+  z-index: 1;
+  filter: saturate(0.86) contrast(1.05) brightness(0.84) sepia(0.08);
+}
+
+/* Faint glass sheen + edge darkening, as on an old varnished print */
+.tlb-plate-sheen {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    radial-gradient(130% 120% at 50% 40%, transparent 56%, rgba(0, 0, 0, 0.5) 100%),
+    linear-gradient(118deg, rgba(255, 248, 224, 0.1) 0%, transparent 26%);
+}
+
+/* Tarnished photo-corners holding the print */
+.tlb-plate-corner {
+  position: absolute;
+  z-index: 3;
+  width: clamp(0.95rem, 3vw, 1.5rem);
+  height: clamp(0.95rem, 3vw, 1.5rem);
+  background:
+    radial-gradient(70% 80% at 72% 68%, rgba(64, 43, 17, 0.32), transparent 58%),
+    linear-gradient(135deg, #d4bd77 0%, #a9823e 48%, #5b421c 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 230, 155, 0.14),
+    0 1px 3px rgba(0, 0, 0, 0.45);
+  opacity: 0.86;
+}
+
+.tlb-plate-corner--tl {
+  top: 0;
+  left: 0;
+  clip-path: polygon(0 0, 100% 4%, 0 100%);
+}
+
+.tlb-plate-corner--tr {
+  top: 0;
+  right: 0;
+  clip-path: polygon(0 3%, 100% 0, 96% 100%);
+}
+
+.tlb-plate-corner--bl {
+  bottom: 0;
+  left: 0;
+  clip-path: polygon(3% 0, 0 100%, 100% 96%);
+}
+
+.tlb-plate-corner--br {
+  bottom: 0;
+  right: 0;
+  clip-path: polygon(100% 0, 0 96%, 100% 100%);
+}
+
+/* Engraved caption on the card */
+.tlb-plate-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: clamp(0.85rem, 2.2vw, 1.3rem);
+  text-align: center;
+  font-family: var(--tlb-display);
+  font-style: italic;
+  font-size: clamp(0.82rem, 1.7vw, 1rem);
+  letter-spacing: 0.03em;
+  color: var(--tlb-gold);
+}
+
+.tlb-gallery-label {
+  max-width: 34rem;
+}
+
+.tlb-prospect-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin: 0 0 clamp(1.25rem, 2.5vw, 1.75rem);
+  font-size: 0.66rem;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--tlb-gold);
+}
+
+.tlb-prospect-quote {
+  font-family: var(--tlb-display);
+  font-weight: 400;
+  font-size: clamp(2rem, 5.4vw, 4rem);
+  line-height: 1.02;
+  color: var(--tlb-parchment);
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  text-wrap: balance;
+  text-shadow:
+    0 2px 3px rgba(0, 0, 0, 0.6),
+    0 0 28px rgba(11, 8, 5, 0.7);
+}
+
+.tlb-prospect-quote span {
+  display: block;
+}
+
+.tlb-prospect-quote span:first-child {
+  color: var(--tlb-gold-bright);
+}
+
+.tlb-prospect-note {
+  margin: clamp(1.25rem, 2.6vw, 1.85rem) 0 0;
+  max-width: 48ch;
+  font-size: clamp(0.95rem, 1.5vw, 1.08rem);
+  line-height: 1.66;
+  color: var(--tlb-parchment-dim);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.55);
 }
 
 .tlb-deed {
@@ -607,9 +928,23 @@
   }
 }
 
+@keyframes tlb-gallery-breath {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.82;
+  }
+}
+
 @media (max-width: 900px) {
   .tlb-deed-grid {
     grid-template-columns: 1fr;
+  }
+
+  .tlb-estate .tlb-register {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
@@ -619,11 +954,23 @@
   }
 
   .tlb-thesis {
-    max-width: 26ch;
+    max-width: 30ch;
   }
 
   .tlb-crest p {
     letter-spacing: 0.22em;
+  }
+
+  .tlb-prospect {
+    min-height: min(32rem, 72svh);
+  }
+
+  .tlb-estate .tlb-register {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tlb-estate .tlb-register > div {
+    padding: 0.85rem 0.9rem;
   }
 }
 
@@ -640,34 +987,24 @@
   --tlb-line-soft: rgba(120, 84, 38, 0.16);
 }
 
+/* Photographic bands stay dark & cinematic in both themes — light text on a
+   pale, washed-out photo is unreadable, so these sections keep the dark palette. */
+:root[data-theme="light"] .tlb-hero,
+:root[data-theme="light"] .tlb-prospect {
+  --tlb-void: #0b0805;
+  --tlb-ground: #130d08;
+  --tlb-ground-2: #1b120b;
+  --tlb-parchment: #ece0c4;
+  --tlb-parchment-dim: #b9a883;
+  --tlb-gold: #d8b25a;
+  --tlb-gold-bright: #f2d692;
+  --tlb-gold-dim: #8a6f38;
+  --tlb-line: rgba(216, 178, 90, 0.22);
+  --tlb-line-soft: rgba(216, 178, 90, 0.13);
+}
+
 :root[data-theme="light"] .tlb-hero {
-  background: #d8cebd;
-}
-
-:root[data-theme="light"] .tlb-hero-image {
-  filter: saturate(0.5) sepia(0.18) brightness(1.08) contrast(0.9);
-}
-
-:root[data-theme="light"] .tlb-hero-vignette {
-  background:
-    linear-gradient(
-      180deg,
-      rgba(236, 226, 208, 0.58) 0%,
-      rgba(236, 226, 208, 0.1) 26%,
-      rgba(224, 210, 184, 0.34) 60%,
-      rgba(224, 210, 184, 0.86) 100%
-    ),
-    linear-gradient(
-      90deg,
-      rgba(236, 226, 208, 0.64) 0%,
-      rgba(236, 226, 208, 0.06) 42%,
-      rgba(224, 210, 184, 0.5) 100%
-    );
-}
-
-:root[data-theme="light"] .tlb-hero-candle {
-  opacity: 0.5;
-  mix-blend-mode: multiply;
+  background: #0b0805;
 }
 
 :root[data-theme="light"] .tlb-grain {
@@ -675,20 +1012,27 @@
   mix-blend-mode: multiply;
 }
 
-:root[data-theme="light"] .tlb-title span {
-  background:
-    radial-gradient(circle at 24% 26%, rgba(204, 139, 58, 0.24) 0 12%, transparent 32%),
-    linear-gradient(180deg, #9a6a2c 0%, #78431f 54%, #5e2418 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-stroke: 0.3px rgba(70, 34, 18, 0.18);
-  text-shadow:
-    0 1px 0 rgba(255, 250, 240, 0.24),
-    0 1px 2px rgba(86, 52, 24, 0.22);
+:root[data-theme="light"] .tlb-hero .tlb-grain,
+:root[data-theme="light"] .tlb-prospect .tlb-grain {
+  opacity: 0.5;
+  mix-blend-mode: overlay;
 }
 
 :root[data-theme="light"] .tlb-register > div {
   background: rgba(255, 252, 246, 0.62);
+}
+
+:root[data-theme="light"] .tlb-estate {
+  background: linear-gradient(
+    180deg,
+    var(--tlb-void) 0%,
+    var(--tlb-ground) 52%,
+    var(--tlb-void) 100%
+  );
+}
+
+:root[data-theme="light"] .tlb-estate .tlb-register > div {
+  background: rgba(255, 252, 246, 0.6);
 }
 
 :root[data-theme="light"] .tlb-deed {
@@ -710,7 +1054,8 @@
 @media (prefers-reduced-motion: reduce) {
   .tlb-rise,
   .tlb-ember,
-  .tlb-hero-candle {
+  .tlb-hero-candle,
+  .tlb-gallery-light {
     animation: none;
   }
   .tlb-rise {

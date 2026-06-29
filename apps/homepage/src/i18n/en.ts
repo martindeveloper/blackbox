@@ -566,8 +566,11 @@ export const en = {
       record: "Record 002 — settlement pending",
       title: "The Lesser\nBlood",
       thesis: "A house does not need monsters to devour its own.",
-      subtitle: "A grounded dark-fantasy of inheritance, debt, and the quiet arithmetic of a name.",
       status: "Coming soon — the seal is not yet broken",
+    },
+    estate: {
+      index: "00 / The estate record",
+      lead: "A grounded dark-fantasy of inheritance, debt, and the quiet arithmetic of a name.",
       register_aria: "Estate record",
       register: [
         { label: "Realm", value: "Veyrholm" },
@@ -577,6 +580,14 @@ export const en = {
         { label: "Format", value: "Choice-driven" },
         { label: "Engine", value: "Blackbox" },
       ],
+    },
+    prospect: {
+      image_alt:
+        "A ruined hall of Greyfen Hold opening onto the tenant villages below, an open ledger left on the stone steps",
+      meta: "From the records of House Ardent",
+      plate: "The road remembers a proud house; the hall remembers the price.",
+      quote: "A name is unmade\nwith ink, not iron.",
+      note: "Here a house is a machine for turning blood, land, and debt into survival. Ruin arrives already signed — a missing name, a closed register — and the tenants below the hold pay first.",
     },
     deed: {
       index: "01 / The matter at hand",

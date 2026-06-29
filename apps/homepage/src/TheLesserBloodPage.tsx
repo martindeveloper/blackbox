@@ -50,7 +50,7 @@ function ArdentSeal({ label }: { label: string }) {
 
 export function TheLesserBloodPage() {
   const { t } = useTranslation();
-  const register = t("theLesserBlood.hero.register", { returnObjects: true }) as RegisterItem[];
+  const register = t("theLesserBlood.estate.register", { returnObjects: true }) as RegisterItem[];
   const account = t("theLesserBlood.deed.account", { returnObjects: true }) as string[];
 
   return (
@@ -75,48 +75,51 @@ export function TheLesserBloodPage() {
           <div className="tlb-grain" aria-hidden="true" />
 
           <div className="container tlb-hero-inner">
-            <div className="tlb-hero-grid">
-              <div className="tlb-hero-headline">
-                <div className="tlb-crest tlb-rise">
-                  <ArdentSeal label={t("theLesserBlood.hero.crest_aria")} />
-                  <p>
-                    <span>{t("theLesserBlood.hero.house")}</span>
-                    <span className="tlb-crest-rule" />
-                    <span>{t("theLesserBlood.hero.seat")}</span>
-                  </p>
-                </div>
-
-                <p className="tlb-record tlb-rise tlb-rise-1">{t("theLesserBlood.hero.record")}</p>
-
-                <h1 className="tlb-title tlb-rise tlb-rise-2">
-                  {t("theLesserBlood.hero.title")
-                    .split("\n")
-                    .map((line) => (
-                      <span key={line}>{line}</span>
-                    ))}
-                </h1>
-
-                <p className="tlb-thesis tlb-rise tlb-rise-3">{t("theLesserBlood.hero.thesis")}</p>
+            <div className="tlb-hero-headline">
+              <div className="tlb-crest tlb-rise">
+                <ArdentSeal label={t("theLesserBlood.hero.crest_aria")} />
+                <p>
+                  <span>{t("theLesserBlood.hero.house")}</span>
+                  <span className="tlb-crest-rule" />
+                  <span>{t("theLesserBlood.hero.seat")}</span>
+                </p>
               </div>
 
-              <aside className="tlb-hero-aside tlb-rise tlb-rise-4">
-                <p className="tlb-subtitle">{t("theLesserBlood.hero.subtitle")}</p>
+              <p className="tlb-record tlb-rise tlb-rise-1">{t("theLesserBlood.hero.record")}</p>
 
-                <div className="tlb-status">
-                  <span className="tlb-ember" />
-                  <span>{t("theLesserBlood.hero.status")}</span>
-                </div>
-
-                <dl className="tlb-register" aria-label={t("theLesserBlood.hero.register_aria")}>
-                  {register.map((item) => (
-                    <div key={item.label}>
-                      <dt>{item.label}</dt>
-                      <dd>{item.value}</dd>
-                    </div>
+              <h1 className="tlb-title tlb-rise tlb-rise-2">
+                {t("theLesserBlood.hero.title")
+                  .split("\n")
+                  .map((line) => (
+                    <span key={line}>{line}</span>
                   ))}
-                </dl>
-              </aside>
+              </h1>
+
+              <p className="tlb-thesis tlb-rise tlb-rise-3">{t("theLesserBlood.hero.thesis")}</p>
+
+              <div className="tlb-status tlb-rise tlb-rise-4">
+                <span className="tlb-ember" />
+                <span>{t("theLesserBlood.hero.status")}</span>
+              </div>
             </div>
+          </div>
+        </section>
+
+        <section className="tlb-estate">
+          <div className="container tlb-estate-inner">
+            <div className="tlb-estate-lead">
+              <span className="tlb-index">{t("theLesserBlood.estate.index")}</span>
+              <p className="tlb-estate-lede">{t("theLesserBlood.estate.lead")}</p>
+            </div>
+
+            <dl className="tlb-register" aria-label={t("theLesserBlood.estate.register_aria")}>
+              {register.map((item) => (
+                <div key={item.label}>
+                  <dt>{item.label}</dt>
+                  <dd>{item.value}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
         </section>
 
@@ -140,6 +143,50 @@ export function TheLesserBloodPage() {
                   </p>
                 ))}
               </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="tlb-prospect" aria-label={t("theLesserBlood.prospect.meta")}>
+          <div className="tlb-gallery-light" aria-hidden="true" />
+          <div className="tlb-grain" aria-hidden="true" />
+
+          <div className="container tlb-gallery">
+            <figure className="tlb-plate">
+              <div className="tlb-plate-mount">
+                <div className="tlb-plate-window">
+                  <Image
+                    className="tlb-plate-image"
+                    src="/games/the-lesser-blood/hold.webp"
+                    alt={t("theLesserBlood.prospect.image_alt")}
+                    fill
+                    sizes="(max-width: 780px) 88vw, 50vw"
+                  />
+                  <div className="tlb-plate-sheen" aria-hidden="true" />
+                  <span className="tlb-plate-corner tlb-plate-corner--tl" aria-hidden="true" />
+                  <span className="tlb-plate-corner tlb-plate-corner--tr" aria-hidden="true" />
+                  <span className="tlb-plate-corner tlb-plate-corner--bl" aria-hidden="true" />
+                  <span className="tlb-plate-corner tlb-plate-corner--br" aria-hidden="true" />
+                </div>
+              </div>
+              <figcaption className="tlb-plate-caption">
+                {t("theLesserBlood.prospect.plate")}
+              </figcaption>
+            </figure>
+
+            <div className="tlb-gallery-label">
+              <p className="tlb-prospect-meta">
+                <span className="tlb-ember" />
+                {t("theLesserBlood.prospect.meta")}
+              </p>
+              <blockquote className="tlb-prospect-quote">
+                {t("theLesserBlood.prospect.quote")
+                  .split("\n")
+                  .map((line) => (
+                    <span key={line}>{line}</span>
+                  ))}
+              </blockquote>
+              <p className="tlb-prospect-note">{t("theLesserBlood.prospect.note")}</p>
             </div>
           </div>
         </section>
