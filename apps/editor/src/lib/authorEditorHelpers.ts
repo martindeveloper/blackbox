@@ -1,5 +1,5 @@
 import type { ChoiceContent, TextBlock } from "@/types/wire.js";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export function choiceHasAdvancedFields(choice: ChoiceContent): boolean {
   return Boolean(
@@ -32,10 +32,12 @@ export function useAuthorPanelOpen(configured: boolean): {
   onOpenChange: (open: boolean) => void;
 } {
   const [open, setOpen] = useState(configured);
+  const [prevConfigured, setPrevConfigured] = useState(configured);
 
-  useEffect(() => {
+  if (configured !== prevConfigured) {
+    setPrevConfigured(configured);
     if (configured) setOpen(true);
-  }, [configured]);
+  }
 
   return { open, onOpenChange: setOpen };
 }
