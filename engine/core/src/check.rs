@@ -2,7 +2,7 @@ use crate::content::{RollMode, SkillCheckContent, SkillCheckOutcome};
 use crate::effect::{EffectSideEffects, apply_effect};
 use crate::error::EngineError;
 use crate::expr::{self, EvalContext};
-use crate::rng::roll_skill_check;
+use crate::rng::{SkillCheckRoll, roll_skill_check};
 use crate::roll_log::RollLog;
 use crate::state::GameState;
 use crate::transition::ChoiceResolution;
@@ -60,12 +60,14 @@ pub fn resolve_skill_check(
         .unwrap_or_else(|| format!("{} check", check.stat));
     let (_, success) = roll_skill_check(
         state,
-        &check.stat,
-        check.difficulty,
-        Some(label),
-        modifier,
-        check.sides,
-        check.roll_mode,
+        SkillCheckRoll {
+            stat: &check.stat,
+            difficulty: check.difficulty,
+            label: Some(label),
+            modifier,
+            sides: check.sides,
+            roll_mode: check.roll_mode,
+        },
         rolls,
     );
 

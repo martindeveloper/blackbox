@@ -82,19 +82,23 @@ pub fn roll_dice_expr(
     value
 }
 
+pub struct SkillCheckRoll<'a> {
+    pub stat: &'a str,
+    pub difficulty: i32,
+    pub label: Option<String>,
+    pub modifier: i32,
+    pub sides: u32,
+    pub roll_mode: RollMode,
+}
+
 pub fn roll_skill_check(
     state: &mut GameState,
-    stat: &str,
-    difficulty: i32,
-    label: Option<String>,
-    modifier: i32,
-    sides: u32,
-    roll_mode: RollMode,
+    check: SkillCheckRoll<'_>,
     rolls: &mut RollLog,
 ) -> (i32, bool) {
-    let sides = sides.max(1);
+    let sides = check.sides.max(1);
     let span = sides as u64;
-    let roll = match roll_mode {
+    let roll = match check.roll_mode {
         RollMode::Normal => 1 + roll_offset(state, span),
         RollMode::Advantage => {
             let a = 1 + roll_offset(state, span);
@@ -107,18 +111,18 @@ pub fn roll_skill_check(
             a.min(b)
         }
     };
-    let total = roll + modifier;
-    let success = total >= difficulty;
+    let total = roll + check.modifier;
+    let success = total >= check.difficulty;
     rolls.push(RollRecord::SkillCheck {
-        label,
-        stat: stat.to_string(),
-        difficulty,
+        label: check.label,
+        stat: check.stat.to_string(),
+        difficulty: check.difficulty,
         sides: Some(sides),
         roll,
-        modifier,
+        modifier: check.modifier,
         total,
         success,
-        roll_mode,
+        roll_mode: check.roll_mode,
     });
     (total, success)
 }

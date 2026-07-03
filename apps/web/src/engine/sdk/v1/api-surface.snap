@@ -350,6 +350,7 @@ type TextBlock = {
   kind: string;
   side?: DialogueSide | undefined;
   speaker?: string | undefined;
+  style?: string[] | undefined;
   text: string;
 };
 type TextureCue = {

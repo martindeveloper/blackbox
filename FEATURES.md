@@ -228,6 +228,7 @@ Narrative content is an ordered list of text blocks. Blocks are **resolved at vi
 | `unless` | no | Structured [gate](#gates). Block is omitted when true. |
 | `speaker` | no | Character id or display name (dialogue / thought). |
 | `emotion` | no | Mood tag for host styling, e.g. `cold`, `urgent`. |
+| `style` | no | Composable presentation tokens for hosts, e.g. `["quoted", "terminal"]`. |
 | `side` | no | Dialogue placement: `"left"`, `"right"`, or `"center"`. |
 
 ### Text kinds
@@ -280,7 +281,8 @@ Embed live values with `{expression}`:
 {
   "kind": "dialogue",
   "speaker": "CHECKPOINT AI",
-  "text": "\"Present credentials.\"",
+  "text": "Present credentials.",
+  "style": ["quoted"],
   "unless": { "type": "hasItem", "itemId": "burned_access_card", "count": 1 }
 }
 ```
@@ -968,7 +970,8 @@ Each command returns a `GameView` (JSON from Wasm hosts):
       "speaker": "RADIO",
       "emotion": "static",
       "side": "center",
-      "text": "\"{stat.hp} HP remaining. Choose wisely.\""
+      "text": "{stat.hp} HP remaining. Choose wisely.",
+      "style": ["quoted"]
     }
   ],
   "choices": [

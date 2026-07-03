@@ -64,7 +64,8 @@ fn character_subtitle_omitted_from_view_json_when_absent() {
                     {
                         "kind": "dialogue",
                         "speaker": "npc",
-                        "text": "\"Status.\""
+                        "text": "Status.",
+                        "style": ["quoted"]
                     }
                 ],
                 "choices": []

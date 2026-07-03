@@ -135,7 +135,7 @@ Raw JSON checks that do not require a successful engine load. Issues include fil
 - Snippet/`$extends` usage when scenario has no `libraryRef`
 - `{ "type": "condition", "id": "..." }` gate referencing a named condition not in `library.json`
 
-**Codes:** `undeclared-relationship-metric`, `unknown-speaker`, `unknown-character-ref`,
+**Codes:** `literal-quoted-text`, `undeclared-relationship-metric`, `unknown-speaker`, `unknown-character-ref`,
 `unknown-text-relationship`, `unknown-actor`, `unused-character`, `unused-relationship-metric`,
 `flag-not-in-catalog`, `unknown-snippet`, `unknown-template`, `unknown-condition`,
 `library-ref-missing`

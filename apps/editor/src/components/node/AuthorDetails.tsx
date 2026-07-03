@@ -9,6 +9,7 @@ interface AuthorDetailsProps {
   configured?: boolean;
   badge?: ReactNode;
   open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   inline?: boolean;
   className?: string;
 }
@@ -19,6 +20,7 @@ export function AuthorDetails({
   configured,
   badge,
   open,
+  onOpenChange,
   inline,
   className,
 }: AuthorDetailsProps) {
@@ -28,6 +30,7 @@ export function AuthorDetails({
     <details
       className={cn("author-details", inline && "author-details--inline", className)}
       open={open}
+      onToggle={(event) => onOpenChange?.(event.currentTarget.open)}
     >
       <summary>
         <ChevronDown size={13} />

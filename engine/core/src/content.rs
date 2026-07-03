@@ -228,6 +228,8 @@ pub struct TextBlock {
     pub speaker: Option<String>,
     /// Optional mood tag for host styling, e.g. `cold`, `urgent`.
     pub emotion: Option<String>,
+    /// Composable presentation tokens for hosts, e.g. `quoted`, `terminal`.
+    pub style: Option<Vec<String>>,
     pub side: Option<DialogueSide>,
     /// When set, the block is only visible when this flag is truthy. Shorthand for
     /// adding `when: { type: hasFlag, flag: <actor> }` to every line of an actor

@@ -700,9 +700,24 @@ pub(crate) fn text_block_from_wire(
         compiled_else_text: Vec::new(),
         speaker: wire.speaker,
         emotion: wire.emotion,
+        style: normalize_text_styles(wire.style),
         side: wire.side.map(dialogue_side_from_wire),
         actor,
     })
+}
+
+fn normalize_text_styles(styles: Option<Vec<String>>) -> Option<Vec<String>> {
+    let styles = styles
+        .unwrap_or_default()
+        .into_iter()
+        .map(|style| style.trim().to_string())
+        .filter(|style| !style.is_empty())
+        .collect::<Vec<_>>();
+    if styles.is_empty() {
+        None
+    } else {
+        Some(styles)
+    }
 }
 
 fn dialogue_side_from_wire(side: DialogueSideWire) -> DialogueSide {

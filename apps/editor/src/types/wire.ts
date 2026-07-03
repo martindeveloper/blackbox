@@ -174,6 +174,7 @@ export interface TextBlock {
   unless?: Gate;
   speaker?: string;
   emotion?: string;
+  style?: string[];
   side?: DialogueSide;
   actor?: string;
 }

@@ -72,7 +72,8 @@
           "speaker": "guide_npc",
           "emotion": "flat",
           "side": "left",
-          "text": "\"This is a test response.\""
+          "text": "This is a test response.",
+          "style": ["quoted"]
         },
         {
           "kind": "stage_direction",

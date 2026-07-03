@@ -421,6 +421,14 @@ body {
   font-style: italic;
 }
 
+.bb-default-narrative__style-quoted::before {
+  content: "\201C";
+}
+
+.bb-default-narrative__style-quoted::after {
+  content: "\201D";
+}
+
 .bb-default-narrative__speaker {
   margin-bottom: 0.3rem;
   color: color-mix(in srgb, var(--bb-ui-accent) 72%, var(--bb-ui-text));

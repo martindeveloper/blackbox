@@ -43,7 +43,8 @@
           "speaker": "checkpoint_ai",
           "emotion": "urgent",
           "side": "center",
-          "text": "\"Present valid credentials.\"",
+          "text": "Present valid credentials.",
+          "style": ["quoted"],
           "unless": { "type": "hasItem", "itemId": "access_card", "count": 1 }
         }
       ],

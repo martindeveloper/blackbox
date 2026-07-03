@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/Input.js";
 import { Select } from "@/components/ui/Select.js";
 import { GateEditor } from "@/components/node/GateEditor.js";
 import { InterpolationField } from "@/components/node/InterpolationField.js";
+import { TextBlockStyleField } from "@/components/node/TextBlockStyleField.js";
 
 const TEXT_KINDS = ["paragraph", "dialogue", "thought", "stage_direction"];
 const SIDES = ["left", "right", "center"];
@@ -120,6 +121,10 @@ export function SnippetInspector({ snippetId }: Props) {
             onChange={(e) => patch({ ...block, emotion: e.target.value || undefined })}
           />
         </FormField>
+        <TextBlockStyleField
+          value={block.style}
+          onChange={(style) => patch({ ...block, style })}
+        />
         <FormField label={t("textBlock.side")}>
           <Select
             options={[

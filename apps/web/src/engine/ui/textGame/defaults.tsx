@@ -170,14 +170,43 @@ export function DefaultChoices({
   );
 }
 
+function narrativeStyleClassName(styles?: string[]): string {
+  if (!styles?.length) return "";
+  return styles
+    .map((style) =>
+      style
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9_-]+/g, "-")
+        .replace(/^-+|-+$/g, ""),
+    )
+    .filter(Boolean)
+    .map((style) => `bb-default-narrative__style-${style}`)
+    .join(" ");
+}
+
 export function DefaultNarrative({ block, characters, isGameOver, prevBlock }: NarrativeProps) {
   const character = characterBySpeaker(characters, block.speaker);
   const speaker = character?.name ?? block.speaker;
   const continuation =
     Boolean(block.speaker) && prevBlock?.kind === block.kind && prevBlock.speaker === block.speaker;
+  const lineClassName = [
+    "bb-default-narrative__line",
+    narrativeStyleClassName(block.style),
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   if (block.kind === "stage_direction") {
-    return <p className="bb-default-narrative__stage-direction">{block.text}</p>;
+    return (
+      <p
+        className={["bb-default-narrative__stage-direction", narrativeStyleClassName(block.style)]
+          .filter(Boolean)
+          .join(" ")}
+      >
+        {block.text}
+      </p>
+    );
   }
   if (block.kind === "dialogue" || block.kind === "thought") {
     return (
@@ -185,7 +214,7 @@ export function DefaultNarrative({ block, characters, isGameOver, prevBlock }: N
         className={`bb-default-narrative__${block.kind}${continuation ? ` bb-default-narrative__${block.kind}--continuation` : ""}`}
       >
         {!continuation && speaker && <div className="bb-default-narrative__speaker">{speaker}</div>}
-        <p className="bb-default-narrative__line">
+        <p className={lineClassName}>
           {block.emotion && <span className="bb-default-narrative__emotion">{block.emotion}</span>}
           {block.text}
         </p>
@@ -194,7 +223,13 @@ export function DefaultNarrative({ block, characters, isGameOver, prevBlock }: N
   }
   return (
     <p
-      className={`bb-default-narrative__paragraph${isGameOver ? " bb-default-narrative__paragraph--game-over" : ""}`}
+      className={[
+        "bb-default-narrative__paragraph",
+        isGameOver ? "bb-default-narrative__paragraph--game-over" : "",
+        narrativeStyleClassName(block.style),
+      ]
+        .filter(Boolean)
+        .join(" ")}
     >
       {block.text}
     </p>

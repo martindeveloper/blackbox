@@ -333,6 +333,9 @@ pub(crate) struct TextBlockWire {
     pub speaker: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub emotion: Option<String>,
+    /// Composable presentation tokens for hosts, e.g. `["quoted", "terminal"]`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub style: Option<Vec<String>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub side: Option<DialogueSideWire>,
     /// When set, the block is only visible when this flag is truthy. Sugar for

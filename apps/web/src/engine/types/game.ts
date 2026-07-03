@@ -7,6 +7,7 @@ export interface TextBlock {
   text: string;
   speaker?: string;
   emotion?: string;
+  style?: string[];
   side?: DialogueSide;
 }
 

@@ -125,6 +125,7 @@ export const SCHEMA_REFERENCE = {
       unless: "Gate; block is hidden when the gate passes",
       else: "string shown instead when `when` fails",
       emotion: "host styling mood tag (optional)",
+      style: 'string[] of presentation tokens for hosts, e.g. ["quoted", "terminal"] (optional)',
       actor: "character id; sugar for when: { type: hasFlag, flag: _actor_<id> }",
     },
   },

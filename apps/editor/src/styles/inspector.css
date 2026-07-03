@@ -382,6 +382,49 @@
   border-top: 1px solid var(--editor-border-subtle);
 }
 
+.text-block-style-field {
+  display: grid;
+  gap: 6px;
+}
+
+.text-block-style-quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.text-block-style-quick__token {
+  border: 1px solid color-mix(in srgb, var(--editor-accent) 35%, var(--editor-border));
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--editor-accent) 8%, var(--editor-surface-elevated));
+  padding: 2px 7px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.02em;
+  color: var(--editor-accent);
+  cursor: pointer;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease;
+}
+
+.text-block-style-quick__token:hover {
+  border-color: var(--editor-accent);
+  background: color-mix(in srgb, var(--editor-accent) 16%, var(--editor-surface-elevated));
+}
+
+.text-block-style-quick__token--on {
+  border-color: color-mix(in srgb, var(--author-accent) 72%, var(--editor-border));
+  background: color-mix(in srgb, var(--author-accent) 18%, var(--editor-surface-elevated));
+  color: var(--author-accent);
+}
+
+.text-block-style-quick__token--on:hover {
+  border-color: var(--author-accent);
+  background: color-mix(in srgb, var(--author-accent) 24%, var(--editor-surface-elevated));
+}
+
 .author-details--inline {
   margin: 0 10px 10px;
   background: transparent;

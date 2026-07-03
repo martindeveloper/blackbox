@@ -84,7 +84,8 @@ fn dialogue_model_surfaces_in_view() {
                         "speaker": "SYNTHETIC",
                         "emotion": "cold",
                         "side": "left",
-                        "text": "\"Status report.\""
+                        "text": "Status report.",
+                        "style": ["quoted"]
                     },
                     {
                         "kind": "thought",
@@ -106,6 +107,7 @@ fn dialogue_model_surfaces_in_view() {
     assert_eq!(view.text[0].speaker.as_deref(), Some("SYNTHETIC"));
     assert_eq!(view.text[0].emotion.as_deref(), Some("cold"));
     assert_eq!(view.text[0].side, Some(DialogueSide::Left));
+    assert_eq!(view.text[0].style.as_deref(), Some(&["quoted".to_string()][..]));
     assert_eq!(view.text[1].kind, "thought");
     assert_eq!(view.text[1].speaker.as_deref(), Some("YOU"));
 }

@@ -288,6 +288,7 @@ fn text_block_equal(left: &TextBlock, right: &TextBlock) -> bool {
         && left.text == right.text
         && left.speaker == right.speaker
         && left.emotion == right.emotion
+        && left.style == right.style
         && left.side == right.side
 }
 
@@ -525,6 +526,9 @@ impl Serialize for TextBlock {
         }
         if let Some(value) = &self.emotion {
             state.serialize_field("emotion", value)?;
+        }
+        if let Some(value) = &self.style {
+            state.serialize_field("style", value)?;
         }
         if let Some(value) = &self.side {
             state.serialize_field("side", value)?;

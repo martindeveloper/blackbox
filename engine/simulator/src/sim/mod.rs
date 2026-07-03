@@ -442,13 +442,12 @@ fn complete_coverage(
                     .nodes
                     .get(target)
                     .is_some_and(|node| node.mode.is_terminal())
+                && let Some(path) = search.completed_path
             {
-                if let Some(path) = search.completed_path {
-                    completed_paths
-                        .lock()
-                        .expect("completed paths lock")
-                        .push((target.clone(), path));
-                }
+                completed_paths
+                    .lock()
+                    .expect("completed paths lock")
+                    .push((target.clone(), path));
             }
         },
     );

@@ -2,7 +2,7 @@ use crate::checks::{
     assets, cook, dead_ends, death_nodes, items, reachability, references, skill_checks, validate,
 };
 use crate::report::LintReport;
-use crate::rules::{LintContext, catalog, characters, library, relationships, wire};
+use crate::rules::{LintContext, catalog, characters, library, relationships, text_blocks, wire};
 
 /// When a rule runs relative to bundle loading.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -96,6 +96,12 @@ pub fn all_rules() -> &'static [Rule] {
             "characters",
             RulePhase::Source,
             characters::check_unknown_actors,
+        ),
+        Rule::new(
+            "literal-quoted-text",
+            "text",
+            RulePhase::Source,
+            text_blocks::check_literal_quoted_text,
         ),
         Rule::new(
             "undeclared-relationship-metric",

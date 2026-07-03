@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
 import type { TextBlock, TextEntry } from "@/types/wire.js";
-import { textBlockHasDirection } from "@/lib/authorEditorHelpers.js";
+import { textBlockHasDirection, useAuthorPanelOpen } from "@/lib/authorEditorHelpers.js";
 import {
   isTextBlock,
   snippetIdFromTextEntry,
@@ -21,6 +21,7 @@ import { Select } from "@/components/ui/Select.js";
 import { Textarea } from "@/components/ui/Textarea.js";
 import { GateEditor } from "./GateEditor.js";
 import { InterpolationField } from "./InterpolationField.js";
+import { TextBlockStyleField } from "./TextBlockStyleField.js";
 import { AuthorDetails } from "./AuthorDetails.js";
 
 const TEXT_KINDS = ["paragraph", "dialogue", "thought", "stage_direction"];
@@ -60,6 +61,130 @@ function SnippetParamAdder({
         {t("common.add")}
       </Button>
     </div>
+  );
+}
+
+interface TextBlockCardProps {
+  block: TextBlock;
+  characterOptions: Array<{ value: string; label: string }>;
+  onChange: (block: TextBlock) => void;
+  onRemove: () => void;
+}
+
+function TextBlockCard({ block, characterOptions, onChange, onRemove }: TextBlockCardProps) {
+  const { t } = useTranslation();
+  const hasDirection = textBlockHasDirection(block);
+  const directionPanel = useAuthorPanelOpen(hasDirection);
+
+  const patchBlock = (patch: Partial<TextBlock>) => {
+    onChange({ ...block, ...patch });
+  };
+
+  const speakerField = (
+    <FormField layout="stacked" label={t("textBlock.speaker")}>
+      <Select
+        options={characterOptions}
+        value={block.speaker ?? ""}
+        onChange={(e) => patchBlock({ speaker: e.target.value || undefined })}
+      />
+    </FormField>
+  );
+
+  return (
+    <Card className="author-text-card mb-3">
+      <div className="author-card-toolbar">
+        <div className="author-block-type">
+          <Select
+            aria-label={t("textBlock.kind")}
+            options={TEXT_KINDS.map((k) => ({
+              value: k,
+              label: t(`textBlock.kinds.${k}`),
+            }))}
+            value={block.kind}
+            onChange={(e) => patchBlock({ kind: e.target.value })}
+          />
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          icon
+          title={t("textBlock.remove")}
+          aria-label={t("textBlock.remove")}
+          onClick={onRemove}
+        >
+          <Trash2 size={14} />
+        </Button>
+      </div>
+      {block.kind === "dialogue" ? <div className="author-speaker-row">{speakerField}</div> : null}
+      <div className="author-prose">
+        <InterpolationField
+          layout="stacked"
+          showHint={false}
+          label={t("textBlock.whatHappens")}
+          value={block.text}
+          rows={6}
+          placeholder={t(`textBlock.placeholders.${block.kind}`)}
+          onChange={(text) => patchBlock({ text })}
+        />
+      </div>
+      <AuthorDetails
+        inline
+        summary={t("textBlock.directionAndLogic")}
+        configured={hasDirection}
+        open={directionPanel.open}
+        onOpenChange={directionPanel.onOpenChange}
+      >
+        {block.kind !== "dialogue" ? speakerField : null}
+        <FormField label={t("textBlock.emotion")}>
+          <Input
+            placeholder={t("textBlock.emotionPlaceholder")}
+            value={block.emotion ?? ""}
+            onChange={(e) => patchBlock({ emotion: e.target.value || undefined })}
+          />
+        </FormField>
+        <TextBlockStyleField
+          value={block.style}
+          onChange={(style) => patchBlock({ style })}
+        />
+        <FormField label={t("textBlock.side")}>
+          <Select
+            options={[
+              { value: "", label: t("common.none") },
+              ...SIDES.map((s) => ({ value: s, label: t(`textBlock.sides.${s}`) })),
+            ]}
+            value={block.side ?? ""}
+            onChange={(e) =>
+              patchBlock({
+                side: (e.target.value || undefined) as TextBlock["side"],
+              })
+            }
+          />
+        </FormField>
+        <FormField label={t("textBlock.actor")} hint={t("textBlock.actorHint")}>
+          <Select
+            options={characterOptions}
+            value={block.actor ?? ""}
+            onChange={(e) => patchBlock({ actor: e.target.value || undefined })}
+          />
+        </FormField>
+        <GateEditor
+          label={t("textBlock.showOnlyWhen")}
+          value={block.when}
+          onChange={(when) => patchBlock({ when })}
+        />
+        <GateEditor
+          label={t("textBlock.hideWhen")}
+          value={block.unless}
+          onChange={(unless) => patchBlock({ unless })}
+        />
+        <InterpolationField
+          label={t("textBlock.else")}
+          value={block.else ?? ""}
+          rows={3}
+          onChange={(elseText) => patchBlock({ else: elseText || undefined })}
+        />
+      </AuthorDetails>
+    </Card>
   );
 }
 
@@ -187,117 +312,19 @@ export function TextBlockEditor({ entries, onChange }: TextBlockEditorProps) {
         }
 
         if (!isTextBlock(entry)) return null;
-        const block = entry;
-        const hasDirection = textBlockHasDirection(block);
-
-        const patchBlock = (patch: Partial<TextBlock>) => {
-          const copy = [...entries];
-          copy[i] = { ...block, ...patch };
-          onChange(copy);
-        };
-
-        const speakerField = (
-          <FormField layout="stacked" label={t("textBlock.speaker")}>
-            <Select
-              options={characterOptions}
-              value={block.speaker ?? ""}
-              onChange={(e) => patchBlock({ speaker: e.target.value || undefined })}
-            />
-          </FormField>
-        );
 
         return (
-          <Card key={textEntryKey(entry, i)} className="author-text-card mb-3">
-            <div className="author-card-toolbar">
-              <div className="author-block-type">
-                <Select
-                  aria-label={t("textBlock.kind")}
-                  options={TEXT_KINDS.map((k) => ({
-                    value: k,
-                    label: t(`textBlock.kinds.${k}`),
-                  }))}
-                  value={block.kind}
-                  onChange={(e) => patchBlock({ kind: e.target.value })}
-                />
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                icon
-                title={t("textBlock.remove")}
-                aria-label={t("textBlock.remove")}
-                onClick={() => onChange(entries.filter((_, j) => j !== i))}
-              >
-                <Trash2 size={14} />
-              </Button>
-            </div>
-            {block.kind === "dialogue" ? (
-              <div className="author-speaker-row">{speakerField}</div>
-            ) : null}
-            <div className="author-prose">
-              <InterpolationField
-                layout="stacked"
-                showHint={false}
-                label={t("textBlock.whatHappens")}
-                value={block.text}
-                rows={6}
-                placeholder={t(`textBlock.placeholders.${block.kind}`)}
-                onChange={(text) => patchBlock({ text })}
-              />
-            </div>
-            <AuthorDetails
-              inline
-              summary={t("textBlock.directionAndLogic")}
-              configured={hasDirection}
-              open={hasDirection}
-            >
-              {block.kind !== "dialogue" ? speakerField : null}
-              <FormField label={t("textBlock.emotion")}>
-                <Input
-                  placeholder={t("textBlock.emotionPlaceholder")}
-                  value={block.emotion ?? ""}
-                  onChange={(e) => patchBlock({ emotion: e.target.value || undefined })}
-                />
-              </FormField>
-              <FormField label={t("textBlock.side")}>
-                <Select
-                  options={[
-                    { value: "", label: t("common.none") },
-                    ...SIDES.map((s) => ({ value: s, label: t(`textBlock.sides.${s}`) })),
-                  ]}
-                  value={block.side ?? ""}
-                  onChange={(e) =>
-                    patchBlock({
-                      side: (e.target.value || undefined) as TextBlock["side"],
-                    })
-                  }
-                />
-              </FormField>
-              <FormField label={t("textBlock.actor")} hint={t("textBlock.actorHint")}>
-                <Select
-                  options={characterOptions}
-                  value={block.actor ?? ""}
-                  onChange={(e) => patchBlock({ actor: e.target.value || undefined })}
-                />
-              </FormField>
-              <GateEditor
-                label={t("textBlock.showOnlyWhen")}
-                value={block.when}
-                onChange={(when) => patchBlock({ when })}
-              />
-              <GateEditor
-                label={t("textBlock.hideWhen")}
-                value={block.unless}
-                onChange={(unless) => patchBlock({ unless })}
-              />
-              <InterpolationField
-                label={t("textBlock.else")}
-                value={block.else ?? ""}
-                rows={3}
-                onChange={(elseText) => patchBlock({ else: elseText || undefined })}
-              />
-            </AuthorDetails>
-          </Card>
+          <TextBlockCard
+            key={textEntryKey(entry, i)}
+            block={entry}
+            characterOptions={characterOptions}
+            onChange={(block) => {
+              const copy = [...entries];
+              copy[i] = block;
+              onChange(copy);
+            }}
+            onRemove={() => onChange(entries.filter((_, j) => j !== i))}
+          />
         );
       })}
       <div className="author-block-actions">
