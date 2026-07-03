@@ -121,10 +121,7 @@ export function SnippetInspector({ snippetId }: Props) {
             onChange={(e) => patch({ ...block, emotion: e.target.value || undefined })}
           />
         </FormField>
-        <TextBlockStyleField
-          value={block.style}
-          onChange={(style) => patch({ ...block, style })}
-        />
+        <TextBlockStyleField value={block.style} onChange={(style) => patch({ ...block, style })} />
         <FormField label={t("textBlock.side")}>
           <Select
             options={[

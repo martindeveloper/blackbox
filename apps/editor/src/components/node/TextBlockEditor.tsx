@@ -142,10 +142,7 @@ function TextBlockCard({ block, characterOptions, onChange, onRemove }: TextBloc
             onChange={(e) => patchBlock({ emotion: e.target.value || undefined })}
           />
         </FormField>
-        <TextBlockStyleField
-          value={block.style}
-          onChange={(style) => patchBlock({ style })}
-        />
+        <TextBlockStyleField value={block.style} onChange={(style) => patchBlock({ style })} />
         <FormField label={t("textBlock.side")}>
           <Select
             options={[
