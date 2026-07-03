@@ -190,10 +190,7 @@ export function DefaultNarrative({ block, characters, isGameOver, prevBlock }: N
   const speaker = character?.name ?? block.speaker;
   const continuation =
     Boolean(block.speaker) && prevBlock?.kind === block.kind && prevBlock.speaker === block.speaker;
-  const lineClassName = [
-    "bb-default-narrative__line",
-    narrativeStyleClassName(block.style),
-  ]
+  const lineClassName = ["bb-default-narrative__line", narrativeStyleClassName(block.style)]
     .filter(Boolean)
     .join(" ");
 
