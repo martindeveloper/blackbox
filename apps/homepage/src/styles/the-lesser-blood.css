@@ -1169,12 +1169,47 @@
 }
 
 @media (max-width: 560px) {
+  .tlb-hero-image {
+    object-position: 63% 52%;
+    transform: scale(1.18);
+    transform-origin: 63% 52%;
+  }
+
+  .tlb-hero-vignette {
+    background:
+      linear-gradient(
+        180deg,
+        rgba(11, 8, 5, 0.7) 0%,
+        rgba(11, 8, 5, 0.1) 22%,
+        rgba(11, 8, 5, 0.4) 55%,
+        rgba(11, 8, 5, 0.96) 100%
+      ),
+      linear-gradient(
+        90deg,
+        rgba(11, 8, 5, 0.78) 0%,
+        rgba(11, 8, 5, 0.16) 48%,
+        rgba(11, 8, 5, 0.48) 100%
+      );
+  }
+
   .tlb-title {
     font-size: clamp(2.8rem, 13vw, 4.6rem);
   }
 
   .tlb-thesis {
     max-width: 30ch;
+  }
+
+  .tlb-status {
+    gap: 0.55rem;
+    font-size: 0.62rem;
+    letter-spacing: 0.16em;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+
+  .tlb-status .tlb-ember {
+    flex: 0 0 auto;
   }
 
   .tlb-crest p {

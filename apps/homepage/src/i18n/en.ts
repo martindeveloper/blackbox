@@ -565,7 +565,7 @@ export const en = {
       record: "Record 002 — release near",
       title: "The Lesser\nBlood",
       thesis: "A house does not need monsters to devour its own.",
-      status: "Coming soon — the witnesses are gathering",
+      status: "Coming soon — the witnesses gather",
     },
     estate: {
       index: "00 / The estate record",
