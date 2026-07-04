@@ -12,6 +12,16 @@ type RegisterItem = {
   value: string;
 };
 
+type LabelValue = {
+  label: string;
+  value: string;
+};
+
+type StoryPanel = {
+  title: string;
+  body: string;
+};
+
 function ArrowIcon() {
   return (
     <svg viewBox="0 0 24 24" width="15" height="15" fill="none" aria-hidden="true">
@@ -51,7 +61,15 @@ function ArdentSeal({ label }: { label: string }) {
 export function TheLesserBloodPage() {
   const { t } = useTranslation();
   const register = t("theLesserBlood.estate.register", { returnObjects: true }) as RegisterItem[];
+  const summonsCopy = t("theLesserBlood.summons.copy", { returnObjects: true }) as string[];
+  const summonsLedgers = t("theLesserBlood.summons.ledgers", {
+    returnObjects: true,
+  }) as LabelValue[];
   const account = t("theLesserBlood.deed.account", { returnObjects: true }) as string[];
+  const claims = t("theLesserBlood.claims.items", { returnObjects: true }) as StoryPanel[];
+  const reckoningPoints = t("theLesserBlood.reckoning.points", {
+    returnObjects: true,
+  }) as string[];
 
   return (
     <>
@@ -64,14 +82,13 @@ export function TheLesserBloodPage() {
         <section className="tlb-hero">
           <Image
             className="tlb-hero-image"
-            src="/games/the-lesser-blood/mood.webp"
+            src="/games/the-lesser-blood/front-gate.webp"
             alt={t("theLesserBlood.hero.image_alt")}
             fill
             priority
             sizes="100vw"
           />
           <div className="tlb-hero-vignette" aria-hidden="true" />
-          <div className="tlb-hero-candle" aria-hidden="true" />
           <div className="tlb-grain" aria-hidden="true" />
 
           <div className="container tlb-hero-inner">
@@ -123,26 +140,33 @@ export function TheLesserBloodPage() {
           </div>
         </section>
 
-        <section className="tlb-deed">
-          <div className="container tlb-deed-inner">
-            <span className="tlb-index">{t("theLesserBlood.deed.index")}</span>
+        <section className="tlb-summons">
+          <div className="container tlb-summons-inner">
+            <figure className="tlb-summons-image">
+              <Image
+                src="/games/the-lesser-blood/funeral.webp"
+                alt={t("theLesserBlood.summons.image_alt")}
+                fill
+                sizes="(max-width: 900px) 100vw, 48vw"
+              />
+              <figcaption>{t("theLesserBlood.summons.kicker")}</figcaption>
+            </figure>
 
-            <div className="tlb-deed-grid">
-              <blockquote className="tlb-inscription">
-                <span className="tlb-inscription-mark" aria-hidden="true">
-                  {t("theLesserBlood.deed.inscription_mark")}
-                </span>
-                <p>{t("theLesserBlood.deed.inscription")}</p>
-                <cite>{t("theLesserBlood.deed.inscription_source")}</cite>
-              </blockquote>
+            <div className="tlb-summons-copy">
+              <span className="tlb-index">{t("theLesserBlood.summons.index")}</span>
+              <h2>{t("theLesserBlood.summons.headline")}</h2>
+              {summonsCopy.map((paragraph) => (
+                <p key={paragraph}>{paragraph}</p>
+              ))}
 
-              <div className="tlb-account">
-                {account.map((paragraph, i) => (
-                  <p key={paragraph} className={i === 0 ? "tlb-account-lede" : undefined}>
-                    {paragraph}
-                  </p>
+              <dl className="tlb-ledger-lines">
+                {summonsLedgers.map((item) => (
+                  <div key={item.label}>
+                    <dt>{item.label}</dt>
+                    <dd>{item.value}</dd>
+                  </div>
                 ))}
-              </div>
+              </dl>
             </div>
           </div>
         </section>
@@ -187,6 +211,67 @@ export function TheLesserBloodPage() {
                   ))}
               </blockquote>
               <p className="tlb-prospect-note">{t("theLesserBlood.prospect.note")}</p>
+            </div>
+          </div>
+        </section>
+
+        <section className="tlb-deed">
+          <div className="container tlb-deed-inner">
+            <span className="tlb-index">{t("theLesserBlood.deed.index")}</span>
+
+            <div className="tlb-deed-grid">
+              <blockquote className="tlb-inscription">
+                <span className="tlb-inscription-mark" aria-hidden="true">
+                  {t("theLesserBlood.deed.inscription_mark")}
+                </span>
+                <p>{t("theLesserBlood.deed.inscription")}</p>
+                <cite>{t("theLesserBlood.deed.inscription_source")}</cite>
+              </blockquote>
+
+              <div className="tlb-account">
+                {account.map((paragraph, i) => (
+                  <p key={paragraph} className={i === 0 ? "tlb-account-lede" : undefined}>
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="tlb-claims">
+          <div className="tlb-grain" aria-hidden="true" />
+          <div className="container tlb-claims-inner">
+            <div className="tlb-claims-heading">
+              <span className="tlb-index">{t("theLesserBlood.claims.index")}</span>
+              <h2>{t("theLesserBlood.claims.headline")}</h2>
+            </div>
+
+            <div className="tlb-claim-list">
+              {claims.map((item, index) => (
+                <article key={item.title} className="tlb-claim">
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  <h3>{item.title}</h3>
+                  <p>{item.body}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="tlb-reckoning">
+          <div className="container tlb-reckoning-inner">
+            <span className="tlb-index">{t("theLesserBlood.reckoning.index")}</span>
+            <div className="tlb-reckoning-grid">
+              <div>
+                <h2>{t("theLesserBlood.reckoning.headline")}</h2>
+                <p>{t("theLesserBlood.reckoning.copy")}</p>
+              </div>
+              <ul className="tlb-reckoning-list">
+                {reckoningPoints.map((point) => (
+                  <li key={point}>{point}</li>
+                ))}
+              </ul>
             </div>
           </div>
         </section>

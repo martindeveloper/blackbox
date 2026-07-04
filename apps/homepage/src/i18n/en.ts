@@ -57,17 +57,17 @@ export const en = {
     theLesserBlood: {
       title: "The Lesser Blood",
       description:
-        "Return to Greyfen Hold in The Lesser Blood, a grounded dark-fantasy narrative RPG of inheritance, debt, and the price of a name. Coming soon.",
+        "Return to Greyfen Hold in The Lesser Blood, a grounded dark-fantasy narrative RPG of inheritance, debt, witness, and the price of a name. Near release.",
       openGraph: {
         title: "The Lesser Blood — A Blackbox Narrative RPG",
         description:
-          "The heir is dead. The house is in debt. You are summoned home because your blood became useful. Coming soon.",
-        imageAlt: "The council hall of Greyfen Hold, candlelit over the house ledgers",
+          "The heir is dead. The house is in debt. You are summoned home because your blood became useful.",
+        imageAlt: "A rain-soaked heir carrying a sealed summons before Greyfen Hold",
       },
       twitter: {
         title: "The Lesser Blood — A Blackbox Narrative RPG",
         description:
-          "A grounded dark-fantasy story of inheritance, debt, and what you let a noble house become. Coming soon.",
+          "A grounded dark-fantasy story of inheritance, debt, and what you let a noble house become.",
       },
     },
     editorPage: {
@@ -446,15 +446,15 @@ export const en = {
       play_url: "https://silentarchive.onbbx.com",
     },
     theLesserBlood: {
-      image_alt: "The candlelit council hall of Greyfen Hold, ledgers open on the table",
+      image_alt: "A rain-soaked heir carrying a sealed summons before the gates of Greyfen Hold",
       number: "002",
       status: "Coming soon",
-      tags: ["Grounded dark fantasy", "Narrative RPG", "In development"],
+      tags: ["Grounded dark fantasy", "Narrative RPG", "Near release"],
       location: "Greyfen Hold · Veyrholm",
       title: "The Lesser Blood",
       subtitle: "The Price of a Name",
       description:
-        "The heir is dead, the house is in debt, and the old road is valuable again. You are the spare child of House Ardent, called home because your blood became useful.",
+        "A grounded dark-fantasy story of inheritance, debt, and quiet violence. Return to Greyfen as the spare child of a house that needs your blood more than it missed you.",
       explore: "View the record",
     },
     pending: {
@@ -558,19 +558,18 @@ export const en = {
   },
   theLesserBlood: {
     hero: {
-      image_alt:
-        "The council hall of Greyfen Hold at night, a single candle burning over the open house ledgers",
+      image_alt: "A rain-soaked heir carrying a sealed summons before the gates of Greyfen Hold",
       crest_aria: "Seal of House Ardent",
       house: "House Ardent",
       seat: "Greyfen Hold",
-      record: "Record 002 — settlement pending",
+      record: "Record 002 — release near",
       title: "The Lesser\nBlood",
       thesis: "A house does not need monsters to devour its own.",
-      status: "Coming soon — the seal is not yet broken",
+      status: "Coming soon — the witnesses are gathering",
     },
     estate: {
       index: "00 / The estate record",
-      lead: "A grounded dark-fantasy of inheritance, debt, and the quiet arithmetic of a name.",
+      lead: "A grounded dark-fantasy RPG about inheritance, debt, legitimacy, and the quiet violence of proper order.",
       register_aria: "Estate record",
       register: [
         { label: "Realm", value: "Veyrholm" },
@@ -579,6 +578,22 @@ export const en = {
         { label: "Chapters", value: "VII" },
         { label: "Format", value: "Choice-driven" },
         { label: "Engine", value: "Blackbox" },
+      ],
+    },
+    summons: {
+      index: "01 / Before the seal",
+      image_alt:
+        "A funeral inside Greyfen Chapel, mourners standing beside a draped coffin while rain falls through the open door",
+      kicker: "The funeral is only the first account to settle.",
+      headline: "You are summoned home before the witnesses leave.",
+      copy: [
+        "Greyfen Hold is old, damp, indebted, and newly valuable. The bridge past Herrow has cracked; traffic has returned to the road below the keep; an old toll right has become worth saving, stealing, or administering.",
+        "Your brother is dead. Your mother has written for the surviving child of House Ardent. Not because the house missed you. Because your name can still move paper, quiet a room, and make a settlement look lawful.",
+      ],
+      ledgers: [
+        { label: "The house owes", value: "wages, chapel arrears, seed grain, roof timber" },
+        { label: "The road offers", value: "income, leverage, witnesses, predators" },
+        { label: "The dead leave", value: "a chair, a claim, a record no one trusts cleanly" },
       ],
     },
     prospect: {
@@ -590,7 +605,7 @@ export const en = {
       note: "Here a house is a machine for turning blood, land, and debt into survival. Ruin arrives already signed — a missing name, a closed register — and the tenants below the hold pay first.",
     },
     deed: {
-      index: "01 / The matter at hand",
+      index: "02 / The matter at hand",
       inscription_mark: "“",
       inscription:
         "A noble house is not only a family. It is a machine for turning blood, land, debt, marriage, and reputation into survival.",
@@ -600,10 +615,44 @@ export const en = {
         "No one need draw a sword to narrow a life here. Ruin arrives already signed — a missing name, a closed register, an inherited debt, a marriage clause blessed in proper order. The question was never how to save the house. It is what you are willing to let it become, and who pays for that decision.",
       ],
     },
+    claims: {
+      index: "03 / The pressure in the room",
+      headline:
+        "Every kindness has a clause. Every truth needs someone exposed enough to carry it.",
+      items: [
+        {
+          title: "Inheritance",
+          body: "A legal heir can be weaker than an erased one. Blood matters, but only after record, witness, standing, and fear decide what blood is allowed to mean.",
+        },
+        {
+          title: "Debt",
+          body: "Greyfen has survived by delaying collapse. Now every delayed wage, borrowed seed sack, and chapel arrear has learned to speak with a creditor's voice.",
+        },
+        {
+          title: "Widowhood",
+          body: "A grieving woman asks for time before grief becomes arithmetic. The house calls that delay; the law may call it succession.",
+        },
+        {
+          title: "The Gate",
+          body: "The tenants below the hold do not care which noble has the cleanest claim. They care who takes grain, who repairs roofs, and who counts the dead as still owing.",
+        },
+      ],
+    },
+    reckoning: {
+      index: "04 / What the game asks",
+      headline: "Not who deserves the house. Who the house is allowed to spend.",
+      copy: "The Lesser Blood is a choice-driven story of rooms, records, private compromises, and public consequences. There are no world-saving prophecies here, no clean heroic inheritance. Your choices decide which truths become official, which people become useful, and which silences survive another winter.",
+      points: [
+        "Seven chapters of branching narrative",
+        "Skill checks shaped by what you noticed earlier",
+        "Relationships, evidence, and trust carried into the final settlement",
+        "Multiple endings, including hidden outcomes for players who protect more than power",
+      ],
+    },
     writ: {
       seal_word: "Unsealed",
-      headline: "The settlement is not yet filed.",
-      body: "Greyfen's record is still being written. When the seal breaks, the house will open its doors, its ledgers, and its debts to you.",
+      headline: "The settlement is almost ready.",
+      body: "Greyfen's record is close to release. Soon the house will open its doors, its ledgers, and its debts; the final links will be added here when the seal breaks.",
       warning_label: "On the record",
       warning:
         "Explores debt, coercion, class and legitimacy, grief, and morally compromised choices. No clean hands are promised.",

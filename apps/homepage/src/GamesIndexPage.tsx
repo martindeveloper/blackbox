@@ -190,7 +190,7 @@ export function GamesIndexPage() {
                 subtitle={lesserBlood.subtitle}
                 description={lesserBlood.description}
                 href="/games/the-lesser-blood"
-                image="/games/the-lesser-blood/mood.webp"
+                image="/games/the-lesser-blood/front-gate.webp"
                 imageAlt={lesserBlood.image_alt}
                 explore={lesserBlood.explore}
               />

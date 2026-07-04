@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     description: en.metadata.theLesserBlood.openGraph.description,
     images: [
       {
-        url: "/games/the-lesser-blood/mood.webp",
+        url: "/games/the-lesser-blood/front-gate.webp",
         width: 1672,
         height: 941,
         alt: en.metadata.theLesserBlood.openGraph.imageAlt,
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: en.metadata.theLesserBlood.twitter.title,
     description: en.metadata.theLesserBlood.twitter.description,
-    images: ["/games/the-lesser-blood/mood.webp"],
+    images: ["/games/the-lesser-blood/front-gate.webp"],
   },
 };
 
