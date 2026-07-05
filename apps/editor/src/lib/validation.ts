@@ -2,6 +2,7 @@ import type { ChoiceContent, Gate, ItemCatalog, NodeContent } from "@/types/wire
 import { translate } from "./i18n.js";
 import type { LoadedBundle } from "./scenarioLoader.js";
 import { isTextBlock, snippetIdFromTextEntry } from "./libraryRefs.js";
+import { checkOutcomeBranches } from "./skillCheckOutcomes.js";
 
 export interface ValidationIssue {
   id: string;
@@ -30,9 +31,11 @@ function collectGotoTargets(gate: Gate | undefined, targets: Set<string>): void 
 
 function collectChoiceRefs(choice: ChoiceContent, nodeIds: Set<string>): void {
   if (choice.goto) nodeIds.add(choice.goto);
-  if (choice.check?.onSuccess.goto) nodeIds.add(choice.check.onSuccess.goto);
-  if (choice.check?.onFailure.goto) nodeIds.add(choice.check.onFailure.goto);
-  if (choice.check?.onExhausted?.goto) nodeIds.add(choice.check.onExhausted.goto);
+  if (choice.check) {
+    for (const { outcome } of checkOutcomeBranches(choice.check)) {
+      if (outcome.goto) nodeIds.add(outcome.goto);
+    }
+  }
   if (choice.when) collectGotoTargets(choice.when, nodeIds);
   if (choice.unless) collectGotoTargets(choice.unless, nodeIds);
   if (choice.requires) collectGotoTargets(choice.requires, nodeIds);
@@ -101,6 +104,21 @@ export function validateBundle(bundle: LoadedBundle): ValidationIssue[] {
       for (const choice of node.choices ?? []) {
         validateChoiceRefs(chapterId, nodeId, choice, globalNodeIds, bundle, issues);
       }
+
+      (node.redirect ?? []).forEach((rule, index) => {
+        if (!globalNodeIds.has(rule.goto)) {
+          issues.push({
+            id: `${chapterId}-${nodeId}-redirect-${index}-ref-${rule.goto}`,
+            severity: "error",
+            message: translate("validation.redirectUnknownNode", {
+              nodeId,
+              ref: rule.goto,
+            }),
+            chapterId,
+            nodeId,
+          });
+        }
+      });
     }
   }
 

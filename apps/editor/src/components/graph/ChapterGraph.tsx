@@ -413,8 +413,6 @@ function ChapterGraphInner() {
     });
   }, [chapterId, nodeId, confirm, deleteNode, navigate, t]);
 
-  // Power-user shortcuts for the graph canvas. Single-key bindings stay clear of
-  // text-entry fields and of the modifier combos handled globally in EditorShell.
   useEffect(() => {
     const isTextEntry = (target: EventTarget | null) => {
       const el = target as HTMLElement | null;

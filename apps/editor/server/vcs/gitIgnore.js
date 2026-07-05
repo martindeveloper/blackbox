@@ -28,7 +28,6 @@ function existingLines(contents) {
   );
 }
 
-/** Create or extend `<project>/.gitignore` with standard adventure ignore rules. */
 export async function ensureGitIgnore(projectPath) {
   const target = path.join(projectPath, ".gitignore");
   const existing = await fs.readFile(target, "utf8").catch(() => "");

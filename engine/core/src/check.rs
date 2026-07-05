@@ -1,8 +1,10 @@
-use crate::content::{RollMode, SkillCheckContent, SkillCheckOutcome};
+use crate::content::{
+    RollMode, SkillCheckContent, SkillCheckOutcome, SkillCheckResolution, SkillCheckTier,
+};
 use crate::effect::{EffectSideEffects, apply_effect};
 use crate::error::EngineError;
 use crate::expr::{self, EvalContext};
-use crate::rng::{SkillCheckRoll, roll_skill_check};
+use crate::rng::{SkillCheckRoll, roll_check_die, roll_skill_check};
 use crate::roll_log::RollLog;
 use crate::state::GameState;
 use crate::transition::ChoiceResolution;
@@ -11,7 +13,9 @@ use crate::view::RollRecord;
 /// Deterministic skill-check outcome for simulation and tests.
 ///
 /// When set on [`crate::Engine`], the next choice with a check skips rolling
-/// and applies the corresponding branch directly.
+/// and applies the corresponding branch directly. For tiered checks,
+/// `ForceSuccess` resolves to the best tier and `ForceFailure` to the
+/// catch-all tier.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum SkillCheckOverride {
     ForceSuccess,
@@ -58,26 +62,69 @@ pub fn resolve_skill_check(
         .label
         .clone()
         .unwrap_or_else(|| format!("{} check", check.stat));
-    let (_, success) = roll_skill_check(
-        state,
-        SkillCheckRoll {
-            stat: &check.stat,
-            difficulty: check.difficulty,
-            label: Some(label),
-            modifier,
-            sides: check.sides,
-            roll_mode: check.roll_mode,
-        },
-        rolls,
-    );
 
-    let outcome = if success {
-        &check.on_success
-    } else {
-        &check.on_failure
-    };
+    match &check.resolution {
+        SkillCheckResolution::Binary {
+            difficulty,
+            on_success,
+            on_failure,
+        } => {
+            let (_, success) = roll_skill_check(
+                state,
+                SkillCheckRoll {
+                    stat: &check.stat,
+                    difficulty: *difficulty,
+                    label: Some(label),
+                    modifier,
+                    sides: check.sides,
+                    roll_mode: check.roll_mode,
+                },
+                rolls,
+            );
 
-    apply_skill_outcome(state, outcome, rolls, side)
+            let outcome = if success { on_success } else { on_failure };
+            apply_skill_outcome(state, outcome, rolls, side)
+        }
+        SkillCheckResolution::Tiered { tiers } => {
+            let sides = check.sides.max(1);
+            let roll = roll_check_die(state, sides, check.roll_mode);
+            let total = roll + modifier;
+            let tier = match_tier(tiers, total);
+            rolls.push(RollRecord::SkillCheck {
+                label: Some(label),
+                stat: check.stat.clone(),
+                difficulty: None,
+                tier: Some(tier_display_name(tiers, tier)),
+                sides: Some(sides),
+                roll,
+                modifier,
+                total,
+                success: tier.counts_as_success(),
+                roll_mode: check.roll_mode,
+            });
+            apply_skill_outcome(state, &tier.outcome, rolls, side)
+        }
+    }
+}
+
+/// First tier (author order, best-first) whose `min` the total meets; the final
+/// catch-all (no `min`) always matches. Validation guarantees the shape.
+fn match_tier(tiers: &[SkillCheckTier], total: i32) -> &SkillCheckTier {
+    tiers
+        .iter()
+        .find(|tier| tier.min.is_none_or(|min| total >= min))
+        .expect("tiered check has a catch-all tier (enforced by validation)")
+}
+
+fn tier_display_name(tiers: &[SkillCheckTier], tier: &SkillCheckTier) -> String {
+    if let Some(label) = &tier.label {
+        return label.clone();
+    }
+    let index = tiers
+        .iter()
+        .position(|candidate| std::ptr::eq(candidate, tier))
+        .unwrap_or(0);
+    format!("tier {index}")
 }
 
 fn resolve_skill_check_override(
@@ -88,8 +135,18 @@ fn resolve_skill_check_override(
     override_outcome: SkillCheckOverride,
 ) -> Result<ChoiceResolution, EngineError> {
     let outcome = match override_outcome {
-        SkillCheckOverride::ForceSuccess => &check.on_success,
-        SkillCheckOverride::ForceFailure => &check.on_failure,
+        SkillCheckOverride::ForceSuccess => match &check.resolution {
+            SkillCheckResolution::Binary { on_success, .. } => on_success,
+            SkillCheckResolution::Tiered { tiers } => {
+                &tiers.first().expect("tiers non-empty").outcome
+            }
+        },
+        SkillCheckOverride::ForceFailure => match &check.resolution {
+            SkillCheckResolution::Binary { on_failure, .. } => on_failure,
+            SkillCheckResolution::Tiered { tiers } => {
+                &tiers.last().expect("tiers non-empty").outcome
+            }
+        },
         SkillCheckOverride::ForceExhausted => check.on_exhausted.as_ref().ok_or_else(|| {
             EngineError::ValidationError(
                 "skill check override ForceExhausted requires maxAttempts and onExhausted"
@@ -120,7 +177,8 @@ fn record_forced_skill_check(
     rolls.push(RollRecord::SkillCheck {
         label: Some(label),
         stat: check.stat.clone(),
-        difficulty: check.difficulty,
+        difficulty: check.difficulty(),
+        tier: None,
         sides: Some(sides),
         roll,
         modifier: 0,

@@ -2,7 +2,7 @@ use rustc_hash::FxHashMap as HashMap;
 
 use crate::gate::Gate;
 
-use super::{ChoiceContent, Effect, NodeMode, TextBlock};
+use super::{ChoiceContent, Effect, NodeMode, NodeRedirect, TextBlock};
 
 /// Runtime-prepared library: snippets expanded, templates merged, named conditions
 /// compiled. Built once at load.
@@ -23,5 +23,7 @@ pub struct TemplateBody {
     pub mode: NodeMode,
     pub text: Vec<TextBlock>,
     pub on_enter: Vec<Effect>,
+    /// Non-empty overlay replaces; empty overlay inherits (no merge modes).
+    pub redirect: Vec<NodeRedirect>,
     pub choices: Vec<ChoiceContent>,
 }

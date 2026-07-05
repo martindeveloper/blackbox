@@ -1,11 +1,12 @@
 import type { GraphEdgeKind } from "./graphBuilder.js";
+import { checkOutcomeBranches } from "./skillCheckOutcomes.js";
 import type { Chapter, ChoiceContent, ItemCatalog } from "@/types/wire.js";
 
 function choiceHasRoute(choice: ChoiceContent): boolean {
   if (choice.goto) return true;
-  if (choice.check?.onSuccess.goto) return true;
-  if (choice.check?.onFailure.goto) return true;
-  if (choice.check?.onExhausted?.goto) return true;
+  if (choice.check && checkOutcomeBranches(choice.check).some((branch) => branch.outcome.goto)) {
+    return true;
+  }
   if (choice.action) return true;
   return false;
 }
@@ -15,7 +16,7 @@ function clearChoiceRoute(choice: ChoiceContent, kind: GraphEdgeKind): ChoiceCon
     case "goto":
       return { ...choice, goto: undefined };
     case "checkSuccess":
-      if (!choice.check) return choice;
+      if (!choice.check?.onSuccess) return choice;
       return {
         ...choice,
         check: {
@@ -24,7 +25,7 @@ function clearChoiceRoute(choice: ChoiceContent, kind: GraphEdgeKind): ChoiceCon
         },
       };
     case "checkFailure":
-      if (!choice.check) return choice;
+      if (!choice.check?.onFailure) return choice;
       return {
         ...choice,
         check: {
@@ -60,6 +61,17 @@ function disconnectItemActionEdge(items: ItemCatalog, actionId: string): boolean
   return false;
 }
 
+function disconnectRedirectEdge(chapter: Chapter, sourceId: string, ruleIndex: string): boolean {
+  const node = chapter.nodes[sourceId];
+  const index = Number(ruleIndex);
+  if (!node?.redirect || !Number.isInteger(index) || index < 0 || index >= node.redirect.length) {
+    return false;
+  }
+  node.redirect = node.redirect.filter((_, i) => i !== index);
+  if (node.redirect.length === 0) delete node.redirect;
+  return true;
+}
+
 export function disconnectChoiceEdgeInBundle(
   chapter: Chapter,
   items: ItemCatalog,
@@ -69,6 +81,10 @@ export function disconnectChoiceEdgeInBundle(
 ): { chapterDirty: boolean; itemsDirty: boolean } {
   if (kind === "itemAction") {
     return { chapterDirty: false, itemsDirty: disconnectItemActionEdge(items, choiceId) };
+  }
+
+  if (kind === "redirect") {
+    return { chapterDirty: disconnectRedirectEdge(chapter, sourceId, choiceId), itemsDirty: false };
   }
 
   const source = chapter.nodes[sourceId];

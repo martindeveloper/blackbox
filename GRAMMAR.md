@@ -28,6 +28,7 @@ A Blackbox game is a set of authored JSON documents. scenario.json lists chapter
 | `libraryRef` | string path, default library.json |
 | `cookRef` | string path, default bundle.cook.json |
 | `deathNode` | inline node used as the default death screen (optional) |
+| `hooks` | { onCommand?: Effect[], onNodeEnter?: Effect[] } scenario-wide hooks: onCommand runs once per player command, onNodeEnter on every node arrival before the node's own onEnter (optional) |
 | `chapters` | array of { id, title, ref } in play order |
 
 ### `chapter_<id>.json` — `com.blackbox.chapter`
@@ -91,6 +92,7 @@ A single story beat. Key in the chapter's nodes map must equal its id.
 | `title` | string |
 | `mode` | "normal" (default) \| "game_over" (ends the run) \| "ending" (offers restart) |
 | `onEnter` | array of Effect, applied when the node is entered |
+| `redirect` | array of { when?: Gate, unless?: Gate, goto: nodeId } conditional forwards evaluated after onEnter; first passing rule moves the player (hub dispatch without fake choices; chains cap at 8 hops) |
 | `backgroundRef` | string texture id (optional) |
 | `text` | array of TextBlock |
 | `choices` | array of Choice |
@@ -162,7 +164,7 @@ A gate is either a single { type, ... } node or an ARRAY of nodes (array = logic
 
 ## Effects
 
-Applied via node.onEnter or choice.effects. *Expr variants take a string expression.
+Applied via node.onEnter, choice.effects, skill-check branches, or scenario hooks. *Expr variants take a string expression.
 
 | Type | Shape |
 | --- | --- |
@@ -209,20 +211,21 @@ Used on a choice instead of goto for non-local transitions.
 
 ## Skill check
 
-A skill check on a choice. Rolls against a stat versus a difficulty.
+A skill check on a choice. Binary form rolls a stat versus a difficulty; tiered form maps the total onto ordered outcome bands via `outcomes`.
 
 | Field | Type |
 | --- | --- |
 | `stat` | string stat name |
-| `difficulty` | integer target number |
+| `difficulty` | integer target number (binary form; omit when using outcomes) |
 | `sides` | integer die sides (optional, defaults to 20) |
 | `modifier` | expression added to the roll (optional) |
 | `label` | string shown during the check (optional) |
 | `rollMode` | "normal" (default) \| "advantage" \| "disadvantage" |
 | `maxAttempts` | integer (optional) |
-| `onSuccess` | { effects?: Effect[], goto?: nodeId } |
-| `onFailure` | { effects?: Effect[], goto?: nodeId } |
+| `onSuccess` | { effects?: Effect[], goto?: nodeId } (binary form) |
+| `onFailure` | { effects?: Effect[], goto?: nodeId } (binary form) |
 | `onExhausted` | { effects?: Effect[], goto?: nodeId } when maxAttempts is used (optional) |
+| `outcomes` | array of { min?, label?, success?, effects?, goto? } tiers, best-first with strictly descending min, ending in a catch-all with no min; first tier with total >= min wins. Mutually exclusive with difficulty/onSuccess/onFailure |
 
 ## Expressions
 

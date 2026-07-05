@@ -9,7 +9,7 @@ import type {
   NodeContent,
   TextBlock,
 } from "@/types/wire.js";
-import { translate } from "./i18n.ts";
+import { translate } from "./i18n.js";
 
 export type AuthorChangeAction = "added" | "edited" | "removed";
 
@@ -56,7 +56,6 @@ export interface AuthorChange {
 export interface AuthorDiff {
   title: string;
   subtitle: string;
-  /** Set for single-file reviews; the UI shows it as the change source chip. */
   sourcePath?: string;
   changes: AuthorChange[];
   truncated: boolean;
@@ -101,7 +100,6 @@ function count(value: unknown, singularKey: string): string {
   return translate(`review.authorDiff.count.${singularKey}`, { count: n });
 }
 
-/** Short single-line value (title, label, destination, mode, …). */
 function pushField(
   fields: AuthorFieldChange[],
   label: string,
@@ -113,7 +111,6 @@ function pushField(
   fields.push({ label, before: formatter(before), after: formatter(after), kind: "scalar" });
 }
 
-/** Author prose — descriptions, examine text — gets word-level tracked changes. */
 function pushProse(
   fields: AuthorFieldChange[],
   label: string,
@@ -124,7 +121,6 @@ function pushProse(
   fields.push({ label, before: text(before), after: text(after), kind: "text" });
 }
 
-/** A colour value, rendered as a swatch pair. */
 function pushColor(
   fields: AuthorFieldChange[],
   label: string,
@@ -135,7 +131,6 @@ function pushColor(
   fields.push({ label, before: text(before), after: text(after), kind: "color" });
 }
 
-/** A reference to a registered asset, rendered as a media chip. */
 function pushMedia(
   fields: AuthorFieldChange[],
   label: string,
@@ -147,7 +142,6 @@ function pushMedia(
   fields.push({ label, before: text(before), after: text(after), kind: "media", media });
 }
 
-/** A collection whose size is what matters (effects, choices, actions, …). */
 function pushCount(
   fields: AuthorFieldChange[],
   label: string,
@@ -164,7 +158,6 @@ function pushCount(
   });
 }
 
-/** Game-logic / structured data — falls back to a plain monospace diff. */
 function pushCode(
   fields: AuthorFieldChange[],
   label: string,

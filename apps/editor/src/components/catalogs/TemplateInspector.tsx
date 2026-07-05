@@ -21,6 +21,7 @@ import { TextBlockEditor } from "@/components/node/TextBlockEditor.js";
 import { ChoiceListEditor } from "@/components/node/ChoiceListEditor.js";
 import { EffectEditor } from "@/components/node/EffectEditor.js";
 import { MergeConfigEditor } from "@/components/node/MergeConfigEditor.js";
+import { RedirectEditor } from "@/components/node/RedirectEditor.js";
 
 interface Props {
   templateId: string;
@@ -147,6 +148,19 @@ export function TemplateInspector({ templateId }: Props) {
             <EffectEditor
               effects={template.onEnter ?? []}
               onChange={(onEnter) => patch({ ...template, onEnter })}
+            />
+          </SectionBody>
+        </Section>
+
+        <Section>
+          <SectionHeader>{t("node.redirect")}</SectionHeader>
+          <SectionBody>
+            <p className="mb-2 text-[10px] text-muted-2">{t("node.redirectHint")}</p>
+            <RedirectEditor
+              rules={template.redirect ?? []}
+              onChange={(redirect) =>
+                patch({ ...template, redirect: redirect.length ? redirect : undefined })
+              }
             />
           </SectionBody>
         </Section>

@@ -10,9 +10,10 @@ use blackbox_engine::RelationshipScores;
 use blackbox_engine::content::{
     AssetCatalog, AssetUsage, CatalogEntry, ChapterMeta, CharacterCatalog, CharacterDefinition,
     ChoiceAction, ChoiceContent, ChoiceGate, ChoicePresentation, ChoiceResolutionSpec,
-    DialogueSide, Effect, GameContent, ItemAction, ItemCatalog, ItemDefinition, MetaCatalog,
-    MusicTrack, NodeContent, PreparedLibrary, RollMode, SfxClip, SkillCheckContent,
-    SkillCheckOutcome, TextBlock, TextureAsset,
+    DialogueSide, Effect, GameContent, GameHooks, ItemAction, ItemCatalog, ItemDefinition,
+    MetaCatalog, MusicTrack, NodeContent, NodeRedirect, PreparedLibrary, RollMode, SfxClip,
+    SkillCheckContent, SkillCheckOutcome, SkillCheckResolution, SkillCheckTier, TextBlock,
+    TextureAsset,
 };
 use blackbox_engine::expr::{Expr, ExprInput, ExprValue};
 use blackbox_engine::state::{GameState, InventoryState, PlayerState, RestoredSnapshot};
@@ -21,10 +22,10 @@ use super::resolve::{ensure_prepared_library, resolve_inline_node_content, resol
 use super::wire::{
     AssetCatalogWire, AssetUsageWire, CatalogEntryWire, ChapterWire, CharacterCatalogWire,
     CharacterDefinitionWire, ChoiceActionWire, ChoiceContentWire, DialogueSideWire, EffectWire,
-    ExprInputWire, ExprValueWire, ExprWire, GameContentWire, GameStateWire, GateNodeWire, GateWire,
-    InventoryStateWire, ItemActionWire, ItemCatalogWire, ItemDefinitionWire, MetaCatalogWire,
-    PlayerStateWire, RelationshipScoresWire, RollModeWire, SkillCheckContentWire,
-    SkillCheckOutcomeWire, TextBlockWire,
+    ExprInputWire, ExprValueWire, ExprWire, GameContentWire, GameHooksWire, GameStateWire,
+    GateNodeWire, GateWire, InventoryStateWire, ItemActionWire, ItemCatalogWire,
+    ItemDefinitionWire, MetaCatalogWire, PlayerStateWire, RedirectWire, RelationshipScoresWire,
+    RollModeWire, SkillCheckContentWire, SkillCheckOutcomeWire, SkillCheckTierWire, TextBlockWire,
 };
 use super::wire_schema::CHAPTER_SPEC;
 
@@ -76,6 +77,7 @@ pub(crate) fn bundle_from_wire(
     let revision = scenario.revision.clone();
     let default_stats = scenario.default_stats.clone();
     let death_node_wire = scenario.death_node.clone();
+    let hooks = hooks_from_wire(scenario.hooks.clone())?;
     let random_seed = scenario.random_seed;
     let relationship_overrides = scenario.relationship_overrides.clone();
     let (start_node_id, title, chapters_meta, node_chapter, mut nodes) =
@@ -109,6 +111,7 @@ pub(crate) fn bundle_from_wire(
         assets: assets_from_wire(assets),
         nodes,
         death_node_id,
+        hooks,
         meta: Arc::new(meta_catalog_from_wire(meta)),
         library_source,
         prepared_library,
@@ -765,6 +768,37 @@ pub(crate) fn choice_content_from_wire(
     })
 }
 
+fn hooks_from_wire(wire: Option<GameHooksWire>) -> Result<GameHooks, EngineError> {
+    let Some(wire) = wire else {
+        return Ok(GameHooks::default());
+    };
+    Ok(GameHooks {
+        on_command: wire
+            .on_command
+            .into_iter()
+            .map(effect_from_wire)
+            .collect::<Result<_, _>>()?,
+        on_node_enter: wire
+            .on_node_enter
+            .into_iter()
+            .map(effect_from_wire)
+            .collect::<Result<_, _>>()?,
+    })
+}
+
+pub(crate) fn redirect_from_wire(
+    wire: RedirectWire,
+    conds: CondMap<'_>,
+) -> Result<NodeRedirect, EngineError> {
+    Ok(NodeRedirect {
+        when: wire.when.map(|w| gate_from_wire(w, conds)).transpose()?,
+        unless: wire.unless.map(|w| gate_from_wire(w, conds)).transpose()?,
+        goto: wire.goto,
+        compiled_when: None,
+        compiled_unless: None,
+    })
+}
+
 pub(crate) fn gate_from_wire(wire: GateWire, conds: CondMap<'_>) -> Result<Gate, EngineError> {
     match wire {
         GateWire::All(items) => Ok(Gate::All(
@@ -932,21 +966,65 @@ fn roll_mode_from_wire(wire: RollModeWire) -> RollMode {
 }
 
 fn skill_check_from_wire(wire: SkillCheckContentWire) -> Result<SkillCheckContent, EngineError> {
+    let resolution = if !wire.outcomes.is_empty() {
+        if wire.difficulty.is_some() || wire.on_success.is_some() || wire.on_failure.is_some() {
+            return Err(EngineError::ValidationError(
+                "skill check outcomes is mutually exclusive with difficulty/onSuccess/onFailure"
+                    .to_string(),
+            ));
+        }
+        SkillCheckResolution::Tiered {
+            tiers: wire
+                .outcomes
+                .into_iter()
+                .map(skill_check_tier_from_wire)
+                .collect::<Result<_, _>>()?,
+        }
+    } else {
+        let (Some(difficulty), Some(on_success), Some(on_failure)) =
+            (wire.difficulty, wire.on_success, wire.on_failure)
+        else {
+            return Err(EngineError::ValidationError(
+                "skill check requires difficulty, onSuccess, and onFailure (or outcomes tiers)"
+                    .to_string(),
+            ));
+        };
+        SkillCheckResolution::Binary {
+            difficulty,
+            on_success: skill_check_outcome_from_wire(on_success)?,
+            on_failure: skill_check_outcome_from_wire(on_failure)?,
+        }
+    };
+
     Ok(SkillCheckContent {
         stat: wire.stat,
-        difficulty: wire.difficulty,
         modifier: wire.modifier.map(expr_input_from_wire),
         label: wire.label,
         sides: wire.sides,
         roll_mode: roll_mode_from_wire(wire.roll_mode),
         max_attempts: wire.max_attempts,
-        on_success: skill_check_outcome_from_wire(wire.on_success)?,
-        on_failure: skill_check_outcome_from_wire(wire.on_failure)?,
+        resolution,
         on_exhausted: wire
             .on_exhausted
             .map(skill_check_outcome_from_wire)
             .transpose()?,
         compiled_modifier: None,
+    })
+}
+
+fn skill_check_tier_from_wire(wire: SkillCheckTierWire) -> Result<SkillCheckTier, EngineError> {
+    Ok(SkillCheckTier {
+        min: wire.min,
+        label: wire.label,
+        success: wire.success,
+        outcome: SkillCheckOutcome {
+            effects: wire
+                .effects
+                .into_iter()
+                .map(effect_from_wire)
+                .collect::<Result<_, _>>()?,
+            goto: wire.goto,
+        },
     })
 }
 

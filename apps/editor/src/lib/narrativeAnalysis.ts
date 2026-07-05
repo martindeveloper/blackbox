@@ -1,5 +1,6 @@
 import type { NodeContent } from "@/types/wire.js";
 import type { LoadedBundle } from "./scenarioLoader.js";
+import { checkOutcomeBranches } from "./skillCheckOutcomes.js";
 
 // Correctness checks — reachability, dead-ends, undefined/write-only flags — are owned by
 // `blackbox-lint`. This module only computes authoring metrics the linter does not surface.
@@ -28,9 +29,11 @@ function outgoingRouteCount(node: NodeContent): number {
   let count = 0;
   for (const choice of node.choices ?? []) {
     if (choice.goto) count++;
-    if (choice.check?.onSuccess.goto) count++;
-    if (choice.check?.onFailure.goto) count++;
-    if (choice.check?.onExhausted?.goto) count++;
+    if (choice.check) {
+      for (const { outcome } of checkOutcomeBranches(choice.check)) {
+        if (outcome.goto) count++;
+      }
+    }
     if (choice.action?.type === "gotoChapter") count++;
   }
   return count;

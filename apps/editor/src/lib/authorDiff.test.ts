@@ -5,7 +5,6 @@ import { buildAuthorDiff, buildAuthorFileDiff, buildUndiffableFileDiff } from ".
 import type { LoadedBundle } from "./scenarioLoader.js";
 import type { ProjectEvent } from "./projectApi.js";
 
-/** Minimal LoadedBundle carrying only the fields the diff engine reads. */
 function bundle(overrides: Partial<LoadedBundle> = {}): LoadedBundle {
   return {
     scenario: { title: "Story", startNodeId: "n1", chapters: ["c1"] },

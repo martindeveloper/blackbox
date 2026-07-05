@@ -72,8 +72,21 @@ impl Parser {
     }
 
     fn parse_additive(&mut self) -> Result<Expr, EngineError> {
-        let mut left = self.parse_unary()?;
+        let mut left = self.parse_multiplicative()?;
         while let Some(op) = self.match_one_of(&["+", "-"]) {
+            let right = self.parse_multiplicative()?;
+            left = Expr::Op {
+                op,
+                left: Box::new(left),
+                right: Some(Box::new(right)),
+            };
+        }
+        Ok(left)
+    }
+
+    fn parse_multiplicative(&mut self) -> Result<Expr, EngineError> {
+        let mut left = self.parse_unary()?;
+        while let Some(op) = self.match_one_of(&["*", "/"]) {
             let right = self.parse_unary()?;
             left = Expr::Op {
                 op,
@@ -288,5 +301,33 @@ mod tests {
     fn parses_function_call() {
         let expr = parse_expr("hasItem('burned_access_card', 1)").unwrap();
         assert!(matches!(expr, Expr::Call { .. }));
+    }
+
+    #[test]
+    fn multiplication_binds_tighter_than_addition() {
+        // 2 + 3 * 4 must parse as 2 + (3 * 4), i.e. the top-level op is "+".
+        let expr = parse_expr("2 + 3 * 4").unwrap();
+        let Expr::Op { op, right, .. } = expr else {
+            panic!("expected op");
+        };
+        assert_eq!(op, "+");
+        assert!(matches!(*right.unwrap(), Expr::Op { op, .. } if op == "*"));
+    }
+
+    #[test]
+    fn division_is_left_associative() {
+        // 20 / 2 / 5 must parse as (20 / 2) / 5.
+        let expr = parse_expr("20 / 2 / 5").unwrap();
+        let Expr::Op { op, left, .. } = expr else {
+            panic!("expected op");
+        };
+        assert_eq!(op, "/");
+        assert!(matches!(*left, Expr::Op { op, .. } if op == "/"));
+    }
+
+    #[test]
+    fn parenthesized_multiplication() {
+        let expr = parse_expr("(stat.logic + 1) * 2").unwrap();
+        assert!(matches!(expr, Expr::Op { op, .. } if op == "*"));
     }
 }

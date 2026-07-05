@@ -38,11 +38,6 @@ function requireId(value, label) {
   return value.id;
 }
 
-/**
- * @param {object} snapshot - result of projectService.openProject
- * @param {Array<object>} ops - validated patch operations
- * @returns {Record<string, unknown>} documents keyed by relative path
- */
 export function applyDocumentPatch(snapshot, ops) {
   const bundle = snapshot?.bundle ?? {};
   const filePaths = bundle.filePaths ?? {};

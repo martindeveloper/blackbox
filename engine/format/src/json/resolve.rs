@@ -4,16 +4,18 @@ use std::collections::HashSet;
 use blackbox_engine::EngineError;
 use blackbox_engine::Gate;
 use blackbox_engine::content::{
-    ChoiceContent, Effect, NodeContent, NodeMode, PreparedLibrary, TemplateBody, TextBlock,
+    ChoiceContent, Effect, NodeContent, NodeMode, NodeRedirect, PreparedLibrary, TemplateBody,
+    TextBlock,
 };
 
 use super::convert::{
-    choice_content_from_wire, effect_from_wire, gate_from_wire, text_block_from_wire,
+    choice_content_from_wire, effect_from_wire, gate_from_wire, redirect_from_wire,
+    text_block_from_wire,
 };
 use super::decode::{decode_document, decode_json_document};
 use super::wire::{
     ArrayMergeModeWire, EffectWire, InlineNodeContentWire, LibraryWire, MergeConfigWire,
-    NodeContentWire, NodeModeWire, TextEntryWire,
+    NodeContentWire, NodeModeWire, RedirectWire, TextEntryWire,
 };
 use super::wire_schema::{LIBRARY_SPEC, validate_document_envelope};
 
@@ -154,6 +156,7 @@ pub(crate) fn resolve_node_content(
         node.mode,
         node.text,
         node.on_enter,
+        node.redirect,
         node.choices,
         library,
         context,
@@ -175,6 +178,7 @@ pub(crate) fn resolve_inline_node_content(
         Some(inline.mode),
         inline.text,
         inline.on_enter,
+        inline.redirect,
         inline.choices,
         library,
         context,
@@ -192,6 +196,7 @@ fn merge_node_content(
     mode: Option<NodeModeWire>,
     text: Vec<TextEntryWire>,
     on_enter: Vec<EffectWire>,
+    redirect: Vec<RedirectWire>,
     choices: Vec<super::wire::ChoiceContentWire>,
     library: Option<&PreparedLibrary>,
     context: &str,
@@ -199,7 +204,7 @@ fn merge_node_content(
 ) -> Result<NodeContent, EngineError> {
     let conds = library.map(|l| &l.conditions);
 
-    let (text_entries, inherited_text, title, background_ref, mode, on_enter, choices) =
+    let (text_entries, inherited_text, title, background_ref, mode, on_enter, redirect, choices) =
         if let Some(template_id) = extends {
             let Some(library) = library else {
                 let who = node_id.unwrap_or("inline node");
@@ -221,6 +226,7 @@ fn merge_node_content(
                 mode.map(node_mode_from_wire)
                     .or(Some(template.mode.clone())),
                 merge_effects(on_enter, &template.on_enter, merge_cfg.on_enter)?,
+                merge_redirects(redirect, &template.redirect, conds)?,
                 merge_choice_list(choices, &template.choices, merge_cfg.choices, conds)?,
             )
         } else {
@@ -231,6 +237,7 @@ fn merge_node_content(
                 background_ref,
                 mode.map(node_mode_from_wire),
                 convert_effects(on_enter)?,
+                convert_redirects(redirect, conds)?,
                 convert_choices(choices, conds)?,
             )
         };
@@ -252,8 +259,32 @@ fn merge_node_content(
         mode: mode.unwrap_or(NodeMode::Normal),
         text,
         on_enter,
+        redirect,
         choices,
     })
+}
+
+fn convert_redirects(
+    redirects: Vec<RedirectWire>,
+    conds: super::convert::CondMap<'_>,
+) -> Result<Vec<NodeRedirect>, EngineError> {
+    redirects
+        .into_iter()
+        .map(|r| redirect_from_wire(r, conds))
+        .collect()
+}
+
+/// Non-empty overlay replaces the template redirects; empty overlay inherits.
+fn merge_redirects(
+    overlay: Vec<RedirectWire>,
+    template: &[NodeRedirect],
+    conds: super::convert::CondMap<'_>,
+) -> Result<Vec<NodeRedirect>, EngineError> {
+    if overlay.is_empty() {
+        Ok(template.to_vec())
+    } else {
+        convert_redirects(overlay, conds)
+    }
 }
 
 fn convert_effects(effects: Vec<EffectWire>) -> Result<Vec<Effect>, EngineError> {
@@ -403,6 +434,14 @@ fn prepare_template(
             .unwrap_or(&[]),
         merge.on_enter,
     )?;
+    let redirect = merge_redirects(
+        template.redirect.clone(),
+        parent
+            .as_ref()
+            .map(|b| b.redirect.as_slice())
+            .unwrap_or(&[]),
+        conds,
+    )?;
     let choices = merge_choice_list(
         template.choices.clone(),
         parent.as_ref().map(|b| b.choices.as_slice()).unwrap_or(&[]),
@@ -424,6 +463,7 @@ fn prepare_template(
             mode: node_mode_from_wire(template.mode),
             text,
             on_enter,
+            redirect,
             choices,
         },
     );
@@ -538,6 +578,7 @@ mod tests {
                         mode: NodeModeWire::GameOver,
                         text: vec![TextEntryWire::SnippetString("@hud_vitals".to_string())],
                         on_enter: vec![],
+                        redirect: Vec::new(),
                         choices: vec![ChoiceContentWire {
                             presentation: ChoicePresentationWire {
                                 id: "restart".to_string(),
@@ -581,6 +622,7 @@ mod tests {
             mode: None,
             text: vec![TextEntryWire::SnippetString("@hud_vitals".to_string())],
             on_enter: vec![],
+            redirect: Vec::new(),
             choices: vec![],
         };
 
@@ -612,6 +654,7 @@ mod tests {
                 actor: None,
             }))],
             on_enter: vec![],
+            redirect: Vec::new(),
             choices: vec![],
         };
 
@@ -655,6 +698,7 @@ mod tests {
             mode: None,
             text: vec![TextEntryWire::SnippetString("@missing".to_string())],
             on_enter: vec![],
+            redirect: Vec::new(),
             choices: vec![],
         };
 
@@ -726,6 +770,7 @@ mod tests {
                 actor: None,
             }))],
             on_enter: vec![],
+            redirect: Vec::new(),
             choices: vec![],
         };
 
@@ -776,6 +821,7 @@ mod tests {
                 )])),
             }],
             on_enter: vec![],
+            redirect: Vec::new(),
             choices: vec![],
         };
 

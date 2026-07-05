@@ -2,6 +2,7 @@ import type { LoadedBundle } from "./scenarioLoader.js";
 import type { Effect, Gate } from "@/types/wire.js";
 import { Page } from "./pages.js";
 import { isTextBlock } from "./libraryRefs.js";
+import { checkOutcomeBranches } from "./skillCheckOutcomes.js";
 
 export type MetaEntryKind = "event" | "flag";
 
@@ -13,7 +14,12 @@ export type MetaUsageContext =
   | "choice"
   | "choiceSuccess"
   | "choiceFailure"
-  | "itemAction";
+  | "choiceExhausted"
+  | "choiceTier"
+  | "itemAction"
+  | "redirect"
+  | "hooksOnCommand"
+  | "hooksOnNodeEnter";
 
 export type MetaUsageEffectKind = "addEvent" | "setFlag" | "hasFlag" | "storeFlag";
 
@@ -102,18 +108,31 @@ export function buildMetaUsageIndex(bundle: LoadedBundle): MetaUsageIndex {
         indexGate(index, choice.unless, { ...choiceBase, context: "gate" });
         indexEffects(index, choice.effects, { ...choiceBase, context: "choice" });
         if (choice.check) {
-          indexEffects(index, choice.check.onSuccess.effects, {
-            ...choiceBase,
-            context: "choiceSuccess",
-          });
-          indexEffects(index, choice.check.onFailure.effects, {
-            ...choiceBase,
-            context: "choiceFailure",
-          });
+          for (const { context, outcome } of checkOutcomeBranches(choice.check)) {
+            indexEffects(index, outcome.effects, {
+              ...choiceBase,
+              context:
+                context === "onSuccess"
+                  ? "choiceSuccess"
+                  : context === "onFailure"
+                    ? "choiceFailure"
+                    : context === "onExhausted"
+                      ? "choiceExhausted"
+                      : "choiceTier",
+            });
+          }
         }
+      }
+
+      for (const rule of node.redirect ?? []) {
+        indexGate(index, rule.when, { ...nodeBase, context: "redirect" });
+        indexGate(index, rule.unless, { ...nodeBase, context: "redirect" });
       }
     }
   }
+
+  indexEffects(index, bundle.scenario.hooks?.onCommand, { context: "hooksOnCommand" });
+  indexEffects(index, bundle.scenario.hooks?.onNodeEnter, { context: "hooksOnNodeEnter" });
 
   for (const [itemId, item] of Object.entries(bundle.items.items)) {
     for (const action of item.actions ?? []) {

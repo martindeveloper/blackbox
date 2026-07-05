@@ -59,13 +59,16 @@ pub fn check_dead_ends(content: &GameContent, report: &mut LintReport) {
         for choice in &node.choices {
             let stays_on_node = choice.resolution.goto.as_deref() == Some(node.id.as_str())
                 || choice.resolution.check.as_ref().is_some_and(|check| {
-                    check.on_success.goto.as_deref() == Some(node.id.as_str())
-                        && check.on_failure.goto.as_deref() == Some(node.id.as_str())
+                    check
+                        .branch_outcomes()
+                        .all(|outcome| outcome.goto.as_deref() == Some(node.id.as_str()))
                 });
 
             let has_state_change = !choice.resolution.effects.is_empty()
                 || choice.resolution.check.as_ref().is_some_and(|check| {
-                    !check.on_success.effects.is_empty() || !check.on_failure.effects.is_empty()
+                    check
+                        .branch_outcomes()
+                        .any(|outcome| !outcome.effects.is_empty())
                 });
 
             if stays_on_node && !has_state_change {

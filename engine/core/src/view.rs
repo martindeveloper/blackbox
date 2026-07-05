@@ -97,7 +97,8 @@ pub struct ItemExamineView {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CheckPreview {
     pub stat: String,
-    pub difficulty: i32,
+    pub difficulty: Option<i32>,
+    pub tiers: Vec<CheckTierPreview>,
     pub label: Option<String>,
     pub sides: u32,
     pub roll_mode: RollMode,
@@ -106,11 +107,18 @@ pub struct CheckPreview {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CheckTierPreview {
+    pub min: Option<i32>,
+    pub label: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum RollRecord {
     SkillCheck {
         label: Option<String>,
         stat: String,
-        difficulty: i32,
+        difficulty: Option<i32>,
+        tier: Option<String>,
         sides: Option<u32>,
         roll: i32,
         modifier: i32,
@@ -154,6 +162,7 @@ impl fmt::Display for RollRecord {
                 label,
                 stat,
                 difficulty,
+                tier,
                 sides,
                 roll,
                 modifier,
@@ -161,7 +170,11 @@ impl fmt::Display for RollRecord {
                 success,
                 roll_mode,
             } => {
-                let outcome = if *success { "success" } else { "failure" };
+                let outcome = match tier {
+                    Some(tier) => tier.as_str(),
+                    None if *success => "success",
+                    None => "failure",
+                };
                 let title = label.as_deref().unwrap_or(stat);
                 let mode = match roll_mode {
                     RollMode::Normal => "",
@@ -170,9 +183,13 @@ impl fmt::Display for RollRecord {
                 };
                 write!(
                     f,
-                    "skill check {title}{mode}: d{}={roll} + {modifier} = {total} vs DC {difficulty} ({outcome})",
+                    "skill check {title}{mode}: d{}={roll} + {modifier} = {total}",
                     sides.unwrap_or(DEFAULT_DIE_SIDES)
-                )
+                )?;
+                if let Some(difficulty) = difficulty {
+                    write!(f, " vs DC {difficulty}")?;
+                }
+                write!(f, " ({outcome})")
             }
             RollRecord::Roll { label, total, .. } => {
                 let title = label.as_deref().unwrap_or("roll");

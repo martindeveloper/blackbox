@@ -241,12 +241,13 @@ type CharacterView = {
 };
 type CheckPreview = {
   attemptsUsed?: number | undefined;
-  difficulty: number;
+  difficulty?: number | undefined;
   label?: string | undefined;
   maxAttempts?: number | undefined;
   rollMode?: RollMode | undefined;
   sides?: number | undefined;
   stat: string;
+  tiers?: CheckTierPreview[] | undefined;
 };
 type ChoiceAction = Wire.ChoiceAction;
 type ChoiceView = {

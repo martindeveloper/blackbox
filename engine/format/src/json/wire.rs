@@ -185,6 +185,18 @@ pub(crate) struct GameContentWire {
     pub nodes: HashMap<String, NodeContentWire>,
     #[serde(default, rename = "deathNode")]
     pub death_node: Option<InlineNodeContentWire>,
+    /// @compat: absent in scenarios authored before hooks were introduced.
+    /// `serde(default)` keeps old manifests loading with no hooks.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub hooks: Option<GameHooksWire>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub(crate) struct GameHooksWire {
+    #[serde(default, rename = "onCommand", skip_serializing_if = "Vec::is_empty")]
+    pub on_command: Vec<EffectWire>,
+    #[serde(default, rename = "onNodeEnter", skip_serializing_if = "Vec::is_empty")]
+    pub on_node_enter: Vec<EffectWire>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -272,8 +284,23 @@ pub(crate) struct NodeContentWire {
     pub text: Vec<TextEntryWire>,
     #[serde(default, rename = "onEnter")]
     pub on_enter: Vec<EffectWire>,
+    /// @compat: absent in nodes authored before redirects were introduced.
+    /// `serde(default)` keeps old content loading with no redirects.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub redirect: Vec<RedirectWire>,
     #[serde(default)]
     pub choices: Vec<ChoiceContentWire>,
+}
+
+/// One conditional-navigation rule on a node: `goto` fires when `when` passes
+/// (or is absent) and `unless` fails (or is absent). Gates must be pure.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub(crate) struct RedirectWire {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub when: Option<GateWire>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub unless: Option<GateWire>,
+    pub goto: String,
 }
 
 /// Inline node definition used in scenario.json `deathNode`. Has no `id` — the engine
@@ -297,6 +324,10 @@ pub(crate) struct InlineNodeContentWire {
     pub text: Vec<TextEntryWire>,
     #[serde(default, rename = "onEnter")]
     pub on_enter: Vec<EffectWire>,
+    /// @compat: absent in inline nodes authored before redirects were
+    /// introduced. `serde(default)` keeps old content loading unchanged.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub redirect: Vec<RedirectWire>,
     #[serde(default)]
     pub choices: Vec<ChoiceContentWire>,
 }
@@ -486,7 +517,12 @@ pub(crate) enum RollModeWire {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub(crate) struct SkillCheckContentWire {
     pub stat: String,
-    pub difficulty: i32,
+    /// Target number for binary checks. Required unless `outcomes` is used.
+    ///
+    /// @compat: was a required field before tiered outcomes were introduced;
+    /// every existing binary check still carries it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub difficulty: Option<i32>,
     #[serde(default)]
     pub modifier: Option<ExprInputWire>,
     #[serde(default)]
@@ -497,12 +533,32 @@ pub(crate) struct SkillCheckContentWire {
     pub roll_mode: RollModeWire,
     #[serde(default, rename = "maxAttempts")]
     pub max_attempts: Option<u32>,
-    #[serde(rename = "onSuccess")]
-    pub on_success: SkillCheckOutcomeWire,
-    #[serde(rename = "onFailure")]
-    pub on_failure: SkillCheckOutcomeWire,
+    /// @compat: required before tiered outcomes; now optional so checks may
+    /// use `outcomes` instead. Binary checks must still set both branches.
+    #[serde(default, rename = "onSuccess", skip_serializing_if = "Option::is_none")]
+    pub on_success: Option<SkillCheckOutcomeWire>,
+    #[serde(default, rename = "onFailure", skip_serializing_if = "Option::is_none")]
+    pub on_failure: Option<SkillCheckOutcomeWire>,
     #[serde(default, rename = "onExhausted")]
     pub on_exhausted: Option<SkillCheckOutcomeWire>,
+    /// Tiered outcome bands, best-first, ending with a catch-all (no `min`).
+    /// Mutually exclusive with `difficulty` / `onSuccess` / `onFailure`.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub outcomes: Vec<SkillCheckTierWire>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub(crate) struct SkillCheckTierWire {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub min: Option<i32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub label: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub success: Option<bool>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub effects: Vec<EffectWire>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub goto: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -91,14 +91,11 @@ pub struct SkillCheckRoll<'a> {
     pub roll_mode: RollMode,
 }
 
-pub fn roll_skill_check(
-    state: &mut GameState,
-    check: SkillCheckRoll<'_>,
-    rolls: &mut RollLog,
-) -> (i32, bool) {
-    let sides = check.sides.max(1);
-    let span = sides as u64;
-    let roll = match check.roll_mode {
+/// Roll one die honoring advantage/disadvantage. Does not log — skill-check
+/// callers push their own [`RollRecord::SkillCheck`] with outcome context.
+pub fn roll_check_die(state: &mut GameState, sides: u32, roll_mode: RollMode) -> i32 {
+    let span = sides.max(1) as u64;
+    match roll_mode {
         RollMode::Normal => 1 + roll_offset(state, span),
         RollMode::Advantage => {
             let a = 1 + roll_offset(state, span);
@@ -110,13 +107,23 @@ pub fn roll_skill_check(
             let b = 1 + roll_offset(state, span);
             a.min(b)
         }
-    };
+    }
+}
+
+pub fn roll_skill_check(
+    state: &mut GameState,
+    check: SkillCheckRoll<'_>,
+    rolls: &mut RollLog,
+) -> (i32, bool) {
+    let sides = check.sides.max(1);
+    let roll = roll_check_die(state, sides, check.roll_mode);
     let total = roll + check.modifier;
     let success = total >= check.difficulty;
     rolls.push(RollRecord::SkillCheck {
         label: check.label,
         stat: check.stat.to_string(),
-        difficulty: check.difficulty,
+        difficulty: Some(check.difficulty),
+        tier: None,
         sides: Some(sides),
         roll,
         modifier: check.modifier,

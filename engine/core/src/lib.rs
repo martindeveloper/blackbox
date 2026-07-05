@@ -45,7 +45,7 @@ pub use check::SkillCheckOverride;
 pub use command::{CommandResult, PlayerCommand};
 pub use condition::{Condition, actor_flag_key};
 pub use content::{CharacterDefinition, ChoiceAction, GameContent, RollMode};
-pub use engine::{Engine, EngineOptions};
+pub use engine::{Engine, EngineOptions, MAX_REDIRECT_HOPS};
 pub use error::EngineError;
 pub use format::{
     ContentDecoder, FormatId, GameFormat, StateCodec, encode_command_delta_json,
@@ -58,6 +58,7 @@ pub use relationship::{RelationshipScores, validate_relationship_metric};
 pub use state::GameState;
 pub use value::DynamicValue;
 pub use view::{
-    CharacterView, CheckPreview, GameView, InventoryItemView, ItemActionView, ItemExamineView,
-    MusicCue, RelationshipCharacterView, RelationshipMetricView, RollRecord, SfxCue, TextureCue,
+    CharacterView, CheckPreview, CheckTierPreview, GameView, InventoryItemView, ItemActionView,
+    ItemExamineView, MusicCue, RelationshipCharacterView, RelationshipMetricView, RollRecord,
+    SfxCue, TextureCue,
 };

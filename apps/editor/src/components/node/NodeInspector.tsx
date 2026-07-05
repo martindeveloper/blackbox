@@ -20,6 +20,7 @@ import { TextBlockEditor } from "./TextBlockEditor.js";
 import { ChoiceListEditor } from "./ChoiceListEditor.js";
 import { EffectEditor } from "./EffectEditor.js";
 import { MergeConfigEditor } from "./MergeConfigEditor.js";
+import { RedirectEditor } from "./RedirectEditor.js";
 
 interface Props {
   chapterId: string;
@@ -217,6 +218,19 @@ export function NodeInspector({ chapterId, nodeId }: Props) {
               <EffectEditor
                 effects={node.onEnter ?? []}
                 onChange={(onEnter) => patch({ ...node, onEnter })}
+              />
+            </SectionBody>
+          </Section>
+
+          <Section>
+            <SectionHeader>{t("node.redirect")}</SectionHeader>
+            <SectionBody>
+              <p className="mb-2 text-[10px] text-muted-2">{t("node.redirectHint")}</p>
+              <RedirectEditor
+                rules={node.redirect ?? []}
+                onChange={(redirect) =>
+                  patch({ ...node, redirect: redirect.length ? redirect : undefined })
+                }
               />
             </SectionBody>
           </Section>

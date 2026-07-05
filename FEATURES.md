@@ -11,20 +11,22 @@ The engine is a **pure logic layer**: it validates content, tracks state, and re
 1. [File structure](#file-structure)
 2. [Top-level fields](#top-level-fields)
 3. [Nodes](#nodes)
-4. [Text blocks](#text-blocks)
-5. [Choices](#choices)
-6. [Requirements and gating](#requirements-and-gating)
-7. [Effects](#effects)
-8. [Skill checks](#skill-checks)
-9. [Choice actions](#choice-actions)
-10. [Expressions](#expressions)
-11. [Audio](#audio)
-12. [Runtime state](#runtime-state)
-13. [Execution order](#execution-order)
-14. [Saves and versioning](#saves-and-versioning)
-15. [Validation rules](#validation-rules)
-16. [Library: snippets and templates](#library-snippets-and-templates)
-17. [What the player/host sees](#what-the-playerhost-sees)
+4. [Redirects](#redirects-conditional-navigation)
+5. [Text blocks](#text-blocks)
+6. [Choices](#choices)
+7. [Requirements and gating](#requirements-and-gating)
+8. [Effects](#effects)
+9. [Global hooks](#global-hooks)
+10. [Skill checks](#skill-checks)
+11. [Choice actions](#choice-actions)
+12. [Expressions](#expressions)
+13. [Audio](#audio)
+14. [Runtime state](#runtime-state)
+15. [Execution order](#execution-order)
+16. [Saves and versioning](#saves-and-versioning)
+17. [Validation rules](#validation-rules)
+18. [Library: snippets and templates](#library-snippets-and-templates)
+19. [What the player/host sees](#what-the-playerhost-sees)
 
 ---
 
@@ -184,6 +186,7 @@ Use character ids as `speaker` on `dialogue` / `thought` lines. Hosts resolve `n
 | `randomSeed` | no | Seed for deterministic RNG. Defaults to a built-in constant if omitted. |
 | `defaultStats` | no | Starting player stats for new games and restarts. Defaults to `hp`, `max_hp`, `empathy`, `logic`, `violence` (see below). |
 | `deathNode` | no | Inline node shown when `hp` reaches `0` and no chapter override applies. Same fields as a normal node except `id` (the engine assigns `"__death__"`). Defaults to `mode: "game_over"`. Chapters may override with `deathNodeId` (see chapter files). |
+| `hooks` | no | Scenario-wide effect hooks: `{ "onCommand": [effects], "onNodeEnter": [effects] }`. See [Global hooks](#global-hooks). |
 
 **Default stats** (when `defaultStats` is omitted):
 
@@ -210,9 +213,44 @@ Each node is a story beat: narrative text plus choices.
 | `mode` | no | `"normal"` (default) or `"game_over"`. Game-over nodes signal endings to hosts. |
 | `text` | no | Array of [text blocks](#text-blocks). Defaults to empty. |
 | `onEnter` | no | [Effects](#effects) run when the player **arrives** at this node. Not re-run on save restore. |
+| `redirect` | no | Array of [redirect rules](#redirects-conditional-navigation) evaluated after `onEnter`; the first passing rule forwards the player to another node. |
 | `choices` | no | Array of [choices](#choices). May be empty (dead end / ending). |
 
 **Visited tracking:** The current node is marked visited after every successful command. Use `visited('node_id')` or the `visited` requirement to branch on prior visits.
+
+---
+
+## Redirects (conditional navigation)
+
+`redirect` lets a node forward the player based on state — the hub-dispatch pattern without fake auto-choices or duplicated nodes:
+
+```json
+"act_hub": {
+  "id": "act_hub",
+  "redirect": [
+    { "when": { "type": "hasFlag", "flag": "act3_unlocked" }, "goto": "act3_intro" },
+    { "when": { "type": "hasFlag", "flag": "act2_unlocked" }, "goto": "act2_intro" }
+  ],
+  "choices": [
+    { "id": "continue", "label": "Continue.", "goto": "act1_scene" }
+  ]
+}
+```
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `when` | no | Structured [gate](#gates). Rule fires when it passes (or is absent). |
+| `unless` | no | Structured [gate](#gates). Rule is skipped when it passes. |
+| `goto` | yes | Target node id (must exist). |
+
+**Semantics**
+
+- Rules are evaluated **in order** after the node's `onEnter` effects run; the first passing rule wins. If none pass, the player stays and sees the node normally.
+- Redirects chain: the destination's `onEnter` (and `hooks.onNodeEnter`) run, then *its* redirect rules are evaluated. Chains are capped at **8 hops**; exceeding the cap fails the command (redirect loop).
+- Pass-through nodes are marked **visited**, so `visited('act_hub')` works.
+- Gates must be pure (no `random()` / `dice()`), like all other gates.
+- Redirects run on every arrival — new game, `goto`, `gotoChapter`, restart, and the vitals death redirect — but **not** on save restore (same rule as `onEnter`).
+- Templates may define `redirect`; a node's non-empty `redirect` replaces the template's, an empty one inherits it.
 
 ---
 
@@ -579,6 +617,30 @@ Provide `amount` **or** `amountExpr`, not both.
 
 ---
 
+## Global hooks
+
+Scenario-wide effects for systemic mechanics — turn counters, hunger/sanity drains, ambient ticks — declared once in the manifest instead of copied into every node:
+
+```json
+"hooks": {
+  "onCommand": [
+    { "type": "modifyStat", "stat": "turns", "amount": 1 }
+  ],
+  "onNodeEnter": [
+    { "type": "modifyStat", "stat": "stamina", "amount": -1 }
+  ]
+}
+```
+
+| Hook | When it runs |
+|------|--------------|
+| `onCommand` | Once per successful player command (`choose` / `useItem`, not `examine`), after the command's effects and navigation, before arrival effects. Not on new game or save restore. |
+| `onNodeEnter` | On every node arrival — new game, `goto`, restart, chapter change, redirects, death redirect — **before** the destination node's own `onEnter`. Not on save restore. |
+
+Both take ordinary [effect](#effects) arrays (RNG allowed). Asset references (`playMusic`, `playSfx`) are validated against the catalog like node effects.
+
+---
+
 ## Skill checks
 
 When a choice has `check`, the normal `goto` is ignored. Resolution uses the check outcome instead.
@@ -607,15 +669,49 @@ When a choice has `check`, the normal `goto` is ignored. Resolution uses the che
 | Field | Description |
 |-------|-------------|
 | `stat` | Stat name added as bonus to the die roll. |
-| `difficulty` | Target number (DC). Success when `d{sides} + modifier >= difficulty`. |
+| `difficulty` | Target number (DC) for **binary** checks. Success when `d{sides} + modifier >= difficulty`. Omit when using `outcomes`. |
 | `sides` | Die sides for the check roll (default `20`). |
 | `label` | Roll label in `CommandResult.rolls` (defaults to `"<stat> check"`). |
 | `modifier` | Optional extra modifier expression (may use RNG). |
-| `onSuccess` / `onFailure` | Branch with `effects` and/or `goto`. Each branch must have at least one. |
+| `rollMode` | `"normal"` (default), `"advantage"` (roll twice, keep higher), or `"disadvantage"` (roll twice, keep lower). |
+| `maxAttempts` | Optional attempt budget per choice; after it is spent the `onExhausted` branch fires instead of re-rolling. |
+| `onSuccess` / `onFailure` | Binary branches with `effects` and/or `goto`. Each branch must have at least one. |
+| `onExhausted` | Branch fired when `maxAttempts` is exhausted. Required with `maxAttempts`. |
+| `outcomes` | Tiered outcome bands — degrees of success instead of pass/fail (see below). Mutually exclusive with `difficulty` / `onSuccess` / `onFailure`. |
 
 **Resolution:** `total = d{sides} + stat_value + modifier`. Recorded as a `skillCheck` roll in command results.
 
 **Order:** Choice `effects` run first, then the skill check roll and branch effects, then navigation.
+
+### Tiered outcomes (degrees of success)
+
+Replace binary pass/fail with ordered bands — critical / success / partial / failure — in one check:
+
+```json
+{
+  "id": "climb_wall",
+  "label": "Climb the wall.",
+  "check": {
+    "stat": "violence",
+    "sides": 12,
+    "outcomes": [
+      { "min": 18, "label": "flawless", "goto": "wall_top_clean" },
+      { "min": 12, "label": "scraped", "effects": [{ "type": "modifyStat", "stat": "hp", "amount": -2 }], "goto": "wall_top" },
+      { "min": 6, "label": "barely", "effects": [{ "type": "modifyStat", "stat": "hp", "amount": -4 }], "goto": "wall_ledge" },
+      { "label": "fall", "success": false, "effects": [{ "type": "modifyStat", "stat": "hp", "amount": -6 }], "goto": "wall_base" }
+    ]
+  }
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `min` | Minimum total for this band. Required on every tier except the final one. |
+| `label` | Band name shown in roll records (`tier` field) and check previews. |
+| `success` | Whether this band counts as a success for hosts. Defaults to `true` for banded tiers, `false` for the catch-all. |
+| `effects` / `goto` | Same as a binary branch — at least one required. |
+
+**Rules (validated at load):** at least 2 tiers; tiers are listed best-first with **strictly descending** `min` values; the final tier is the **catch-all** and must omit `min`. The first tier with `total >= min` wins. Works with `modifier`, `rollMode`, and `maxAttempts` / `onExhausted`. Roll records carry `tier` (matched band label) instead of `difficulty`; the choice's `check` preview exposes `tiers: [{ min?, label? }]` instead of `difficulty`.
 
 ---
 
@@ -714,7 +810,7 @@ String expressions are for **computed values only** — effect `*Expr` fields, s
 | `+`, `-`, `*`, `/` | Arithmetic |
 | `and`, `&&`, `or`, `\|\|`, `not`, `!` | Boolean logic |
 
-String literals use single or double quotes: `'burned_access_card'`.
+String literals use single or double quotes: `'burned_access_card'`. `*` binds tighter than `+`/`-`; division is integer division and dividing by zero fails the command.
 
 ### Expression AST (advanced)
 
@@ -788,14 +884,16 @@ When the player selects a choice:
 
 1. **Validate** — choice exists and is enabled.
 2. **Choice effects** — `choice.effects` in order.
-3. **Skill check** (if present) — roll, then `onSuccess` or `onFailure` effects.
+3. **Skill check** (if present) — roll, then the matching branch/tier effects.
 4. **Navigate** — `goto` from choice, check branch, or `restartGame` action.
-5. **`onEnter`** — if the node changed, run destination `onEnter` effects in order.
-6. **Normalize** — clamp stats to ≥ 0.
-7. **Mark visited** — current node added to visited set.
-8. **Build view** — filter/interpolate text blocks, evaluate choice gates, return `GameView`.
+5. **`hooks.onCommand`** — scenario command hook effects.
+6. **Arrival** — if the node changed: `hooks.onNodeEnter`, then destination `onEnter` effects in order.
+7. **Redirects** — evaluate the destination's `redirect` rules; each hop repeats step 6 on its target (max 8 hops).
+8. **Normalize** — clamp stats to ≥ 0 (and redirect to the death node if `hp` hit 0).
+9. **Mark visited** — current node added to visited set.
+10. **Build view** — filter/interpolate text blocks, evaluate choice gates, return `GameView`.
 
-`onEnter` does **not** run when restoring a save; saved `ambient_music` is used as-is.
+`onEnter`, hooks, and redirects do **not** run when restoring a save; saved `ambient_music` is used as-is.
 
 ---
 
@@ -834,6 +932,10 @@ Content is validated at load time. Common failures:
 | Chapter `deathNodeId` without scenario `deathNode` | validation error |
 | `$extends` references unknown template | validation error |
 | `@snippet` references unknown snippet | validation error |
+| Redirect `goto` target unknown, or redirect gate impure | validation error |
+| Hook effect references missing item/track/sfx/character | validation error |
+| Skill check mixes `outcomes` with `difficulty`/`onSuccess`/`onFailure` | validation error |
+| `outcomes` missing catch-all tier, under 2 tiers, or `min` values not strictly descending | validation error |
 
 ---
 
@@ -998,9 +1100,10 @@ Each command returns a `GameView` (JSON from Wasm hosts):
 These are intentionally outside scenario JSON today:
 
 - Hidden choices (disabled choices are still shown)
-- `goto` as an effect (navigation is via choice `goto` or check branches only)
 - Combat or quests
 - Localization string tables
+
+(Conditional navigation is supported via node [`redirect`](#redirects-conditional-navigation) rules.)
 
 Chaptered scenarios **are** supported via the manifest + chapter file layout described in [File structure](#file-structure).
 

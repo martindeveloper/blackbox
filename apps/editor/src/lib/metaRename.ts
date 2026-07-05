@@ -2,6 +2,7 @@ import type { LoadedBundle } from "./scenarioLoader.js";
 import type { MetaEntryKind } from "./metaUsage.js";
 import type { Effect, Gate } from "@/types/wire.js";
 import { isTextBlock } from "./libraryRefs.js";
+import { checkOutcomeBranches } from "./skillCheckOutcomes.js";
 
 const ID_PATTERN = /^[a-z][a-z0-9_]*$/;
 
@@ -103,15 +104,29 @@ export function renameMetaEntry(
         }
         if (renameInEffects(choice.effects, kind, oldId, newId)) chapterDirty = true;
         if (choice.check) {
-          if (renameInEffects(choice.check.onSuccess.effects, kind, oldId, newId))
-            chapterDirty = true;
-          if (renameInEffects(choice.check.onFailure.effects, kind, oldId, newId))
-            chapterDirty = true;
+          for (const { outcome } of checkOutcomeBranches(choice.check)) {
+            if (renameInEffects(outcome.effects, kind, oldId, newId)) chapterDirty = true;
+          }
+        }
+      }
+      if (kind === "flag") {
+        for (const rule of node.redirect ?? []) {
+          if (renameInGate(rule.when, oldId, newId)) chapterDirty = true;
+          if (renameInGate(rule.unless, oldId, newId)) chapterDirty = true;
         }
       }
     }
     if (chapterDirty) dirtyKeys.push(`chapter:${chapterId}`);
   }
+
+  let scenarioDirty = false;
+  if (bundle.scenario.hooks) {
+    if (renameInEffects(bundle.scenario.hooks.onCommand, kind, oldId, newId)) scenarioDirty = true;
+    if (renameInEffects(bundle.scenario.hooks.onNodeEnter, kind, oldId, newId)) {
+      scenarioDirty = true;
+    }
+  }
+  if (scenarioDirty) dirtyKeys.push("scenario");
 
   let itemsDirty = false;
   for (const item of Object.values(bundle.items.items)) {

@@ -850,7 +850,7 @@ fn skill_check_preview_surfaces_in_view() {
     let check = choice.check.as_ref().unwrap();
 
     assert_eq!(check.stat, "logic");
-    assert_eq!(check.difficulty, 12);
+    assert_eq!(check.difficulty, Some(12));
     assert_eq!(check.label.as_deref(), Some("Panel hack"));
 }
 

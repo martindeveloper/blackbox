@@ -586,11 +586,16 @@
   --help-line-color: #78909c;
 }
 
+.graph-help-line--redirect {
+  --help-line-color: #64b5f6;
+}
+
 .graph-help-line--checkSuccess::before,
 .graph-help-line--checkFailure::before,
 .graph-help-line--checkExhausted::before,
 .graph-help-line--gotoChapter::before,
-.graph-help-line--itemAction::before {
+.graph-help-line--itemAction::before,
+.graph-help-line--redirect::before {
   border-top-style: dashed;
 }
 

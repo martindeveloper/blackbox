@@ -40,6 +40,7 @@ export function trackCommandAnalytics(
       choice_id: command.type === "choose" ? command.choice_id : undefined,
       stat: roll.stat,
       difficulty: roll.difficulty,
+      tier: roll.tier,
       success: roll.success,
       roll_mode: roll.rollMode ?? "normal",
       result_index: index,

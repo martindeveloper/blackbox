@@ -110,7 +110,9 @@ fn choice_reduces_hp(choice: &ChoiceContent) -> bool {
         return false;
     };
 
-    effects_reduce_hp(&check.on_success.effects) || effects_reduce_hp(&check.on_failure.effects)
+    check
+        .branch_outcomes()
+        .any(|outcome| effects_reduce_hp(&outcome.effects))
 }
 
 fn effects_reduce_hp(effects: &[Effect]) -> bool {

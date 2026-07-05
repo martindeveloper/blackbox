@@ -1,6 +1,7 @@
 import type { Gate } from "@/types/wire.js";
 import type { LoadedBundle } from "./scenarioLoader.js";
 import { isTextBlock } from "./libraryRefs.js";
+import { checkOutcomeBranches } from "./skillCheckOutcomes.js";
 
 function replaceGateNodeRefs(gate: Gate, oldId: string, newId: string): Gate {
   if (Array.isArray(gate)) {
@@ -53,8 +54,11 @@ export function renameNodeId(
     for (const n of Object.values(ch.nodes)) {
       for (const choice of n.choices ?? []) {
         if (choice.goto === oldId) choice.goto = newId;
-        if (choice.check?.onSuccess.goto === oldId) choice.check.onSuccess.goto = newId;
-        if (choice.check?.onFailure.goto === oldId) choice.check.onFailure.goto = newId;
+        if (choice.check) {
+          for (const { outcome } of checkOutcomeBranches(choice.check)) {
+            if (outcome.goto === oldId) outcome.goto = newId;
+          }
+        }
         if (choice.when) choice.when = replaceGateNodeRefs(choice.when, oldId, newId);
         if (choice.unless) choice.unless = replaceGateNodeRefs(choice.unless, oldId, newId);
         if (choice.requires) {
@@ -63,6 +67,11 @@ export function renameNodeId(
         if (choice.action?.type === "restartGame" && choice.action.startNodeId === oldId) {
           choice.action.startNodeId = newId;
         }
+      }
+      for (const rule of n.redirect ?? []) {
+        if (rule.goto === oldId) rule.goto = newId;
+        if (rule.when) rule.when = replaceGateNodeRefs(rule.when, oldId, newId);
+        if (rule.unless) rule.unless = replaceGateNodeRefs(rule.unless, oldId, newId);
       }
       for (const block of n.text ?? []) {
         if (!isTextBlock(block)) continue;

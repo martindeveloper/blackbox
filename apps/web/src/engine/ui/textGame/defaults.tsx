@@ -153,8 +153,13 @@ export function DefaultChoices({
                       {choice.label}
                       {choice.check && (
                         <span className="bb-default-choice__check">
-                          {choice.check.label ?? choice.check.stat.toUpperCase()} ·{" "}
-                          {t("choices.dc")} {choice.check.difficulty}
+                          {choice.check.label ?? choice.check.stat.toUpperCase()}
+                          {choice.check.difficulty !== undefined && (
+                            <>
+                              {" "}
+                              · {t("choices.dc")} {choice.check.difficulty}
+                            </>
+                          )}
                         </span>
                       )}
                       {!choice.enabled && choice.disabledReason && (

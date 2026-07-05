@@ -4,8 +4,8 @@ mod library;
 mod registry;
 mod relationships;
 mod source_bundle;
-pub mod wire;
 mod text_blocks;
+pub mod wire;
 
 use std::path::{Path, PathBuf};
 

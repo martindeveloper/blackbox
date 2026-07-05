@@ -19,6 +19,7 @@ import { TextBlockEditor } from "./TextBlockEditor.js";
 import { ChoiceListEditor } from "./ChoiceListEditor.js";
 import { EffectEditor } from "./EffectEditor.js";
 import { MergeConfigEditor } from "./MergeConfigEditor.js";
+import { RedirectEditor } from "./RedirectEditor.js";
 
 export function GlobalDeathNodeInspector() {
   const { t } = useTranslation();
@@ -178,6 +179,19 @@ export function GlobalDeathNodeInspector() {
             <EffectEditor
               effects={deathNode.onEnter ?? []}
               onChange={(onEnter) => patch({ ...deathNode, onEnter })}
+            />
+          </SectionBody>
+        </Section>
+
+        <Section>
+          <SectionHeader>{t("node.redirect")}</SectionHeader>
+          <SectionBody>
+            <p className="mb-2 text-[10px] text-muted-2">{t("node.redirectHint")}</p>
+            <RedirectEditor
+              rules={deathNode.redirect ?? []}
+              onChange={(redirect) =>
+                patch({ ...deathNode, redirect: redirect.length ? redirect : undefined })
+              }
             />
           </SectionBody>
         </Section>

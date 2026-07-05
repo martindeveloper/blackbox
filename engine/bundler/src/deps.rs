@@ -28,6 +28,14 @@ pub fn split_assets_by_chapter(content: &GameContent) -> AssetSplit {
         fan_out_asset_ref(&mut chapter_refs, default_sfx);
     }
 
+    // Scenario hooks run everywhere, so their audio refs are shared.
+    let mut hook_refs = BTreeSet::new();
+    collect_effects_asset_refs(content, &content.hooks.on_command, &mut hook_refs);
+    collect_effects_asset_refs(content, &content.hooks.on_node_enter, &mut hook_refs);
+    for asset_ref in &hook_refs {
+        fan_out_asset_ref(&mut chapter_refs, asset_ref);
+    }
+
     for item in content.items.items.values() {
         if let Some(icon_ref) = &item.icon_ref {
             fan_out_asset_ref(&mut chapter_refs, icon_ref);
@@ -95,8 +103,9 @@ fn collect_node_asset_refs(content: &GameContent, node: &NodeContent, refs: &mut
         }
         collect_effects_asset_refs(content, &choice.resolution.effects, refs);
         if let Some(check) = &choice.resolution.check {
-            collect_effects_asset_refs(content, &check.on_success.effects, refs);
-            collect_effects_asset_refs(content, &check.on_failure.effects, refs);
+            for outcome in check.branch_outcomes() {
+                collect_effects_asset_refs(content, &outcome.effects, refs);
+            }
         }
     }
 }

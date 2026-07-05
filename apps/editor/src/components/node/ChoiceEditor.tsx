@@ -1,6 +1,12 @@
-import { Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type { ChoiceAction, ChoiceContent, RollMode, SkillCheckOutcome } from "@/types/wire.js";
+import type {
+  ChoiceAction,
+  ChoiceContent,
+  RollMode,
+  SkillCheckOutcome,
+  SkillCheckTier,
+} from "@/types/wire.js";
 import { choiceHasAdvancedFields } from "@/lib/authorEditorHelpers.js";
 import { RefPickerField } from "@/components/pickers/RefPickerField.js";
 import { Button } from "@/components/ui/Button.js";
@@ -59,6 +65,122 @@ function OutcomeEditor({
   );
 }
 
+function defaultTiers(): SkillCheckTier[] {
+  return [
+    { min: 15, label: "success", effects: [], goto: "" },
+    { label: "failure", effects: [], goto: "" },
+  ];
+}
+
+function CheckTierListEditor({
+  tiers,
+  onChange,
+}: {
+  tiers: SkillCheckTier[];
+  onChange: (tiers: SkillCheckTier[]) => void;
+}) {
+  const { t } = useTranslation();
+
+  return (
+    <div className="space-y-2">
+      {tiers.map((tier, i) => {
+        const isLast = i === tiers.length - 1;
+        return (
+          <Card key={i}>
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <span className="text-[10px] uppercase text-muted-2">
+                {isLast ? t("choice.tierCatchAll") : t("choice.tierBand")}
+              </span>
+              <Button
+                variant="danger"
+                size="sm"
+                icon
+                title={t("choice.tierRemove")}
+                onClick={() => onChange(tiers.filter((_, j) => j !== i))}
+              >
+                <Trash2 size={14} />
+              </Button>
+            </div>
+            {!isLast ? (
+              <FormField label={t("choice.tierMin")}>
+                <Input
+                  type="number"
+                  value={tier.min ?? ""}
+                  onChange={(e) => {
+                    const copy = [...tiers];
+                    copy[i] = {
+                      ...tier,
+                      min: e.target.value ? Number(e.target.value) : undefined,
+                    };
+                    onChange(copy);
+                  }}
+                />
+              </FormField>
+            ) : null}
+            <FormField label={t("common.label")}>
+              <Input
+                value={tier.label ?? ""}
+                onChange={(e) => {
+                  const copy = [...tiers];
+                  copy[i] = { ...tier, label: e.target.value || undefined };
+                  onChange(copy);
+                }}
+              />
+            </FormField>
+            <FormField label={t("choice.tierSuccess")}>
+              <Select
+                options={[
+                  { value: "auto", label: t("choice.tierSuccessAuto") },
+                  { value: "true", label: t("choice.tierSuccessTrue") },
+                  { value: "false", label: t("choice.tierSuccessFalse") },
+                ]}
+                value={tier.success === undefined ? "auto" : String(tier.success)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  const copy = [...tiers];
+                  copy[i] = { ...tier, success: value === "auto" ? undefined : value === "true" };
+                  onChange(copy);
+                }}
+              />
+            </FormField>
+            <RefPickerField
+              kind="node"
+              label={t("common.goto")}
+              value={tier.goto ?? ""}
+              onChange={(goto) => {
+                const copy = [...tiers];
+                copy[i] = { ...tier, goto: goto || undefined };
+                onChange(copy);
+              }}
+            />
+            <div className="mt-2 text-[10px] text-muted-2">{t("common.effects")}</div>
+            <EffectEditor
+              effects={tier.effects ?? []}
+              onChange={(effects) => {
+                const copy = [...tiers];
+                copy[i] = { ...tier, effects };
+                onChange(copy);
+              }}
+            />
+          </Card>
+        );
+      })}
+      <Button
+        size="sm"
+        leadingIcon={Plus}
+        onClick={() => {
+          const insertIndex = Math.max(tiers.length - 1, 0);
+          const copy = [...tiers];
+          copy.splice(insertIndex, 0, { min: 0, effects: [] });
+          onChange(copy);
+        }}
+      >
+        {t("choice.tierAdd")}
+      </Button>
+    </div>
+  );
+}
+
 export function ChoiceEditor({ choice, chapterIds, onChange, onRemove }: ChoiceEditorProps) {
   const { t } = useTranslation();
   const mode = getResolutionMode(choice);
@@ -101,6 +223,35 @@ export function ChoiceEditor({ choice, chapterIds, onChange, onRemove }: ChoiceE
 
   const setAction = (action: ChoiceAction) =>
     onChange({ ...choice, action, goto: undefined, check: undefined });
+
+  const checkMode: "binary" | "tiered" =
+    (choice.check?.outcomes?.length ?? 0) > 0 ? "tiered" : "binary";
+
+  const setCheckMode = (next: "binary" | "tiered") => {
+    if (!choice.check) return;
+    const shared = {
+      stat: choice.check.stat,
+      modifier: choice.check.modifier,
+      label: choice.check.label,
+      sides: choice.check.sides,
+      rollMode: choice.check.rollMode,
+      maxAttempts: choice.check.maxAttempts,
+      onExhausted: choice.check.onExhausted,
+    };
+    if (next === "tiered") {
+      onChange({ ...choice, check: { ...shared, outcomes: defaultTiers() } });
+    } else {
+      onChange({
+        ...choice,
+        check: {
+          ...shared,
+          difficulty: 10,
+          onSuccess: { effects: [], goto: "" },
+          onFailure: { effects: [], goto: "" },
+        },
+      });
+    }
+  };
 
   return (
     <Card variant="elevated" className="author-choice-card mb-3">
@@ -165,18 +316,30 @@ export function ChoiceEditor({ choice, chapterIds, onChange, onRemove }: ChoiceE
             value={choice.check.stat}
             onChange={(stat) => onChange({ ...choice, check: { ...choice.check!, stat } })}
           />
-          <FormField label={t("common.difficulty")}>
-            <Input
-              type="number"
-              value={choice.check.difficulty}
-              onChange={(e) =>
-                onChange({
-                  ...choice,
-                  check: { ...choice.check!, difficulty: Number(e.target.value) },
-                })
-              }
+          <FormField label={t("choice.checkMode")}>
+            <Select
+              options={[
+                { value: "binary", label: t("choice.checkModeBinary") },
+                { value: "tiered", label: t("choice.checkModeTiered") },
+              ]}
+              value={checkMode}
+              onChange={(e) => setCheckMode(e.target.value as "binary" | "tiered")}
             />
           </FormField>
+          {checkMode === "binary" ? (
+            <FormField label={t("common.difficulty")}>
+              <Input
+                type="number"
+                value={choice.check.difficulty ?? 10}
+                onChange={(e) =>
+                  onChange({
+                    ...choice,
+                    check: { ...choice.check!, difficulty: Number(e.target.value) },
+                  })
+                }
+              />
+            </FormField>
+          ) : null}
           <FormField label={t("choice.checkLabel")}>
             <Input
               value={choice.check.label ?? ""}
@@ -250,20 +413,31 @@ export function ChoiceEditor({ choice, chapterIds, onChange, onRemove }: ChoiceE
               }}
             />
           </FormField>
-          <OutcomeEditor
-            label={t("choice.onSuccess")}
-            outcome={choice.check.onSuccess}
-            onChange={(onSuccess) =>
-              onChange({ ...choice, check: { ...choice.check!, onSuccess } })
-            }
-          />
-          <OutcomeEditor
-            label={t("choice.onFailure")}
-            outcome={choice.check.onFailure}
-            onChange={(onFailure) =>
-              onChange({ ...choice, check: { ...choice.check!, onFailure } })
-            }
-          />
+          {checkMode === "binary" ? (
+            <>
+              <OutcomeEditor
+                label={t("choice.onSuccess")}
+                outcome={choice.check.onSuccess ?? { effects: [], goto: "" }}
+                onChange={(onSuccess) =>
+                  onChange({ ...choice, check: { ...choice.check!, onSuccess } })
+                }
+              />
+              <OutcomeEditor
+                label={t("choice.onFailure")}
+                outcome={choice.check.onFailure ?? { effects: [], goto: "" }}
+                onChange={(onFailure) =>
+                  onChange({ ...choice, check: { ...choice.check!, onFailure } })
+                }
+              />
+            </>
+          ) : (
+            <CheckTierListEditor
+              tiers={choice.check.outcomes ?? []}
+              onChange={(outcomes) =>
+                onChange({ ...choice, check: { ...choice.check!, outcomes } })
+              }
+            />
+          )}
           {choice.check.maxAttempts ? (
             <OutcomeEditor
               label={t("choice.onExhausted")}

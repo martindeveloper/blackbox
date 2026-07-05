@@ -743,14 +743,7 @@ fn effect_grants(effect: &Effect, req: &Precondition) -> bool {
 fn choice_effects(choice: &ChoiceContent) -> Vec<&Effect> {
     let mut out: Vec<&Effect> = choice.resolution.effects.iter().collect();
     if let Some(check) = &choice.resolution.check {
-        for branch in [
-            Some(&check.on_success),
-            Some(&check.on_failure),
-            check.on_exhausted.as_ref(),
-        ]
-        .into_iter()
-        .flatten()
-        {
+        for branch in check.branch_outcomes() {
             out.extend(branch.effects.iter());
         }
     }

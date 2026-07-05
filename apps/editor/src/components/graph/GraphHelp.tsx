@@ -19,6 +19,7 @@ const ROUTE_KINDS = [
   { kind: "checkExhausted", labelKey: "graph.help.exhausted" },
   { kind: "gotoChapter", labelKey: "graph.help.chapter" },
   { kind: "itemAction", labelKey: "graph.help.item" },
+  { kind: "redirect", labelKey: "graph.help.redirect" },
 ] as const;
 
 function isTextEntry(target: EventTarget | null) {

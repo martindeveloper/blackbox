@@ -14,12 +14,29 @@ pub fn compile_content(content: &mut GameContent) -> Result<(), EngineError> {
         }
     }
 
+    for effect in &mut content.hooks.on_command {
+        compile_effect(effect)?;
+    }
+    for effect in &mut content.hooks.on_node_enter {
+        compile_effect(effect)?;
+    }
+
     for node in content.nodes.values_mut() {
         for block in &mut node.text {
             compile_text_block(block, &node.id)?;
         }
         for effect in &mut node.on_enter {
             compile_effect(effect)?;
+        }
+        for redirect in &mut node.redirect {
+            redirect.compiled_when = compile_optional_gate(
+                redirect.when.take(),
+                &format!("when on redirect in node '{}'", node.id),
+            )?;
+            redirect.compiled_unless = compile_optional_gate(
+                redirect.unless.take(),
+                &format!("unless on redirect in node '{}'", node.id),
+            )?;
         }
         for choice in &mut node.choices {
             compile_choice(choice)?;
@@ -124,11 +141,10 @@ fn compile_skill_check(check: &mut SkillCheckContent, choice_id: &str) -> Result
         None => None,
     };
 
-    for effect in &mut check.on_success.effects {
-        compile_effect(effect)?;
-    }
-    for effect in &mut check.on_failure.effects {
-        compile_effect(effect)?;
+    for outcome in check.branch_outcomes_mut() {
+        for effect in &mut outcome.effects {
+            compile_effect(effect)?;
+        }
     }
     Ok(())
 }

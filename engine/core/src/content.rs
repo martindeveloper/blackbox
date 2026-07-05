@@ -138,6 +138,22 @@ pub struct MetaCatalog {
     pub flags: HashMap<String, CatalogEntry>,
 }
 
+/// Scenario-wide effect hooks for systemic mechanics (turn counters, resource
+/// drains) that would otherwise be copy-pasted into every node.
+/// `on_command` runs per successful choose/useItem (not examine, new game, or restore).
+/// `on_node_enter` runs on every arrival before the node's `onEnter` (not on restore).
+#[derive(Debug, Clone, Default)]
+pub struct GameHooks {
+    pub on_command: Vec<Effect>,
+    pub on_node_enter: Vec<Effect>,
+}
+
+impl GameHooks {
+    pub fn is_empty(&self) -> bool {
+        self.on_command.is_empty() && self.on_node_enter.is_empty()
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct GameContent {
     pub title: Option<String>,
@@ -156,6 +172,7 @@ pub struct GameContent {
     pub nodes: HashMap<String, NodeContent>,
     /// When player HP reaches 0, the engine navigates here (must be a `game_over` node).
     pub death_node_id: Option<String>,
+    pub hooks: GameHooks,
     /// Metadata catalog for flags and events. Shared cheaply via Arc.
     pub meta: Arc<MetaCatalog>,
     /// Raw library document bytes (JSON in dev, msgpack from bundle). Cleared prepared
@@ -175,7 +192,24 @@ pub struct NodeContent {
     /// Effects run when the player arrives at this node (new game, goto, restart).
     /// Not re-run on save restore.
     pub on_enter: Vec<Effect>,
+    /// Conditional forwards evaluated after arrival (after `on_enter`). The first
+    /// rule whose gate passes moves the player to `goto` — the hub-dispatch pattern
+    /// without fake choices. Chains are capped at [`crate::MAX_REDIRECT_HOPS`].
+    /// Not evaluated on save restore.
+    pub redirect: Vec<NodeRedirect>,
     pub choices: Vec<ChoiceContent>,
+}
+
+/// One conditional-navigation rule on a node. Passes when `when` (if set) is true
+/// and `unless` (if set) is false — same semantics as text-block gates. Gates must
+/// be pure (no RNG).
+#[derive(Debug, Clone)]
+pub struct NodeRedirect {
+    pub when: Option<Gate>,
+    pub unless: Option<Gate>,
+    pub goto: String,
+    pub compiled_when: Option<Expr>,
+    pub compiled_unless: Option<Expr>,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
@@ -294,7 +328,6 @@ pub enum RollMode {
 #[derive(Debug, Clone)]
 pub struct SkillCheckContent {
     pub stat: String,
-    pub difficulty: i32,
     pub modifier: Option<ExprInput>,
     pub label: Option<String>,
     pub sides: u32,
@@ -303,12 +336,80 @@ pub struct SkillCheckContent {
     /// When set, tracks per-choice attempt counts in state. After this many
     /// attempts the `on_exhausted` branch fires instead of re-rolling.
     pub max_attempts: Option<u32>,
-    pub on_success: SkillCheckOutcome,
-    pub on_failure: SkillCheckOutcome,
+    pub resolution: SkillCheckResolution,
     /// Fired when `max_attempts` is exhausted. Must be `Some` whenever
     /// `max_attempts` is `Some` (enforced by validation).
     pub on_exhausted: Option<SkillCheckOutcome>,
     pub compiled_modifier: Option<Expr>,
+}
+
+#[derive(Debug, Clone)]
+pub enum SkillCheckResolution {
+    Binary {
+        difficulty: i32,
+        on_success: SkillCheckOutcome,
+        on_failure: SkillCheckOutcome,
+    },
+    /// Degrees of success: tiers are checked in author order and the first
+    /// tier with `min <= total` (or no `min` — the mandatory final catch-all)
+    /// wins. Validation enforces strictly descending `min` values.
+    Tiered { tiers: Vec<SkillCheckTier> },
+}
+
+#[derive(Debug, Clone)]
+pub struct SkillCheckTier {
+    pub min: Option<i32>,
+    pub label: Option<String>,
+    /// Defaults to `min.is_some()` (every band above the catch-all).
+    pub success: Option<bool>,
+    pub outcome: SkillCheckOutcome,
+}
+
+impl SkillCheckTier {
+    pub fn counts_as_success(&self) -> bool {
+        self.success.unwrap_or(self.min.is_some())
+    }
+}
+
+impl SkillCheckContent {
+    /// Binary, tier, and exhausted branches for static walkers.
+    pub fn branch_outcomes(&self) -> impl Iterator<Item = &SkillCheckOutcome> {
+        let (binary, tiers): (Vec<&SkillCheckOutcome>, &[SkillCheckTier]) = match &self.resolution {
+            SkillCheckResolution::Binary {
+                on_success,
+                on_failure,
+                ..
+            } => (vec![on_success, on_failure], &[]),
+            SkillCheckResolution::Tiered { tiers } => (Vec::new(), tiers.as_slice()),
+        };
+        binary
+            .into_iter()
+            .chain(tiers.iter().map(|tier| &tier.outcome))
+            .chain(self.on_exhausted.iter())
+    }
+
+    pub fn branch_outcomes_mut(&mut self) -> impl Iterator<Item = &mut SkillCheckOutcome> {
+        let (binary, tiers): (Vec<&mut SkillCheckOutcome>, &mut [SkillCheckTier]) =
+            match &mut self.resolution {
+                SkillCheckResolution::Binary {
+                    on_success,
+                    on_failure,
+                    ..
+                } => (vec![on_success, on_failure], &mut []),
+                SkillCheckResolution::Tiered { tiers } => (Vec::new(), tiers.as_mut_slice()),
+            };
+        binary
+            .into_iter()
+            .chain(tiers.iter_mut().map(|tier| &mut tier.outcome))
+            .chain(self.on_exhausted.iter_mut())
+    }
+
+    pub fn difficulty(&self) -> Option<i32> {
+        match &self.resolution {
+            SkillCheckResolution::Binary { difficulty, .. } => Some(*difficulty),
+            SkillCheckResolution::Tiered { .. } => None,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]

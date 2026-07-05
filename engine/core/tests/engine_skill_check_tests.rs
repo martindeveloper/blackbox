@@ -683,3 +683,292 @@ fn skill_check_override_clears_after_submit() {
         "without override, impossible DC should fail back to start"
     );
 }
+
+const TIERED_SCENARIO: &str = r#"
+    "startNodeId": "start",
+    "defaultStats": { "logic": 11, "hp": 10, "max_hp": 10 },
+    "nodes": {
+        "start": {
+            "id": "start",
+            "choices": [{
+                "id": "climb",
+                "label": "Climb.",
+                "check": {
+                    "stat": "logic",
+                    "sides": 1,
+                    "label": "Wall climb",
+                    "outcomes": [
+                        { "min": 18, "label": "flawless", "goto": "flawless" },
+                        { "min": 10, "label": "scraped", "effects": [{ "type": "modifyStat", "stat": "hp", "amount": -2 }], "goto": "top" },
+                        { "label": "fall", "effects": [{ "type": "modifyStat", "stat": "hp", "amount": -5 }], "goto": "bottom" }
+                    ]
+                }
+            }]
+        },
+        "flawless": { "id": "flawless", "choices": [] },
+        "top": { "id": "top", "choices": [] },
+        "bottom": { "id": "bottom", "choices": [] }
+    }"#;
+
+#[test]
+fn tiered_check_resolves_matching_band() {
+    let mut engine = load(TIERED_SCENARIO);
+    let result = choose(&mut engine, "climb");
+    assert!(result.ok, "{:?}", result.error);
+    let view = result.view.as_ref().unwrap();
+    assert_eq!(view.node_id, "top");
+    assert_eq!(view.player_stats.get("hp"), Some(&8));
+
+    let record = result
+        .rolls
+        .iter()
+        .find_map(|roll| match roll {
+            RollRecord::SkillCheck {
+                tier,
+                success,
+                total,
+                difficulty,
+                ..
+            } => Some((tier.clone(), *success, *total, *difficulty)),
+            _ => None,
+        })
+        .expect("skill check roll recorded");
+    assert_eq!(record.0.as_deref(), Some("scraped"));
+    assert!(record.1, "banded tier counts as success by default");
+    assert_eq!(record.2, 12);
+    assert_eq!(record.3, None, "tiered checks have no DC");
+}
+
+#[test]
+fn tiered_check_catch_all_fires_below_lowest_band() {
+    let scenario = TIERED_SCENARIO.replace(r#""logic": 11"#, r#""logic": 3"#);
+    let mut engine = load(&scenario);
+    let result = choose(&mut engine, "climb");
+    assert!(result.ok, "{:?}", result.error);
+    let view = result.view.as_ref().unwrap();
+    assert_eq!(view.node_id, "bottom");
+    assert_eq!(view.player_stats.get("hp"), Some(&5));
+
+    let is_failure = result
+        .rolls
+        .iter()
+        .any(|roll| roll.is_skill_check_failure());
+    assert!(is_failure, "catch-all counts as failure by default");
+}
+
+#[test]
+fn tiered_check_top_band_reachable() {
+    let scenario = TIERED_SCENARIO.replace(r#""logic": 11"#, r#""logic": 17"#);
+    let mut engine = load(&scenario);
+    let result = choose(&mut engine, "climb");
+    assert!(result.ok, "{:?}", result.error);
+    assert_eq!(result.view.as_ref().unwrap().node_id, "flawless");
+}
+
+#[test]
+fn tiered_check_success_flag_can_be_overridden_per_tier() {
+    let scenario = r#"
+        "startNodeId": "start",
+        "defaultStats": { "logic": 11, "hp": 10, "max_hp": 10 },
+        "nodes": {
+            "start": {
+                "id": "start",
+                "choices": [{
+                    "id": "gamble",
+                    "label": "Gamble.",
+                    "check": {
+                        "stat": "logic",
+                        "sides": 1,
+                        "outcomes": [
+                            { "min": 10, "label": "pyrrhic", "success": false, "goto": "won_badly" },
+                            { "goto": "lost" }
+                        ]
+                    }
+                }]
+            },
+            "won_badly": { "id": "won_badly", "choices": [] },
+            "lost": { "id": "lost", "choices": [] }
+        }"#;
+    let mut engine = load(scenario);
+    let result = choose(&mut engine, "gamble");
+    assert!(result.ok, "{:?}", result.error);
+    assert_eq!(result.view.as_ref().unwrap().node_id, "won_badly");
+    assert!(
+        result
+            .rolls
+            .iter()
+            .any(|roll| roll.is_skill_check_failure()),
+        "tier with success: false must record a failure"
+    );
+}
+
+#[test]
+fn tiered_check_preview_exposes_bands() {
+    let mut engine = load(TIERED_SCENARIO);
+    let view = engine.get_current_view().unwrap();
+    let choice = view.choices.iter().find(|c| c.id == "climb").unwrap();
+    let check = choice.check.as_ref().unwrap();
+    assert_eq!(check.difficulty, None);
+    assert_eq!(check.tiers.len(), 3);
+    assert_eq!(check.tiers[0].min, Some(18));
+    assert_eq!(check.tiers[0].label.as_deref(), Some("flawless"));
+    assert_eq!(check.tiers[2].min, None);
+}
+
+#[test]
+fn tiered_check_overrides_pick_best_and_catch_all() {
+    let mut engine = load(TIERED_SCENARIO);
+    engine.set_skill_check_override(Some(SkillCheckOverride::ForceSuccess));
+    let result = choose(&mut engine, "climb");
+    assert!(result.ok);
+    assert_eq!(result.view.as_ref().unwrap().node_id, "flawless");
+
+    let mut engine = load(TIERED_SCENARIO);
+    engine.set_skill_check_override(Some(SkillCheckOverride::ForceFailure));
+    let result = choose(&mut engine, "climb");
+    assert!(result.ok);
+    assert_eq!(result.view.as_ref().unwrap().node_id, "bottom");
+}
+
+#[test]
+fn tiered_check_requires_catch_all_tier() {
+    let scenario = support::scenario_json(
+        r#"
+        "startNodeId": "start",
+        "nodes": {
+            "start": {
+                "id": "start",
+                "choices": [{
+                    "id": "go",
+                    "label": "Go.",
+                    "check": {
+                        "stat": "logic",
+                        "outcomes": [
+                            { "min": 12, "goto": "a" },
+                            { "min": 6, "goto": "b" }
+                        ]
+                    }
+                }]
+            },
+            "a": { "id": "a", "choices": [] },
+            "b": { "id": "b", "choices": [] }
+        }"#,
+    );
+    let result = blackbox::Engine::load_bundle(
+        scenario,
+        support::MINIMAL_ITEMS,
+        support::MINIMAL_CHARACTERS,
+        support::MINIMAL_ASSETS,
+        &JsonFormat,
+    );
+    assert!(result.is_err(), "missing catch-all must fail validation");
+}
+
+#[test]
+fn tiered_check_rejects_ascending_mins() {
+    let scenario = support::scenario_json(
+        r#"
+        "startNodeId": "start",
+        "nodes": {
+            "start": {
+                "id": "start",
+                "choices": [{
+                    "id": "go",
+                    "label": "Go.",
+                    "check": {
+                        "stat": "logic",
+                        "outcomes": [
+                            { "min": 6, "goto": "a" },
+                            { "min": 12, "goto": "b" },
+                            { "goto": "a" }
+                        ]
+                    }
+                }]
+            },
+            "a": { "id": "a", "choices": [] },
+            "b": { "id": "b", "choices": [] }
+        }"#,
+    );
+    let result = blackbox::Engine::load_bundle(
+        scenario,
+        support::MINIMAL_ITEMS,
+        support::MINIMAL_CHARACTERS,
+        support::MINIMAL_ASSETS,
+        &JsonFormat,
+    );
+    assert!(result.is_err(), "ascending tier mins must fail validation");
+}
+
+#[test]
+fn tiered_check_rejects_mixing_with_binary_fields() {
+    let scenario = support::scenario_json(
+        r#"
+        "startNodeId": "start",
+        "nodes": {
+            "start": {
+                "id": "start",
+                "choices": [{
+                    "id": "go",
+                    "label": "Go.",
+                    "check": {
+                        "stat": "logic",
+                        "difficulty": 10,
+                        "outcomes": [
+                            { "min": 12, "goto": "a" },
+                            { "goto": "a" }
+                        ]
+                    }
+                }]
+            },
+            "a": { "id": "a", "choices": [] }
+        }"#,
+    );
+    let result = blackbox::Engine::load_bundle(
+        scenario,
+        support::MINIMAL_ITEMS,
+        support::MINIMAL_CHARACTERS,
+        support::MINIMAL_ASSETS,
+        &JsonFormat,
+    );
+    assert!(
+        result.is_err(),
+        "difficulty + outcomes on one check must fail validation"
+    );
+}
+
+#[test]
+fn tiered_check_works_with_max_attempts() {
+    let scenario = r#"
+        "startNodeId": "start",
+        "defaultStats": { "logic": 3, "hp": 10, "max_hp": 10 },
+        "nodes": {
+            "start": {
+                "id": "start",
+                "choices": [{
+                    "id": "pick",
+                    "label": "Pick the lock.",
+                    "check": {
+                        "stat": "logic",
+                        "sides": 1,
+                        "maxAttempts": 1,
+                        "outcomes": [
+                            { "min": 18, "goto": "open" },
+                            { "goto": "start" }
+                        ],
+                        "onExhausted": { "goto": "jammed" }
+                    }
+                }]
+            },
+            "open": { "id": "open", "choices": [] },
+            "jammed": { "id": "jammed", "choices": [] }
+        }"#;
+    let mut engine = load(scenario);
+
+    let first = choose(&mut engine, "pick");
+    assert!(first.ok, "{:?}", first.error);
+    assert_eq!(first.view.as_ref().unwrap().node_id, "start");
+
+    let second = choose(&mut engine, "pick");
+    assert!(second.ok, "{:?}", second.error);
+    assert_eq!(second.view.as_ref().unwrap().node_id, "jammed");
+}

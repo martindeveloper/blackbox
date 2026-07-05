@@ -1,4 +1,4 @@
-use blackbox::content::{GameContent, SkillCheckContent};
+use blackbox::content::{GameContent, SkillCheckContent, SkillCheckResolution};
 use blackbox::expr::{Expr, ExprValue};
 
 use crate::report::{LintIssue, LintReport};
@@ -34,6 +34,36 @@ impl NumberRange {
             min: self.min - other.max,
             max: self.max - other.min,
         }
+    }
+
+    fn mul(self, other: Self) -> Self {
+        let candidates = [
+            self.min * other.min,
+            self.min * other.max,
+            self.max * other.min,
+            self.max * other.max,
+        ];
+        Self {
+            min: *candidates.iter().min().expect("non-empty"),
+            max: *candidates.iter().max().expect("non-empty"),
+        }
+    }
+
+    /// `None` when the divisor range contains zero (unbounded / runtime error).
+    fn div(self, other: Self) -> Option<Self> {
+        if other.min <= 0 && other.max >= 0 {
+            return None;
+        }
+        let candidates = [
+            self.min / other.min,
+            self.min / other.max,
+            self.max / other.min,
+            self.max / other.max,
+        ];
+        Some(Self {
+            min: *candidates.iter().min().expect("non-empty"),
+            max: *candidates.iter().max().expect("non-empty"),
+        })
     }
 }
 
@@ -73,28 +103,65 @@ fn check_skill_check_balance(
     let min_total = 1 + stat + modifier.min;
     let max_total = sides + stat + modifier.max;
 
-    if max_total < check.difficulty {
-        report.push(
-            LintIssue::warning(
-                "skill-check-impossible",
-                format!(
-                    "choice '{choice_id}' in node '{node_id}' skill check cannot succeed from default stat '{}': max total {max_total} is below difficulty {}",
-                    check.stat, check.difficulty
-                ),
-            )
-            .with_context(format!("node '{node_id}' choice '{choice_id}'")),
-        );
-    } else if min_total >= check.difficulty {
-        report.push(
-            LintIssue::warning(
-                "skill-check-guaranteed",
-                format!(
-                    "choice '{choice_id}' in node '{node_id}' skill check cannot fail from default stat '{}': min total {min_total} meets difficulty {}",
-                    check.stat, check.difficulty
-                ),
-            )
-            .with_context(format!("node '{node_id}' choice '{choice_id}'")),
-        );
+    match &check.resolution {
+        SkillCheckResolution::Binary { difficulty, .. } => {
+            if max_total < *difficulty {
+                report.push(
+                    LintIssue::warning(
+                        "skill-check-impossible",
+                        format!(
+                            "choice '{choice_id}' in node '{node_id}' skill check cannot succeed from default stat '{}': max total {max_total} is below difficulty {difficulty}",
+                            check.stat
+                        ),
+                    )
+                    .with_context(format!("node '{node_id}' choice '{choice_id}'")),
+                );
+            } else if min_total >= *difficulty {
+                report.push(
+                    LintIssue::warning(
+                        "skill-check-guaranteed",
+                        format!(
+                            "choice '{choice_id}' in node '{node_id}' skill check cannot fail from default stat '{}': min total {min_total} meets difficulty {difficulty}",
+                            check.stat
+                        ),
+                    )
+                    .with_context(format!("node '{node_id}' choice '{choice_id}'")),
+                );
+            }
+        }
+        SkillCheckResolution::Tiered { tiers } => {
+            for (index, tier) in tiers.iter().enumerate() {
+                let Some(min) = tier.min else { continue };
+                if max_total < min {
+                    report.push(
+                        LintIssue::warning(
+                            "skill-check-impossible",
+                            format!(
+                                "choice '{choice_id}' in node '{node_id}' outcomes tier {index} is unreachable from default stat '{}': max total {max_total} is below min {min}",
+                                check.stat
+                            ),
+                        )
+                        .with_context(format!("node '{node_id}' choice '{choice_id}'")),
+                    );
+                }
+            }
+            // The catch-all only fires when the total drops below the lowest
+            // banded min; if even the worst roll clears it, lower tiers are dead.
+            if let Some(lowest_min) = tiers.iter().rev().find_map(|tier| tier.min)
+                && min_total >= lowest_min
+            {
+                report.push(
+                    LintIssue::warning(
+                        "skill-check-guaranteed",
+                        format!(
+                            "choice '{choice_id}' in node '{node_id}' outcomes catch-all tier is unreachable from default stat '{}': min total {min_total} meets the lowest banded min {lowest_min}",
+                            check.stat
+                        ),
+                    )
+                    .with_context(format!("node '{node_id}' choice '{choice_id}'")),
+                );
+            }
+        }
     }
 }
 
@@ -124,6 +191,8 @@ fn expr_range(expr: &Expr) -> Option<NumberRange> {
             match (op.as_str(), expr_range(left), right.and_then(expr_range)) {
                 ("+", Some(left), Some(right)) => Some(left.add(right)),
                 ("-", Some(left), Some(right)) => Some(left.sub(right)),
+                ("*", Some(left), Some(right)) => Some(left.mul(right)),
+                ("/", Some(left), Some(right)) => left.div(right),
                 (
                     "==" | "eq" | "!=" | "neq" | ">" | "gt" | ">=" | "gte" | "<" | "lt" | "<="
                     | "lte",

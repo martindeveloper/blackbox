@@ -117,6 +117,12 @@ export interface GameContent {
   chapters: ChapterRef[];
   nodes?: Record<string, NodeContent>;
   deathNode?: InlineNodeContent;
+  hooks?: GameHooks;
+}
+
+export interface GameHooks {
+  onCommand?: Effect[];
+  onNodeEnter?: Effect[];
 }
 
 /** @compat – plain string form (`"@id"`) predates the object form; both are valid. Object `params` absent in pre-parameterized refs; treat missing as no substitution. */
@@ -140,7 +146,14 @@ export interface InlineNodeContent {
   $merge?: MergeConfig;
   text?: TextEntry[];
   onEnter?: Effect[];
+  redirect?: RedirectRule[];
   choices?: ChoiceContent[];
+}
+
+export interface RedirectRule {
+  when?: Gate;
+  unless?: Gate;
+  goto: string;
 }
 
 export interface Chapter {
@@ -163,6 +176,7 @@ export interface NodeContent {
   mode?: NodeMode;
   text?: TextEntry[];
   onEnter?: Effect[];
+  redirect?: RedirectRule[];
   choices?: ChoiceContent[];
 }
 
@@ -197,20 +211,30 @@ export interface ChoiceContent {
 
 export type RollMode = "normal" | "advantage" | "disadvantage";
 
+/** Author either binary fields (`difficulty`, `onSuccess`, `onFailure`) or `outcomes`, not both. */
 export interface SkillCheckContent {
   stat: string;
-  difficulty: number;
+  difficulty?: number;
   modifier?: ExprInput;
   label?: string;
   sides?: number;
   rollMode?: RollMode;
   maxAttempts?: number;
-  onSuccess: SkillCheckOutcome;
-  onFailure: SkillCheckOutcome;
+  onSuccess?: SkillCheckOutcome;
+  onFailure?: SkillCheckOutcome;
   onExhausted?: SkillCheckOutcome;
+  outcomes?: SkillCheckTier[];
 }
 
 export interface SkillCheckOutcome {
+  effects?: Effect[];
+  goto?: string;
+}
+
+export interface SkillCheckTier {
+  min?: number;
+  label?: string;
+  success?: boolean;
   effects?: Effect[];
   goto?: string;
 }

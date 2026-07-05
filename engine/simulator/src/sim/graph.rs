@@ -43,6 +43,13 @@ impl GraphIndex {
             };
             let from = from as usize;
             let mut edge_set = Vec::new();
+            for redirect in &node.redirect {
+                if let Some(&t) = idx.get(&redirect.goto)
+                    && !edge_set.contains(&t)
+                {
+                    edge_set.push(t);
+                }
+            }
             for choice in node.choices.iter() {
                 let targets = static_targets(content, node_id, choice, &idx);
                 choice_targets[from].push(targets.clone());
@@ -372,6 +379,11 @@ fn build_progression_edges(
         let Some(&from) = idx.get(node_id) else {
             continue;
         };
+        for redirect in &node.redirect {
+            if let Some(&to) = idx.get(&redirect.goto) {
+                edges.insert((from, to));
+            }
+        }
         for choice in &node.choices {
             if is_non_progression_action(&choice.resolution.action) {
                 continue;
@@ -475,10 +487,8 @@ fn choice_branch_targets_impl(
 
     if let Some(check) = &choice.resolution.check {
         let mut out = Vec::new();
-        push_target(&mut out, current_node, base, &check.on_success);
-        push_target(&mut out, current_node, base, &check.on_failure);
-        if let Some(exhausted) = &check.on_exhausted {
-            push_target(&mut out, current_node, base, exhausted);
+        for outcome in check.branch_outcomes() {
+            push_target(&mut out, current_node, base, outcome);
         }
         return out;
     }

@@ -16,8 +16,9 @@ use crate::error::EngineError;
 use crate::rng::DEFAULT_DIE_SIDES;
 use crate::value::DynamicValue;
 use crate::view::{
-    CharacterView, CheckPreview, ChoiceView, GameView, InventoryItemView, ItemActionView,
-    ItemExamineView, MusicCue, RelationshipCharacterView, RollRecord, SfxCue, TextureCue,
+    CharacterView, CheckPreview, CheckTierPreview, ChoiceView, GameView, InventoryItemView,
+    ItemActionView, ItemExamineView, MusicCue, RelationshipCharacterView, RollRecord, SfxCue,
+    TextureCue,
 };
 
 const VIEW_PROTOCOL_VERSION: u8 = 1;
@@ -687,11 +688,29 @@ impl Serialize for RollMode {
     }
 }
 
+impl Serialize for CheckTierPreview {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        let mut state = serializer.serialize_struct("CheckTierPreview", 2)?;
+        if let Some(value) = self.min {
+            state.serialize_field("min", &value)?;
+        }
+        if let Some(value) = &self.label {
+            state.serialize_field("label", value)?;
+        }
+        state.end()
+    }
+}
+
 impl Serialize for CheckPreview {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        let mut state = serializer.serialize_struct("CheckPreview", 7)?;
+        let mut state = serializer.serialize_struct("CheckPreview", 8)?;
         state.serialize_field("stat", &self.stat)?;
-        state.serialize_field("difficulty", &self.difficulty)?;
+        if let Some(value) = &self.difficulty {
+            state.serialize_field("difficulty", value)?;
+        }
+        if !self.tiers.is_empty() {
+            state.serialize_field("tiers", &self.tiers)?;
+        }
         if let Some(value) = &self.label {
             state.serialize_field("label", value)?;
         }
@@ -773,6 +792,7 @@ impl Serialize for RollRecord {
                 label,
                 stat,
                 difficulty,
+                tier,
                 sides,
                 roll,
                 modifier,
@@ -780,13 +800,18 @@ impl Serialize for RollRecord {
                 success,
                 roll_mode,
             } => {
-                let mut state = serializer.serialize_struct("SkillCheck", 10)?;
+                let mut state = serializer.serialize_struct("SkillCheck", 11)?;
                 state.serialize_field("kind", "skillCheck")?;
                 if let Some(value) = label {
                     state.serialize_field("label", value)?;
                 }
                 state.serialize_field("stat", stat)?;
-                state.serialize_field("difficulty", difficulty)?;
+                if let Some(value) = difficulty {
+                    state.serialize_field("difficulty", value)?;
+                }
+                if let Some(value) = tier {
+                    state.serialize_field("tier", value)?;
+                }
                 if let Some(value) = sides {
                     state.serialize_field("sides", value)?;
                 }

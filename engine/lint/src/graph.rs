@@ -27,6 +27,10 @@ pub fn analyze_reachability(content: &GameContent) -> ReachabilityAnalysis {
 
             changed |= apply_add_items(&node.on_enter, &mut obtainable_items);
 
+            for redirect in &node.redirect {
+                changed |= reachable_nodes.insert(redirect.goto.clone());
+            }
+
             for choice in &node.choices {
                 for branch in choice_branches(content, choice, &node_id) {
                     changed |= apply_add_items(&branch.effects, &mut obtainable_items);
@@ -89,8 +93,9 @@ fn choice_branches(
     let base_effects = choice.resolution.effects.clone();
 
     if let Some(check) = &choice.resolution.check {
-        let mut branches: Vec<ChoiceBranch> = [&check.on_success, &check.on_failure]
-            .into_iter()
+        // branch_outcomes already includes success/failure or tiers plus onExhausted.
+        return check
+            .branch_outcomes()
             .filter_map(|outcome| {
                 let effects = merge_effects(&base_effects, &outcome.effects);
                 if outcome.goto.is_none() && effects.is_empty() {
@@ -105,21 +110,6 @@ fn choice_branches(
                 })
             })
             .collect();
-
-        if let Some(exhausted) = &check.on_exhausted {
-            let effects = merge_effects(&base_effects, &exhausted.effects);
-            if exhausted.goto.is_some() || !effects.is_empty() {
-                branches.push(ChoiceBranch {
-                    target: exhausted
-                        .goto
-                        .clone()
-                        .unwrap_or_else(|| current_node.to_string()),
-                    effects,
-                });
-            }
-        }
-
-        return branches;
     }
 
     let mut branches = Vec::new();

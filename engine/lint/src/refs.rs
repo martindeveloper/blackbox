@@ -32,6 +32,15 @@ pub fn collect_content_refs(content: &GameContent) -> ContentRefs {
         collect_node_refs(node, &mut refs);
     }
 
+    for effect in content
+        .hooks
+        .on_command
+        .iter()
+        .chain(content.hooks.on_node_enter.iter())
+    {
+        collect_effect_refs(effect, &mut refs);
+    }
+
     for character in content.characters.characters.values() {
         refs.character_ids.insert(character.id.clone());
         if let Some(portrait_ref) = &character.portrait_ref {
@@ -69,6 +78,15 @@ fn collect_node_refs(node: &NodeContent, refs: &mut ContentRefs) {
 
     for effect in &node.on_enter {
         collect_effect_refs(effect, refs);
+    }
+
+    for redirect in &node.redirect {
+        if let Some(gate) = &redirect.when {
+            collect_gate_refs(gate, refs);
+        }
+        if let Some(gate) = &redirect.unless {
+            collect_gate_refs(gate, refs);
+        }
     }
 
     for (index, block) in node.text.iter().enumerate() {
@@ -118,11 +136,10 @@ fn collect_choice_refs(choice: &ChoiceContent, refs: &mut ContentRefs) {
 
     if let Some(check) = &choice.resolution.check {
         refs.stats_used.insert(check.stat.clone());
-        for effect in &check.on_success.effects {
-            collect_effect_refs(effect, refs);
-        }
-        for effect in &check.on_failure.effects {
-            collect_effect_refs(effect, refs);
+        for outcome in check.branch_outcomes() {
+            for effect in &outcome.effects {
+                collect_effect_refs(effect, refs);
+            }
         }
     }
 }

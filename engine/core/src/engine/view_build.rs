@@ -3,7 +3,9 @@ use std::collections::HashSet;
 use std::sync::Arc;
 
 use crate::choice_gate::{ChoiceGateResult, materialize_disabled_reason};
-use crate::content::{CharacterDefinition, ChoiceContent, GameContent, NodeContent};
+use crate::content::{
+    CharacterDefinition, ChoiceContent, GameContent, NodeContent, SkillCheckResolution,
+};
 use crate::error::EngineError;
 use crate::expr::ReadContext;
 use crate::gate::evaluate_gate_readonly;
@@ -11,8 +13,8 @@ use crate::relationship::RelationshipScores;
 use crate::state::GameState;
 use crate::text::resolve_text_blocks;
 use crate::view::{
-    CharacterView, CheckPreview, ChoiceView, GameView, InventoryItemView, ItemActionView,
-    RelationshipCharacterView, RelationshipMetricView,
+    CharacterView, CheckPreview, CheckTierPreview, ChoiceView, GameView, InventoryItemView,
+    ItemActionView, RelationshipCharacterView, RelationshipMetricView,
 };
 
 use super::cache::ItemActionGateEntry;
@@ -249,9 +251,20 @@ fn build_choice_view(
     let check = choice.resolution.check.as_ref().map(|check| {
         let key = format!("{}:{}", ctx.state.current_node_id, choice.presentation.id);
         let attempts_used = ctx.state.choice_attempts.get(&key).copied().unwrap_or(0);
+        let tiers = match &check.resolution {
+            SkillCheckResolution::Binary { .. } => Vec::new(),
+            SkillCheckResolution::Tiered { tiers } => tiers
+                .iter()
+                .map(|tier| CheckTierPreview {
+                    min: tier.min,
+                    label: tier.label.clone(),
+                })
+                .collect(),
+        };
         CheckPreview {
             stat: check.stat.clone(),
-            difficulty: check.difficulty,
+            difficulty: check.difficulty(),
+            tiers,
             label: check.label.clone(),
             sides: check.sides,
             roll_mode: check.roll_mode,

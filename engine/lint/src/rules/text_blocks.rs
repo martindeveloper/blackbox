@@ -147,7 +147,9 @@ mod tests {
     fn skips_blocks_that_already_use_quoted_style() {
         assert!(!style_includes_quoted(&json!({})));
         assert!(style_includes_quoted(&json!({ "style": ["quoted"] })));
-        assert!(style_includes_quoted(&json!({ "style": ["terminal", "quoted"] })));
+        assert!(style_includes_quoted(
+            &json!({ "style": ["terminal", "quoted"] })
+        ));
     }
 
     #[test]

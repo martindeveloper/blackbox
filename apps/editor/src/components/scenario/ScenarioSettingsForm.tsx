@@ -16,6 +16,7 @@ import {
   LIBRARY_SPEC,
 } from "@/types/wire.js";
 import { Icon } from "@/components/icons/Icon.js";
+import { EffectEditor } from "@/components/node/EffectEditor.js";
 import { ObjectSelector } from "@/components/pickers/ObjectSelector.js";
 import { Button } from "@/components/ui/Button.js";
 import { FieldRow } from "@/components/ui/FieldRow.js";
@@ -442,6 +443,35 @@ export function ScenarioSettingsForm({ expanded = false }: ScenarioSettingsFormP
                 onClose={() => setPicker(null)}
               />
             )}
+
+            <Section className="scenario-card scenario-card--hooks">
+              <SectionHeader>{t("scenario.hooks")}</SectionHeader>
+              <SectionBody className="space-y-3">
+                <p className="text-[10px] text-muted-2">{t("scenario.hooksHint")}</p>
+                <div>
+                  <div className="mb-2 text-[10px] uppercase text-muted-2">
+                    {t("scenario.hooksOnCommand")}
+                  </div>
+                  <EffectEditor
+                    effects={scenario.hooks?.onCommand ?? []}
+                    onChange={(onCommand) =>
+                      updateScenario({ hooks: { ...scenario.hooks, onCommand } })
+                    }
+                  />
+                </div>
+                <div>
+                  <div className="mb-2 text-[10px] uppercase text-muted-2">
+                    {t("scenario.hooksOnNodeEnter")}
+                  </div>
+                  <EffectEditor
+                    effects={scenario.hooks?.onNodeEnter ?? []}
+                    onChange={(onNodeEnter) =>
+                      updateScenario({ hooks: { ...scenario.hooks, onNodeEnter } })
+                    }
+                  />
+                </div>
+              </SectionBody>
+            </Section>
 
             <Section className="scenario-card scenario-card--advanced">
               <SectionHeader>{t("scenario.relationshipOverrides")}</SectionHeader>

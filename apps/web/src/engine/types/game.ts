@@ -81,9 +81,15 @@ export type ChoiceAction =
 
 export type RollMode = "normal" | "advantage" | "disadvantage";
 
+export interface CheckTierPreview {
+  min?: number;
+  label?: string;
+}
+
 export interface CheckPreview {
   stat: string;
-  difficulty: number;
+  difficulty?: number;
+  tiers?: CheckTierPreview[];
   label?: string;
   sides?: number;
   rollMode?: RollMode;
@@ -96,7 +102,8 @@ export type RollRecord =
       kind: "skillCheck";
       label?: string;
       stat: string;
-      difficulty: number;
+      difficulty?: number;
+      tier?: string;
       sides?: number;
       roll: number;
       modifier: number;

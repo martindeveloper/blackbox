@@ -1,5 +1,5 @@
 import type { SimAnalytics, SimHotNode } from "./toolsApi.js";
-import { translate } from "./i18n.ts";
+import { translate } from "./i18n.js";
 
 export type GraphAnalyticsMode = "reach" | "visits" | "structure" | "route";
 export type GraphInsightTone = "reach" | "visits" | "importance" | "spine" | "split" | "route";

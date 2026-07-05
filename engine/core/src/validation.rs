@@ -2,7 +2,9 @@ use std::collections::HashSet;
 
 use crate::compile::compile_content;
 use crate::condition::Condition;
-use crate::content::{ChoiceAction, Effect, GameContent, NodeMode, SkillCheckOutcome};
+use crate::content::{
+    ChoiceAction, Effect, GameContent, NodeMode, SkillCheckOutcome, SkillCheckResolution,
+};
 use crate::error::EngineError;
 use crate::gate::Gate;
 use crate::logging;
@@ -168,6 +170,13 @@ pub fn validate_content_with_options(
         }
     }
 
+    for effect in &content.hooks.on_command {
+        validate_effect(content, "scenario", "hooks.onCommand", effect, options)?;
+    }
+    for effect in &content.hooks.on_node_enter {
+        validate_effect(content, "scenario", "hooks.onNodeEnter", effect, options)?;
+    }
+
     for (key, node) in &content.nodes {
         if node.id.is_empty() {
             return Err(EngineError::ValidationError(
@@ -257,6 +266,38 @@ pub fn validate_content_with_options(
 
         for effect in &node.on_enter {
             validate_effect(content, &node.id, "onEnter", effect, options)?;
+        }
+
+        for (index, redirect) in node.redirect.iter().enumerate() {
+            if redirect.goto.is_empty() {
+                return Err(EngineError::ValidationError(format!(
+                    "redirect {index} in node '{}' has an empty goto",
+                    node.id
+                )));
+            }
+            require_known_node(
+                content,
+                &redirect.goto,
+                format!(
+                    "redirect {index} in node '{}' points to missing node '{}'",
+                    node.id, redirect.goto
+                ),
+            )?;
+            for (label, gate) in [("when", &redirect.when), ("unless", &redirect.unless)] {
+                if let Some(gate) = gate {
+                    if !gate.is_pure() {
+                        return Err(EngineError::ValidationError(format!(
+                            "redirect {index} in node '{}' {label} must not call random() or dice()",
+                            node.id
+                        )));
+                    }
+                    validate_gate(
+                        content,
+                        &format!("redirect {index} in node '{}' {label}", node.id),
+                        gate,
+                    )?;
+                }
+            }
         }
 
         let mut seen_choices = HashSet::new();
@@ -436,22 +477,33 @@ fn validate_skill_check(
         _ => {}
     }
 
-    validate_skill_outcome(
-        content,
-        node_id,
-        choice_id,
-        "onSuccess",
-        &check.on_success,
-        options,
-    )?;
-    validate_skill_outcome(
-        content,
-        node_id,
-        choice_id,
-        "onFailure",
-        &check.on_failure,
-        options,
-    )?;
+    match &check.resolution {
+        SkillCheckResolution::Binary {
+            on_success,
+            on_failure,
+            ..
+        } => {
+            validate_skill_outcome(
+                content,
+                node_id,
+                choice_id,
+                "onSuccess",
+                on_success,
+                options,
+            )?;
+            validate_skill_outcome(
+                content,
+                node_id,
+                choice_id,
+                "onFailure",
+                on_failure,
+                options,
+            )?;
+        }
+        SkillCheckResolution::Tiered { tiers } => {
+            validate_skill_check_tiers(content, node_id, choice_id, tiers, options)?;
+        }
+    }
 
     if let Some(exhausted) = &check.on_exhausted {
         validate_skill_outcome(
@@ -460,6 +512,62 @@ fn validate_skill_check(
             choice_id,
             "onExhausted",
             exhausted,
+            options,
+        )?;
+    }
+
+    Ok(())
+}
+
+fn validate_skill_check_tiers(
+    content: &GameContent,
+    node_id: &str,
+    choice_id: &str,
+    tiers: &[crate::content::SkillCheckTier],
+    options: ValidationOptions,
+) -> Result<(), EngineError> {
+    if tiers.len() < 2 {
+        return Err(EngineError::ValidationError(format!(
+            "choice '{choice_id}' in node '{node_id}' outcomes needs at least 2 tiers"
+        )));
+    }
+
+    let mut previous_min: Option<i32> = None;
+    for (index, tier) in tiers.iter().enumerate() {
+        let is_last = index == tiers.len() - 1;
+        match (tier.min, is_last) {
+            (None, false) => {
+                return Err(EngineError::ValidationError(format!(
+                    "choice '{choice_id}' in node '{node_id}' outcomes tier {index} has no min; \
+                     only the final catch-all tier may omit min"
+                )));
+            }
+            (Some(_), true) => {
+                return Err(EngineError::ValidationError(format!(
+                    "choice '{choice_id}' in node '{node_id}' outcomes must end with a catch-all \
+                     tier (no min) so every total resolves"
+                )));
+            }
+            (Some(min), false) => {
+                if let Some(previous) = previous_min
+                    && min >= previous
+                {
+                    return Err(EngineError::ValidationError(format!(
+                        "choice '{choice_id}' in node '{node_id}' outcomes tier {index} min ({min}) \
+                         must be lower than the previous tier ({previous}); order tiers best-first"
+                    )));
+                }
+                previous_min = Some(min);
+            }
+            (None, true) => {}
+        }
+
+        validate_skill_outcome(
+            content,
+            node_id,
+            choice_id,
+            &format!("outcomes[{index}]"),
+            &tier.outcome,
             options,
         )?;
     }

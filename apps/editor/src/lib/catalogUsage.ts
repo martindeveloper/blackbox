@@ -2,6 +2,7 @@ import type { Effect } from "@/types/wire.js";
 import { Page } from "./pages.js";
 import type { MediaCategory } from "./mediaLibrary.js";
 import type { LoadedBundle } from "./scenarioLoader.js";
+import { checkOutcomeBranches } from "./skillCheckOutcomes.js";
 
 export type CatalogCategory = MediaCategory;
 
@@ -20,7 +21,11 @@ export type CatalogUsageContext =
   | "choice"
   | "choiceSuccess"
   | "choiceFailure"
-  | "itemAction";
+  | "choiceExhausted"
+  | "choiceTier"
+  | "itemAction"
+  | "hooksOnCommand"
+  | "hooksOnNodeEnter";
 
 export interface CatalogUsage {
   kind: CatalogUsageKind;
@@ -126,32 +131,39 @@ export function buildCatalogUsageIndex(bundle: LoadedBundle): CatalogUsageIndex 
           choiceId: choice.id,
         });
         if (choice.check) {
-          indexEffectAssets(
-            index,
-            chapterId,
-            nodeId,
-            choice.check.onSuccess.effects,
-            "choiceSuccess",
-            {
+          for (const { context, outcome } of checkOutcomeBranches(choice.check)) {
+            const usageContext: CatalogUsageContext =
+              context === "onSuccess"
+                ? "choiceSuccess"
+                : context === "onFailure"
+                  ? "choiceFailure"
+                  : context === "onExhausted"
+                    ? "choiceExhausted"
+                    : "choiceTier";
+            indexEffectAssets(index, chapterId, nodeId, outcome.effects, usageContext, {
               choiceId: choice.id,
-            },
-          );
-          indexEffectAssets(
-            index,
-            chapterId,
-            nodeId,
-            choice.check.onFailure.effects,
-            "choiceFailure",
-            {
-              choiceId: choice.id,
-            },
-          );
+            });
+          }
         }
       }
     }
   }
 
   indexEffectAssets(index, undefined, undefined, bundle.scenario.deathNode?.onEnter, "onEnter");
+  indexEffectAssets(
+    index,
+    undefined,
+    undefined,
+    bundle.scenario.hooks?.onCommand,
+    "hooksOnCommand",
+  );
+  indexEffectAssets(
+    index,
+    undefined,
+    undefined,
+    bundle.scenario.hooks?.onNodeEnter,
+    "hooksOnNodeEnter",
+  );
 
   for (const item of Object.values(bundle.items.items)) {
     for (const action of item.actions ?? []) {

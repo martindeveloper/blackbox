@@ -47,8 +47,6 @@ function mediaCategoryForEntity(entity: string): MediaCategory {
   return "textures";
 }
 
-/** Map a change's domain locator onto the editor's URL so authors land on the
- * exact node / item / character / asset that changed. */
 function openChangeLocation(navigate: EditorNavigate, change: AuthorChange): void {
   const locator = change.locator;
   if (!locator) return;
@@ -274,7 +272,6 @@ function ChangeList({
   );
 }
 
-/** Shared old → new layout used by every non-prose field renderer. */
 function ChangeRow({
   before,
   after,

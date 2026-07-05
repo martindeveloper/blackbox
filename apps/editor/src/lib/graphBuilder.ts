@@ -7,6 +7,7 @@ import type {
   EditorLayout,
   GameContent,
   ItemCatalog,
+  RedirectRule,
 } from "@/types/wire.js";
 
 export type GraphEdgeKind =
@@ -15,7 +16,8 @@ export type GraphEdgeKind =
   | "checkFailure"
   | "checkExhausted"
   | "gotoChapter"
-  | "itemAction";
+  | "itemAction"
+  | "redirect";
 
 export interface ScenarioNodeData {
   nodeId: string;
@@ -65,6 +67,7 @@ const EDGE_COLORS: Record<GraphEdgeKind, string> = {
   checkExhausted: "#e57c35",
   gotoChapter: "#7e57c2",
   itemAction: "#78909c",
+  redirect: "#64b5f6",
 };
 
 function edgeAppearance(kind: GraphEdgeKind, dashed = false) {
@@ -73,7 +76,7 @@ function edgeAppearance(kind: GraphEdgeKind, dashed = false) {
     type: "choiceEdge",
     style: {
       stroke: color,
-      strokeDasharray: dashed ? "6 4" : undefined,
+      strokeDasharray: dashed ? (kind === "redirect" ? "2 4" : "6 4") : undefined,
     },
     markerEnd: {
       type: MarkerType.ArrowClosed,
@@ -204,6 +207,8 @@ export function buildChapterGraph(
     for (const choice of node.choices ?? []) {
       collectChoiceEdges(nodeId, choice, edges);
     }
+
+    collectRedirectEdges(nodeId, node.redirect ?? [], edges);
   }
 
   for (const item of Object.values(items.items)) {
@@ -245,7 +250,7 @@ function collectChoiceEdges(
   }
 
   if (choice.check) {
-    if (choice.check.onSuccess.goto) {
+    if (choice.check.onSuccess?.goto) {
       edges.push({
         id: `${sourceId}-${choice.id}-success-${choice.check.onSuccess.goto}`,
         source: sourceId,
@@ -254,7 +259,7 @@ function collectChoiceEdges(
         ...edgeAppearance("checkSuccess", true),
       });
     }
-    if (choice.check.onFailure.goto) {
+    if (choice.check.onFailure?.goto) {
       edges.push({
         id: `${sourceId}-${choice.id}-failure-${choice.check.onFailure.goto}`,
         source: sourceId,
@@ -288,6 +293,28 @@ function collectChoiceEdges(
       ...edgeAppearance("gotoChapter", true),
     });
   }
+}
+
+function collectRedirectEdges(
+  sourceId: string,
+  rules: RedirectRule[],
+  edges: Edge<ScenarioEdgeData>[],
+): void {
+  rules.forEach((rule, index) => {
+    if (!rule.goto) return;
+    const conditional = rule.when || rule.unless;
+    edges.push({
+      id: `${sourceId}-redirect-${index}-${rule.goto}`,
+      source: sourceId,
+      target: rule.goto,
+      data: {
+        kind: "redirect",
+        label: conditional ? `Redirect (conditional) · ${index + 1}` : `Redirect · ${index + 1}`,
+        choiceId: String(index),
+      },
+      ...edgeAppearance("redirect", true),
+    });
+  });
 }
 
 export function applyDagreLayout(

@@ -9,7 +9,9 @@ use crate::command::{CommandResult, PlayerCommand};
 use crate::content::{ChoiceContent, GameContent, ItemAction, NodeContent};
 use crate::effect::{EffectSideEffects, apply_effect};
 use crate::error::EngineError;
+use crate::expr::ReadContext;
 use crate::format::ContentDecoder;
+use crate::gate::evaluate_gate_readonly;
 use crate::item_action::{apply_item_consumption, ensure_item_owned, evaluate_item_action};
 use crate::logging::{self, LogLevel};
 use crate::rng::DEFAULT_RANDOM_SEED;
@@ -21,6 +23,10 @@ use crate::view::{GameView, ItemExamineView, SfxCue};
 
 use cache::ItemActionGateEntry;
 use view_build::{ViewBuildContext, build_game_view};
+
+/// Maximum node-redirect hops per arrival before the engine reports a redirect
+/// loop. Generous for hub dispatch; low enough to fail fast on cycles.
+pub const MAX_REDIRECT_HOPS: u32 = 8;
 
 enum CommandOutcome {
     Choice {
@@ -120,7 +126,8 @@ impl Engine {
             item_action_cache: Vec::new(),
             skill_check_override: None,
         };
-        engine.run_on_enter_effects(&mut RollLog::new(), &mut EffectSideEffects::default())?;
+        engine.run_arrival_effects(&mut RollLog::new(), &mut EffectSideEffects::default())?;
+        engine.follow_redirects(&mut RollLog::new(), &mut EffectSideEffects::default())?;
         engine.apply_post_mutation_state(&mut RollLog::new(), &mut EffectSideEffects::default())?;
         engine.mark_current_visited();
         Ok(engine)
@@ -455,6 +462,7 @@ impl Engine {
             })
         });
 
+        self.run_command_hook(&mut rolls, &mut side)?;
         self.finish_mutation(node_changed, &mut rolls, &mut side)?;
         let chapter_changed = self.chapter_changed_since(previous_chapter);
         self.finalize_choice_outcome(rolls, selected_sfx, side, chapter_changed)
@@ -537,6 +545,7 @@ impl Engine {
             apply_item_consumption(&mut self.state, &item_ref);
         }
 
+        self.run_command_hook(&mut rolls, &mut side)?;
         self.finish_mutation(node_changed, &mut rolls, &mut side)?;
         let chapter_changed = self.chapter_changed_since(previous_chapter);
         self.finalize_choice_outcome(rolls, None, side, chapter_changed)
@@ -549,10 +558,26 @@ impl Engine {
         side: &mut EffectSideEffects,
     ) -> Result<(), EngineError> {
         if node_changed {
-            self.run_on_enter_effects(rolls, side)?;
+            self.run_arrival_effects(rolls, side)?;
+            self.follow_redirects(rolls, side)?;
         }
         self.apply_post_mutation_state(rolls, side)?;
         self.mark_current_visited();
+        Ok(())
+    }
+
+    fn run_command_hook(
+        &mut self,
+        rolls: &mut RollLog,
+        side: &mut EffectSideEffects,
+    ) -> Result<(), EngineError> {
+        if self.content.hooks.on_command.is_empty() {
+            return Ok(());
+        }
+        let effects = self.content.hooks.on_command.clone();
+        for effect in &effects {
+            apply_effect(&mut self.state, effect, rolls, side)?;
+        }
         Ok(())
     }
 
@@ -728,18 +753,71 @@ impl Engine {
         Ok(())
     }
 
-    fn run_on_enter_effects(
+    fn run_arrival_effects(
         &mut self,
         rolls: &mut RollLog,
         side: &mut EffectSideEffects,
     ) -> Result<(), EngineError> {
         self.sync_ambient_background()?;
+        if !self.content.hooks.on_node_enter.is_empty() {
+            let hook_effects = self.content.hooks.on_node_enter.clone();
+            for effect in &hook_effects {
+                apply_effect(&mut self.state, effect, rolls, side)?;
+            }
+        }
         let node_id = self.state.current_node_id.clone();
         let on_enter = self.require_node(&node_id)?.on_enter.clone();
         for effect in &on_enter {
             apply_effect(&mut self.state, effect, rolls, side)?;
         }
         Ok(())
+    }
+
+    fn follow_redirects(
+        &mut self,
+        rolls: &mut RollLog,
+        side: &mut EffectSideEffects,
+    ) -> Result<(), EngineError> {
+        let mut hops = 0u32;
+        while let Some(target) = self.matching_redirect_target()? {
+            hops += 1;
+            if hops > MAX_REDIRECT_HOPS {
+                return Err(EngineError::ValidationError(format!(
+                    "redirect chain exceeded {MAX_REDIRECT_HOPS} hops at node '{}' (redirect loop?)",
+                    self.state.current_node_id
+                )));
+            }
+            logging::debug_fields_lazy("engine", "redirect", || {
+                serde_json::json!({
+                    "from": self.state.current_node_id,
+                    "to": target,
+                    "hop": hops,
+                })
+            });
+            self.mark_current_visited();
+            self.state.current_node_id = target;
+            self.clear_gate_caches();
+            self.run_arrival_effects(rolls, side)?;
+        }
+        Ok(())
+    }
+
+    fn matching_redirect_target(&self) -> Result<Option<String>, EngineError> {
+        let node = self.require_node(&self.state.current_node_id)?;
+        if node.redirect.is_empty() {
+            return Ok(None);
+        }
+        let ctx = ReadContext { state: &self.state };
+        for redirect in &node.redirect {
+            if evaluate_gate_readonly(
+                &ctx,
+                redirect.compiled_when.as_ref(),
+                redirect.compiled_unless.as_ref(),
+            )? {
+                return Ok(Some(redirect.goto.clone()));
+            }
+        }
+        Ok(None)
     }
 
     fn apply_post_mutation_state(
@@ -790,7 +868,8 @@ impl Engine {
 
         self.state.current_node_id = death_node_id;
         self.clear_gate_caches();
-        self.run_on_enter_effects(rolls, side)?;
+        self.run_arrival_effects(rolls, side)?;
+        self.follow_redirects(rolls, side)?;
         Ok(true)
     }
 

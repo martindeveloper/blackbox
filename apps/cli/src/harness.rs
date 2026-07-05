@@ -167,7 +167,18 @@ pub fn print_choices(view: &GameView) {
                 .as_deref()
                 .map(|text| format!(" ({text})"))
                 .unwrap_or_default();
-            line.push_str(&format!(" ({} DC {}{label})", check.stat, check.difficulty));
+            match check.difficulty {
+                Some(difficulty) => {
+                    line.push_str(&format!(" ({} DC {difficulty}{label})", check.stat));
+                }
+                None => {
+                    line.push_str(&format!(
+                        " ({} tiered x{}{label})",
+                        check.stat,
+                        check.tiers.len()
+                    ));
+                }
+            }
         }
         if let Some(reason) = &choice.disabled_reason {
             line.push_str(&format!(" — {reason}"));
