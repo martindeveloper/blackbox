@@ -1282,92 +1282,13 @@
   --games-rust: #b84b27;
 }
 
+/* The photographic hero stays cinematic in both themes — a washed-out,
+   sepia hero reads flat next to the rest of the case file, so it keeps
+   the dark palette (same treatment as .tlb-hero in the-lesser-blood.css). */
 :root[data-theme="light"] .games-hero {
-  background: #d8cebd;
-}
-
-:root[data-theme="light"] .games-hero-image {
-  filter: saturate(0.52) sepia(0.16) brightness(1.06) contrast(0.94);
-}
-
-:root[data-theme="light"] .games-hero-wash {
-  background:
-    linear-gradient(
-      90deg,
-      rgba(236, 226, 208, 0.72) 0%,
-      rgba(236, 226, 208, 0.34) 54%,
-      rgba(218, 205, 183, 0.52) 100%
-    ),
-    linear-gradient(
-      0deg,
-      rgba(227, 216, 198, 0.72) 0%,
-      transparent 46%,
-      rgba(237, 228, 212, 0.32) 100%
-    );
-}
-
-:root[data-theme="light"] .games-hero-grid {
-  opacity: 0.28;
-  background-image:
-    linear-gradient(rgba(55, 37, 23, 0.18) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(55, 37, 23, 0.18) 1px, transparent 1px);
-}
-
-:root[data-theme="light"] .games-hero::after {
-  opacity: 0.12;
-  background: repeating-linear-gradient(
-    to bottom,
-    transparent 0,
-    transparent 3px,
-    rgba(44, 29, 18, 0.12) 4px
-  );
-}
-
-:root[data-theme="light"] .games-hero-kicker,
-:root[data-theme="light"] .games-case-number,
-:root[data-theme="light"] .games-hero-thesis,
-:root[data-theme="light"] .games-status {
-  color: rgba(36, 25, 16, 0.7);
-}
-
-:root[data-theme="light"] .games-hero-telemetry {
-  border-top-color: rgba(36, 25, 16, 0.32);
-  background: rgba(238, 229, 213, 0.55);
-  backdrop-filter: blur(6px);
-  padding-inline: 0.85rem;
-}
-
-:root[data-theme="light"] .games-hero-telemetry > div {
-  border-bottom-color: rgba(36, 25, 16, 0.24);
-}
-
-:root[data-theme="light"] .games-hero-telemetry span {
-  color: rgba(36, 25, 16, 0.56);
-}
-
-:root[data-theme="light"] .games-hero-telemetry strong {
-  color: #21170f;
-}
-
-:root[data-theme="light"] .games-title {
-  color: #21170f;
-  text-shadow: 0 8px 35px rgba(82, 57, 37, 0.2);
-}
-
-:root[data-theme="light"] .games-title span:last-child {
-  -webkit-text-stroke-color: rgba(33, 23, 15, 0.72);
-}
-
-:root[data-theme="light"] .games-launch--hero {
-  border-color: rgba(36, 25, 16, 0.48);
-  background: rgba(238, 229, 213, 0.68);
-  color: #21170f;
-}
-
-:root[data-theme="light"] .games-launch--hero:hover {
-  border-color: var(--games-rust);
-  background: var(--games-rust);
-  color: #fff7eb;
+  --games-rust: #d65f2e;
+  --games-section-line: rgba(230, 209, 174, 0.22);
+  background: #090909;
 }
 
 :root[data-theme="light"] .games-briefing {
@@ -1456,17 +1377,4 @@
 :root[data-theme="light"] .games-final .games-launch:hover {
   background: transparent;
   color: #1b110b;
-}
-
-@media (max-width: 767px) {
-  :root[data-theme="light"] .games-hero-wash {
-    background:
-      linear-gradient(90deg, rgba(236, 226, 208, 0.66), rgba(218, 205, 183, 0.38)),
-      linear-gradient(
-        0deg,
-        rgba(227, 216, 198, 0.62) 0%,
-        transparent 58%,
-        rgba(237, 228, 212, 0.36) 100%
-      );
-  }
 }
