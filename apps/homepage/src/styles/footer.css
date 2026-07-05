@@ -1,0 +1,70 @@
+.footer {
+  --footer-bg: #1c1008;
+  --footer-wordmark: #f0e0cc;
+  --footer-muted: #5a4838;
+  --footer-dim: #3a2a1c;
+  background: var(--footer-bg);
+  padding-block: 2.5rem;
+}
+
+.footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.footer-logo-mark {
+  display: block;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 5px;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+
+.footer-wordmark {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  transform: translateY(0.1em);
+}
+
+.footer-wordmark-black {
+  color: var(--footer-wordmark);
+}
+
+.footer-wordmark-box {
+  color: var(--color-wordmark-box);
+  text-shadow: 0 0 16px color-mix(in srgb, var(--color-wordmark-box) 32%, transparent);
+}
+
+.footer-tagline {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  color: var(--footer-muted);
+  transform: translateY(0.1em);
+}
+
+.footer-tagline::before {
+  content: "—";
+  margin-inline: 0.45rem 0.55rem;
+  color: var(--footer-dim);
+}
+
+.footer-copy {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  color: var(--footer-dim);
+}

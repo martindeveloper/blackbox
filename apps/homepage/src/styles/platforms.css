@@ -1,0 +1,138 @@
+.platforms {
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.platforms-grid {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .platforms-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.platform-card {
+  position: relative;
+  overflow: hidden;
+  padding: 1.85rem 1.5rem 1.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: var(--color-surface-2);
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.platform-card:hover {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 1px var(--color-accent);
+}
+
+/* targeting-reticle corner brackets — echo the instrument-panel logo */
+.platform-bracket {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid var(--color-border-2);
+  pointer-events: none;
+  transition:
+    border-color 0.2s ease,
+    width 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    height 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.platform-bracket--tl {
+  top: 0.7rem;
+  left: 0.7rem;
+  border-right: none;
+  border-bottom: none;
+}
+
+.platform-bracket--br {
+  bottom: 0.7rem;
+  right: 0.7rem;
+  border-left: none;
+  border-top: none;
+}
+
+.platform-card:hover .platform-bracket {
+  border-color: var(--color-accent);
+  width: 16px;
+  height: 16px;
+}
+
+.platform-index {
+  position: absolute;
+  top: 0.85rem;
+  right: 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  color: var(--color-text-3);
+  transition: color 0.2s ease;
+}
+
+.platform-card:hover .platform-index {
+  color: var(--color-accent);
+}
+
+.platform-card-top {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.platform-icon {
+  flex-shrink: 0;
+  width: 3.1rem;
+  height: 3.1rem;
+  display: grid;
+  place-items: center;
+  color: var(--color-accent);
+  border: 1px solid var(--color-border-2);
+  border-radius: 6px;
+  background: var(--color-surface);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.platform-card:hover .platform-icon {
+  border-color: color-mix(in srgb, var(--color-accent) 55%, var(--color-border-2));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 12%, transparent);
+}
+
+.platform-title {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  letter-spacing: 0.04em;
+  color: var(--color-text);
+  line-height: 1.1;
+}
+
+.platform-tech {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-2);
+  margin-top: 0.45rem;
+  padding: 0.2rem 0.45rem;
+  border: 1px solid var(--color-border-2);
+  border-radius: 2px;
+  background: var(--color-surface);
+}
+
+.platform-body {
+  font-size: 0.9rem;
+  color: var(--color-text-2);
+  line-height: 1.7;
+}

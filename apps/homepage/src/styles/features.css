@@ -1,0 +1,122 @@
+.features-grid {
+  display: grid;
+  gap: 1px;
+  background: var(--color-border);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  overflow: hidden;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .features-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .features-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.feature-card {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-surface);
+  padding: 2rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  transition: background 0.2s ease;
+}
+
+/* accent rule that wipes across the top edge on hover */
+.feature-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 2px;
+  width: 100%;
+  background: var(--color-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.feature-card:hover {
+  background: var(--color-surface-2);
+}
+
+.feature-card:hover::before {
+  transform: scaleX(1);
+}
+
+/* oversized ghosted module index, sunk into the card corner */
+.feature-index {
+  position: absolute;
+  top: 0.5rem;
+  right: 1rem;
+  z-index: 0;
+  font-family: var(--font-display);
+  font-size: 4.5rem;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: var(--color-text);
+  opacity: 0.06;
+  pointer-events: none;
+  transition:
+    color 0.25s ease,
+    opacity 0.25s ease,
+    transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.feature-card:hover .feature-index {
+  color: var(--color-accent);
+  opacity: 0.16;
+  transform: translateY(-0.15rem);
+}
+
+/* icon framed as a component "chip" on a board */
+.feature-icon {
+  position: relative;
+  z-index: 1;
+  color: var(--color-accent);
+  width: 2.6rem;
+  height: 2.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border-2);
+  border-radius: 4px;
+  background: var(--color-surface-2);
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.feature-card:hover .feature-icon {
+  border-color: color-mix(in srgb, var(--color-accent) 55%, var(--color-border-2));
+  background: var(--color-accent-light);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 12%, transparent);
+}
+
+.feature-title {
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  letter-spacing: 0.04em;
+  color: var(--color-text);
+  line-height: 1.2;
+}
+
+.feature-body {
+  position: relative;
+  z-index: 1;
+  font-size: 0.9rem;
+  color: var(--color-text-2);
+  line-height: 1.7;
+}

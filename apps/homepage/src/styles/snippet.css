@@ -1,0 +1,248 @@
+.snippet {
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.snippet-inner {
+  display: grid;
+  gap: 3.5rem;
+  min-width: 0;
+}
+
+@media (min-width: 900px) {
+  .snippet-inner {
+    grid-template-columns: 1fr 1.5fr;
+    align-items: start;
+    gap: 5rem;
+  }
+}
+
+.snippet-body {
+  font-size: clamp(0.92rem, 1.7vw, 1rem);
+  color: var(--color-text-2);
+  line-height: 1.8;
+  margin-top: 1.25rem;
+}
+
+.snippet-code-wrap {
+  border: 1px solid var(--color-border-2);
+  border-radius: 6px;
+  overflow: hidden;
+  background: #1a1008;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+}
+
+.snippet-code-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.6rem 1rem;
+  background: #140c04;
+  border-bottom: 1px solid #2c1e10;
+}
+
+.snippet-code-bar--mac {
+  gap: 0.45rem;
+  padding: 0.6rem 1rem;
+}
+
+.snippet-code-bar--win {
+  gap: 0;
+  padding: 0 0 0 0.85rem;
+  min-height: 2rem;
+}
+
+.snippet-code-wrap--win {
+  border-radius: 8px;
+}
+
+.snippet-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #3a2818;
+  flex-shrink: 0;
+}
+.snippet-dot:first-child {
+  background: rgba(255, 90, 72, 0.6);
+}
+.snippet-dot:nth-child(2) {
+  background: rgba(255, 180, 40, 0.5);
+}
+.snippet-dot:nth-child(3) {
+  background: rgba(80, 200, 100, 0.5);
+}
+
+.snippet-filename {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  color: #5a4838;
+  margin-left: 0.5rem;
+}
+
+.snippet-code-bar--win .snippet-filename {
+  margin-left: 0;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.snippet-win-controls {
+  display: flex;
+  align-self: stretch;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.snippet-win-btn {
+  position: relative;
+  width: 2.875rem;
+  height: 2rem;
+  flex-shrink: 0;
+  color: #6a5848;
+}
+
+.snippet-win-btn--min::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 0.625rem;
+  height: 1px;
+  background: currentColor;
+}
+
+.snippet-win-btn--max::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 0.5625rem;
+  height: 0.5625rem;
+  border: 1px solid currentColor;
+}
+
+.snippet-win-btn--close::before,
+.snippet-win-btn--close::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 0.625rem;
+  height: 1px;
+  background: currentColor;
+}
+
+.snippet-win-btn--close::before {
+  transform: rotate(45deg);
+}
+
+.snippet-win-btn--close::after {
+  transform: rotate(-45deg);
+}
+
+@media (hover: hover) {
+  .snippet-win-btn--min:hover,
+  .snippet-win-btn--max:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .snippet-win-btn--close:hover {
+    background: #c42b1c;
+    color: #fff;
+  }
+}
+
+.snippet-code {
+  padding: 1.5rem;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  line-height: 1.8;
+  letter-spacing: 0.03em;
+  color: #a89070;
+  white-space: pre;
+  -webkit-overflow-scrolling: touch;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+  display: block;
+}
+
+.tok-key {
+  color: #f09a55;
+  font-weight: 650;
+}
+.tok-str {
+  color: #8fcf8a;
+}
+.tok-num {
+  color: #f0cf70;
+}
+.tok-brace {
+  color: #d9c3a8;
+}
+.tok-punct {
+  color: #7c6750;
+}
+.tok-comment {
+  color: #6d8a61;
+  font-style: italic;
+}
+.tok-cmd {
+  color: #7eb8d8;
+}
+.tok-flag {
+  color: #d4a070;
+}
+.tok-var {
+  color: #c9a878;
+}
+.tok-tag {
+  color: #ff825c;
+  font-weight: 650;
+}
+.tok-type {
+  color: #caa4f0;
+}
+.tok-key--control {
+  color: #ff7f92;
+}
+.tok-key--module {
+  color: #ffb45d;
+}
+.tok-key--decl {
+  color: #7fc8ff;
+}
+.tok-template {
+  color: #98d8b0;
+}
+.tok-decorator {
+  color: #f0cf70;
+}
+.tok-attr {
+  color: #f1b36c;
+}
+.tok-fn,
+.tok-method {
+  color: #87cfff;
+}
+.tok-prop {
+  color: #d7b98a;
+}
+.tok-builtin {
+  color: #8bd4e8;
+}
+.tok-const {
+  color: #f4d06f;
+}
+.tok-op {
+  color: #b77cff;
+}

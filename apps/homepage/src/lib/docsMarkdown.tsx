@@ -53,7 +53,7 @@ export function createDocsMarkdownComponents(clientOS: ClientOS): Components {
         />
       );
     },
-    code({ className, children, ...props }) {
+    code({ className, children }) {
       const text = String(children).replace(/\n$/, "");
       const lang = langFromClassName(className);
 
@@ -61,10 +61,13 @@ export function createDocsMarkdownComponents(clientOS: ClientOS): Components {
         return <code className={className}>{highlightCode(text, lang)}</code>;
       }
 
+      return <code className={className}>{children}</code>;
+    },
+    table({ children }) {
       return (
-        <code className={className} {...props}>
-          {children}
-        </code>
+        <div className="docs-table-scroll">
+          <table>{children}</table>
+        </div>
       );
     },
   };

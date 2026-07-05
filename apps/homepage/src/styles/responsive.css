@@ -1,0 +1,175 @@
+@media (max-width: 767px) {
+  .hero {
+    min-height: calc(100svh - var(--nav-height));
+  }
+
+  .hero-inner {
+    padding-top: var(--page-hero-offset-top);
+    padding-bottom: 2.75rem;
+  }
+
+  /* "BLACKBOX" is one unwrappable word. Size it so it fits the column even
+     with the wide fallback font during FOUT (Bebas Neue → Impact/sans-serif),
+     otherwise the headline overflows and the page scrolls horizontally. */
+  .hero-headline {
+    font-size: clamp(2.75rem, 14vw, 4rem);
+  }
+
+  /* Graph sits BEHIND the hero text as a full-bleed faded backdrop.
+     A soft wash + a light halo on the text keep everything readable. */
+  .hero::before {
+    background: linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--color-bg) 78%, transparent) 0%,
+      color-mix(in srgb, var(--color-bg) 62%, transparent) 45%,
+      color-mix(in srgb, var(--color-bg) 70%, transparent) 100%
+    );
+  }
+
+  .hero-graph-bg {
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    opacity: 0.5;
+    /* vignette: fade the four edges so the graph melts into the page */
+    mask-image: radial-gradient(ellipse 120% 90% at 50% 45%, black 30%, transparent 92%);
+    -webkit-mask-image: radial-gradient(ellipse 120% 90% at 50% 45%, black 30%, transparent 92%);
+  }
+
+  .hero-graph-edge {
+    stroke-opacity: 0.5;
+  }
+
+  .hero-graph-arrow {
+    fill-opacity: 0.5;
+  }
+
+  .hero-graph-node-title {
+    fill-opacity: 0.85;
+  }
+
+  .hero-graph-node-id {
+    fill-opacity: 0.8;
+  }
+
+  .hero-grid-bg {
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    opacity: 0.22;
+    mask-image: radial-gradient(ellipse 120% 90% at 50% 45%, black 30%, transparent 92%);
+    -webkit-mask-image: radial-gradient(ellipse 120% 90% at 50% 45%, black 30%, transparent 92%);
+  }
+
+  /* Light halo so dark text stays legible over the graph lines */
+  .hero-eyebrow,
+  .hero-headline,
+  .hero-tagline,
+  .hero-description {
+    text-shadow:
+      0 0 10px var(--color-bg),
+      0 0 22px var(--color-bg);
+  }
+
+  .hero-scroll-hint {
+    display: none;
+  }
+
+  .hero-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
+    width: 100%;
+    max-width: 24rem;
+  }
+
+  .hero-actions-secondary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+  }
+
+  .hero-actions-primary,
+  .hero-actions-secondary .btn {
+    justify-content: center;
+    width: 100%;
+    min-width: 0;
+    padding-inline: 0.85rem;
+  }
+
+  .editor-canvas {
+    margin-inline: -1.5rem;
+    width: calc(100% + 3rem);
+    padding: 0.5rem;
+    border-inline: 0;
+  }
+
+  .editor-canvas-head {
+    padding-inline: 0.4rem;
+  }
+
+  .editor-primary {
+    aspect-ratio: 1.25 / 1;
+  }
+
+  .editor-primary img {
+    object-position: 38% top;
+  }
+
+  .editor-primary::after {
+    background: linear-gradient(to top, rgba(8, 6, 5, 0.92), transparent 65%);
+  }
+
+  .editor-primary figcaption {
+    right: 1rem;
+    bottom: 1rem;
+    left: 1rem;
+    width: auto;
+  }
+
+  .editor-contact-sheet {
+    grid-template-columns: 1fr;
+  }
+
+  .editor-contact {
+    display: grid;
+    grid-template-columns: 42% 1fr;
+  }
+
+  .editor-contact-shot {
+    aspect-ratio: auto;
+    min-height: 9rem;
+  }
+
+  .editor-contact figcaption {
+    min-height: 9rem;
+    padding: 0.9rem;
+    border-top: 0;
+    border-left: 1px solid var(--editor-line);
+  }
+
+  .editor-contact p {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+
+  /* Prevent snippet code from triggering page-level overflow on iOS */
+  .snippet-code-wrap {
+    overflow-x: hidden;
+  }
+
+  .snippet-code {
+    overflow-x: auto;
+    font-size: 0.66rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .hero-actions-secondary {
+    grid-template-columns: 1fr;
+  }
+}
