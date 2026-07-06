@@ -8,8 +8,15 @@
   background: var(--color-bg);
   color: var(--color-text);
   min-height: calc(100vh - var(--nav-height));
+  padding-top: var(--nav-height);
   /* overflow-x: hidden on main breaks position:sticky for the rail */
   overflow: visible;
+}
+
+/* body already pads every page for the fixed nav; sticky top: nav-height then
+   double-counts and pushes the rail down by another nav-height (see devtools). */
+body:has(.docs-shell) {
+  padding-top: 0;
 }
 
 .docs-shell::before {
@@ -55,18 +62,8 @@
 }
 
 @media (min-width: 901px) {
-  /* Pad the article column only — shared frame top padding made the rail box
-     sit below the display headline, which draws above its line box. */
   .docs-shell-frame {
-    padding-top: 0;
-  }
-
-  .docs-shell-main {
     padding-top: 1.5rem;
-  }
-
-  .docs-shell-rail {
-    top: var(--nav-height);
   }
 }
 
