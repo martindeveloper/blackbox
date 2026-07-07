@@ -5,7 +5,9 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Footer } from "./components/Footer";
 import { DownloadOutdatedNotice } from "./components/DownloadOutdatedNotice";
+import { DownloadReleaseArchive } from "./components/DownloadReleaseArchive";
 import { DownloadTrustGuide } from "./components/DownloadTrustGuide";
+import type { ReleaseArchiveEntry } from "./lib/fetchReleaseArchive";
 import { PlatformIcon } from "./components/PlatformIcon";
 import { detectClientArch } from "./lib/detectClientArch";
 import { detectClientOS } from "./lib/detectClientOS";
@@ -51,7 +53,13 @@ function ExternalIcon() {
   );
 }
 
-export function DownloadPage({ latestVersion }: { latestVersion: string }) {
+export function DownloadPage({
+  latestVersion,
+  releases,
+}: {
+  latestVersion: string;
+  releases: ReleaseArchiveEntry[];
+}) {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
   const requestedVersion = normalizeReleaseTag(searchParams.get("version"));
@@ -282,6 +290,8 @@ export function DownloadPage({ latestVersion }: { latestVersion: string }) {
                 </a>
               </footer>
             </div>
+
+            <DownloadReleaseArchive latestVersion={latestVersion} releases={releases} />
           </div>
         </section>
       </main>

@@ -939,6 +939,16 @@ export const en = {
     },
     checksums: "SHA256 checksums",
     all_releases: "All releases on GitHub",
+    archive: {
+      title: "Release archive",
+      note: "Need an older build? Pick a version — download links above update to match.",
+      count: "{{count}} releases",
+      version_label: "Version",
+      version_aria: "Select release version",
+      latest_option: "Latest · {{version}}",
+      version_option_dated: "{{version}} · {{date}}",
+      prerelease: "pre-release",
+    },
     outdated_notice: {
       label: "Stale build",
       title: "{{latest}} is out — you're still on {{requested}}",

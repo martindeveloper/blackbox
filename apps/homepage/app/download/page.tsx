@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { DownloadPage } from "@/DownloadPage";
 import { en } from "@/i18n/en";
 import { fetchEditorVersion } from "@/lib/fetchEditorVersion";
+import { fetchReleaseArchive } from "@/lib/fetchReleaseArchive";
 
 export const metadata: Metadata = {
   title: en.metadata.download.title,
@@ -30,9 +31,12 @@ function DownloadPageFallback() {
 }
 
 async function DownloadPageLoader() {
-  const { version: latestVersion } = await fetchEditorVersion();
+  const [{ version: latestVersion }, releases] = await Promise.all([
+    fetchEditorVersion(),
+    fetchReleaseArchive(),
+  ]);
 
-  return <DownloadPage latestVersion={latestVersion} />;
+  return <DownloadPage latestVersion={latestVersion} releases={releases} />;
 }
 
 export default function Page() {
