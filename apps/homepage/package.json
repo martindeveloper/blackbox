@@ -16,24 +16,24 @@
   },
   "dependencies": {
     "gray-matter": "^4.0.3",
-    "i18next": "^26.3.1",
-    "next": "^16.2.9",
+    "i18next": "^26.4.2",
+    "next": "^16.3.6",
     "next-themes": "^0.4.6",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7",
-    "react-i18next": "^17.0.8",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "react-i18next": "^17.0.15",
     "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.3.1",
-    "@types/node": "26.0.0",
-    "@types/react": "^19.2.17",
-    "@types/react-dom": "^19.2.3",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "26.6.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "babel-plugin-react-compiler": "^1.0.0",
-    "oxfmt": "^0.56.0",
-    "oxlint": "^1.71.0",
-    "tailwindcss": "^4.3.1",
+    "oxfmt": "^0.70.0",
+    "oxlint": "^1.85.0",
+    "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3"
   }
 }
