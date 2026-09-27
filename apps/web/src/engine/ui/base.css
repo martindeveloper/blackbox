@@ -250,6 +250,127 @@ body {
   color: var(--bb-ui-muted);
 }
 
+.bb-stale-save {
+  display: grid;
+  gap: 1rem;
+}
+
+.bb-stale-save__body {
+  margin: 0;
+  color: var(--bb-ui-text);
+  font-family: var(--bb-font-narrative);
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+.bb-stale-save__versions {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin: 0;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--bb-ui-border);
+  background: color-mix(in srgb, var(--bb-ui-accent) 5%, transparent);
+  font-family: var(--bb-font-mono);
+}
+
+.bb-stale-save__versions > div {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.bb-stale-save__versions dt {
+  color: var(--bb-ui-muted);
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.bb-stale-save__versions dd {
+  margin: 0;
+  color: var(--bb-ui-muted);
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+
+.bb-stale-save__versions > div:last-child dd {
+  color: var(--bb-ui-accent);
+}
+
+.bb-stale-save__arrow {
+  position: relative;
+  flex: 1;
+  min-width: 1.5rem;
+  height: 1px;
+  background: linear-gradient(90deg, var(--bb-ui-border), var(--bb-ui-accent));
+}
+
+.bb-stale-save__arrow::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: 6px;
+  height: 6px;
+  border-top: 1px solid var(--bb-ui-accent);
+  border-right: 1px solid var(--bb-ui-accent);
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.bb-stale-save__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+
+.bb-stale-save__actions > button {
+  min-height: 2.6rem;
+  padding: 0 1rem;
+  border: 1px solid var(--bb-ui-border);
+  background: transparent;
+  color: var(--bb-ui-muted);
+  font-family: var(--bb-font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.bb-stale-save__actions > button:hover,
+.bb-stale-save__actions > button:focus-visible {
+  color: var(--bb-ui-text);
+  border-color: color-mix(in srgb, var(--bb-ui-accent) 45%, transparent);
+  outline: none;
+}
+
+.bb-stale-save__actions > .bb-stale-save__confirm {
+  border-color: color-mix(in srgb, var(--bb-ui-accent) 55%, transparent);
+  background: color-mix(in srgb, var(--bb-ui-accent) 12%, transparent);
+  color: var(--bb-ui-text);
+}
+
+.bb-stale-save__actions > .bb-stale-save__confirm:hover,
+.bb-stale-save__actions > .bb-stale-save__confirm:focus-visible {
+  border-color: var(--bb-ui-accent);
+  background: color-mix(in srgb, var(--bb-ui-accent) 20%, transparent);
+}
+
+@media (max-width: 420px) {
+  .bb-stale-save__actions {
+    grid-template-columns: 1fr;
+  }
+
+  .bb-stale-save__confirm {
+    order: -1;
+  }
+}
+
 .bb-default-game-screen {
   display: flex;
   flex-direction: column;

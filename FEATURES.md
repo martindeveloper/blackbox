@@ -182,7 +182,7 @@ Use character ids as `speaker` on `dialogue` / `thought` lines. Hosts resolve `n
 | `charactersRef` | no | Path to character catalog JSON (default: `characters.json`). |
 | `relationshipOverrides` | no | Per-scenario starting values that override character `relationships`. Keys must be metrics already declared on that character. Merged at load time. |
 | `assetsRef` | no | Path to asset catalog JSON (default: `assets.json`). |
-| `revision` | no | Scenario revision string, stored in saves. Mismatched saves are rejected on restore. |
+| `revision` | no | Scenario revision string, stored in saves. Mismatched saves are rejected on restore unless the host opts to continue (see Saves and versioning). |
 | `randomSeed` | no | Seed for deterministic RNG. Defaults to a built-in constant if omitted. |
 | `defaultStats` | no | Starting player stats for new games and restarts. Defaults to `hp`, `max_hp`, `empathy`, `logic`, `violence` (see below). |
 | `deathNode` | no | Inline node shown when `hp` reaches `0` and no chapter override applies. Same fields as a normal node except `id` (the engine assigns `"__death__"`). Defaults to `mode: "game_over"`. Chapters may override with `deathNodeId` (see chapter files). |
@@ -903,7 +903,8 @@ When the player selects a choice:
 - Hosts call `serialize_state` / `restore_state` (Wasm) or equivalent Rust API.
 - Saves store: current node, stats, inventory, flags, relationships, events, visited nodes, ambient music, RNG seed/counter, and `revision`.
 - Saves missing `relationships` (legacy) backfill from merged character defaults on restore.
-- If the scenario `revision` field changes between save and content, restore fails with `revisionMismatch`.
+- If the scenario `revision` field changes between save and content, restore fails with `revisionMismatch` (Wasm throws an `Error` named `RevisionMismatchError` with `save` / `current`).
+- Hosts may let the player continue anyway: `restore_state(json, true)` (Wasm) or `Engine::restore_stale_state` re-stamps the save with the current revision. If the save's node was removed, play resumes at the furthest visited node that still exists. The web player asks first with an "older save" modal.
 - Changing scenario text or graph does not auto-invalidate saves unless you bump `revision`.
 
 ---

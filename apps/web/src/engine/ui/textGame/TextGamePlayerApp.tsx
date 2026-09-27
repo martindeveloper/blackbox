@@ -15,7 +15,7 @@ import {
   type SessionPresentationAdapter,
 } from "../../hooks/useBlackboxSession.js";
 import { projectInfo } from "@content-source";
-import { musicAssetLabel, serializeEngineState } from "../../lib/engine.js";
+import { musicAssetLabel, serializeEngineState, type StaleSave } from "../../lib/engine.js";
 import { isEditableTarget, matchesShortcut } from "../../lib/keyboard.js";
 import { formatPageTitle, pageTitleContextFromSession } from "../../lib/pageTitle.js";
 import { PREVIEW_ENABLED } from "@preview-mode";
@@ -155,6 +155,44 @@ function DefaultNewGameConfirmation({ onCancel, onConfirm }: NewGameConfirmation
   );
 }
 
+function StaleSaveNotice({
+  stale,
+  onCancel,
+  onConfirm,
+}: {
+  stale: StaleSave;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <div className="bb-stale-save">
+      <p className="bb-stale-save__body">{t("staleSave.body")}</p>
+      {stale.save && stale.current && (
+        <dl className="bb-stale-save__versions">
+          <div>
+            <dt>{t("staleSave.saved")}</dt>
+            <dd>{stale.save}</dd>
+          </div>
+          <span className="bb-stale-save__arrow" aria-hidden="true" />
+          <div>
+            <dt>{t("staleSave.current")}</dt>
+            <dd>{stale.current}</dd>
+          </div>
+        </dl>
+      )}
+      <div className="bb-stale-save__actions">
+        <button type="button" className="bb-stale-save__cancel" onClick={onCancel}>
+          {t("staleSave.cancel")}
+        </button>
+        <button type="button" className="bb-stale-save__confirm" onClick={onConfirm} autoFocus>
+          {t("staleSave.confirm")}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function TextGamePlayerApp<FadeKind extends string>({
   config,
 }: {
@@ -242,6 +280,30 @@ export function TextGamePlayerApp<FadeKind extends string>({
     return () => document.removeEventListener("keydown", handleMuteShortcut);
   }, [config.muteShortcut, togglePause]);
 
+  const confirmStaleSave = useCallback(
+    (stale: StaleSave, onConfirm: () => void) => {
+      const modalId = "stale-save";
+      openModal({
+        id: modalId,
+        title: t("staleSave.title"),
+        eyebrow: t("staleSave.eyebrow"),
+        tone: "amber",
+        size: "sm",
+        children: (
+          <StaleSaveNotice
+            stale={stale}
+            onCancel={() => closeModal(modalId)}
+            onConfirm={() => {
+              closeModal(modalId);
+              onConfirm();
+            }}
+          />
+        ),
+      });
+    },
+    [closeModal, openModal, t],
+  );
+
   const openSaveModal = useCallback(
     (currentSavedState: string | null) => {
       openModal({
@@ -255,15 +317,16 @@ export function TextGamePlayerApp<FadeKind extends string>({
           <SavePanel
             savedState={currentSavedState}
             onRestore={(stateJson) => {
-              restore(stateJson);
+              const stale = restore(stateJson);
               closeModal("save");
+              if (stale) confirmStaleSave(stale, () => restore(stateJson, true));
             }}
             onClose={() => closeModal("save")}
           />
         ),
       });
     },
-    [closeModal, config.saveModal, openModal, restore, t],
+    [closeModal, config.saveModal, confirmStaleSave, openModal, restore, t],
   );
 
   const resetMusic = config.resetMusicTracking ?? resetEngineMusicTracking;
@@ -323,8 +386,17 @@ export function TextGamePlayerApp<FadeKind extends string>({
   );
 
   const handleContinueSlot = useCallback(
-    (slotIndex: number) => runMenuTransition("continue", () => continueSlot(slotIndex)),
-    [continueSlot, runMenuTransition],
+    (slotIndex: number) =>
+      runMenuTransition("continue", async () => {
+        const stale = await continueSlot(slotIndex);
+        if (!stale) return;
+        confirmStaleSave(stale, () =>
+          runMenuTransition("continue", async () => {
+            await continueSlot(slotIndex, true);
+          }),
+        );
+      }),
+    [confirmStaleSave, continueSlot, runMenuTransition],
   );
 
   const requestSlotRestart = useCallback(

@@ -5,13 +5,13 @@ mod logging;
 #[cfg(feature = "preview-json")]
 use blackbox_engine::EngineOptions;
 use blackbox_engine::{
-    Engine, GameView, encode_command_delta_json, encode_view_revision_mismatch_json,
+    Engine, EngineError, GameView, encode_command_delta_json, encode_view_revision_mismatch_json,
     encode_view_snapshot_json,
 };
 #[cfg(feature = "preview-json")]
 use blackbox_format::decode_scenario_bundle_json;
 use blackbox_format::{JsonFormat, decode_catalog_document, decode_msgpack_bundle_bytes};
-use js_sys::{Array, Uint8Array};
+use js_sys::{Array, Reflect, Uint8Array};
 #[cfg(feature = "preview-json")]
 use serde::Deserialize;
 use wasm_bindgen::prelude::*;
@@ -28,6 +28,17 @@ fn chapters_from_array(chapters: &Array) -> Result<Vec<Vec<u8>>, JsValue> {
         buffers.push(Uint8Array::from(value).to_vec());
     }
     Ok(buffers)
+}
+
+fn restore_error(error: EngineError) -> JsValue {
+    let EngineError::RevisionMismatch { save, current } = &error else {
+        return JsValue::from_str(&error.to_string());
+    };
+    let js_error = js_sys::Error::new(&error.to_string());
+    js_error.set_name("RevisionMismatchError");
+    let _ = Reflect::set(&js_error, &"save".into(), &save.into());
+    let _ = Reflect::set(&js_error, &"current".into(), &current.into());
+    js_error.into()
 }
 
 #[cfg(feature = "preview-json")]
@@ -279,16 +290,24 @@ impl BlackboxEngine {
             .map_err(|error| JsValue::from_str(&error.to_string()))
     }
 
+    /// `allow_stale` accepts saves from another scenario revision. Otherwise a mismatch
+    /// throws an `Error` named `RevisionMismatchError` carrying `save` and `current`.
     #[wasm_bindgen(js_name = restore_state)]
-    pub fn restore_state(&mut self, state_json: &str) -> Result<String, JsValue> {
+    pub fn restore_state(
+        &mut self,
+        state_json: &str,
+        allow_stale: Option<bool>,
+    ) -> Result<String, JsValue> {
         let state = self
             .format
             .decode_state_utf8(state_json)
             .map_err(|error| JsValue::from_str(&error.to_string()))?;
-        let view = self
-            .engine
-            .restore_state(state)
-            .map_err(|error| JsValue::from_str(&error.to_string()))?;
+        let restored = if allow_stale.unwrap_or(false) {
+            self.engine.restore_stale_state(state)
+        } else {
+            self.engine.restore_state(state)
+        };
+        let view = restored.map_err(restore_error)?;
         self.view_revision = self.view_revision.wrapping_add(1);
         let encoded = encode_view_snapshot_json(&view, self.view_revision)
             .map_err(|error| JsValue::from_str(&error.to_string()))?;

@@ -295,6 +295,33 @@ impl Engine {
         Ok(view)
     }
 
+    /// Restore a save from another scenario revision, re-stamping it with the current
+    /// one. Hosts call this once the player accepts a [`EngineError::RevisionMismatch`];
+    /// the save may reference content that has since changed. If the save's node was
+    /// removed, play resumes at the furthest visited node that still exists.
+    pub fn restore_stale_state(&mut self, mut state: GameState) -> Result<GameView, EngineError> {
+        state.revision.clone_from(&self.content.revision);
+        if !self.content.nodes.contains_key(&state.current_node_id)
+            && let Some(node_id) = state
+                .visited_nodes
+                .iter()
+                .rev()
+                .find(|id| self.content.nodes.contains_key(*id))
+                .cloned()
+        {
+            logging::log(
+                LogLevel::Warn,
+                "engine",
+                format!(
+                    "stale save node '{}' no longer exists; resuming at '{node_id}'",
+                    state.current_node_id
+                ),
+            );
+            state.current_node_id = node_id;
+        }
+        self.restore_state(state)
+    }
+
     /// Restore `state` without building a [`GameView`]. Callers that immediately
     /// submit a command (and therefore discard the view) avoid paying full view
     /// construction — text resolution and choice gate evaluation — twice.

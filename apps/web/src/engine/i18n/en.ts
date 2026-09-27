@@ -45,6 +45,15 @@ export const engineEn = {
     confirmRestart: "Confirm restart",
     cancelRestart: "Cancel restart",
   },
+  staleSave: {
+    eyebrow: "Older save",
+    title: "This save is from a previous version",
+    body: "The game has been updated since this save was made. You can keep playing, but some scenes, items, or choices may not line up. If something feels broken, starting a new game will fix it.",
+    saved: "Saved in",
+    current: "Current",
+    cancel: "Go back",
+    confirm: "Continue anyway",
+  },
   actions: {
     light: "LIGHT",
     dark: "DARK",

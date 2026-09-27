@@ -577,10 +577,26 @@ export function snapshotEngineState(engine: BlackboxEngine): PreviewEngineSnapsh
   return JSON.parse(serializeEngineState(engine)) as PreviewEngineSnapshot;
 }
 
-export function restoreEngineState(engine: BlackboxEngine, stateJson: string): GameView {
+export function restoreEngineState(
+  engine: BlackboxEngine,
+  stateJson: string,
+  allowStale = false,
+): GameView {
   return withEngine(engine, "restoreState", () => {
-    return cacheViewSnapshot(engine, engine.restore_state(stateJson));
+    return cacheViewSnapshot(engine, engine.restore_state(stateJson, allowStale));
   });
+}
+
+/** Save and scenario revisions of a save the engine refused as stale. */
+export interface StaleSave {
+  save: string;
+  current: string;
+}
+
+export function staleSaveOf(error: unknown): StaleSave | null {
+  if (!(error instanceof Error) || error.name !== "RevisionMismatchError") return null;
+  const { save, current } = error as Error & Partial<StaleSave>;
+  return { save: save ?? "", current: current ?? "" };
 }
 
 export function isValidAutosaveJson(json: string): boolean {
@@ -601,7 +617,8 @@ export async function rebuildEngineFromAutosave(
     await ensureChapterResident(chapterId ?? bundle.project.startChapterId);
   }
   const engine = createEngine(bundle);
-  const view = restoreEngineState(engine, autosaveJson.trim());
+  // Recovery restores the player's own slot, which they already chose to continue.
+  const view = restoreEngineState(engine, autosaveJson.trim(), true);
   if (bundle.project && view.chapter_id) {
     await ensureChapterLoaded(engine, view.chapter_id);
   }

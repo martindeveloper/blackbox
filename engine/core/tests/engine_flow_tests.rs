@@ -388,6 +388,49 @@ fn revision_mismatch_is_rejected() {
         matches!(err, EngineError::RevisionMismatch { .. }),
         "expected RevisionMismatch, got: {err}"
     );
+
+    let state = FORMAT.decode_state(&save).unwrap();
+    restored.restore_stale_state(state).unwrap();
+    assert_eq!(restored.get_state().revision.as_deref(), Some("1.0"));
+}
+
+#[test]
+fn stale_restore_resumes_at_furthest_surviving_node() {
+    let content_v1 = r#"{
+        "startNodeId": "start",
+        "revision": "1.0",
+        "nodes": {
+            "start": { "id": "start", "choices": [{ "id": "go", "label": "Go.", "goto": "hall" }] },
+            "hall": { "id": "hall", "choices": [{ "id": "go", "label": "Go.", "goto": "cut" }] },
+            "cut": { "id": "cut", "choices": [] }
+        }
+    }"#;
+    let content_v2 = r#"{
+        "startNodeId": "start",
+        "revision": "2.0",
+        "nodes": {
+            "start": { "id": "start", "choices": [{ "id": "go", "label": "Go.", "goto": "hall" }] },
+            "hall": { "id": "hall", "choices": [] }
+        }
+    }"#;
+
+    let mut engine = support::load_engine(content_v1);
+    for _ in 0..2 {
+        assert!(
+            engine
+                .submit_command(PlayerCommand::Choose {
+                    choice_id: "go".to_string(),
+                })
+                .ok
+        );
+    }
+    let save = FORMAT.encode_state(engine.get_state()).unwrap();
+
+    let mut restored = support::load_engine(content_v2);
+    let view = restored
+        .restore_stale_state(FORMAT.decode_state(&save).unwrap())
+        .unwrap();
+    assert_eq!(view.node_id, "hall");
 }
 
 #[test]

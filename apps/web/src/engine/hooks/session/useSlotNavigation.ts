@@ -6,7 +6,9 @@ import {
   rebuildEngineFromAutosave,
   restoreEngineState,
   serializeEngineState,
+  staleSaveOf,
   toErrorMessage,
+  type StaleSave,
 } from "../../lib/engine.js";
 import { logger } from "../../lib/logger.js";
 import { Profiler } from "../../lib/profiler.js";
@@ -38,11 +40,11 @@ export function useSlotNavigation(runtime: SessionRuntime) {
   } = actions;
 
   const continueSlot = useCallback(
-    async (index: number) => {
+    async (index: number, allowStale = false): Promise<StaleSave | null> => {
       const s = sessionRef.current;
-      if (s.phase !== "selecting_slot" || commandPendingRef.current) return;
+      if (s.phase !== "selecting_slot" || commandPendingRef.current) return null;
       const slotData = readSlot(index);
-      if (!slotData?.state) return;
+      if (!slotData?.state) return null;
       cancelAutosave();
       clearTransientUi();
       commandPendingRef.current = true;
@@ -53,7 +55,7 @@ export function useSlotNavigation(runtime: SessionRuntime) {
           await ensureChapterResident(chapterId);
         }
         const engine = createEngine(s.bundle);
-        const nextView = restoreEngineState(engine, slotData.state.trim());
+        const nextView = restoreEngineState(engine, slotData.state.trim(), allowStale);
         activeSlotRef.current = index;
         lastAutosaveRef.current = slotData.state.trim();
         setLastSavedAt(slotData.savedAt);
@@ -72,12 +74,21 @@ export function useSlotNavigation(runtime: SessionRuntime) {
         });
         logViewDiagnostics(nextView, "continue-slot");
       } catch (error: unknown) {
+        const stale = staleSaveOf(error);
+        if (stale) {
+          logger.warn("session", "Slot save is from another scenario revision", {
+            slot: index,
+            ...stale,
+          });
+          return stale;
+        }
         setAppStatus(toErrorMessage(error), "error");
         logger.error("session", "Slot continue failed", error);
       } finally {
         commandPendingRef.current = false;
         setMenuLoading(false);
       }
+      return null;
     },
     [
       activeSlotRef,
@@ -354,13 +365,13 @@ export function useSlotNavigation(runtime: SessionRuntime) {
   ]);
 
   const restore = useCallback(
-    (stateJson: string) => {
+    (stateJson: string, allowStale = false): StaleSave | null => {
       const s = sessionRef.current;
-      if (s.phase !== "ready" || commandPendingRef.current) return;
+      if (s.phase !== "ready" || commandPendingRef.current) return null;
       cancelAutosave();
       clearTransientUi();
       try {
-        const nextView = restoreEngineState(s.engine, stateJson.trim());
+        const nextView = restoreEngineState(s.engine, stateJson.trim(), allowStale);
         setSession({ ...s, view: nextView });
         setSavedState(stateJson);
         setLastSavedAt(null);
@@ -368,9 +379,15 @@ export function useSlotNavigation(runtime: SessionRuntime) {
         setAppStatus(t("status.restored"), "ready");
         logger.info("session", t("status.restored"), { node: nextView.node_id });
       } catch (error: unknown) {
+        const stale = staleSaveOf(error);
+        if (stale) {
+          logger.warn("session", "Restored save is from another scenario revision", stale);
+          return stale;
+        }
         setAppStatus(toErrorMessage(error), "error");
         logger.error("session", "State restore failed", error);
       }
+      return null;
     },
     [
       cancelAutosave,
