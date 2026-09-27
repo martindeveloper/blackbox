@@ -90,16 +90,19 @@ fn print_goal_results(w: &mut String, result: &SimResult) {
     wln!(w);
     for goal in &result.goal_results {
         if goal.reached {
-            let choices = goal
-                .choice_count
-                .map(|c| c.to_string())
-                .unwrap_or_else(|| "?".to_string());
+            // Only a game-over node reached by the HP→0 redirect has no choice
+            // count: it is arrived at rather than navigated to, so there is no
+            // final choice and no witness path to print.
+            let arrival = match goal.choice_count {
+                Some(count) => format!("{count} choices"),
+                None => "via death redirect".to_string(),
+            };
             wln!(
                 w,
-                "  ✓ {}  ({} states, {} choices)",
+                "  ✓ {}  ({} states, {})",
                 goal.goal_id,
                 fmt_count(goal.states_explored),
-                choices,
+                arrival,
             );
             if let Some(witness) = &goal.witness {
                 print_witness_path(w, witness);

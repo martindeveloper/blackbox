@@ -442,6 +442,26 @@ impl Distances {
             .unwrap_or(DIST_UNREACHABLE)
     }
 
+    /// Pointwise minimum — "satisfy whichever of the two is nearer".
+    pub fn min_with(&self, other: &Distances) -> Distances {
+        self.zip_with(other, std::cmp::min)
+    }
+
+    /// Pointwise maximum — "satisfy both", so a node from which either is
+    /// unreachable stays unreachable.
+    pub fn max_with(&self, other: &Distances) -> Distances {
+        self.zip_with(other, std::cmp::max)
+    }
+
+    fn zip_with(&self, other: &Distances, combine: fn(u32, u32) -> u32) -> Distances {
+        let n = self.values.len().max(other.values.len());
+        Distances {
+            values: (0..n as u32)
+                .map(|idx| combine(self.get(idx), other.get(idx)))
+                .collect(),
+        }
+    }
+
     /// Among visited node indices, return the one with smallest distance to goal.
     pub fn closest_among(&self, visited: &[u32]) -> Option<u32> {
         visited

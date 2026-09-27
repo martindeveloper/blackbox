@@ -49,7 +49,7 @@ pub fn discover_scenarios(target: &Path) -> anyhow::Result<Vec<PathBuf>> {
             continue;
         }
 
-        if looks_like_legacy_scenario(&path)? {
+        if looks_like_legacy_scenario(&path) {
             scenarios.push(path);
         }
     }
@@ -59,18 +59,42 @@ pub fn discover_scenarios(target: &Path) -> anyhow::Result<Vec<PathBuf>> {
     Ok(scenarios)
 }
 
-fn looks_like_legacy_scenario(path: &Path) -> anyhow::Result<bool> {
-    let text = std::fs::read_to_string(path)?;
-    let value: serde_json::Value = serde_json::from_str(&text)?;
+/// A directory can hold unrelated `.json` files (tsconfig, editor config, JSONC with
+/// comments), so anything unreadable or unparseable is simply not a scenario.
+fn looks_like_legacy_scenario(path: &Path) -> bool {
+    let Ok(text) = std::fs::read_to_string(path) else {
+        return false;
+    };
+    let Ok(value) = serde_json::from_str::<serde_json::Value>(&text) else {
+        return false;
+    };
     let has_graph = value.get("startNodeId").is_some() && value.get("nodes").is_some();
     let spec_ok =
         value.get("spec").and_then(|spec| spec.as_str()) == Some(blackbox_format::SCENARIO_SPEC);
-    Ok(has_graph && spec_ok)
+    has_graph && spec_ok
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn skips_json_files_that_are_not_valid_json() {
+        let dir =
+            std::env::temp_dir().join(format!("blackbox-lint-discover-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).expect("create temp dir");
+        std::fs::write(
+            dir.join("tsconfig.json"),
+            "{\n  // a comment makes this JSONC, not JSON\n  \"compilerOptions\": {}\n}\n",
+        )
+        .expect("write jsonc");
+        std::fs::write(dir.join("scenario.json"), "{}").expect("write scenario");
+
+        let scenarios = discover_scenarios(&dir).expect("discover");
+        std::fs::remove_dir_all(&dir).ok();
+
+        assert_eq!(scenarios, vec![dir.join("scenario.json")]);
+    }
 
     #[test]
     fn discovers_chaptered_scenario_folder() {

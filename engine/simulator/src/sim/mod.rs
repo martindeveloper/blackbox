@@ -748,21 +748,68 @@ fn run_goals_simulation(config: SimConfig) -> Result<SimResult> {
                     for goal_id in chunk {
                         let plan = GoalPlan::build(&graph, &content, &goal_id);
                         if !plan.statically_reachable {
-                            issues.push(SimIssue::error(
-                                IssueKind::GoalStaticallyUnreachable {
-                                    node_id: goal_id.clone(),
+                            // A game-over node is never the target of a `goto` —
+                            // the engine redirects onto it when HP hits 0 — so
+                            // "not in the static graph" is how it is supposed to
+                            // look, not a defect. Reach it the way play does.
+                            let region = death_region_node_indices(&content, &graph, &goal_id);
+                            if region.is_empty() {
+                                issues.push(SimIssue::error(
+                                    IssueKind::GoalStaticallyUnreachable {
+                                        node_id: goal_id.clone(),
+                                    },
+                                    "",
+                                ));
+                                goal_results.push(GoalResult {
+                                    goal_id,
+                                    reached: false,
+                                    statically_reachable: false,
+                                    states_explored: 0,
+                                    choice_count: None,
+                                    closest_node: None,
+                                    closest_milestone: None,
+                                    budget_exhausted: false,
+                                    missing_preconditions: Vec::new(),
+                                    required_preconditions: Vec::new(),
+                                    witness: None,
+                                });
+                                continue;
+                            }
+
+                            let region_dist = graph.distances_to_any_progression(&region);
+                            let outcome = death_search::run_death_search(
+                                &mut worker.engine,
+                                &worker.initial_state,
+                                &graph,
+                                &abstraction,
+                                &death_search::DeathTarget {
+                                    node_id: &goal_id,
+                                    region_dist: &region_dist,
                                 },
-                                "",
-                            ));
+                                goal_budget,
+                            );
+                            states += outcome.states_explored;
+                            let exhausted =
+                                !outcome.reached && outcome.states_explored >= goal_budget;
+                            budget_exhausted |= exhausted;
+                            if !outcome.reached {
+                                issues.push(SimIssue::warning(
+                                    IssueKind::UnreachableGameOver {
+                                        node_id: goal_id.clone(),
+                                    },
+                                    "no damage path drives HP to 0 in the region that \
+                                     redirects deaths here",
+                                ));
+                            }
                             goal_results.push(GoalResult {
                                 goal_id,
-                                reached: false,
-                                statically_reachable: false,
-                                states_explored: 0,
+                                reached: outcome.reached,
+                                statically_reachable: true,
+                                states_explored: outcome.states_explored,
                                 choice_count: None,
                                 closest_node: None,
                                 closest_milestone: None,
-                                budget_exhausted: false,
+                                budget_exhausted: exhausted,
                                 missing_preconditions: Vec::new(),
                                 required_preconditions: Vec::new(),
                                 witness: None,
@@ -972,6 +1019,75 @@ mod tests {
 
         assert_eq!(result.goal_results.len(), 1);
         assert!(result.goal_results[0].reached);
+    }
+
+    /// The ending is behind `Any(a, b)`, and both flags are only obtainable on
+    /// side trips taken *before* a one-way door. Past the door sits a hall of
+    /// set-once busywork, whose states all look one step from the goal.
+    ///
+    /// Guided only by distance, the search walks straight through the door and
+    /// burns the budget on the hall, because every hall state outranks the side
+    /// trips it should have taken. The disjunctive landmark is what makes those
+    /// states saturate: nothing past the door can grant `a` or `b`, so the
+    /// search backs up and collects one first.
+    #[test]
+    fn reaches_goal_behind_a_disjunctive_gate_past_a_one_way_door() {
+        let mut noise = String::new();
+        for k in 0..6 {
+            noise.push_str(&format!(
+                r#"{{"id":"noise_{k}","label":"Noise {k}","unless":{{"type":"hasFlag","flag":"n{k}","value":true}},"effects":[{{"type":"setFlag","flag":"n{k}","value":true}}],"goto":"hall"}},"#
+            ));
+        }
+        let scenario = format!(
+            r#"{{"spec":"com.blackbox.scenario","formatVersion":1,"startNodeId":"start","nodes":{{
+                "start":{{"id":"start","choices":[
+                    {{"id":"straight","label":"Straight on","goto":"door"}},
+                    {{"id":"detour_a","label":"Detour A","goto":"side_a"}},
+                    {{"id":"detour_b","label":"Detour B","goto":"side_b"}}
+                ]}},
+                "side_a":{{"id":"side_a","choices":[{{"id":"take","label":"Take","effects":[{{"type":"setFlag","flag":"a","value":true}}],"goto":"door"}}]}},
+                "side_b":{{"id":"side_b","choices":[{{"id":"take","label":"Take","effects":[{{"type":"setFlag","flag":"b","value":true}}],"goto":"door"}}]}},
+                "door":{{"id":"door","choices":[{{"id":"enter","label":"Enter","goto":"hall"}}]}},
+                "hall":{{"id":"hall","choices":[{noise}
+                    {{"id":"win","label":"Win","when":{{"type":"any","conditions":[
+                        {{"type":"hasFlag","flag":"a","value":true}},
+                        {{"type":"hasFlag","flag":"b","value":true}}
+                    ]}},"goto":"goal"}}
+                ]}},
+                "goal":{{"id":"goal","mode":"ending","choices":[]}}
+            }}}}"#
+        );
+
+        let content = blackbox_format::decode_scenario_bundle_json(
+            scenario.as_bytes(),
+            br#"{"spec":"com.blackbox.items","formatVersion":1,"items":{}}"#,
+            br#"{"spec":"com.blackbox.characters","formatVersion":1,"characters":{}}"#,
+            br#"{"spec":"com.blackbox.assets.bundle","formatVersion":1,"textures":{},"music":{},"sfx":{}}"#,
+            None::<&[u8]>,
+            None::<&[u8]>,
+            Vec::<&[u8]>::new(),
+        )
+        .expect("decode");
+
+        let result = run_simulation(SimConfig {
+            content,
+            mode: SimMode::Goals,
+            threads: 1,
+            max_states: 40,
+            // Comfortably under the 2^6 busywork states in the hall.
+            goal_budget: 40,
+            goal_target: GoalTarget::Filter(GoalFilter::Ending),
+            use_heuristic: true,
+            analytics: false,
+        })
+        .expect("simulation");
+
+        let goal = &result.goal_results[0];
+        assert!(
+            goal.reached,
+            "goal not reached in {} states, missing {:?}",
+            goal.states_explored, goal.missing_preconditions
+        );
     }
 
     #[test]

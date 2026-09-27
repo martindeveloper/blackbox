@@ -40,6 +40,7 @@ pub struct DeathTarget<'a> {
 /// is faithful — replaying the witness would diverge at forced skill checks).
 pub struct DeathSearchOutcome {
     pub reached: bool,
+    pub states_explored: usize,
     pub visited_views: Vec<(String, Vec<String>)>,
 }
 
@@ -166,6 +167,7 @@ pub fn run_death_search(
 
     DeathSearchOutcome {
         reached,
+        states_explored: states,
         visited_views,
     }
 }
